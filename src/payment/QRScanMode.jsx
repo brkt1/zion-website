@@ -7,7 +7,6 @@ import QrScanner from 'react-qr-scanner';
 const QRScanMode = () => {
     console.log("QRScanMode component rendered");
     console.log('QRScanMode component mounted');
-    const [qrCode, setQRCode] = useState('');
     const [cardDetails, setCardDetails] = useState(null);
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(false);

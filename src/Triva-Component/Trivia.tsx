@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   FaQuestionCircle, 
@@ -6,7 +6,6 @@ import {
   FaArrowRight, 
   FaTrophy, 
   FaClock,
-  FaAward,
   FaGamepad,
   FaMedal,
   FaCoffee,
@@ -17,8 +16,7 @@ import {
 import { supabase } from "../supabaseClient";
 import { useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
-import QRCodeGenerator from 'qrcode';
-import Confetti from 'react-confetti';
+import QRCode from 'qrcode';
 
 const shuffleArray = (array: any[]) => {
   return array.sort(() => Math.random() );
@@ -34,7 +32,6 @@ const TriviaGame = () => {
   const [timer, setTimer] = useState(15);
   const [playerName, setPlayerName] = useState("");
   const [playerId, setPlayerId] = useState("");
-  const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [isGameOver, setIsGameOver] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
   const [usedQuestionIndices, setUsedQuestionIndices] = useState([]);
@@ -134,13 +131,10 @@ const TriviaGame = () => {
 
       // Fetch leaderboard
       const { data } = await supabase
-
         .from("scores")
         .select("*")
         .order("score", { ascending: false })
         .limit(5);
-
-      setLeaderboard(data || []);
 
       if (data && score > (data[0]?.score || 0)) {
         setHasWonPrize(true);
@@ -149,7 +143,11 @@ const TriviaGame = () => {
       console.error("Game end error:", error);
     }
   };
-  const downloadQRCode = async () => {
+
+const downloadQRCode = async () => {
+    console.log("Download QR Code function called");
+    console.log("Player Name:", playerName);
+    console.log("Player ID:", playerId);
     try {
       // Early validation
       if (!playerName || !playerId) {
@@ -256,22 +254,20 @@ const TriviaGame = () => {
       });
   
       // QR Code generation with user information
-      const qrCanvas = await generateQRCode({
-        data: JSON.stringify({ playerName, playerId, score, hasWonCoffee, hasWonPrize }),
-        size: 250
-      });
-      // Ensure the player information is included in the QR code
+      const qrCanvas = document.createElement('canvas');
+      await QRCode.toCanvas(qrCanvas, JSON.stringify({ playerName, playerId, score, hasWonCoffee, hasWonPrize }), { width: 250, errorCorrectionLevel: 'M', margin: 1 });
   
       // Draw QR Code with enhanced styling
       ctx.shadowColor = 'rgba(0,0,0,0.3)';
       ctx.shadowBlur = 20;
+      console.log("Drawing QR Code on canvas...");
       ctx.drawImage(
-              qrCanvas as HTMLCanvasElement, 
-              (canvasWidth - 250) / 2, 
-              350, 
-              250, 
-              250
-            );
+                qrCanvas, 
+                (canvasWidth - 250) / 2, 
+                350, 
+                250, 
+                250
+              );
       ctx.shadowBlur = 0;
   
       // Footer with verification text
@@ -293,38 +289,14 @@ const TriviaGame = () => {
       link.click();
   
     } catch (error) {
-      // Enhanced error handling with toast or modal
+      console.error("Error generating QR Code:", error);
       const errorMessages = {
         'Missing player information': 'Please complete your profile',
         'default': 'Unable to generate certificate'
       };
-  
-    
     }
   };
 
-// Utility QR Code generation
-const generateQRCode = (options: { data: string; size?: number }) => {
-  const { data, size = 200 } = options;
-  return new Promise((resolve, reject) => {
-    QRCodeGenerator.toCanvas(
-      document.createElement('canvas'), 
-      data, 
-      { 
-        width: size, 
-        errorCorrectionLevel: 'M',
-        margin: 1
-      }, 
-      (error: Error | null | undefined) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(document.createElement('canvas'));
-        }
-      }
-    );
-  });
-};
   // Restart and Navigation Methods
   const restartGame = () => {
     setIsGameOver(false);
@@ -618,7 +590,7 @@ const generateQRCode = (options: { data: string; size?: number }) => {
   
         {/* Action Buttons with Enhanced Hover Effects */}
         <div className="space-y-4">
-          {[
+          {[ 
             { 
               label: "Download Winning Card", 
               icon: FaDownload, 
