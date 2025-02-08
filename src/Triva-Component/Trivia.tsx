@@ -11,7 +11,8 @@ import {
   FaCoffee,
   FaHome,
   FaDownload,
-  FaRedo
+  FaRedo,
+  FaSave
 } from "react-icons/fa";
 import { supabase } from "../supabaseClient";
 import { useNavigate } from "react-router-dom";
@@ -120,10 +121,51 @@ const TriviaGame = () => {
       setGameStarted(false);
       setIsGameOver(true);
 
-      // Check for rewards
-      if (score > 1000) setHasWonCoffee(true);
+      // Check for rewards and save winner if they won something
+      const hasWon = score > 1000;
+      if (hasWon) {
+        setHasWonCoffee(true);
+        try {
+          const { data: { session }, error: authError } = await supabase.auth.getSession();
+          
+          if (authError) {
+            console.error('Auth error:', authError);
+            return;
+          }
 
-      // Submit score
+          // Save winner automatically when they win something
+          const { error: saveError } = await supabase
+            .from("winners")
+            .insert({
+              player_name: playerName,
+              game_type: "trivia",
+              score: score,
+              // Only include user_id if we have a session
+              ...(session?.user?.id ? { user_id: session.user.id } : {})
+            });
+
+          if (saveError) {
+            if (saveError.code === '42501') {
+              console.log('Permission denied, saving without auth');
+              // Try again without user_id
+              const { error: retryError } = await supabase
+                .from("winners")
+                .insert({
+                  player_name: playerName,
+                  game_type: "trivia",
+                  score: score
+                });
+              if (retryError) throw retryError;
+            } else {
+              throw saveError;
+            }
+          }
+        } catch (error) {
+          console.error('Error saving winner:', error);
+        }
+      }
+
+      // Submit score to leaderboard
       await supabase.from("scores").insert({
         player_name: playerName,
         score: score,

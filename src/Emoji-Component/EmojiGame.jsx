@@ -3,6 +3,8 @@ import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
+import { Session } from '@supabase/supabase-js';
+import SaveWinner from '../Components/SaveWinner';
 
 const EmojiMastermind = () => {
   const navigate = useNavigate();
@@ -64,7 +66,7 @@ const EmojiMastermind = () => {
     setTimer(30); // Reset timer when a new emoji is selected
   };
 
-  const handleGuess = () => {
+  const handleGuess = async () => {
     if (!currentEmoji) return;
 
     const userGuess = guess.toLowerCase().trim();
@@ -80,6 +82,44 @@ const EmojiMastermind = () => {
       // Coffee reward after 10 correct answers
       if (score + 1 === 10) {
         setRewardMessage('☕ You earned a Coffee for answering 10 questions!');
+        try {
+          const { data: { session }, error: authError } = await supabase.auth.getSession();
+          
+          if (authError) {
+            console.error('Auth error:', authError);
+            return;
+          }
+
+          // Save winner automatically when they earn coffee
+          const { error: saveError } = await supabase
+            .from("winners")
+            .insert({
+              player_name: playerName,
+              game_type: "emoji",
+              score: score + 1,
+              // Only include user_id if we have a session
+              ...(session?.user?.id ? { user_id: session.user.id } : {})
+            });
+
+          if (saveError) {
+            if (saveError.code === '42501') {
+              console.log('Permission denied, saving without auth');
+              // Try again without user_id
+              const { error: retryError } = await supabase
+                .from("winners")
+                .insert({
+                  player_name: playerName,
+                  game_type: "emoji",
+                  score: score + 1
+                });
+              if (retryError) throw retryError;
+            } else {
+              throw saveError;
+            }
+          }
+        } catch (error) {
+          console.error('Error saving winner:', error);
+        }
       }
 
       const updatedEmojis = emojis.filter(emoji => emoji.id !== currentEmoji.id);
