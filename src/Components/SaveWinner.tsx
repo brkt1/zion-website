@@ -1,83 +1,74 @@
 import React, { useState } from 'react';
-import { supabase } from '../supabaseClient';
-import { motion } from 'framer-motion';
+import { storage } from '../utils/storage';
+import { security } from '../utils/security';
 
 interface SaveWinnerProps {
-  playerName: string;
-  gameType: 'trivia' | 'emoji';
-  score: number;
-  onSaved?: (data: any) => void;
+  winner: string;
+  onSave: (name: string) => void;
 }
 
-const SaveWinner: React.FC<SaveWinnerProps> = ({ playerName, gameType, score, onSaved }) => {
+const SaveWinner: React.FC<SaveWinnerProps> = ({ winner, onSave }) => {
+  const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
 
-  const saveWinner = async () => {
-    if (!playerName || !gameType || score === undefined) {
-      setError('Missing required information');
-      return;
-    }
-
-    if (parseInt(String(score)) <= 0) {
-      setError('Score must be a positive integer');
-      return;
-    }
-
-    setSaving(true);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     setError(null);
 
-    try {
-      const { data, error } = await supabase
-        .from('winners')
-        .insert([
-          { 
-            player_name: playerName, 
-            game_type: gameType, 
-            score: parseInt(String(score)) 
-          }
-        ]);
+    // Sanitize input
+    const sanitizedName = security.sanitizeInput(name);
+    if (!sanitizedName) {
+      setError('Please enter a valid name');
+      return;
+    }
 
-      if (error) throw error;
-      
-      onSaved && onSaved(data);
-    } catch (err) {
-      setError('Error saving winner: ' + (err as Error).message);
-    } finally {
-      setSaving(false);
+    // Get existing winners with validation
+    const winners = storage.getWinners();
+    
+    // Add new winner
+    const updatedWinners = [
+      ...winners,
+      { 
+        name: sanitizedName,
+        date: new Date().toISOString()
+      }
+    ];
+
+    // Save with validation
+    if (storage.setWinners(updatedWinners)) {
+      onSave(sanitizedName);
+    } else {
+      setError('Failed to save winner. Please try again.');
     }
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="text-center"
-    >
-      <motion.button
-        onClick={saveWinner}
-        disabled={saving}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        className={`px-6 py-3 ${saving 
-          ? 'bg-gray-500' 
-          : 'bg-gradient-to-r from-pink-500 to-purple-500'} 
-          rounded-full text-white font-bold shadow-lg 
-          hover:shadow-xl transition-all`}
-      >
-        {saving ? 'Saving...' : 'Save Score'}
-      </motion.button>
-      
-      {error && (
-        <motion.p 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="mt-2 text-red-500"
+    <div className="p-4">
+      <h2 className="text-xl font-bold mb-4">Save Winner</h2>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Enter winner's name"
+          className="border p-2 mr-2"
+          maxLength={50}
+          aria-label="Winner name"
+        />
+        <button 
+          type="submit" 
+          className="bg-green-500 text-white px-4 py-2 rounded"
+          disabled={!name.trim()}
         >
-          {error}
-        </motion.p>
-      )}
-    </motion.div>
+          Save
+        </button>
+        {error && (
+          <div className="text-red-500 mt-2" role="alert">
+            {error}
+          </div>
+        )}
+      </form>
+    </div>
   );
 };
 

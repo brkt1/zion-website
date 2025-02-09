@@ -38,6 +38,7 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",
     "@testing-library/user-event": "^14.5.2",
+    "@types/dompurify": "^3.0.5",
     "@types/jest": "^29.5.14",
     "@types/qrcode": "^1.5.5",
     "@types/react": "^18.3.18",

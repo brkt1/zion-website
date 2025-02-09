@@ -114,12 +114,48 @@ const ProtectedRoute = ({ children }) => {
 };
 
 // Main App Component
-const App = () => {
-  const [remainingTime, setRemainingTime] = useState(0);
-  const [isTimerActive, setIsTimerActive] = useState(false);
-  const timerRef = useRef(null);
-  const [isExpired, setIsExpired] = useState(false);
+const TIMER_STORAGE_KEY = 'gameTimerState';
 
+const App = () => {
+  // Initialize state from localStorage
+  const initializeTimerState = () => {
+    const savedState = localStorage.getItem(TIMER_STORAGE_KEY);
+    if (savedState) {
+      const { remainingTime: savedTime, timestamp, isActive } = JSON.parse(savedState);
+      if (savedTime > 0) {
+        const elapsedSeconds = Math.floor((Date.now() - timestamp) / 1000);
+        const newRemainingTime = Math.max(0, savedTime - (isActive ? elapsedSeconds : 0));
+        return {
+          remainingTime: newRemainingTime,
+          isTimerActive: isActive && newRemainingTime > 0,
+          isExpired: newRemainingTime <= 0
+        };
+      }
+    }
+    return { remainingTime: 0, isTimerActive: false, isExpired: false };
+  };
+
+  const { remainingTime: initialTime, isTimerActive: initialIsActive, isExpired: initialIsExpired } = initializeTimerState();
+  
+  const [remainingTime, setRemainingTime] = useState(initialTime);
+  const [isTimerActive, setIsTimerActive] = useState(initialIsActive);
+  const timerRef = useRef(null);
+  const [isExpired, setIsExpired] = useState(initialIsExpired);
+
+  // Save timer state to localStorage whenever it changes
+  useEffect(() => {
+    if (remainingTime > 0) {
+      localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify({
+        remainingTime,
+        isActive: isTimerActive,
+        timestamp: Date.now()
+      }));
+    } else {
+      localStorage.removeItem(TIMER_STORAGE_KEY);
+    }
+  }, [remainingTime, isTimerActive]);
+
+  // Handle timer countdown
   useEffect(() => {
     if (isTimerActive) {
       timerRef.current = setInterval(() => {
@@ -127,6 +163,7 @@ const App = () => {
           if (prevTime <= 0) {
             setIsExpired(true);
             clearInterval(timerRef.current);
+            localStorage.removeItem(TIMER_STORAGE_KEY);
             return 0;
           }
           return prevTime - 1;
@@ -136,6 +173,37 @@ const App = () => {
 
     return () => clearInterval(timerRef.current);
   }, [isTimerActive]);
+
+  // Handle page visibility changes
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Save current state when page is hidden
+        if (remainingTime > 0) {
+          localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify({
+            remainingTime,
+            isActive: isTimerActive,
+            timestamp: Date.now()
+          }));
+        }
+      } else {
+        // Recalculate time when page becomes visible
+        const savedState = localStorage.getItem(TIMER_STORAGE_KEY);
+        if (savedState) {
+          const { remainingTime: savedTime, timestamp, isActive } = JSON.parse(savedState);
+          const elapsedSeconds = Math.floor((Date.now() - timestamp) / 1000);
+          const newRemainingTime = Math.max(0, savedTime - (isActive ? elapsedSeconds : 0));
+          
+          setRemainingTime(newRemainingTime);
+          setIsTimerActive(isActive && newRemainingTime > 0);
+          setIsExpired(newRemainingTime <= 0);
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [remainingTime, isTimerActive]);
 
   useEffect(() => {
     if (isExpired) {
