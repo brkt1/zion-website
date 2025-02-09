@@ -1,16 +1,26 @@
-import React, { useState, useContext, useCallback, useEffect } from 'react';
+    import React, { useState, useContext, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { TimeContext } from '../App';
 import QrScanner from 'react-qr-scanner';
 
+// Define default props as parameters
+const defaultScannerProps = {
+    style: { width: '100%' },
+    constraints: {
+        video: {
+            facingMode: 'environment'
+        }
+    },
+    delay: 500,
+    resolution: 600,
+    willReadFrequently: true // Add this to address Canvas2D warning
+};
+
 const QRScanMode = () => {
-    console.log("QRScanMode component rendered");
-    console.log('QRScanMode component mounted');
     const [cardDetails, setCardDetails] = useState(null);
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
-    console.log("Loading state:", isLoading);
     const [cameraPermission, setCameraPermission] = useState(false);
     const navigate = useNavigate();
     const { startTimer } = useContext(TimeContext);
@@ -30,7 +40,6 @@ const QRScanMode = () => {
                 setCameraPermission(true);
                 stream.getTracks().forEach(track => track.stop());
             } catch (err) {
-                console.log('Camera permission denied');
                 setCameraPermission(false);
                 setError('Camera permission denied');
             }
@@ -55,7 +64,6 @@ const QRScanMode = () => {
             } else if (typeof scannedData === 'object') {
                 cardData = scannedData;
             } else {
-                console.log('Invalid QR code format');
                 setError('Invalid QR code format');
                 setIsLoading(false);
                 return;
@@ -77,14 +85,12 @@ const QRScanMode = () => {
                 .single();
 
             if (error || !data) {
-                console.log('Card not found');
                 setError('Card not found');
                 setIsLoading(false);
                 return;
             }
 
             if (data.used) {
-                console.log('Card has already been used');
                 setError('Card has already been used');
                 setIsLoading(false);
                 return;
@@ -109,12 +115,10 @@ const QRScanMode = () => {
                     },
                 });
             } else {
-                console.log('Invalid game type');
                 setError('Invalid game type');
             }
         } catch (err) {
             console.error('Error verifying card number:', err);
-            console.log('Error processing card');
             setError('Error processing card');
         } finally {
             setIsLoading(false);
@@ -122,15 +126,12 @@ const QRScanMode = () => {
     }, [navigate, startTimer]);
 
     const handleScan = useCallback((data) => {
-        console.log("Scan data received:", data);
         if (data) {
             try {
-                console.log('Scanned data:', data);
                 const scanText = typeof data === 'object' ? data.text : data;
                 const parsedData = JSON.parse(scanText);
                 verifyQRCode(parsedData);
             } catch (error) {
-                console.log('Parsing failed, trying direct verification');
                 verifyQRCode(data);
             }
         }
@@ -138,8 +139,6 @@ const QRScanMode = () => {
 
     const handleError = (err) => {
         console.error("Scanning error:", err);
-        console.error('Scanning error:', err);
-        console.log('Error scanning QR code');
         setError('Error scanning QR code');
     };
 
@@ -194,9 +193,9 @@ const QRScanMode = () => {
 
                         <div className="mb-6 border-4 border-blue-200 rounded-lg overflow-hidden">
                             <QrScanner
+                                {...defaultScannerProps}
                                 onScan={handleScan}
                                 onError={handleError}
-                                style={{ width: '100%' }}
                             />
                         </div>
 
