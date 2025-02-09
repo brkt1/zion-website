@@ -18,10 +18,35 @@ const QRScanMode = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [scanner, setScanner] = useState(null);
     const [hasScanned, setHasScanned] = useState(false);
+    const [cameras, setCameras] = useState([]);
+    const [selectedCamera, setSelectedCamera] = useState(null);
     const videoRef = useRef(null);
     const navigate = useNavigate();
     const { startTimer } = useContext(TimeContext);
     const location = useLocation();
+
+    const getCameras = async () => {
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const videoDevices = devices.filter(device => device.kind === 'videoinput');
+            setCameras(videoDevices);
+            
+            // Select environment camera by default, or first available camera
+            const defaultCamera = videoDevices.find(device => 
+                device.label.toLowerCase().includes('back') || 
+                device.label.toLowerCase().includes('environment')
+            ) || videoDevices[0];
+            
+            setSelectedCamera(defaultCamera?.deviceId);
+        } catch (err) {
+            console.error('Error getting cameras:', err);
+        }
+    };
+
+    // Call getCameras when component mounts
+    useEffect(() => {
+        getCameras();
+    }, []);
 
     useEffect(() => {
         const checkExistingGame = async () => {
@@ -84,46 +109,89 @@ const QRScanMode = () => {
         }
     }, [navigate, GAME_ROUTES, location]);
 
+    // Check if the browser supports the required APIs
+    const checkBrowserSupport = () => {
+        if (!navigator.mediaDevices?.getUserMedia) {
+            setError('Camera access is not supported in this browser. Please try using a modern browser.');
+            return false;
+        }
+        return true;
+    };
+
+    const requestCameraAccess = async () => {
+        setIsLoading(true);
+        try {
+            if (!checkBrowserSupport()) {
+                return false;
+            }
+
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: 'environment' } 
+            });
+            // Immediately stop the unused stream (QrScanner will create its own)
+            stream.getTracks().forEach(track => track.stop());
+            setIsLoading(false);
+            return true;
+        } catch (err) {
+            console.error('Camera access error:', err);
+            setError(
+                err.name === 'NotAllowedError'
+                    ? 'Camera access was denied. Please enable permissions in your browser settings.'
+                    : 'Failed to access camera. Please make sure your camera is connected and not in use.'
+            );
+            setIsLoading(false);
+            return false;
+        }
+    };
+
     useEffect(() => {
         const setupScanner = async () => {
             try {
                 if (!videoRef.current) return;
 
+                // Request camera permission first
+                const hasPermission = await requestCameraAccess();
+                if (!hasPermission) return;
+
                 const qrScanner = new QrScanner(
                     videoRef.current,
                     result => {
-                        if (result?.data) {
+                        if (result?.data && !hasScanned) {
                             handleScan(result.data);
                         }
                     },
                     {
-                        preferredCamera: 'environment',
+                        preferredCamera: selectedCamera || 'environment',
                         highlightScanRegion: true,
-                        highlightCodeOutline: true,
                         maxScansPerSecond: 3,
+                        returnDetailedScanResult: true
                     }
                 );
 
                 await qrScanner.start();
                 setScanner(qrScanner);
-
-                return () => {
-                    qrScanner.destroy();
-                };
             } catch (err) {
-                console.error('Error setting up scanner:', err);
-                setError('Failed to initialize camera. Please check permissions.');
+                console.error('Scanner setup error:', err);
+                setError('Failed to initialize camera. Please refresh and allow camera access.');
             }
         };
 
-        setupScanner();
+        const initScanner = async () => {
+            await setupScanner();
+        };
+
+        initScanner();
 
         return () => {
             if (scanner) {
                 scanner.destroy();
             }
+            // Clean up any media tracks
+            if (videoRef.current?.srcObject) {
+                videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+            }
         };
-    }, []);
+    }, [selectedCamera, hasScanned]);
 
     const verifyQRCode = useCallback(async (scannedData) => {
         setIsLoading(true);
@@ -230,8 +298,15 @@ const QRScanMode = () => {
 
     const handleRetry = async () => {
         setError(null);
-        if (scanner) {
-            await scanner.start();
+        setHasScanned(false);
+        
+        try {
+            const hasPermission = await requestCameraAccess();
+            if (hasPermission && scanner) {
+                await scanner.start();
+            }
+        } catch (err) {
+            setError('Failed to restart camera. Please check permissions.');
         }
     };
 
@@ -292,6 +367,14 @@ const QRScanMode = () => {
                         {error && (
                             <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg mb-4">
                                 <p>{error}</p>
+                                {error.includes('permissions') && (
+                                    <button
+                                        onClick={handleRetry}
+                                        className="mt-2 text-red-700 underline hover:text-red-900"
+                                    >
+                                        Click here to try again
+                                    </button>
+                                )}
                             </div>
                         )}
 
