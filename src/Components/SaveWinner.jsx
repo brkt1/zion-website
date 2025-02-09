@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { motion } from 'framer-motion';
 
-const SaveWinner = ({ playerName, gameType, score, onSaved }) => {
+const SaveWinner = ({ playerName, gameType, score, hasWonCoffee, hasWonPrize, onSaved }) => {
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
 
   const saveWinner = async () => {
     if (!playerName || !gameType || score === undefined) {
-      setError('Missing required information');
+      setError('Missing required information: name, game type, and score are required');
       return;
     }
 
@@ -27,7 +27,9 @@ const SaveWinner = ({ playerName, gameType, score, onSaved }) => {
           { 
             player_name: playerName, 
             game_type: gameType, 
-            score: parseInt(score) 
+            score: parseInt(score),
+            won_coffee: hasWonCoffee || false,
+            won_prize: hasWonPrize || false
           }
         ]);
 

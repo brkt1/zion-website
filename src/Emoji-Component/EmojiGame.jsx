@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
-import SaveWinner from '../Components/SaveWinner';
+import CertificateGenerator from '../Components/CertificateGenerator';
 
 const EmojiMastermind = () => {
   const navigate = useNavigate();
@@ -97,6 +97,8 @@ const EmojiMastermind = () => {
               player_name: playerName,
               game_type: "emoji",
               score: score + 1,
+              won_coffee: true,
+              won_prize: false,
               // Only include user_id if we have a session
               ...(session?.user?.id ? { user_id: session.user.id } : {})
             });
@@ -110,7 +112,9 @@ const EmojiMastermind = () => {
                 .insert({
                   player_name: playerName,
                   game_type: "emoji",
-                  score: score + 1
+                  score: score + 1,
+                  won_coffee: true,
+                  won_prize: false
                 });
               if (retryError) throw retryError;
             } else {
@@ -385,14 +389,25 @@ const EmojiMastermind = () => {
               </h2>
               <p className="text-xl mb-6">Your Score: {score}</p>
               <p className="text-lg mb-4">{feedback}</p>
-              <motion.button
-                onClick={handleBackButtonClick}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full text-white"
-              >
-                Back to Menu
-              </motion.button>
+              <div className="space-y-4">
+                <CertificateGenerator
+                  playerName={playerName}
+                  playerId={currentEmoji?.id || 'emoji-player'}
+                  score={score}
+                  hasWonCoffee={score >= 10}
+                  hasWonPrize={false}
+                  gameType="emoji"
+                  onError={(error) => console.error('Certificate error:', error)}
+                />
+                <motion.button
+                  onClick={handleBackButtonClick}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full text-white"
+                >
+                  Back to Menu
+                </motion.button>
+              </div>
             </motion.div>
           )}
         </motion.div>

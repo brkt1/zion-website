@@ -17,7 +17,7 @@ import {
 import { supabase } from "../supabaseClient";
 import { useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
-import QRCode from 'qrcode';
+import CertificateGenerator from '../Components/CertificateGenerator';
 
 const shuffleArray = (array: any[]) => {
   return array.sort(() => Math.random() );
@@ -140,6 +140,8 @@ const TriviaGame = () => {
               player_name: playerName,
               game_type: "trivia",
               score: score,
+              won_coffee: hasWonCoffee,
+              won_prize: hasWonPrize,
               // Only include user_id if we have a session
               ...(session?.user?.id ? { user_id: session.user.id } : {})
             });
@@ -153,7 +155,9 @@ const TriviaGame = () => {
                 .insert({
                   player_name: playerName,
                   game_type: "trivia",
-                  score: score
+                  score: score,
+                  won_coffee: hasWonCoffee,
+                  won_prize: hasWonPrize
                 });
               if (retryError) throw retryError;
             } else {
@@ -186,158 +190,14 @@ const TriviaGame = () => {
     }
   };
 
-const downloadQRCode = async () => {
-    console.log("Download QR Code function called");
-    console.log("Player Name:", playerName);
-    console.log("Player ID:", playerId);
-    try {
-      // Early validation
-      if (!playerName || !playerId) {
-        throw new Error('Missing player information');
-      }
-  
-      // Create high-resolution canvas with modern, responsive design
-      const canvas = document.createElement('canvas');
-      const pixelRatio = window.devicePixelRatio || 1;
-      const canvasWidth = 600;
-      const canvasHeight = 800;
-  
-      canvas.width = canvasWidth * pixelRatio;
-      canvas.height = canvasHeight * pixelRatio;
-      canvas.style.width = `${canvasWidth}px`;
-      canvas.style.height = `${canvasHeight}px`;
-      
-      const ctx = canvas.getContext('2d')!;
-      ctx.scale(pixelRatio, pixelRatio);
-  
-      // Modern color palette with depth
-      const theme = {
-        background: {
-          start: '#1E3A8A',  // Deep blue
-          end: '#0F172A'     // Dark navy
-        },
-        primary: '#3B82F6',  // Vibrant blue
-        secondary: '#10B981', // Emerald green
-        accent: '#6366F1',   // Indigo
-        text: {
-          light: '#F9FAFB',  // Almost white
-          muted: '#D1D5DB'   // Light gray
-        }
-      };
-  
-      // Sophisticated gradient background
-      const gradient = ctx.createLinearGradient(0, 0, 0, canvasHeight);
-      gradient.addColorStop(0, theme.background.start);
-      gradient.addColorStop(1, theme.background.end);
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-  
-      // Advanced text rendering with enhanced typography
-      const renderText = (text: string, y: number, options: { size?: number; color?: string; weight?: string; align?: CanvasTextAlign } = {}) => {
-        const { 
-          size = 24, 
-          color = theme.text.light, 
-          weight = '400',
-          align = 'center'
-        } = options;
-  
-        ctx.font = `${weight} ${size}px 'Inter', 'Helvetica Neue', sans-serif`;
-        ctx.fillStyle = color;
-        ctx.textAlign = align;
-        ctx.fillText(text, canvasWidth / 2, y);
-      };
-  
-      // Decorative elements
-      const drawDecorativeShapes = () => {
-        // Subtle geometric shapes
-        ctx.beginPath();
-        ctx.moveTo(50, 50);
-        ctx.lineTo(canvasWidth - 50, 50);
-        ctx.lineTo(canvasWidth - 75, 75);
-        ctx.lineTo(75, 75);
-        ctx.closePath();
-        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-  
-        // Corner accent elements
-        ctx.beginPath();
-        ctx.arc(50, 50, 20, 0, Math.PI * 2);
-        ctx.arc(canvasWidth - 50, 50, 20, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255,255,255,0.05)';
-        ctx.fill();
-      };
-  
-      // Draw decorative elements
-      drawDecorativeShapes();
-  
-      // Render certificate elements with improved styling
-      renderText('🏆 Trivia Champion', 120, { 
-        size: 42, 
-        color: theme.primary, 
-        weight: '700' 
-      });
-  
-      renderText(`Congratulations, ${playerName}!`, 180, { 
-        size: 32,
-        color: theme.text.light,
-        weight: '500'
-      });
-  
-      renderText(`Player ID: ${playerId}`, 230, { 
-        size: 24, 
-        color: theme.secondary 
-      });
-  
-      renderText(`Score: ${score} points and ${hasWonCoffee ? 'coffee' : ''} ${hasWonPrize ? '1k prize' : ''}`, 280, { 
-        size: 36, 
-        weight: '600', 
-        color: theme.accent 
-      });
-  
-      // QR Code generation with user information
-      const qrCanvas = document.createElement('canvas');
-      await QRCode.toCanvas(qrCanvas, JSON.stringify({ playerName, playerId, score, hasWonCoffee, hasWonPrize }), { width: 250, errorCorrectionLevel: 'M', margin: 1 });
-  
-      // Draw QR Code with enhanced styling
-      ctx.shadowColor = 'rgba(0,0,0,0.3)';
-      ctx.shadowBlur = 20;
-      console.log("Drawing QR Code on canvas...");
-      ctx.drawImage(
-                qrCanvas, 
-                (canvasWidth - 250) / 2, 
-                350, 
-                250, 
-                250
-              );
-      ctx.shadowBlur = 0;
-  
-      // Footer with verification text
-      renderText('Official Digital Certificate', 650, { 
-        size: 20, 
-        color: theme.text.muted 
-      });
-  
-      renderText('Verified by Zione', 690, { 
-        size: 16, 
-        color: 'rgba(255,255,255,0.5)' 
-      });
-  
-      // Download certificate
-      const filename = `trivia_champion_${playerName.replace(/\s+/g, '_')}.png`;
-      const link = document.createElement('a');
-      link.href = canvas.toDataURL('image/png');
-      link.download = filename;
-      link.click();
-  
-    } catch (error) {
-      console.error("Error generating QR Code:", error);
-      const errorMessages = {
-        'Missing player information': 'Please complete your profile',
-        'default': 'Unable to generate certificate'
-      };
-    }
+const handleCertificateError = (error: Error) => {
+  console.error("Error generating certificate:", error);
+  const errorMessages = {
+    'Missing player information': 'Please complete your profile',
+    'default': 'Unable to generate certificate'
   };
+  // Handle error display to user here
+};
 
   // Restart and Navigation Methods
   const restartGame = () => {
@@ -632,13 +492,16 @@ const downloadQRCode = async () => {
   
         {/* Action Buttons with Enhanced Hover Effects */}
         <div className="space-y-4">
-          {[ 
-            { 
-              label: "Download Winning Card", 
-              icon: FaDownload, 
-              onClick: downloadQRCode, 
-              color: "bg-blue-600 hover:bg-blue-700" 
-            },
+          <CertificateGenerator
+            playerName={playerName}
+            playerId={playerId}
+            score={score}
+            hasWonCoffee={hasWonCoffee}
+            hasWonPrize={hasWonPrize}
+            gameType="trivia"
+            onError={handleCertificateError}
+          />
+          {[
             { 
               label: "Restart Game", 
               icon: FaRedo, 

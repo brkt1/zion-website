@@ -12,9 +12,11 @@ import TruthOrDare from "./TruthandDear-Component/TruthOrDare";
 import EmojiGame from "./Emoji-Component/EmojiGame";
 import QRScanMode from "./payment/QRScanMode"; 
 import Landing from "./MainLanding";
-export const TimeContext = createContext();
 import CardGenerator from "./payment/CardGenerator";
 import TriviaGame from "./Triva-Component/Trivia";
+import CafeOwnerCheckWinner from "./Components/CafeOwnerCheckWinner";
+
+export const TimeContext = createContext();
 
 const formatTime = (seconds) => {
   const minutes = Math.floor(seconds / 60);
@@ -280,6 +282,10 @@ const App = () => {
                 <EmojiGame />
               </ProtectedRoute>
             } 
+          />
+          <Route 
+            path="/cafe-owner/check-winner" 
+            element={<CafeOwnerCheckWinner />} 
           />
         </Routes>
       </BrowserRouter>

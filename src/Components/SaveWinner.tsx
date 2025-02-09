@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
 import { storage } from '../utils/storage';
 import { security } from '../utils/security';
+import { v4 as uuidv4 } from 'uuid';
+import { supabase } from '../supabaseClient';
 
 interface SaveWinnerProps {
   winner: string;
-  onSave: (name: string) => void;
+  onSave: (name: string, playerId: string) => void;
 }
 
 const SaveWinner: React.FC<SaveWinnerProps> = ({ winner, onSave }) => {
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -22,23 +24,47 @@ const SaveWinner: React.FC<SaveWinnerProps> = ({ winner, onSave }) => {
       return;
     }
 
-    // Get existing winners with validation
-    const winners = storage.getWinners();
-    
-    // Add new winner
-    const updatedWinners = [
-      ...winners,
-      { 
-        name: sanitizedName,
-        date: new Date().toISOString()
-      }
-    ];
+    // Generate playerId
+    const playerId = uuidv4();
 
-    // Save with validation
-    if (storage.setWinners(updatedWinners)) {
-      onSave(sanitizedName);
-    } else {
-      setError('Failed to save winner. Please try again.');
+    try {
+      // Get user session if available
+      const { data: { session }, error: authError } = await supabase.auth.getSession();
+      if (authError) throw authError;
+
+      // Save winner to Supabase
+      const { error: saveError } = await supabase
+        .from("winners")
+        .insert({
+          player_name: sanitizedName,
+          player_id: playerId,
+          game_type: "trivia",
+          ...(session?.user?.id ? { user_id: session.user.id } : {})
+        });
+
+      if (saveError) throw saveError;
+
+      // Get existing winners with validation
+      const winners = storage.getWinners();
+      
+      // Add new winner
+      const updatedWinners = [
+        ...winners,
+        { 
+          name: sanitizedName,
+          playerId: playerId,
+          date: new Date().toISOString()
+        }
+      ];
+
+      // Save with validation
+      if (storage.setWinners(updatedWinners)) {
+        onSave(sanitizedName, playerId);
+      } else {
+        setError('Failed to save winner. Please try again.');
+      }
+    } catch (err) {
+      setError('Failed to save winner: ' + (err as Error).message);
     }
   };
 
