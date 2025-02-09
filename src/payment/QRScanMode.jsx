@@ -1,23 +1,15 @@
-import React, { useState, useContext, useCallback, useEffect } from 'react';
+import React, { useState, useContext, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { TimeContext } from '../App';
-import QrScanner from 'react-qr-scanner';
+import QrScanner from 'qr-scanner';
 
-const QRScanMode = ({
-    delay = 500,
-    resolution = 600,
-    style = { width: '100%' },
-    constraints = {
-        video: {
-            facingMode: 'environment'
-        }
-    }
-}) => {
+const QRScanMode = () => {
     const [cardDetails, setCardDetails] = useState(null);
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [cameraPermission, setCameraPermission] = useState(false);
+    const [scanner, setScanner] = useState(null);
+    const videoRef = useRef(null);
     const navigate = useNavigate();
     const { startTimer } = useContext(TimeContext);
 
@@ -28,20 +20,45 @@ const QRScanMode = ({
         4: '/emoji-game',
     };
 
-    // Check camera permissions on component mount
     useEffect(() => {
-        const checkCameraPermission = async () => {
+        const setupScanner = async () => {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                setCameraPermission(true);
-                stream.getTracks().forEach(track => track.stop());
+                if (!videoRef.current) return;
+
+                const qrScanner = new QrScanner(
+                    videoRef.current,
+                    result => {
+                        if (result?.data) {
+                            handleScan(result.data);
+                        }
+                    },
+                    {
+                        preferredCamera: 'environment',
+                        highlightScanRegion: true,
+                        highlightCodeOutline: true,
+                        maxScansPerSecond: 3,
+                    }
+                );
+
+                await qrScanner.start();
+                setScanner(qrScanner);
+
+                return () => {
+                    qrScanner.destroy();
+                };
             } catch (err) {
-                setCameraPermission(false);
-                setError('Camera permission denied');
+                console.error('Error setting up scanner:', err);
+                setError('Failed to initialize camera. Please check permissions.');
             }
         };
 
-        checkCameraPermission();
+        setupScanner();
+
+        return () => {
+            if (scanner) {
+                scanner.destroy();
+            }
+        };
     }, []);
 
     const verifyQRCode = useCallback(async (scannedData) => {
@@ -104,6 +121,10 @@ const QRScanMode = ({
 
             const gameRoute = GAME_ROUTES[data.game_type];
             if (gameRoute) {
+                if (scanner) {
+                    scanner.destroy();
+                }
+                
                 navigate(gameRoute, {
                     state: {
                         cardDetails: data,
@@ -119,24 +140,18 @@ const QRScanMode = ({
         } finally {
             setIsLoading(false);
         }
-    }, [navigate, startTimer]);
+    }, [navigate, startTimer, scanner]);
 
     const handleScan = useCallback((data) => {
         if (data) {
             try {
-                const scanText = typeof data === 'object' ? data.text : data;
-                const parsedData = JSON.parse(scanText);
+                const parsedData = JSON.parse(data);
                 verifyQRCode(parsedData);
             } catch (error) {
                 verifyQRCode(data);
             }
         }
     }, [verifyQRCode]);
-
-    const handleError = (err) => {
-        console.error("Scanning error:", err);
-        setError('Error scanning QR code');
-    };
 
     const handleManualEntry = () => {
         const manualCardNumber = prompt('Enter Card Number:');
@@ -145,30 +160,12 @@ const QRScanMode = ({
         }
     };
 
-    if (!cameraPermission) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center p-4">
-                <div className="bg-white rounded-xl shadow-2xl p-8 text-center max-w-md w-full">
-                    <div className="mb-6">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                    </div>
-                    <h2 className="text-2xl font-bold text-gray-800 mb-4">Camera Access Required</h2>
-                    <p className="text-gray-600 mb-6">Please grant camera permissions to scan QR codes</p>
-                    <button 
-                        className="w-full bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105 flex items-center justify-center space-x-2"
-                        onClick={() => window.location.reload()}
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
-                        </svg>
-                        <span>Retry</span>
-                    </button>
-                </div>
-            </div>
-        );
-    }
+    const handleRetry = async () => {
+        setError(null);
+        if (scanner) {
+            await scanner.start();
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center p-4">
@@ -187,26 +184,38 @@ const QRScanMode = ({
                             </div>
                         )}
 
-                        <div className="mb-6 border-4 border-blue-200 rounded-lg overflow-hidden">
-                            <QrScanner
-                                delay={delay}
-                                resolution={resolution}
-                                style={style}
-                                constraints={constraints}
-                                onScan={handleScan}
-                                onError={handleError}
+                        <div className="mb-6 border-4 border-blue-200 rounded-lg overflow-hidden relative">
+                            <video 
+                                ref={videoRef}
+                                className="w-full h-64 object-cover"
                             />
+                            <div className="absolute inset-0 pointer-events-none">
+                                <div className="absolute inset-0 border-2 border-blue-500 opacity-30"></div>
+                                <div className="absolute left-1/4 right-1/4 top-1/4 bottom-1/4 border-2 border-blue-500"></div>
+                            </div>
                         </div>
 
-                        <button 
-                            onClick={handleManualEntry}
-                            className="w-full bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105 flex items-center justify-center space-x-2 mb-4"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                            </svg>
-                            <span>Manual Card Entry</span>
-                        </button>
+                        <div className="flex space-x-4 mb-4">
+                            <button 
+                                onClick={handleManualEntry}
+                                className="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105 flex items-center justify-center space-x-2"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                </svg>
+                                <span>Manual Entry</span>
+                            </button>
+
+                            <button 
+                                onClick={handleRetry}
+                                className="flex-1 bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600 transition duration-300 ease-in-out transform hover:scale-105 flex items-center justify-center space-x-2"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                                </svg>
+                                <span>Retry Scan</span>
+                            </button>
+                        </div>
 
                         {error && (
                             <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg mb-4">
