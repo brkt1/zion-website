@@ -3,7 +3,6 @@ import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
-import { Session } from '@supabase/supabase-js';
 import SaveWinner from '../Components/SaveWinner';
 
 const EmojiMastermind = () => {
@@ -22,6 +21,7 @@ const EmojiMastermind = () => {
   const [gameOver, setGameOver] = useState(false);
   const [hintString, setHintString] = useState('');
   const [timer, setTimer] = useState(30); // Timer state
+  const [playerName, setPlayerName] = useState('Anonymous Player'); // Default player name
 
   // Fetch emojis from Supabase
   const fetchEmojis = async () => {
@@ -241,14 +241,21 @@ const EmojiMastermind = () => {
     <div className="mb-6 text-lg text-white/90">
       <p className="font-semibold">💡 <strong>Rewards:</strong></p>
       <ul className="list-inside list-disc space-y-2">
-       
         <motion.li 
           initial={{ opacity: 0, y: 10 }} 
           animate={{ opacity: 1, y: 0 }} 
           transition={{ duration: 0.5, delay: 0.2 }} 
         >After 10 correct answers, get a Coffee! ☕</motion.li>
-     
       </ul>
+    </div>
+    <div className="mb-6">
+      <input
+        type="text"
+        value={playerName}
+        onChange={(e) => setPlayerName(e.target.value)}
+        placeholder="Enter your name..."
+        className="w-full py-3 px-4 bg-white/10 rounded-xl text-center text-xl focus:outline-none focus:ring-2 focus:ring-pink-500 text-white placeholder-white/50"
+      />
     </div>
     <motion.button
       onClick={handleStartGame}

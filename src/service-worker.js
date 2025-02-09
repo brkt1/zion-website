@@ -1,24 +1,62 @@
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open('v1').then((cache) => {
-      return cache.addAll([
-        '/',
-        '/index.html',
-        '/manifest.json',
-        '/vite.svg',
-        '/src/App.css',
-        '/src/index.css',
-        '/public/zionlogo.png', // Ensure the logo is cached
-        // Add other assets and files to cache as needed
-      ]);
-    })
-  );
-});
+import { clientsClaim } from 'workbox-core'
+import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL } from 'workbox-precaching'
+import { registerRoute, NavigationRoute } from 'workbox-routing'
+import { CacheFirst, NetworkFirst } from 'workbox-strategies'
+import { CacheableResponsePlugin } from 'workbox-cacheable-response'
+import { ExpirationPlugin } from 'workbox-expiration'
 
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
-  );
-});
+// Use with precache injection
+self.skipWaiting()
+clientsClaim()
+
+// Clean up old caches
+cleanupOutdatedCaches()
+
+// Precache all assets
+precacheAndRoute(self.__WB_MANIFEST)
+
+// Cache static assets
+registerRoute(
+  ({ request }) => 
+    request.destination === 'style' ||
+    request.destination === 'script' ||
+    request.destination === 'image',
+  new CacheFirst({
+    cacheName: 'static-resources',
+    plugins: [
+      new CacheableResponsePlugin({
+        statuses: [0, 200]
+      }),
+      new ExpirationPlugin({
+        maxAgeSeconds: 30 * 24 * 60 * 60 // 30 days
+      })
+    ]
+  })
+)
+
+// Network first for HTML navigation
+registerRoute(
+  new NavigationRoute(
+    createHandlerBoundToURL('/index.html'),
+    {
+      allowlist: [/^\/$/],
+    }
+  )
+)
+
+// Network first for API requests
+registerRoute(
+  ({ url }) => url.pathname.startsWith('/api/'),
+  new NetworkFirst({
+    cacheName: 'api-cache',
+    plugins: [
+      new CacheableResponsePlugin({
+        statuses: [0, 200]
+      }),
+      new ExpirationPlugin({
+        maxEntries: 50,
+        maxAgeSeconds: 5 * 60 // 5 minutes
+      })
+    ]
+  })
+)

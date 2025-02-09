@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useRef } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom"; 
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom"; 
 import { motion } from 'framer-motion';
 import Lovers from "./TruthandDear-Component/Lovers";
 import RockPaperScissors from "./Components/RockPaperScissors";
@@ -37,7 +37,7 @@ const TimeDisplay = ({ remainingTime }) => {
     }
 
     if (remainingTime <= 0) {
-      navigate('/'); // Change '/' to your actual landing page route
+      navigate('/');
     }
   }, [remainingTime, navigate]);
 
@@ -171,7 +171,7 @@ const App = () => {
         isExpired 
       }}
     >
-      <Router>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         {isTimerActive && (
           <TimeDisplay remainingTime={remainingTime} />
         )}
@@ -182,7 +182,7 @@ const App = () => {
           <Route path="/game-mode" element={<LoveGameMode />} />
           <Route path="/friends-game-mode" element={<FriendsGameMode />} />
           <Route path="/game-screen" element={<GameScreen />} />
-          <Route path='/card-generator' element={<CardGenerator />} />
+          <Route path="/card-generator" element={<CardGenerator />} />
           <Route path="/qr-scan" element={<QRScanMode />} />
           <Route 
             path="/trivia-game" 
@@ -217,7 +217,7 @@ const App = () => {
             } 
           />
         </Routes>
-      </Router>
+      </BrowserRouter>
     </TimeContext.Provider>
   );
 };
