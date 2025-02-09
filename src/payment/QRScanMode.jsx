@@ -1,23 +1,19 @@
-    import React, { useState, useContext, useCallback, useEffect } from 'react';
+import React, { useState, useContext, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { TimeContext } from '../App';
 import QrScanner from 'react-qr-scanner';
 
-// Define default props as parameters
-const defaultScannerProps = {
-    style: { width: '100%' },
-    constraints: {
+const QRScanMode = ({
+    delay = 500,
+    resolution = 600,
+    style = { width: '100%' },
+    constraints = {
         video: {
             facingMode: 'environment'
         }
-    },
-    delay: 500,
-    resolution: 600,
-    willReadFrequently: true // Add this to address Canvas2D warning
-};
-
-const QRScanMode = () => {
+    }
+}) => {
     const [cardDetails, setCardDetails] = useState(null);
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -193,7 +189,10 @@ const QRScanMode = () => {
 
                         <div className="mb-6 border-4 border-blue-200 rounded-lg overflow-hidden">
                             <QrScanner
-                                {...defaultScannerProps}
+                                delay={delay}
+                                resolution={resolution}
+                                style={style}
+                                constraints={constraints}
                                 onScan={handleScan}
                                 onError={handleError}
                             />
