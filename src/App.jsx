@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect, useRef } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom"; 
 import { motion } from 'framer-motion';
 import Lovers from "./TruthandDear-Component/Lovers";
+import ThankYou from "./Components/ThankYou";
 import RockPaperScissors from "./Components/RockPaperScissors";
 import Friends from "./TruthandDear-Component/Friends";
 import LoveGameMode from "./TruthandDear-Component/LoveGameMode";
@@ -35,9 +36,8 @@ const TimeDisplay = ({ remainingTime }) => {
         navigator.vibrate([200, 100, 200]);
       }
     }
-
     if (remainingTime <= 0) {
-      navigate('/');
+      navigate('/thank-you');
     }
   }, [remainingTime, navigate]);
 
@@ -205,11 +205,7 @@ const App = () => {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [remainingTime, isTimerActive]);
 
-  useEffect(() => {
-    if (isExpired) {
-      window.location.href = '/';
-    }
-  }, [isExpired]);
+  // Remove automatic navigation on expiry to let user choose
 
   const startTimer = (initialTime) => {
     setRemainingTime(initialTime);
@@ -245,6 +241,7 @@ const App = () => {
         )}
         <Routes>
           <Route path="/" element={<Landing />} />
+          <Route path="/thank-you" element={<ThankYou />} />
           <Route path="/lovers" element={<Lovers />} />
           <Route path="/friends" element={<Friends />} />
           <Route path="/game-mode" element={<LoveGameMode />} />
