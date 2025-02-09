@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaHeart, FaFire, FaArrowLeft, FaDice } from "react-icons/fa";
+import { supabase } from "../supabaseClient";
 
 const LoverGameMode = () => {
-  const { supabase } = require("../supabaseClient");
   const navigate = useNavigate();
   const location = useLocation();
   const { subtype } = location.state || {};

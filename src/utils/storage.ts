@@ -1,7 +1,7 @@
 /**
  * Secure storage utilities with error handling and validation
  */
-import { validateGameState, validateWinnersList, ValidationResult } from './validation';
+import { validateGameState, validateWinnersList, validateCardData, ValidationResult } from './validation';
 
 interface StorageError extends Error {
   type: 'STORAGE_ERROR' | 'VALIDATION_ERROR' | 'PARSE_ERROR';
@@ -112,6 +112,60 @@ export const storage = {
       console.error('Error clearing game data:', error);
       return false;
     }
+  },
+
+  /**
+   * Get saved card data with validation
+   */
+  getCards: () => {
+    const cards = storage.get<Array<{ cardNumber: string; timestamp: number }>>('cards', (data) => {
+      if (!Array.isArray(data)) {
+        return { isValid: false, error: 'Cards must be an array' };
+      }
+
+      for (const card of data) {
+        const validation = validateCardData(card);
+        if (!validation.isValid) {
+          return validation;
+        }
+      }
+
+      return { isValid: true };
+    });
+
+    return cards || [];
+  },
+
+  /**
+   * Save card data with validation
+   */
+  setCard: (cardNumber: string): boolean => {
+    const cards = storage.getCards();
+    const newCard = {
+      cardNumber,
+      timestamp: Date.now()
+    };
+
+    const validation = validateCardData(newCard);
+    if (!validation.isValid) {
+      console.error('Invalid card data:', validation.error);
+      return false;
+    }
+
+    return storage.set('cards', [...cards, newCard], (data) => {
+      if (!Array.isArray(data)) {
+        return { isValid: false, error: 'Cards must be an array' };
+      }
+
+      for (const card of data) {
+        const validation = validateCardData(card);
+        if (!validation.isValid) {
+          return validation;
+        }
+      }
+
+      return { isValid: true };
+    });
   }
 };
 

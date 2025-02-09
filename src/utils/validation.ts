@@ -111,9 +111,38 @@ export const validateTimeValue = (time: number): ValidationResult => {
   return { isValid: true };
 };
 
+/**
+ * Validates card data structure and format
+ */
+export const validateCardData = (cardData: any): ValidationResult => {
+  if (!cardData || typeof cardData !== 'object') {
+    return { isValid: false, error: 'Invalid card data format' };
+  }
+
+  if (!cardData.cardNumber || typeof cardData.cardNumber !== 'string') {
+    return { isValid: false, error: 'Card number must be a string' };
+  }
+
+  if (cardData.cardNumber.length !== 14) {
+    return { isValid: false, error: 'Card number must be 14 characters long' };
+  }
+
+  if (!cardData.timestamp || typeof cardData.timestamp !== 'number') {
+    return { isValid: false, error: 'Timestamp must be a number' };
+  }
+
+  const now = Date.now();
+  if (cardData.timestamp > now || cardData.timestamp < now - (24 * 60 * 60 * 1000)) {
+    return { isValid: false, error: 'Invalid timestamp' };
+  }
+
+  return { isValid: true };
+};
+
 export default {
   validatePlayerName,
   validateGameState,
   validateWinnersList,
-  validateTimeValue
+  validateTimeValue,
+  validateCardData
 };

@@ -1,8 +1,16 @@
 import React, { useState, useContext, useCallback, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { TimeContext } from '../App';
+import { storage } from '../utils/storage';
 import QrScanner from 'qr-scanner';
+
+const GAME_ROUTES = {
+    1: '/trivia-game',
+    2: '/truth-or-dare',
+    3: '/rock-paper-scissors',
+    4: '/emoji-game',
+};
 
 const QRScanMode = () => {
     const [cardDetails, setCardDetails] = useState(null);
@@ -12,13 +20,68 @@ const QRScanMode = () => {
     const videoRef = useRef(null);
     const navigate = useNavigate();
     const { startTimer } = useContext(TimeContext);
+    const location = useLocation();
 
-    const GAME_ROUTES = {
-        1: '/trivia-game',
-        2: '/truth-or-dare',
-        3: '/rock-paper-scissors',
-        4: '/emoji-game',
-    };
+    useEffect(() => {
+        const checkExistingGame = async () => {
+            const timerState = localStorage.getItem('gameTimerState');
+            if (!timerState) {
+                return; // Allow scanning if no timer exists
+            }
+
+            try {
+                const { remainingTime, timestamp, isActive } = JSON.parse(timerState);
+                if (!isActive || remainingTime <= 0) {
+                    return; // Allow scanning if timer is not active or expired
+                }
+
+                const elapsedSeconds = Math.floor((Date.now() - timestamp) / 1000);
+                const newRemainingTime = Math.max(0, remainingTime - elapsedSeconds);
+                
+                if (newRemainingTime <= 0) {
+                    return; // Allow scanning if time has run out
+                }
+
+                // If we have an active timer with remaining time, restore the game
+                const cards = storage.getCards();
+                const lastCard = cards[cards.length - 1];
+                
+                if (lastCard) {
+                    try {
+                        const { data, error } = await supabase
+                            .from('cards')
+                            .select('*, game_types(name)')
+                            .eq('card_number', lastCard.cardNumber)
+                            .single();
+
+                        if (data && !error) {
+                            const gameRoute = GAME_ROUTES[data.game_type];
+                            if (gameRoute) {
+                                navigate(gameRoute, {
+                                    state: {
+                                        cardDetails: data,
+                                        remainingTime: newRemainingTime,
+                                    },
+                                });
+                                return;
+                            }
+                        }
+                    } catch (err) {
+                        console.error('Error fetching card details:', err);
+                        navigate('/');
+                    }
+                }
+            } catch (err) {
+                console.error('Error checking game state:', err);
+                navigate('/');
+            }
+        };
+
+        // Only check for existing game if we're not coming from a game route
+        if (!location.state?.fromGame) {
+            checkExistingGame();
+        }
+    }, [navigate, GAME_ROUTES, location]);
 
     useEffect(() => {
         const setupScanner = async () => {
@@ -114,6 +177,9 @@ const QRScanMode = () => {
                 .update({ used: true })
                 .eq('card_number', cardNumber);
 
+            // Save card data to local storage
+            storage.setCard(cardNumber);
+
             setCardDetails(data);
             setError(null);
 
@@ -188,10 +254,10 @@ const QRScanMode = () => {
                             <video 
                                 ref={videoRef}
                                 className="w-full h-64 object-cover"
-                            />
+                                />
                             <div className="absolute inset-0 pointer-events-none">
                                 <div className="absolute inset-0 border-2 border-blue-500 opacity-30"></div>
-                                <div className="absolute left-1/4 right-1/4 top-1/4 bottom-1/4 border-2 border-blue-500"></div>
+        f                            <div className="absolute left-1/4 right-1/4 top-1/4 bottom-1/4 border-2 border-blue-500"></div>
                             </div>
                         </div>
 
