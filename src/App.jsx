@@ -15,7 +15,7 @@ import Landing from "./MainLanding";
 import CardGenerator from "./payment/CardGenerator";
 import TriviaGame from "./Triva-Component/Trivia";
 import CafeOwnerCheckWinner from "./Components/CafeOwnerCheckWinner";
-
+import Admin from "./Components/admin/AdminPanel";
 export const TimeContext = createContext();
 
 const formatTime = (seconds) => {
@@ -251,6 +251,7 @@ const App = () => {
           <Route path="/game-screen" element={<GameScreen />} />
           <Route path="/card-generator" element={<CardGenerator />} />
           <Route path="/qr-scan" element={<QRScanMode />} />
+          <Route path="/admin" element={<Admin />} />
           <Route 
             path="/trivia-game" 
             element={
