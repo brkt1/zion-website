@@ -1,5 +1,11 @@
 import React from 'react';
 import QRCode from 'qrcode';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = 'https://rpaxjodkgxfgneflavnj.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwYXhqb2RrZ3hmZ25lZmxhdm5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzE4NDQyMzcsImV4cCI6MjA0NzQyMDIzN30.GSzz1RA75KCX3NiGfz2LOIAuXMPFYQy-fjXYH1S93cc'; // Replace with your actual Supabase anon key
+const supabase = createClient(supabaseUrl, supabaseKey);
+
 
 interface CertificateProps {
   playerName: string;
@@ -20,7 +26,39 @@ const CertificateGenerator: React.FC<CertificateProps> = ({
   gameType,
   onError
 }) => {
+  const saveCertificateProps = async (certificateProps: {
+    playerName: string;
+    playerId: string;
+    score: number;
+    hasWonCoffee: boolean;
+    hasWonPrize: boolean;
+    gameType: 'trivia' | 'emoji';
+  }) => {
+    try {
+      const { data, error } = await supabase
+        .from('certificates')
+        .insert([certificateProps]);
+      if (error) throw error;
+      console.log('Certificate saved:', data);
+    } catch (error) {
+      console.error('Error saving certificate:', error);
+      onError?.(error as Error);
+    }
+  };
+
   const generateCertificate = async () => {
+    const certificateProps = {
+      playerName,
+      playerId,
+      score,
+      hasWonCoffee,
+      hasWonPrize,
+      gameType,
+      timestamp: new Date().toISOString()
+    };
+
+    await saveCertificateProps(certificateProps);
+
     try {
       if (!playerName || !playerId) {
         throw new Error('Missing player information');
@@ -35,7 +73,7 @@ const CertificateGenerator: React.FC<CertificateProps> = ({
       canvas.height = canvasHeight * pixelRatio;
       canvas.style.width = `${canvasWidth}px`;
       canvas.style.height = `${canvasHeight}px`;
-      
+
       const ctx = canvas.getContext('2d')!;
       ctx.scale(pixelRatio, pixelRatio);
 
@@ -61,15 +99,15 @@ const CertificateGenerator: React.FC<CertificateProps> = ({
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
       // Text rendering utility
-      const renderText = (text: string, y: number, options: { 
-        size?: number; 
-        color?: string; 
-        weight?: string; 
-        align?: CanvasTextAlign 
+      const renderText = (text: string, y: number, options: {
+        size?: number;
+        color?: string;
+        weight?: string;
+        align?: CanvasTextAlign
       } = {}) => {
-        const { 
-          size = 24, 
-          color = theme.text.light, 
+        const {
+          size = 24,
+          color = theme.text.light,
           weight = '400',
           align = 'center'
         } = options;
@@ -103,28 +141,28 @@ const CertificateGenerator: React.FC<CertificateProps> = ({
 
       // Certificate content
       const title = gameType === 'trivia' ? '🏆 Trivia Champion' : '🎮 Emoji Game Champion';
-      renderText(title, 120, { 
-        size: 42, 
-        color: theme.primary, 
-        weight: '700' 
+      renderText(title, 120, {
+        size: 42,
+        color: theme.primary,
+        weight: '700'
       });
 
-      renderText(`Congratulations, ${playerName}!`, 180, { 
+      renderText(`Congratulations, ${playerName}!`, 180, {
         size: 32,
         color: theme.text.light,
         weight: '500'
       });
 
-      renderText(`Player ID: ${playerId}`, 230, { 
-        size: 24, 
-        color: theme.secondary 
+      renderText(`Player ID: ${playerId}`, 230, {
+        size: 24,
+        color: theme.secondary
       });
 
       const prizeText = `Score: ${score} points ${hasWonCoffee ? '☕ Free Coffee' : ''} ${hasWonPrize ? '💰 1k Prize' : ''}`;
-      renderText(prizeText.trim(), 280, { 
-        size: 36, 
-        weight: '600', 
-        color: theme.accent 
+      renderText(prizeText.trim(), 280, {
+        size: 36,
+        weight: '600',
+        color: theme.accent
       });
 
       // QR Code
@@ -138,7 +176,7 @@ const CertificateGenerator: React.FC<CertificateProps> = ({
         gameType,
         timestamp: new Date().toISOString()
       };
-      
+
       await QRCode.toCanvas(qrCanvas, JSON.stringify(qrData), {
         width: 250,
         errorCorrectionLevel: 'M',
@@ -157,19 +195,19 @@ const CertificateGenerator: React.FC<CertificateProps> = ({
       ctx.shadowBlur = 0;
 
       // Footer
-      renderText('Official Digital Certificate', 650, { 
-        size: 20, 
-        color: theme.text.muted 
+      renderText('Official Digital Certificate', 650, {
+        size: 20,
+        color: theme.text.muted
       });
 
-      renderText('Verified by Zione', 690, { 
-        size: 16, 
-        color: 'rgba(255,255,255,0.5)' 
+      renderText('Verified by Zione', 690, {
+        size: 16,
+        color: 'rgba(255,255,255,0.5)'
       });
 
       // Download
-      const gamePrefix = gameType === 'trivia' ? 'trivia' : 'emoji';
-      const filename = `${gamePrefix}_champion_${playerName.replace(/\s+/g, '_')}.png`;
+      const filename = `${gameType}_champion_${playerName.replace(/\s+/g, '_')}.png`;
+
       const link = document.createElement('a');
       link.href = canvas.toDataURL('image/png');
       link.download = filename;

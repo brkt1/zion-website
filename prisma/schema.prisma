@@ -1,4 +1,15 @@
-// This is your Prisma schema file for the winners table
+model Certificate {
+  id          String   @id @default(uuid())
+  player_name String
+  player_id   String
+  score       Int
+  has_won_coffee Boolean @default(false)
+  has_won_prize   Boolean @default(false)
+  gameType    String   // "trivia" or "emoji"
+  created_at  DateTime @default(now())
+
+  @@map("certificates")
+}
 
 generator client {
   provider = "prisma-client-js"
@@ -7,18 +18,4 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-model Winner {
-  id          String   @id @default(uuid())
-  player_name String
-  game_type   String   // "trivia" or "emoji"
-  score       Int
-  won_coffee  Boolean  @default(false)
-  won_prize       Boolean  @default(false)
-  prize_delivered Boolean  @default(false)
-  user_id         String?  // Optional, for authenticated users
-  created_at      DateTime @default(now())
-
-  @@map("winners")
 }

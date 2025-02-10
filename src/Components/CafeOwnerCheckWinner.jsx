@@ -6,7 +6,7 @@ import { FaQrcode, FaIdCard } from 'react-icons/fa';
 
 const CafeOwnerCheckWinner = () => {
   const [playerId, setPlayerId] = useState('');
-  const [winnerData, setWinnerData] = useState(null);
+  const [certificateData, setCertificateData] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [prizeDelivered, setPrizeDelivered] = useState(false);
@@ -16,36 +16,36 @@ const CafeOwnerCheckWinner = () => {
     try {
       setLoading(true);
       setError(null);
-      setWinnerData(null);
+      setCertificateData(null);
 
       const { playerId: scannedId } = scanData;
 
-      // Check if the user is in the winners table using playerId
+      // Check if the user is in the certificates table using playerId
       const { data, error } = await supabase
-        .from('winners')
+        .from('certificates')
         .select('*')
-        .eq('player_id', scannedId)
+        .eq('playerId', scannedId)
         .single();
 
       if (error) throw error;
 
       if (!data) {
-        setError('No winner found with this QR code.');
+        setError('No certificate found with this QR code.');
         return;
       }
 
-      setWinnerData(data);
+      setCertificateData(data);
       setPrizeDelivered(data.prize_delivered);
       setPlayerId(scannedId);
       setShowScanner(false);
     } catch (err) {
-      setError('Error checking winner: ' + err.message);
+      setError('Error checking certificate: ' + err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const checkWinner = async () => {
+  const checkCertificate = async () => {
     if (!playerId) {
       setError('Please enter a player ID.');
       return;
@@ -53,34 +53,34 @@ const CafeOwnerCheckWinner = () => {
 
     setLoading(true);
     setError(null);
-    setWinnerData(null);
+    setCertificateData(null);
 
     try {
       const { data, error } = await supabase
-        .from('winners')
+        .from('certificates')
         .select('*')
-        .eq('player_id', playerId)
+        .eq('playerId', playerId)
         .single();
 
       if (error) throw error;
 
       if (!data) {
-        setError('No winner found with this ID.');
+        setError('No certificate found with this ID.');
         return;
       }
 
-      setWinnerData(data);
+      setCertificateData(data);
       setPrizeDelivered(data.prize_delivered);
     } catch (err) {
-      setError('Error checking winner: ' + err.message);
+      setError('Error checking certificate: ' + err.message);
     } finally {
       setLoading(false);
     }
   };
 
   const confirmPrizeDelivery = async () => {
-    if (!winnerData) {
-      setError('No winner data available.');
+    if (!certificateData) {
+      setError('No certificate data available.');
       return;
     }
 
@@ -89,14 +89,14 @@ const CafeOwnerCheckWinner = () => {
 
     try {
       const { error: updateError } = await supabase
-        .from('winners')
-        .update({ prize_delivered: true })
-        .eq('player_id', winnerData.player_id);
+        .from('certificates')
+        .update({ paid: true })
+        .eq('playerId', certificateData.playerId);
 
       if (updateError) throw updateError;
 
       setPrizeDelivered(true);
-      setWinnerData(null);
+      setCertificateData(null);
       setPlayerId('');
     } catch (err) {
       setError('Error confirming prize delivery: ' + err.message);
@@ -151,30 +151,30 @@ const CafeOwnerCheckWinner = () => {
           </div>
 
           <button
-            onClick={checkWinner}
+            onClick={checkCertificate}
             disabled={loading}
             className={`w-full px-4 py-2 font-bold text-white ${
               loading ? 'bg-gray-500' : 'bg-purple-500 hover:bg-purple-600'
             } rounded-md shadow-md transition-all`}
           >
-            {loading ? 'Checking...' : 'Check Winner'}
+            {loading ? 'Checking...' : 'Check Certificate'}
           </button>
         </>
       )}
 
-      {/* Display Winner Data */}
-      {winnerData && (
+      {/* Display Certificate Data */}
+      {certificateData && (
         <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-          <h2 className="text-lg font-semibold">Winner Details</h2>
-          <p><strong>Name:</strong> {winnerData.player_name}</p>
-          <p><strong>ID:</strong> {winnerData.player_id}</p>
-          <p><strong>Game Type:</strong> {winnerData.game_type}</p>
-          <p><strong>Score:</strong> {winnerData.score}</p>
-          <p><strong>Won Coffee:</strong> {winnerData.won_coffee ? 'Yes' : 'No'}</p>
-          <p><strong>Won Prize:</strong> {winnerData.won_prize ? 'Yes' : 'No'}</p>
-          <p><strong>Prize Delivered:</strong> {winnerData.prize_delivered ? 'Yes' : 'No'}</p>
+          <h2 className="text-lg font-semibold">Certificate Details</h2>
+          <p><strong>Name:</strong> {certificateData.playerName}</p>
+          <p><strong>ID:</strong> {certificateData.playerId}</p>
+          <p><strong>Game Type:</strong> {certificateData.game_type}</p>
+          <p><strong>Score:</strong> {certificateData.score}</p>
+          <p><strong>Won Coffee:</strong> {certificateData.won_coffee ? 'Yes' : 'No'}</p>
+          <p><strong>Won Prize:</strong> {certificateData.won_prize ? 'Yes' : 'No'}</p>
+          <p><strong>Prize Delivered:</strong> {certificateData.prize_delivered ? 'Yes' : 'No'}</p>
 
-          {!winnerData.prize_delivered && (
+          {!certificateData.prize_delivered && (
             <button
               onClick={confirmPrizeDelivery}
               disabled={loading}
