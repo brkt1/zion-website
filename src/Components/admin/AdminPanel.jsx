@@ -1,26 +1,38 @@
 import React, { useEffect, useState } from 'react';
 import WinnerList from './WinnerList';
 import { supabase } from '../../supabaseClient';
-import AddCafeOwner from './AddCafeOwner'; // Importing the AddCafeOwner component
+import AddCafeOwner from './AddCafeOwner';
+import { useNavigate } from 'react-router-dom';
+import CardGenerator from '../../payment/CardGenerator'; // Correcting the import path
 
 const AdminPanel = () => {
     const [certificates, setCertificates] = useState([]);
+    const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchCertificates = async () => {
-            const { data, error } = await supabase
-                .from('certificates')
-                .select('*');
-
-            if (error) {
-                console.error('Error fetching certificates:', error);
+        const checkUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                navigate('/login'); // Redirect to login if not authenticated
             } else {
-                setCertificates(data);
+                fetchCertificates();
             }
         };
 
-        fetchCertificates();
-    }, []);
+        checkUser();
+    }, [navigate]);
+
+    const fetchCertificates = async () => {
+        const { data, error } = await supabase
+            .from('certificates')
+            .select('*');
+
+        if (error) {
+            console.error('Error fetching certificates:', error);
+        } else {
+            setCertificates(data);
+        }
+    };
 
     const togglePaidStatus = async (id, currentStatus) => {
         const { error } = await supabase
@@ -44,7 +56,8 @@ const AdminPanel = () => {
             
             <AddCafeOwner /> {/* Rendering the AddCafeOwner component */}
 
-            <div className="mb-12">
+            <div className="mb-12"> 
+                <CardGenerator /> {/* Adding the CardGenerator component */}
                 <WinnerList />
             </div>
     

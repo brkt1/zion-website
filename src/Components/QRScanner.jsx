@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import QrScanner from 'qr-scanner';
 
-const QRScanner = ({ onScanSuccess }) => {
+const QRScanner = ({ onScan }) => {
   const videoRef = useRef(null);
   const qrScannerRef = useRef(null);
 
@@ -16,7 +16,7 @@ const QRScanner = ({ onScanSuccess }) => {
             if (!data.playerName || !data.playerId) {
               throw new Error('Invalid QR code format: Missing player information');
             }
-            onScanSuccess(data);
+            onScan(data); // Call the onScan function
           } catch (err) {
             console.error('Invalid QR code format:', err);
           }
@@ -35,7 +35,7 @@ const QRScanner = ({ onScanSuccess }) => {
         qrScannerRef.current.destroy();
       }
     };
-  }, [onScanSuccess]);
+  }, [onScan]);
 
   return (
     <div className="w-full max-w-md mx-auto">

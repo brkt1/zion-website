@@ -8,7 +8,8 @@ const CardGenerator = () => {
     const [gameTypes, setGameTypes] = useState([]);
     const [gameType, setGameType] = useState(null);
     const [duration, setDuration] = useState(30);
-    const [generatedCards, setGeneratedCards] = useState([]);
+const [generatedCards, setGeneratedCards] = useState([]);
+const [numberOfCards, setNumberOfCards] = useState(6); // New state for number of cards
     const [isLoading, setIsLoading] = useState(false);
     const [showDownloadMessage, setShowDownloadMessage] = useState(false);
 

@@ -1,69 +1,46 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../supabaseClient';
+import { useNavigate } from 'react-router-dom';
 
 const WinnerList = () => {
     const [certificates, setCertificates] = useState([]);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 5;
+    const [error, setError] = useState(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchCertificates = async () => {
-            const { data, error } = await supabase
-                .from('certificates')
-                .select('*')
-                .eq('game_type', 'trivia'); // Example of filtering by game_type
-
-
-            if (error) {
-                console.error('Error fetching certificates:', error);
+        const checkUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                navigate('/login'); // Redirect to login if not authenticated
             } else {
-                setCertificates(data);
+                fetchCertificates();
             }
         };
 
-        fetchCertificates();
-    }, []);
+        checkUser();
+    }, [navigate]);
 
-    const filteredCertificates = certificates.filter(certificate =>
-        certificate.playerName.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const fetchCertificates = async () => {
+        const { data, error } = await supabase
+            .from('certificates')
+            .select('*');
 
-    const paginatedCertificates = filteredCertificates.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
+        if (error) {
+            setError('Error fetching certificates: ' + error.message);
+        } else {
+            setCertificates(data);
+        }
+    };
 
     return (
         <div>
-            <h2>Certificates List</h2>
-            <input
-                type="text"
-                placeholder="Search by player name..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <table>
-                <thead>
-                    <tr>
-                        <th>Player Name</th>
-                        <th>Score</th>
-                        <th>Paid</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {paginatedCertificates.map(cert => (
-                        <tr key={cert.id}>
-                            <td>{cert.playerName}</td>
-                            <td>{cert.game_type}</td> // Added game_type column
-
-                            <td>{cert.score}</td>
-                            <td>{cert.paid ? 'Yes' : 'No'}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-            {/* Pagination logic can be added here */}
+            <h2>Winner List</h2>
+            {error && <p>{error}</p>}
+            <ul>
+                {certificates.map(cert => (
+                    <li key={cert.id}>{cert.playerName} - {cert.score}</li>
+                ))}
+            </ul>
         </div>
     );
 };
