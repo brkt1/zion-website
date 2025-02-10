@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-import { supabase } from '../supabaseClient';
-import { motion } from 'framer-motion';
-import QRScanner from './QRScanner';
-import { FaQrcode, FaIdCard } from 'react-icons/fa';
+import { supabase } from '../supabaseClient'; // Ensure the correct path to supabaseClient
+import QRScanner from './QRScanner'; // Import the QRScanner component
 
 const CafeOwnerCheckWinner = () => {
   const [playerId, setPlayerId] = useState('');
@@ -11,50 +9,26 @@ const CafeOwnerCheckWinner = () => {
   const [loading, setLoading] = useState(false);
   const [prizeDelivered, setPrizeDelivered] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const handleQRScan = async (scanData) => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      setError(null);
-      setCertificateData(null);
-
-      const { playerId: scannedId } = scanData;
-
-      // Check if the user is in the certificates table using playerId
-      const { data, error } = await supabase
-        .from('certificates')
-        .select('*')
-        .eq('playerId', scannedId)
-        .single();
-
-      if (error) throw error;
-
-      if (!data) {
-        setError('No certificate found with this QR code.');
-        return;
-      }
-
-      setCertificateData(data);
-      setPrizeDelivered(data.prize_delivered);
-      setPlayerId(scannedId);
-      setShowScanner(false);
+      setPlayerId(scanData);
+      await checkCertificate(scanData);
     } catch (err) {
-      setError('Error checking certificate: ' + err.message);
+      setError('Error scanning QR code: ' + err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const checkCertificate = async () => {
-    if (!playerId) {
-      setError('Please enter a player ID.');
-      return;
-    }
-
+  const checkCertificate = async (playerId) => {
     setLoading(true);
     setError(null);
-    setCertificateData(null);
-
     try {
       const { data, error } = await supabase
         .from('certificates')
@@ -64,13 +38,7 @@ const CafeOwnerCheckWinner = () => {
 
       if (error) throw error;
 
-      if (!data) {
-        setError('No certificate found with this ID.');
-        return;
-      }
-
       setCertificateData(data);
-      setPrizeDelivered(data.prize_delivered);
     } catch (err) {
       setError('Error checking certificate: ' + err.message);
     } finally {
@@ -88,9 +56,15 @@ const CafeOwnerCheckWinner = () => {
     setError(null);
 
     try {
+      const { error: paymentError } = await supabase
+        .from('payments')
+        .insert([{ playerId: certificateData.playerId, amount: certificateData.prize_amount }]);
+
+      if (paymentError) throw paymentError;
+
       const { error: updateError } = await supabase
         .from('certificates')
-        .update({ paid: true })
+        .update({ prize_delivered: true })
         .eq('playerId', certificateData.playerId);
 
       if (updateError) throw updateError;
@@ -105,85 +79,74 @@ const CafeOwnerCheckWinner = () => {
     }
   };
 
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    // Authenticate against the cafe_owners table
+    const { data, error } = await supabase
+      .from('cafe_owners')
+      .select('*')
+      .eq('email', email)
+      .eq('password', password) // Ensure password is hashed in the database
+      .single();
+
+    if (error || !data) {
+      setError('Login failed: ' + (error ? error.message : 'Invalid credentials'));
+    } else {
+      setIsLoggedIn(true);
+    }
+    setLoading(false);
+  };
+
   return (
     <div className="p-6 max-w-md mx-auto bg-white rounded-lg shadow-md">
       <h1 className="text-2xl font-bold mb-4 text-center">Cafe Owner Dashboard</h1>
 
-      {/* Toggle between QR Scanner and ID Input */}
-      <div className="flex justify-center space-x-4 mb-4">
-        <button
-          onClick={() => setShowScanner(false)}
-          className={`px-4 py-2 rounded-md flex items-center space-x-2 ${
-            !showScanner ? 'bg-purple-500 text-white' : 'bg-gray-200'
-          }`}
-        >
-          <FaIdCard />
-          <span>Enter ID</span>
-        </button>
-        <button
-          onClick={() => setShowScanner(true)}
-          className={`px-4 py-2 rounded-md flex items-center space-x-2 ${
-            showScanner ? 'bg-purple-500 text-white' : 'bg-gray-200'
-          }`}
-        >
-          <FaQrcode />
-          <span>Scan QR</span>
-        </button>
-      </div>
-
-      {showScanner ? (
-        <div className="mb-4">
-          <QRScanner onScanSuccess={handleQRScan} />
-        </div>
-      ) : (
-        <>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Player ID
-            </label>
+      {!isLoggedIn ? (
+        <form onSubmit={handleLogin} className="mb-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Email</label>
             <input
-              type="text"
-              value={playerId}
-              onChange={(e) => setPlayerId(e.target.value)}
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-              placeholder="Enter player ID"
+              required
             />
           </div>
-
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+              required
+            />
+          </div>
           <button
-            onClick={checkCertificate}
+            type="submit"
             disabled={loading}
-            className={`w-full px-4 py-2 font-bold text-white ${
-              loading ? 'bg-gray-500' : 'bg-purple-500 hover:bg-purple-600'
-            } rounded-md shadow-md transition-all`}
+            className={`w-full px-4 py-2 font-bold text-white ${loading ? 'bg-gray-500' : 'bg-purple-500 hover:bg-purple-600'} rounded-md shadow-md transition-all`}
           >
-            {loading ? 'Checking...' : 'Check Certificate'}
+            {loading ? 'Logging in...' : 'Login'}
+          </button>
+        </form>
+      ) : (
+        <>
+          {showScanner && (
+            <QRScanner onScan={handleQRScan} />
+          )}
+          <button onClick={() => setShowScanner(!showScanner)} className="mt-4 w-full px-4 py-2 bg-purple-500 text-white rounded-md">
+            {showScanner ? 'Hide Scanner' : 'Show Scanner'}
+          </button>
+          {prizeDelivered && <p className="mt-4 text-green-500">Prize delivered successfully!</p>}
+          <button onClick={confirmPrizeDelivery} className="mt-4 w-full px-4 py-2 bg-green-500 text-white rounded-md">
+            Confirm Prize Delivery
           </button>
         </>
-      )}
-
-      {/* Display Certificate Data */}
-      {certificateData && (
-        <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-          <h2 className="text-lg font-semibold">Certificate Details</h2>
-          <p><strong>Name:</strong> {certificateData.playerName}</p>
-          <p><strong>ID:</strong> {certificateData.playerId}</p>
-          <p><strong>Game Type:</strong> {certificateData.game_type}</p>
-          <p><strong>Score:</strong> {certificateData.score}</p>
-          <p><strong>Won Coffee:</strong> {certificateData.won_coffee ? 'Yes' : 'No'}</p>
-          <p><strong>Won Prize:</strong> {certificateData.won_prize ? 'Yes' : 'No'}</p>
-          <p><strong>Prize Delivered:</strong> {certificateData.prize_delivered ? 'Yes' : 'No'}</p>
-
-          {!certificateData.prize_delivered && (
-            <button
-              onClick={confirmPrizeDelivery}
-              disabled={loading}
-              className="w-full mt-2 px-4 py-2 font-bold text-white bg-blue-500 hover:bg-blue-600 rounded-md shadow-md transition-all"
-            >
-              Confirm Prize Delivery
-            </button>
-          )}
-        </div>
       )}
 
       {error && (

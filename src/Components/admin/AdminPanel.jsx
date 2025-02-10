@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import WinnerList from './WinnerList';
 import { supabase } from '../../supabaseClient';
+import AddCafeOwner from './AddCafeOwner'; // Importing the AddCafeOwner component
 
 const AdminPanel = () => {
     const [certificates, setCertificates] = useState([]);
@@ -41,6 +42,8 @@ const AdminPanel = () => {
         <div className="max-w-6xl mx-auto">
             <h1 className="text-3xl font-bold text-gray-800 mb-8">Admin Panel</h1>
             
+            <AddCafeOwner /> {/* Rendering the AddCafeOwner component */}
+
             <div className="mb-12">
                 <WinnerList />
             </div>
