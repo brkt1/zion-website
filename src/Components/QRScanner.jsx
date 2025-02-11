@@ -1,9 +1,11 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import QrScanner from 'qr-scanner';
 
 const QRScanner = ({ onScan }) => {
   const videoRef = useRef(null);
   const qrScannerRef = useRef(null);
+  const [isScanning, setIsScanning] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (videoRef.current) {
@@ -19,6 +21,7 @@ const QRScanner = ({ onScan }) => {
             onScan(data); // Call the onScan function
           } catch (err) {
             console.error('Invalid QR code format:', err);
+            setError('Invalid QR code format. Please try again.');
           }
         },
         {
@@ -28,11 +31,13 @@ const QRScanner = ({ onScan }) => {
       );
 
       qrScannerRef.current.start();
+      setIsScanning(true);
     }
 
     return () => {
       if (qrScannerRef.current) {
         qrScannerRef.current.destroy();
+        setIsScanning(false);
       }
     };
   }, [onScan]);
@@ -45,8 +50,18 @@ const QRScanner = ({ onScan }) => {
       <p className="mt-2 text-sm text-gray-600 text-center">
         Position the QR code within the frame to scan
       </p>
+      {error && (
+        <p className="mt-2 text-red-500 text-sm text-center">
+          {error}
+        </p>
+      )}
+      {isScanning && (
+        <p className="mt-2 text-green-500 text-sm text-center">
+          Scanning...
+        </p>
+      )}
     </div>
   );
 };
 
-export default QRScanner;
+export default QRScanner; 

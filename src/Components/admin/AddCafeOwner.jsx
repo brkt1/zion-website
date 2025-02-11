@@ -99,20 +99,6 @@ const AddCafeOwner = () => {
                                 required
                             />
                         </div>
-                        <div className="text-sm text-gray-500">
-                            Password: {(() => {
-                                const password = generateRandomPassword(12);
-                                // Send the generated password to the backend
-                                supabase
-                                    .from('cafe_owners')
-                                    .update({ password })
-                                    .eq('email', email)
-                                    .then(({ error }) => {
-                                        if (error) console.error('Error updating password:', error);
-                                    });
-                                return password;
-                            })()}
-                        </div>
                         
                         <button
                             type="submit"
