@@ -29,22 +29,20 @@ const GameTimer = () => {
   }
 
   return (
-    <div className="text-center  space-y-2">
+    <div className="text-center space-y-2">
       <motion.div
-        className="text-2xl font-bold"
+        className="text-2xl font-bold text-yellow-200"
         animate={{
-          color: getProgressColor(progressPercentage),
           scale: remainingTime < 20 ? [1, 1.05, 1] : 1
         }}
         transition={{
-          color: { duration: 0.3 },
           scale: { duration: 0.8, repeat: Infinity }
         }}
       >
         {formatTime(remainingTime)}
       </motion.div>
       
-      <div className="w-full bg-yellow-200 rounded-full h-3 overflow-hidden">
+      <div className="w-full bg-gray-800 rounded-full h-3 overflow-hidden">
         <motion.div
           initial={{ width: '100%' }}
           animate={{
