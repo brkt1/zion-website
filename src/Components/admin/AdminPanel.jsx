@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../supabaseClient';
 import { useNavigate } from 'react-router-dom';
+import LoadingSpinner from '../../components/LoadingSpinner';
+
 import CertificatesTable from './CertificatesTable';
 import AddCafeOwner from './AddCafeOwner';
 import CardGenerator from '../../payment/CardGenerator';
@@ -11,6 +13,7 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 const AdminPanel = () => {
   const [activeTab, setActiveTab] = useState('certificates');
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,10 +21,20 @@ const AdminPanel = () => {
       const { data: { user }, error } = await supabase.auth.getUser();
       if (!user || error) {
         navigate('/login');
-      } else {
-        setLoading(false);
+        return;
       }
+
+      // Check if user is admin
+      const userRole = sessionStorage.getItem('userRole');
+      if (userRole !== 'admin') {
+        navigate('/');
+        return;
+      }
+
+      setIsAdmin(true);
+      setLoading(false);
     };
+
 
     checkAuth();
     
@@ -37,7 +50,8 @@ const AdminPanel = () => {
     navigate('/login');
   };
 
-  if (loading) return <LoadingSpinner />;
+  if (loading || !isAdmin) return <LoadingSpinner />;
+
 
   return (
     <div className="flex min-h-screen bg-gray-50">

@@ -1,15 +1,46 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
+import { useNavigate } from 'react-router-dom';
+
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import QRCode from 'qrcode';
 
 const CardGenerator = () => {
+    const navigate = useNavigate();
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [loadingAuth, setLoadingAuth] = useState(true);
+
+    // Check if user is admin on mount
+    useEffect(() => {
+        const checkAdmin = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                navigate('/login');
+                return;
+            }
+
+            const userRole = sessionStorage.getItem('userRole');
+            if (userRole !== 'admin') {
+                navigate('/');
+                return;
+            }
+
+            setIsAdmin(true);
+            setLoadingAuth(false);
+        };
+
+        checkAdmin();
+    }, [navigate]);
+
+    if (loadingAuth) return null;
+    if (!isAdmin) return null;
+
     const [gameTypes, setGameTypes] = useState([]);
     const [gameType, setGameType] = useState(null);
     const [duration, setDuration] = useState(30);
-const [generatedCards, setGeneratedCards] = useState([]);
-const [numberOfCards, setNumberOfCards] = useState(6); // New state for number of cards
+    const [generatedCards, setGeneratedCards] = useState([]);
+    const [numberOfCards, setNumberOfCards] = useState(6); // New state for number of cards
     const [isLoading, setIsLoading] = useState(false);
     const [showDownloadMessage, setShowDownloadMessage] = useState(false);
 
