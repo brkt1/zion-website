@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -8,154 +8,150 @@ import {
     FaHandRock, 
     FaPlayCircle 
 } from 'react-icons/fa';
+
 const games = [ 
     { 
       to: "/emoji-game", 
       label: "Emoji Game", 
-      bgColor: "bg-gradient-to-br from-pink-500/90 to-yellow-500/90",
+      bgColor: "bg-gradient-to-br from-amber-900 via-amber-500 to-amber",
       icon: FaSmile,
-      position: "top-right",
+      position: "top-left",
       rotate: 12,
-      iconColor: "text-yellow-300"
+      iconColor: "text-amber-100"
     },
     { 
       to: "/truth-or-dare", 
       label: "Truth or Dare", 
-      bgColor: "bg-gradient-to-br from-purple-600/90 to-cyan-400/90",
+      bgColor: "bg-gradient-to-br from-purple-900 via-fuchsia-500 to-rose",
       icon: FaGamepad,
-      position: "top-right",
+      position: "top-left",
       rotate: -8,
-      iconColor: "text-purple-200"
+      iconColor: "text-purple-100"
     },
     { 
       to: "/trivia-game", 
       label: "Trivia Challenge", 
-      bgColor: "bg-gradient-to-br from-indigo-600/90 to-blue-400/90",
+      bgColor: "bg-gradient-to-br from-cyan-900 via-sky-500 to-blue",
       icon: FaQuestionCircle,
-      position: "top-right",
-      rotate: 15,
-      iconColor: "text-blue-200"
+      position: "bottom-left",
+      rotate: 12,
+      iconColor: "text-cyan-100"
     },
     { 
       to: "/rock-paper-scissors", 
       label: "Rock Paper Scissors", 
-      bgColor: "bg-gradient-to-br from-green-500/90 to-emerald-400/90", 
+      bgColor: "bg-gradient-to-br from-emerald-900 via-teal-500 to-green", 
       icon: FaHandRock,
-      position: "top-right",
+      position: "bottom-left",
       rotate: -12,
-      iconColor: "text-emerald-200"
+      iconColor: "text-emerald-100"
     }
-  ];
-  const GameButton = ({ game, index }) => {
+];
+
+const GameButton = ({ game, index }) => {
     const positionClasses = {
-      "top-right": "-top-12 -right-10",
-      "top-left": "-top-12 -left-6",
-      "bottom-right": "-bottom-6 -right-6",
-      "bottom-left": "-bottom-6 -left-6"
+      "top-right": "md:-top-12 md:-right-10 top-[-2rem] right-[-1rem]",
+      "top-left": "md:-top-12 md:-left-10 top-[-2rem] left-[-1rem]",
+      "bottom-right": "md:-bottom-6 md:-right-6 bottom-[-1rem] right-[-1rem]",
+      "bottom-left": "md:-bottom-6 md:-left-6 bottom-[-1rem] left-[-1rem]"
     };
-  
+
     return (
       <motion.div
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ 
-          delay: index * 0.1,
+          delay: index * 0.07,
           type: "spring",
-          stiffness: 260,
-          damping: 20
+          stiffness: 280,
+          damping: 18
         }}
       >
         <Link to={game.to} className="block group h-full">
           <div className={`
-            h-10 flex flex-col items-center justify-center m-5
-            p-4 rounded-xl
+            h-30 flex flex-col items-center justify-center m-3
+            p-4 rounded-2xl shadow-xl
             ${game.bgColor}
             hover:shadow-2xl transition-all duration-300
             relative overflow-visible
           `}>
-            {/* Bursting Icon */}
             <motion.div 
               className={`
-                absolute p-4 rounded-2xl backdrop-blur-sm
+                absolute p-3 rounded-xl bg-black/20 backdrop-blur-lg
                 ${positionClasses[game.position]}
                 ${game.iconColor}
               `}
-              whileHover={{ rotate: game.rotate + 5, scale: 1.1 }}
+              whileHover={{ rotate: game.rotate + 4, scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
-              initial={{ scale: 0.5 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 200 }}
+              transition={{ type: "spring", stiffness: 220 }}
             >
-              <game.icon className="text-5xl drop-shadow-lg" />
+              <game.icon className="text-4xl md:text-5xl drop-shadow-xl" />
             </motion.div>
-  
-            {/* Game Title - Centered properly */}
-            <div className="flex-grow flex items-center justify-center w-full"> {/* Added container div */}
-              <h3 className="text-xl font-semibold text-center z-10 px-4">
+
+            <div className="flex-grow flex items-center justify-center w-full">
+              <h3 className="text-xl font-bold text-center z-10 px-4 
+                text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-200">
                 {game.label}
               </h3>
             </div>
-  
-            {/* Dynamic Border */}
+
             <div className={`
-              absolute inset-0 border-2 rounded-xl transition-all
-              opacity-50 hover:opacity-70 
+              absolute inset-0 border-2 rounded-2xl transition-all
+              opacity-50 hover:opacity-80
               ${game.iconColor.replace("text", "border")}
             `}/>
           </div>
         </Link>
       </motion.div>
     );
-  };
+};
 
 const Landing = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
+    <div className="min-h-screen flex flex-col bg-neutral-900 text-white">
       <div className="flex-grow flex items-center justify-center p-4">
         <motion.div 
-          className="w-full max-w-2xl p-8 space-y-8 bg-gray-800/40 backdrop-blur-2xl rounded-3xl shadow-2xl border border-gray-700/30"
+          className="w-full max-w-2xl p-6 md:p-8 space-y-6 bg-black/40 backdrop-blur-2xl rounded-3xl shadow-2xl border border-amber-400/30"
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, type: "spring" }}
         >
-          {/* Header Section */}
           <motion.div 
             className="text-center space-y-4"
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
           >
-            <h1 className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600 mb-2">
-              Game Hub
+            <h1 className="text-4xl font-bold text-transparent bg-clip-text 
+              bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 mb-2
+              font-['Bebas_Neue'] tracking-wide">
+              HAVE A BEAUTIFUL TIME
             </h1>
-            <p className="text-gray-300 text-lg font-light tracking-wide">
-              Choose your adventure and let the fun begin!
+            <p className="text-amber-200/90 text-lg font-light tracking-wide">
+              Unleash the fun — pick your game!
             </p>
           </motion.div>
 
-          {/* Game Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {games.map((game, index) => (
               <GameButton key={game.to} game={game} index={index} />
             ))}
           </div>
 
-          {/* Footer Section */}
           <motion.div 
-            className="text-center pt-6 border-t border-gray-700/30"
+            className="text-center pt-6 border-t border-amber-400/20"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
           >
-            <p className="text-sm text-gray-400 font-light italic">
-              New games coming soon! Stay tuned.
-            </p>
             <div className="mt-4 flex justify-center">
-              <img 
-                src="zionlogo.png" 
-                alt="Logo" 
-                className="w-32 opacity-80 hover:opacity-100 transition-opacity" 
+              <motion.img 
+                src="public/zionlogo.png" 
+                alt="GameHub Logo"
+                whileHover={{ scale: 1.05, rotate: 2 }}
+                whileTap={{ scale: 0.95 }}
+                className="w-40 opacity-90 hover:opacity-100 transition-opacity"
               />
             </div>
           </motion.div>
@@ -164,4 +160,5 @@ const Landing = () => {
     </div>
   );
 };
+
 export default Landing;

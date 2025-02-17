@@ -1,5 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { FaHeart, FaDice, FaArrowLeft } from "react-icons/fa";
 
 const Lovers = () => {
   const navigate = useNavigate();
@@ -8,52 +10,77 @@ const Lovers = () => {
     navigate("/game-mode", { state: { category, subtype } });
   };
 
-  const handleBackButtonClick = () => {
-    navigate(-1); // Navigate back to the previous page
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-red-950 to-gray-900 flex flex-col justify-center items-center text-white">
-      {/* Photo */}
-      <img 
-        src="image 1.png" 
-        alt="A romantic scene representing lovers" 
-        className="w-30 h-auto object-cover mb-12" 
-      />
+    <div className="min-h-screen bg-gradient-to-b from-red-900  to-gray-900 flex flex-col justify-center items-center text-white p-4">
+      {/* Animated Logo */}
+      <motion.div 
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 260 }}
+        className="mb-8 md:mb-12"
+      >
+        <img 
+          src="image 1.png" 
+          alt="Romantic scene" 
+          className="w-auto h-auto object-cover rounded-2xl border-2 border-amber-400/30 shadow-gold"
+        />
+      </motion.div>
 
-      {/* Buttons */}
-      <div className="flex flex-col gap-6 w-3/4 md:w-1/2 lg:w-1/3">
+      {/* Buttons Container */}
+      <div className="flex flex-col gap-6 w-full max-w-md">
         {/* Normal Button */}
-        <button
-          className="bg-gray-900 border-2 border-red-500 hover:bg-gray-700 text-white py-3 rounded-lg text-lg font-semibold shadow-lg transform transition-all hover:scale-105 hover:shadow-xl"
+        <motion.button
+          whileHover={{ scale: 1.05, rotate: 1 }}
+          whileTap={{ scale: 0.95 }}
+          className="bg-gradient-to-r from-black to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white py-4 rounded-2xl text-xl font-bold shadow-gold hover:shadow-2xl transition-all"
           onClick={() => onSelectCategory("Love", "Normal")}
-          aria-label="Select Normal Love Questions"
         >
-          Normal
-        </button>
+          <div className="flex items-center justify-center gap-3">
+            <FaDice className="text-amber-100 text-2xl" />
+            <span className="bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent">
+              Normal Mode
+            </span>
+          </div>
+        </motion.button>
 
         {/* Romantic Button */}
-        <button
-          className="bg-gray-900 border-2 border-red-500 hover:bg-gray-800 text-white py-3 rounded-lg text-lg font-semibold shadow-lg transform transition-all hover:scale-105 hover:shadow-xl"
+        <motion.button
+          whileHover={{ scale: 1.05, rotate: -1 }}
+          whileTap={{ scale: 0.95 }}
+          className="bg-gradient-to-r from-rose-500 to-black hover:from-rose-600 hover:to-pink-700 text-white py-4 rounded-2xl text-xl font-bold shadow-neon hover:shadow-2xl transition-all"
           onClick={() => onSelectCategory("Love", "Romantic")}
-          aria-label="Select Romantic Love Questions"
         >
-          Romantic
-        </button>
+          <div className="flex items-center justify-center gap-3">
+            <FaHeart className="text-pink-100 text-2xl" />
+            <span className="bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent">
+              Romantic Mode
+            </span>
+          </div>
+        </motion.button>
       </div>
 
       {/* Back Button */}
-      <button
-        onClick={handleBackButtonClick}
-        className="mt-6 py-2 px-4 bg-gray-900 border-2 border-red-500 hover:bg-gray-800 text-white rounded-lg transition-all"
-        aria-label="Go back to the previous page"
+      <motion.button
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={() => navigate(-1)}
+        className="mt-8 py-2 px-6 bg-transparent border-2 border-amber-400/50 hover:border-amber-400/80 text-amber-300 rounded-xl text-lg font-semibold backdrop-blur-sm transition-all"
       >
-        Back
-      </button>
+        <div className="flex items-center gap-2">
+          <FaArrowLeft />
+          <span>Back to Menu</span>
+        </div>
+      </motion.button>
 
-      <footer className="text-gray-600 text-[50px] md:text-4xl pt-12">
-        Mavka
-      </footer>
+      {/* Footer */}
+      <motion.div 
+        className="mt-12"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.3 }}
+      >
+        
+      </motion.div>
     </div>
   );
 };

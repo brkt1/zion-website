@@ -1,29 +1,36 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { FaHeart, FaUsers, FaArrowLeft } from "react-icons/fa"; // Import the back arrow icon
+import { FaHeart, FaUsers, FaArrowLeft } from "react-icons/fa";
 
 const Landing = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-900 text-white">
-      <div className="flex-grow flex flex-col items-center justify-center p-4">
-        <h1 className="text-5xl md:text-6xl font-extrabold mb-6 transition-transform transform hover:scale-110 flex justify-center">
+    <div className="min-h-screen flex flex-col bg-neutral-900 text-white">
+      <div className="flex-grow flex flex-col items-center justify-center p-4 relative">
+        {/* Back arrow button */}
+        <motion.button
+          onClick={() => navigate(-1)}
+          className="absolute top-6 left-6 p-3 rounded-2xl bg-amber-400/20 hover:bg-amber-400/30 backdrop-blur-sm"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          <FaArrowLeft className="text-amber-400 text-2xl" />
+        </motion.button>
+
+        {/* Logo with golden accent */}
+        <motion.div 
+          className="mb-8"
+          whileHover={{ scale: 1.05, rotate: 2 }}
+          transition={{ type: "spring", stiffness: 300 }}
+        >
           <img 
             src="Dare 1.png" 
             alt="Logo" 
-            className="h-32 md:h-48 w-auto transition-transform transform hover:scale-110"
+            className="h-32 md:h-48 w-auto drop-shadow-gold"
           />
-        </h1>
-
-        {/* Back arrow button */}
-        <button
-          onClick={() => navigate(-1)} // Navigate back
-          className="absolute top-4 left-4 p-2 rounded-full bg-gray-800 hover:bg-gray-700 transition duration-300"
-        >
-          <FaArrowLeft className="text-white text-2xl" />
-        </button>
+        </motion.div>
 
         <motion.div 
           initial={{ opacity: 0, scale: 0.9 }}
@@ -31,19 +38,27 @@ const Landing = () => {
           transition={{ 
             duration: 0.5, 
             type: "spring",
-            stiffness: 200
+            stiffness: 260,
+            damping: 15
           }}
-          className="w-full max-w-md p-8 space-y-8 bg-gray-800 rounded-2xl shadow-2xl border-2 border-gray-700"
+          className="w-full max-w-md p-8 space-y-8 bg-black/40 backdrop-blur-2xl rounded-3xl shadow-2xl border-2 border-amber-400/30"
         >
           <div className="text-center">
-            <p className="text-gray-400 mb-6 text-lg font-medium">
-              Choose your game mode!
-            </p>
+            <motion.p 
+              className="text-amber-200 mb-6 text-xl font-light tracking-wide"
+              initial={{ y: -10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+            >
+              <span className="font-bold bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">
+                CHOOSE YOUR MODE
+              </span>
+            </motion.p>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-6">
+            {/* Lovers Button */}
             <motion.button
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.05, rotate: 1 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate("/lovers")}
               className={`
@@ -52,27 +67,32 @@ const Landing = () => {
                 items-center 
                 justify-center 
                 gap-4
-                py-4 
-                rounded-xl 
-                text-white 
+                py-5 
+                rounded-2xl 
                 font-bold 
-                bg-gradient-to-r from-pink-500 to-red-500
+                bg-gradient-to-r from-black via-rose-600 to-black
                 hover:shadow-2xl 
                 transition-all 
                 duration-300 
                 shadow-lg 
                 cursor-pointer
-                text-center
                 group
+                relative
+                overflow-visible
+                text-white
               `}
             >
-              <FaHeart className="text-2xl group-hover:animate-pulse" />
-              For Lovers
-              <FaHeart className="opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="absolute inset-0 border-2 border-pink-400/50 rounded-2xl opacity-50 hover:opacity-70 transition-opacity" />
+              <FaHeart className="text-2xl group-hover:animate-pulse text-pink-300" />
+              <span className="text-xl bg-gradient-to-r from-amber-200 to-amber-400 bg-clip-text text-transparent">
+                For Lovers
+              </span>
+              <FaHeart className="opacity-0 group-hover:opacity-100 transition-opacity text-pink-200" />
             </motion.button>
 
+            {/* Friends Button */}
             <motion.button
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.05, rotate: -1 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate("/friends")}
               className={`
@@ -81,35 +101,41 @@ const Landing = () => {
                 items-center 
                 justify-center 
                 gap-4
-                py-4 
-                rounded-xl 
-                text-white 
+                py-5 
+                rounded-2xl 
                 font-bold 
-                bg-gradient-to-r from-blue-500 to-purple-600
+                bg-gradient-to-r from-black via-blue-500 to-black
                 hover:shadow-2xl 
                 transition-all 
                 duration-300 
                 shadow-lg 
                 cursor-pointer
-                text-center
                 group
+                relative
+                overflow-visible
+                text-white
               `}
             >
-              <FaUsers className="text-2xl group-hover:animate-pulse" />
-              For Friends
-              <FaUsers className="opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="absolute inset-0 border-2 border-cyan-400/50 rounded-2xl opacity-50 hover:opacity-70 transition-opacity" />
+              <FaUsers className="text-2xl group-hover:animate-pulse text-cyan-300" />
+              <span className="text-xl bg-gradient-to-r from-amber-200 to-amber-400 bg-clip-text text-transparent">
+                For Friends
+              </span>
+              <FaUsers className="opacity-0 group-hover:opacity-100 transition-opacity text-cyan-200" />
             </motion.button>
           </div>
 
-          <div className="text-center text-gray-500 mt-4">
-            <p className="text-sm italic">
-              Get ready for an exciting experience!
+          <motion.div 
+            className="text-center mt-6 pt-6 border-t border-amber-400/20"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <p className="text-sm italic text-amber-400/80">
+              "Ready for an unforgettable experience?"
             </p>
-          </div>
+          </motion.div>
         </motion.div>
       </div>
-      
- 
     </div>
   );
 };

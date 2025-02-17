@@ -231,7 +231,7 @@ const handleCertificateError = (error: Error) => {
         backgroundPosition: ['0% 50%', '100% 50%']
       }}
       className="min-h-screen flex flex-col items-center justify-center 
-      bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 
+      bg-gradient-to-r from-indigo-600 via-purple-00 to-pink-600 
       p-4 text-center overflow-hidden"
     >
       <motion.div 

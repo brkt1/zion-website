@@ -99,7 +99,6 @@ const ThankYou: React.FC = () => {
         >
           <motion.button
             whileHover={{ y: -2 }}
-            whileTap={{ scale: 0.98 }}
             onClick={handleTryAgain}
             className="flex items-center justify-center gap-2 bg-gradient-to-br from-purple-500 to-blue-500 text-white px-8 py-4 rounded-xl text-lg font-semibold 
                       hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-300"
@@ -110,7 +109,6 @@ const ThankYou: React.FC = () => {
           
           <motion.button
             whileHover={{ y: -2 }}
-            whileTap={{ scale: 0.98 }}
             onClick={handleGoHome}
             className="flex items-center justify-center gap-2 bg-slate-700/50 hover:bg-slate-700/70 text-white px-8 py-4 rounded-xl text-lg font-semibold 
                       hover:shadow-lg hover:shadow-slate-500/20 transition-all duration-300"
