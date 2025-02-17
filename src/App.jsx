@@ -16,6 +16,8 @@ import CardGenerator from "./payment/CardGenerator";
 import TriviaGame from "./Triva-Component/Trivia";
 import CafeOwnerCheckWinner from "./Components/CafeOwnerCheckWinner";
 import Admin from "./Components/admin/AdminPanel";
+import Login from "./Components/auth/Login";
+
 export const TimeContext = createContext();
 
 const formatTime = (seconds) => {
@@ -242,6 +244,7 @@ const App = () => {
           <TimeDisplay remainingTime={remainingTime} />
         )}
         <Routes>
+          <Route path="/login" element={<Login />} />
           <Route path="/" element={<Landing />} />
           <Route path="/thank-you" element={<ThankYou />} />
           <Route path="/lovers" element={<Lovers />} />

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { supabase } from '../../supabaseClient';
 import { useNavigate } from 'react-router-dom';
+
 
 
 const Login = () => {
@@ -15,32 +15,32 @@ const Login = () => {
         setError(null);
         
         try {
-            const { user, error } = await supabase.auth.signIn({
-                email,
-                password,
+            const response = await fetch('/api/login-user', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password }),
             });
-            
-            if (error) throw error;
-            
-            // Get user role from profile
-            const { data: profile, error: profileError } = await supabase
-                .from('profiles')
-                .select('role')
-                .eq('id', user.id)
-                .single();
-            
-            if (profileError) throw profileError;
-            
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error);
+            }
+
             // Store role in session storage
-            sessionStorage.setItem('userRole', profile.role);
+            sessionStorage.setItem('userRole', data.role);
+
             
             // Redirect based on role
             const navigate = useNavigate();
-            if (profile.role === 'admin') {
+            if (data.role === 'admin') {
                 navigate('/admin');
             } else {
                 navigate('/');
             }
+
 
             
         } catch (error) {

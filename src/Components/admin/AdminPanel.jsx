@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../supabaseClient';
 import { useNavigate } from 'react-router-dom';
-import LoadingSpinner from '../../components/LoadingSpinner';
-
 import CertificatesTable from './CertificatesTable';
 import AddCafeOwner from './AddCafeOwner';
 import CardGenerator from '../../payment/CardGenerator';
