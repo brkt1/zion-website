@@ -20,6 +20,7 @@ const QRScanMode = () => {
     const [hasScanned, setHasScanned] = useState(false);
     const [cameras, setCameras] = useState([]);
     const [selectedCamera, setSelectedCamera] = useState(null);
+    const [isCameraStarted, setIsCameraStarted] = useState(false);
     const videoRef = useRef(null);
     const navigate = useNavigate();
     const { startTimer } = useContext(TimeContext);
@@ -29,9 +30,12 @@ const QRScanMode = () => {
         try {
             const devices = await navigator.mediaDevices.enumerateDevices();
             const videoDevices = devices.filter(device => device.kind === 'videoinput');
+            if (videoDevices.length === 0) {
+                setError('No cameras found.');
+                return;
+            }
             setCameras(videoDevices);
             
-            // Select environment camera by default, or first available camera
             const defaultCamera = videoDevices.find(device => 
                 device.label.toLowerCase().includes('back') || 
                 device.label.toLowerCase().includes('environment')
@@ -40,10 +44,10 @@ const QRScanMode = () => {
             setSelectedCamera(defaultCamera?.deviceId);
         } catch (err) {
             console.error('Error getting cameras:', err);
+            setError('Error accessing camera devices.');
         }
     };
 
-    // Call getCameras when component mounts
     useEffect(() => {
         getCameras();
     }, []);
@@ -51,50 +55,37 @@ const QRScanMode = () => {
     useEffect(() => {
         const checkExistingGame = async () => {
             const timerState = localStorage.getItem('gameTimerState');
-            if (!timerState) {
-                return; // Allow scanning if no timer exists
-            }
+            if (!timerState) return;
 
             try {
                 const { remainingTime, timestamp, isActive } = JSON.parse(timerState);
-                if (!isActive || remainingTime <= 0) {
-                    return; // Allow scanning if timer is not active or expired
-                }
+                if (!isActive || remainingTime <= 0) return;
 
                 const elapsedSeconds = Math.floor((Date.now() - timestamp) / 1000);
                 const newRemainingTime = Math.max(0, remainingTime - elapsedSeconds);
                 
-                if (newRemainingTime <= 0) {
-                    return; // Allow scanning if time has run out
-                }
+                if (newRemainingTime <= 0) return;
 
-                // If we have an active timer with remaining time, restore the game
                 const cards = storage.getCards();
                 const lastCard = cards[cards.length - 1];
                 
                 if (lastCard) {
-                    try {
-                        const { data, error } = await supabase
-                            .from('cards')
-                            .select('*, game_types(name)')
-                            .eq('card_number', lastCard.cardNumber)
-                            .single();
+                    const { data, error } = await supabase
+                        .from('cards')
+                        .select('*, game_types(name)')
+                        .eq('card_number', lastCard.cardNumber)
+                        .single();
 
-                        if (data && !error) {
-                            const gameRoute = GAME_ROUTES[data.game_type];
-                            if (gameRoute) {
-                                navigate(gameRoute, {
-                                    state: {
-                                        cardDetails: data,
-                                        remainingTime: newRemainingTime,
-                                    },
-                                });
-                                return;
-                            }
+                    if (data && !error) {
+                        const gameRoute = GAME_ROUTES[data.game_type];
+                        if (gameRoute) {
+                            navigate(gameRoute, {
+                                state: {
+                                    cardDetails: data,
+                                    remainingTime: newRemainingTime,
+                                },
+                            });
                         }
-                    } catch (err) {
-                        console.error('Error fetching card details:', err);
-                        navigate('/');
                     }
                 }
             } catch (err) {
@@ -103,55 +94,15 @@ const QRScanMode = () => {
             }
         };
 
-        // Only check for existing game if we're not coming from a game route
         if (!location.state?.fromGame) {
             checkExistingGame();
         }
-    }, [navigate, GAME_ROUTES, location]);
-
-    // Check if the browser supports the required APIs
-    const checkBrowserSupport = () => {
-        if (!navigator.mediaDevices?.getUserMedia) {
-            setError('Camera access is not supported in this browser. Please try using a modern browser.');
-            return false;
-        }
-        return true;
-    };
-
-    const requestCameraAccess = async () => {
-        setIsLoading(true);
-        try {
-            if (!checkBrowserSupport()) {
-                return false;
-            }
-
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: 'environment' } 
-            });
-            // Immediately stop the unused stream (QrScanner will create its own)
-            stream.getTracks().forEach(track => track.stop());
-            setIsLoading(false);
-            return true;
-        } catch (err) {
-            console.error('Camera access error:', err);
-            setError(
-                err.name === 'NotAllowedError'
-                    ? 'Camera access was denied. Please enable permissions in your browser settings.'
-                    : 'Failed to access camera. Please make sure your camera is connected and not in use.'
-            );
-            setIsLoading(false);
-            return false;
-        }
-    };
+    }, [navigate, location]);
 
     useEffect(() => {
         const setupScanner = async () => {
             try {
-                if (!videoRef.current) return;
-
-                // Request camera permission first
-                const hasPermission = await requestCameraAccess();
-                if (!hasPermission) return;
+                if (!videoRef.current || !selectedCamera || !isCameraStarted) return;
 
                 const qrScanner = new QrScanner(
                     videoRef.current,
@@ -161,7 +112,7 @@ const QRScanMode = () => {
                         }
                     },
                     {
-                        preferredCamera: selectedCamera || 'environment',
+                        preferredCamera: selectedCamera,
                         highlightScanRegion: true,
                         maxScansPerSecond: 3,
                         returnDetailedScanResult: true
@@ -170,28 +121,27 @@ const QRScanMode = () => {
 
                 await qrScanner.start();
                 setScanner(qrScanner);
+                setError(null);
             } catch (err) {
                 console.error('Scanner setup error:', err);
-                setError('Failed to initialize camera. Please refresh and allow camera access.');
+                if (err.name === 'NotAllowedError') {
+                    setError('Camera access denied. Please allow camera permissions.');
+                } else {
+                    setError('Failed to start camera. Please try again.');
+                }
+                setIsCameraStarted(false);
             }
         };
 
-        const initScanner = async () => {
-            await setupScanner();
-        };
-
-        initScanner();
+        setupScanner();
 
         return () => {
             if (scanner) {
                 scanner.destroy();
-            }
-            // Clean up any media tracks
-            if (videoRef.current?.srcObject) {
-                videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+                setScanner(null);
             }
         };
-    }, [selectedCamera, hasScanned]);
+    }, [selectedCamera, hasScanned, isCameraStarted]);
 
     const verifyQRCode = useCallback(async (scannedData) => {
         setIsLoading(true);
@@ -199,7 +149,6 @@ const QRScanMode = () => {
 
         try {
             let cardData;
-
             if (typeof scannedData === 'string') {
                 try {
                     cardData = JSON.parse(scannedData);
@@ -210,7 +159,6 @@ const QRScanMode = () => {
                 cardData = scannedData;
             } else {
                 setError('Invalid QR code format');
-                setIsLoading(false);
                 return;
             }
 
@@ -219,7 +167,6 @@ const QRScanMode = () => {
 
             if (!cardNumber || cardNumber.length !== 14) {
                 setError('Invalid Card Number');
-                setIsLoading(false);
                 return;
             }
 
@@ -231,13 +178,11 @@ const QRScanMode = () => {
 
             if (error || !data) {
                 setError('Card not found');
-                setIsLoading(false);
                 return;
             }
 
             if (data.used) {
                 setError('Card has already been used');
-                setIsLoading(false);
                 return;
             }
 
@@ -246,21 +191,14 @@ const QRScanMode = () => {
                 .update({ used: true })
                 .eq('card_number', cardNumber);
 
-            // Save card data to local storage
             storage.setCard(cardNumber);
-
             setCardDetails(data);
-            setError(null);
             setHasScanned(true);
-
             startTimer(data.duration * 60);
 
             const gameRoute = GAME_ROUTES[data.game_type];
             if (gameRoute) {
-                if (scanner) {
-                    scanner.destroy();
-                }
-                
+                scanner?.destroy();
                 navigate(gameRoute, {
                     state: {
                         cardDetails: data,
@@ -271,7 +209,7 @@ const QRScanMode = () => {
                 setError('Invalid game type');
             }
         } catch (err) {
-            console.error('Error verifying card number:', err);
+            console.error('Error verifying card:', err);
             setError('Error processing card');
         } finally {
             setIsLoading(false);
@@ -281,8 +219,7 @@ const QRScanMode = () => {
     const handleScan = useCallback((data) => {
         if (data) {
             try {
-                const parsedData = JSON.parse(data);
-                verifyQRCode(parsedData);
+                verifyQRCode(JSON.parse(data));
             } catch (error) {
                 verifyQRCode(data);
             }
@@ -299,14 +236,19 @@ const QRScanMode = () => {
     const handleRetry = async () => {
         setError(null);
         setHasScanned(false);
-        
-        try {
-            const hasPermission = await requestCameraAccess();
-            if (hasPermission && scanner) {
-                await scanner.start();
-            }
-        } catch (err) {
-            setError('Failed to restart camera. Please check permissions.');
+        setIsCameraStarted(true);
+    };
+
+    const handleStartCamera = () => {
+        setIsCameraStarted(true);
+    };
+
+    const handleCameraChange = (e) => {
+        setSelectedCamera(e.target.value);
+        setIsCameraStarted(false);
+        if (scanner) {
+            scanner.destroy();
+            setScanner(null);
         }
     };
 
@@ -315,24 +257,42 @@ const QRScanMode = () => {
             <div className="w-full max-w-md">
                 <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
                     <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-center">
-                        <h1 className="text-3xl font-bold text-white">
-                            Scan QR Code
-                        </h1>
+                        <h1 className="text-3xl font-bold text-white">Scan QR Code</h1>
                     </div>
 
                     <div className="p-6">
+                        {!isCameraStarted && (
+                            <button 
+                                onClick={handleStartCamera}
+                                className="w-full bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition duration-300 mb-4"
+                            >
+                                Start Camera
+                            </button>
+                        )}
+
+                        {cameras.length > 0 && isCameraStarted && (
+                            <select 
+                                value={selectedCamera || ''}
+                                onChange={handleCameraChange}
+                                className="w-full p-2 mb-4 border rounded"
+                            >
+                                {cameras.map(camera => (
+                                    <option key={camera.deviceId} value={camera.deviceId}>
+                                        {camera.label || `Camera ${camera.deviceId}`}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
+
                         {isLoading && (
                             <div className="flex justify-center mb-4">
                                 <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500"></div>
                             </div>
                         )}
 
-                        {!hasScanned && (
+                        {isCameraStarted && !hasScanned && (
                             <div className="mb-6 border-4 border-blue-200 rounded-lg overflow-hidden relative">
-                                <video 
-                                    ref={videoRef}
-                                    className="w-full h-64 object-cover"
-                                />
+                                <video ref={videoRef} className="w-full h-64 object-cover" />
                                 <div className="absolute inset-0 pointer-events-none">
                                     <div className="absolute inset-0 border-2 border-blue-500 opacity-30"></div>
                                     <div className="absolute left-1/4 right-1/4 top-1/4 bottom-1/4 border-2 border-blue-500"></div>
@@ -367,7 +327,7 @@ const QRScanMode = () => {
                         {error && (
                             <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg mb-4">
                                 <p>{error}</p>
-                                {error.includes('permissions') && (
+                                {error.includes('denied') && (
                                     <button
                                         onClick={handleRetry}
                                         className="mt-2 text-red-700 underline hover:text-red-900"
