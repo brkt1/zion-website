@@ -7,12 +7,12 @@
   "theme_color": "#4A90E2",
   "icons": [
     {
-      "src": "/public/zionlogo.png",
+      "src": "/zionlogo.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/public/zionlogo.png",
+      "src": "/zionlogo.png",
       "sizes": "512x512",
       "type": "image/png"
     }

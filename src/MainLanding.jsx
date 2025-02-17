@@ -147,7 +147,7 @@ const Landing = () => {
           >
             <div className="mt-4 flex justify-center">
               <motion.img 
-                src="public/zionlogo.png" 
+                src="/zionlogo.png" 
                 alt="GameHub Logo"
                 whileHover={{ scale: 1.05, rotate: 2 }}
                 whileTap={{ scale: 0.95 }}
