@@ -16,16 +16,21 @@ const AdminPanel = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (!user || error) {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (!user || userError) {
         navigate('/login');
         return;
       }
 
-      // Check if user is admin
-      const userRole = sessionStorage.getItem('userRole');
-      if (userRole !== 'admin') {
-        navigate('/');
+      // Check if user is admin by querying the profiles table
+      const { data: userData, error: roleError } = await supabase
+        .from('profiles')
+        .select('role') // Assuming you have a column for role
+        .eq('id', user.id)
+        .single();
+
+      if (roleError || !userData || userData.role !== 'admin') {
+        navigate('/login');
         return;
       }
 
@@ -33,9 +38,8 @@ const AdminPanel = () => {
       setLoading(false);
     };
 
-
     checkAuth();
-    
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT') navigate('/login');
     });
@@ -50,7 +54,6 @@ const AdminPanel = () => {
 
   if (loading || !isAdmin) return <LoadingSpinner />;
 
-
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar 
@@ -62,7 +65,7 @@ const AdminPanel = () => {
       <main className="flex-1 p-8 lg:ml-64">
         <div className="max-w-6xl mx-auto">
           <h1 className="text-2xl font-bold text-gray-800 mb-8 capitalize">
-            {activeTab }
+            {activeTab}
           </h1>
           {activeTab === 'certificates' && <CertificatesTable />}
           {activeTab === 'cafeOwners' && <AddCafeOwner />}
