@@ -1,8 +1,5 @@
 import React, { createContext, useState, useEffect, useRef } from "react";
-import { createBrowserRouter, RouterProvider, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
-
-import ErrorPage from "./components/ErrorPage";
-
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom"; 
 import { motion } from 'framer-motion';
 import Lovers from "./TruthandDear-Component/Lovers";
 import ThankYou from "./Components/ThankYou";
@@ -88,6 +85,7 @@ const TimeDisplay = ({ remainingTime }) => {
                   ? { 
                       scale: [1, 1.1, 1],
                       transition: { 
+                        duration: 0.5,
                         repeat: Infinity 
                       }
                     }
@@ -240,92 +238,59 @@ const App = () => {
         isExpired 
       }}
     >
-      {isTimerActive && (
-        <TimeDisplay remainingTime={remainingTime} />
-      )}
-      <RouterProvider router={createBrowserRouter([
-        {
-          path: "/login",
-          element: <Login />
-        },
-        {
-          path: "/",
-          element: <Landing />
-        },
-        {
-          path: "/thank-you",
-          element: <ThankYou />
-        },
-        {
-          path: "/lovers",
-          element: <Lovers />
-        },
-        {
-          path: "/friends",
-          element: <Friends />
-        },
-        {
-          path: "/game-mode",
-          element: <LoveGameMode />
-        },
-        {
-          path: "/friends-game-mode",
-          element: <FriendsGameMode />
-        },
-        {
-          path: "/game-screen",
-          element: <GameScreen />
-        },
-        {
-          path: "/qr-scan",
-          element: <QRScanMode />
-        },
-        {
-          path: "/admin",
-          element: <Admin />
-        },
-        {
-          path: "/trivia-game",
-          element: (
-            <ProtectedRoute>
-              <TriviaGame />
-            </ProtectedRoute>
-          )
-        },
-        {
-          path: "/truth-or-dare",
-          element: (
-            <ProtectedRoute>
-              <TruthOrDare />
-            </ProtectedRoute>
-          )
-        },
-        {
-          path: "/rock-paper-scissors",
-          element: (
-            <ProtectedRoute>
-              <RockPaperScissors />
-            </ProtectedRoute>
-          )
-        },
-        {
-          path: "/emoji-game",
-          element: (
-            <ProtectedRoute>
-              <EmojiGame />
-            </ProtectedRoute>
-          )
-        },
-        {
-          path: "/cafe-owner/check-winner",
-          element: <CafeOwnerCheckWinner />
-        },
-        {
-          path: "*",
-          element: <ErrorPage />
-        }
-      ])} />
-
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        {isTimerActive && (
+          <TimeDisplay remainingTime={remainingTime} />
+        )}
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<Landing />} />
+          <Route path="/thank-you" element={<ThankYou />} />
+          <Route path="/lovers" element={<Lovers />} />
+          <Route path="/friends" element={<Friends />} />
+          <Route path="/game-mode" element={<LoveGameMode />} />
+          <Route path="/friends-game-mode" element={<FriendsGameMode />} />
+          <Route path="/game-screen" element={<GameScreen />} />
+          <Route path="/qr-scan" element={<QRScanMode />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route 
+            path="/trivia-game" 
+            element={
+              <ProtectedRoute>
+                <TriviaGame />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/truth-or-dare" 
+            element={
+              <ProtectedRoute>
+                <TruthOrDare />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/rock-paper-scissors" 
+            element={
+              <ProtectedRoute>
+                <RockPaperScissors />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/emoji-game" 
+            element={
+              <ProtectedRoute>
+                <EmojiGame />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/cafe-owner/check-winner" 
+            element={<CafeOwnerCheckWinner />} 
+          />
+        </Routes>
+      </BrowserRouter>
     </TimeContext.Provider>
   );
 };
