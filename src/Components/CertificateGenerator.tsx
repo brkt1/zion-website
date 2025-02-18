@@ -1,10 +1,7 @@
 import React from 'react';
 import QRCode from 'qrcode';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../supabaseClient';
 
-const supabaseUrl = 'https://rpaxjodkgxfgneflavnj.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwYXhqb2RrZ3hmZ25lZmxhdm5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzE4NDQyMzcsImV4cCI6MjA0NzQyMDIzN30.GSzz1RA75KCX3NiGfz2LOIAuXMPFYQy-fjXYH1S93cc'; // Replace with your actual Supabase anon key
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 
 interface CertificateProps {
@@ -37,13 +34,24 @@ const CertificateGenerator: React.FC<CertificateProps> = ({
     try {
       const { data, error } = await supabase
         .from('certificates')
-        .insert([certificateProps]);
-      if (error) throw error;
+        .insert([certificateProps])
+        .select();
+      
+      if (error) {
+        if (error.code === '42501') {
+          throw new Error('Permission denied. Please check your access rights.');
+        }
+        throw error;
+      }
       console.log('Certificate saved:', data);
+      return data;
     } catch (error) {
       console.error('Error saving certificate:', error);
-      onError?.(error as Error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save certificate';
+      onError?.(new Error(errorMessage));
+      throw error;
     }
+
   };
 
   const generateCertificate = async () => {
@@ -63,6 +71,10 @@ const CertificateGenerator: React.FC<CertificateProps> = ({
       if (!playerName || !playerId) {
         throw new Error('Missing player information');
       }
+      
+      // First save certificate data
+      await saveCertificateProps(certificateProps);
+
 
       const canvas = document.createElement('canvas');
       const pixelRatio = window.devicePixelRatio || 1;

@@ -172,16 +172,28 @@ const QRScanMode = () => {
                 return;
             }
 
-            const { data, error } = await supabase
-                .from('cards')
-                .select('*, game_types(name)')
-                .eq('card_number', cardNumber)
-                .single();
+      const { data, error } = await supabase
+        .from('cards')
+        .select('*, game_types(name)')
+        .eq('card_number', cardNumber)
+        .single();
 
-            if (error || !data) {
-                setError('Card not found');
-                return;
-            }
+      if (error) {
+        if (error.code === 'PGRST116') { // 404 error
+          setError('Card not found. Please check the number.');
+        } else if (error.code === 'PGRST100') { // Connection error
+          setError('Connection failed. Please check your internet.');
+        } else {
+          setError('Error verifying card: ' + error.message);
+        }
+        return;
+      }
+
+      if (!data) {
+        setError('Invalid card data received');
+        return;
+      }
+
 
             if (data.used) {
                 setError('Card has already been used');
@@ -210,9 +222,11 @@ const QRScanMode = () => {
             } else {
                 setError('Invalid game type');
             }
-        } catch (err) {
-            console.error('Error verifying card:', err);
-            setError('Error processing card');
+    } catch (err) {
+      console.error('Error verifying card:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to process card';
+      setError('Error: ' + errorMessage);
+
         } finally {
             setIsLoading(false);
         }
@@ -327,19 +341,20 @@ const QRScanMode = () => {
                             </div>
                         )}
 
-                        {error && (
-                            <div className="bg-red-900/20 border-l-4 border-red-600 text-red-300 p-4 rounded-lg mb-4">
-                                <p>{error}</p>
-                                {error.includes('denied') && (
-                                    <button
-                                        onClick={handleRetry}
-                                        className="mt-2 text-red-300 underline hover:text-red-100"
-                                    >
-                                        Click here to try again
-                                    </button>
-                                )}
-                            </div>
-                        )}
+      {error && (
+        <div className="bg-red-900/20 border-l-4 border-red-600 text-red-300 p-4 rounded-lg mb-4">
+          <p>{error}</p>
+          {(error.includes('denied') || error.includes('Connection failed')) && (
+            <button
+              onClick={handleRetry}
+              className="mt-2 text-red-300 underline hover:text-red-100"
+            >
+              Click here to try again
+            </button>
+          )}
+        </div>
+      )}
+
 
                         {cardDetails && (
                             <div className="bg-gray-800 border-l-4 border-amber-500 p-4 rounded-lg">

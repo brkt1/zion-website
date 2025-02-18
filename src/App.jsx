@@ -27,7 +27,7 @@ const formatTime = (seconds) => {
 
 // Modern Time Display Component
 const TimeDisplay = ({ remainingTime }) => {
-  const navigate = useNavigate();
+  const navigate = useNavigate(); 
 
   const getProgressPercentage = () => {
     return ((300 - remainingTime) / 300) * 100;

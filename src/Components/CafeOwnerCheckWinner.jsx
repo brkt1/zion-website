@@ -36,11 +36,23 @@ const CafeOwnerCheckWinner = () => {
         .eq('playerId', playerId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === 'PGRST116') { // 404 error code
+          throw new Error('Certificate not found. Please check the player ID.');
+        }
+        throw error;
+      }
+
+      if (!data) {
+        throw new Error('No certificate data found for this player ID.');
+      }
 
       setCertificateData(data);
+
     } catch (err) {
-      setError('Error checking certificate: ' + err.message);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to check certificate';
+      setError('Error: ' + errorMessage);
+
     } finally {
       setLoading(false);
     }
@@ -85,15 +97,22 @@ const CafeOwnerCheckWinner = () => {
     setError(null);
 
     // Authenticate against the cafe_owners table
-    const { data, error } = await supabase
-      .from('cafe_owners')
-      .select('*')
-      .eq('email', email)
-      .eq('password', password) // Ensure password is hashed in the database
-      .single();
+      const { data, error } = await supabase
+        .from('cafe_owners')
+        .select('*')
+        .eq('email', email)
+        .eq('password', password) // Ensure password is hashed in the database
+        .single();
 
-    if (error || !data) {
-      setError('Login failed: ' + (error ? error.message : 'Invalid credentials'));
+      if (error) {
+        if (error.code === 'PGRST116') { // 404 error code
+          setError('Login failed: User not found');
+        } else {
+          setError('Login failed: ' + error.message);
+        }
+      } else if (!data) {
+        setError('Login failed: Invalid credentials');
+
     } else {
       setIsLoggedIn(true);
     }
