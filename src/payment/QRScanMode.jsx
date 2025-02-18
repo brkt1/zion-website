@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { TimeContext } from '../App';
 import { storage } from '../utils/storage';
+import LoadingSpinner from '../Components/LoadingSpinner';
+
 import QrScanner from 'qr-scanner';
 
 const GAME_ROUTES = {
@@ -286,11 +288,8 @@ const QRScanMode = () => {
                             </select>
                         )}
 
-                        {isLoading && (
-                            <div className="flex justify-center mb-4">
-                                <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-amber-500"></div>
-                            </div>
-                        )}
+                        {isLoading && <LoadingSpinner />}
+
 
                         {isCameraStarted && !hasScanned && (
                             <div className="mb-6 border-4 border-amber-500 rounded-lg overflow-hidden relative">
