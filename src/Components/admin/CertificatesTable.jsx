@@ -1,4 +1,3 @@
-// CertificatesTable.js
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../supabaseClient';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -8,6 +7,7 @@ const CertificatesTable = () => {
   const [certificates, setCertificates] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
 
   useEffect(() => {
     const fetchCertificates = async () => {
@@ -42,44 +42,65 @@ const CertificatesTable = () => {
 
   if (isLoading) return <LoadingSpinner />;
   if (error) return <Error message={error} />;
-
   return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Player Name</th>
-            <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Score</th>
-            <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Game Type</th>
-            <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Paid</th>
-            <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {certificates.map(cert => (
-            <tr key={cert.id} className="hover:bg-gray-50 transition-colors">
-              <td className="px-6 py-4 text-sm text-gray-900 font-medium">{cert.playerName}</td>
-              <td className="px-6 py-4 text-sm text-gray-600">{cert.score}</td>
-              <td className="px-6 py-4 text-sm text-gray-600">{cert.gameType}</td>
-              <td className="px-6 py-4">
-                <span className={`px-3 py-1 rounded-full text-xs font-semibold tracking-wide ${cert.paid ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                  {cert.paid ? 'Paid' : 'Unpaid'}
-                </span>
-              </td>
-              <td className="px-6 py-4">
-                <button 
-                  onClick={() => togglePaidStatus(cert.id, cert.paid)}
-                  className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${cert.paid 
-                    ? 'bg-red-600 hover:bg-red-700 text-white' 
-                    : 'bg-green-600 hover:bg-green-700 text-white'}`}
-                >
-                  {cert.paid ? 'Mark Unpaid' : 'Mark Paid'}
-                </button>
-              </td>
+    <div className="bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-700">
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-700">
+          <thead className="bg-gray-900">
+            <tr>
+              <th className="px-4 py-3 sm:px-6 sm:py-4 text-left text-xs sm:text-sm font-medium text-amber-400 uppercase tracking-wider">
+                Player
+              </th>
+              <th className="px-4 py-3 sm:px-6 sm:py-4 text-left text-xs sm:text-sm font-medium text-amber-400 uppercase tracking-wider">
+                Score
+              </th>
+              <th className="px-4 py-3 sm:px-6 sm:py-4 text-left text-xs sm:text-sm font-medium text-amber-400 uppercase tracking-wider">
+                Game Type
+              </th>
+            
+              <th className="px-4 py-3 sm:px-6 sm:py-4 text-left text-xs sm:text-sm font-medium text-amber-400 uppercase tracking-wider">
+                Actions
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="bg-gray-800 divide-y divide-gray-700">
+            {certificates.map(cert => (
+              <tr key={cert.id} className="hover:bg-gray-700/50 transition-colors">
+                <td className="px-4 py-3 sm:px-6 sm:py-4 text-sm text-gray-300 font-medium whitespace-nowrap">
+                  {cert.playerName}
+                </td>
+                <td className="px-4 py-3 sm:px-6 sm:py-4 text-sm text-gray-400">
+                  {cert.score}
+                </td>
+                <td className="px-4 py-3 sm:px-6 sm:py-4 text-sm text-gray-400">
+                  {cert.gameType}
+                </td>
+              
+           
+                <td className="px-4 py-3 sm:px-6 sm:py-4 whitespace-nowrap">
+                  <button 
+                    onClick={() => togglePaidStatus(cert.id, cert.paid)}
+                    className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
+                      cert.paid 
+                        ? 'bg-red-600 hover:bg-red-700 text-white' 
+                        : 'bg-green-600 hover:bg-green-700 text-white'
+                    }`}
+                  >
+                    {cert.paid ? 'Mark Unpaid' : 'Mark Paid'}
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {certificates.length === 0 && (
+              <tr>
+                <td colSpan="5" className="px-4 py-6 text-center text-gray-500">
+                  No certificates found
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

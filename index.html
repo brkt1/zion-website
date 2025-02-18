@@ -13,10 +13,38 @@
     <meta property="og:description" content="Zion is a professional web application that offers a variety of features and services." />
     <meta property="og:image" content="/zionlogo.png" />
     <meta property="og:url" content="https://yourwebsite.com" />
-    <title>Zion - Professional Web Application</title>
+    
+    <!-- PWA specific meta tags -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Yenege">
+    <link rel="apple-touch-startup-image" href="/splash.png">
+    
+    <!-- Splash screen meta tags -->
+    <meta name="msapplication-TileColor" content="#4A90E2">
+    <meta name="msapplication-TileImage" content="/icons/icon-144x144.png">
+    <meta name="msapplication-config" content="/browserconfig.xml">
+    
+    <title>Yenege - Professional Web Application</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main-v3.jsx"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then(registration => {
+              console.log('ServiceWorker registration successful');
+            })
+            .catch(err => {
+              console.log('ServiceWorker registration failed: ', err);
+            });
+        });
+      }
+    </script>
   </body>
 </html>

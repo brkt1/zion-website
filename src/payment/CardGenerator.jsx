@@ -6,32 +6,45 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import QRCode from 'qrcode';
 
-const CardGenerator = () => {
-    const navigate = useNavigate();
-    const [isAdmin, setIsAdmin] = useState(false);
-    const [loadingAuth, setLoadingAuth] = useState(true);
 
-    // Check if user is admin on mount
-    useEffect(() => {
-        const checkAdmin = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
-                navigate('/login');
-                return;
-            }
 
-            const userRole = sessionStorage.getItem('userRole');
-            if (userRole !== 'admin') {
-                navigate('/');
-                return;
-            }
-
-            setIsAdmin(true);
-            setLoadingAuth(false);
-        };
-
-        checkAdmin();
-    }, [navigate]);
+    const CardGenerator = () => {
+        const navigate = useNavigate();
+        const [isAdmin, setIsAdmin] = useState(false);
+        const [loadingAuth, setLoadingAuth] = useState(true);
+    
+        useEffect(() => {
+           const checkAuth = async () => {
+             const { data: { user }, error: userError } = await supabase.auth.getUser();
+             if (!user || userError) {
+               navigate('/login');
+               return;
+             }
+       
+             const { data: userData, error: roleError } = await supabase
+               .from('profiles')
+               .select('role')
+               .eq('id', user.id)
+               .single();
+       
+             if (roleError || !userData || userData.role !== 'admin') {
+               navigate('/login');
+               return;
+             }
+       
+             setIsAdmin(true);
+             setLoading(false);
+           };
+       
+           checkAuth();
+       
+           const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+             if (event === 'SIGNED_OUT') navigate('/login');
+           });
+       
+           return () => subscription?.unsubscribe();
+         }, [navigate]);
+       
 
     if (loadingAuth) return null;
     if (!isAdmin) return null;
@@ -40,9 +53,9 @@ const CardGenerator = () => {
     const [gameType, setGameType] = useState(null);
     const [duration, setDuration] = useState(30);
     const [generatedCards, setGeneratedCards] = useState([]);
-    const [numberOfCards, setNumberOfCards] = useState(6); // New state for number of cards
     const [isLoading, setIsLoading] = useState(false);
     const [showDownloadMessage, setShowDownloadMessage] = useState(false);
+
 
     // Generate a 14-digit card number
     const generateCardNumber = () => {

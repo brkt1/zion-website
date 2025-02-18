@@ -1,3 +1,4 @@
+// components/admin/AdminPanel.jsx
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../supabaseClient';
 import { useNavigate } from 'react-router-dom';
@@ -12,6 +13,7 @@ const AdminPanel = () => {
   const [activeTab, setActiveTab] = useState('certificates');
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,10 +24,9 @@ const AdminPanel = () => {
         return;
       }
 
-      // Check if user is admin by querying the profiles table
       const { data: userData, error: roleError } = await supabase
         .from('profiles')
-        .select('role') // Assuming you have a column for role
+        .select('role')
         .eq('id', user.id)
         .single();
 
@@ -55,22 +56,36 @@ const AdminPanel = () => {
   if (loading || !isAdmin) return <LoadingSpinner />;
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-900">
+      <button
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        className="lg:hidden fixed top-4 right-4 z-50 p-2 text-amber-400"
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
       <Sidebar 
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         handleLogout={handleLogout}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
       />
       
-      <main className="flex-1 p-8 lg:ml-64">
+      <main className="flex-1 p-4 sm:p-8 lg:ml-64 transition-all duration-300">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-2xl font-bold text-gray-800 mb-8 capitalize">
-            {activeTab}
+          <h1 className="text-2xl sm:text-3xl font-bold text-amber-400 mb-6 capitalize border-b-2 border-amber-500 pb-2">
+            {activeTab.replace(/([A-Z])/g, ' $1')}
           </h1>
-          {activeTab === 'certificates' && <CertificatesTable />}
-          {activeTab === 'cafeOwners' && <AddCafeOwner />}
-          {activeTab === 'cardGenerator' && <CardGenerator />}
-          {activeTab === 'winners' && <WinnerList />}
+          
+          <div className="bg-gray-800 rounded-xl shadow-xl p-4 sm:p-6 border border-gray-700">
+            {activeTab === 'certificates' && <CertificatesTable />}
+            {activeTab === 'cafeOwners' && <AddCafeOwner />}
+            {activeTab === 'cardGenerator' && <CardGenerator />}
+            {activeTab === 'winners' && <WinnerList />}
+          </div>
         </div>
       </main>
     </div>

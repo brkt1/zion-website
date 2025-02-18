@@ -110,7 +110,7 @@ const GameButton = ({ game, index }) => {
 
 const Landing = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-neutral-900 text-white">
+    <div className="min-h-screen flex flex-col bg-black text-white">
       <div className="flex-grow flex items-center justify-center p-4">
         <motion.div 
           className="w-full max-w-2xl p-6 md:p-8 space-y-6 bg-black/40 backdrop-blur-2xl rounded-3xl shadow-2xl border border-amber-400/30"
@@ -123,13 +123,13 @@ const Landing = () => {
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
           >
-            <h1 className="text-4xl font-bold text-transparent bg-clip-text 
+            <h1 className="text-2xl font-bold text-transparent bg-clip-text 
               bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 mb-2
               font-['Bebas_Neue'] tracking-wide">
               HAVE A BEAUTIFUL TIME
             </h1>
             <p className="text-amber-200/90 text-lg font-light tracking-wide">
-              Unleash the fun — pick your game!
+              Future is now!
             </p>
           </motion.div>
 
