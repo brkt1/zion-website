@@ -8,8 +8,8 @@ const WinnerList = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const checkUser = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
+        const checkUser  = async () => {
+            const { data: { user } } = await supabase.auth.getUser ();
             if (!user) {
                 navigate('/login');
             } else {
@@ -17,7 +17,7 @@ const WinnerList = () => {
             }
         };
 
-        checkUser();
+        checkUser ();
     }, [navigate]);
 
     const fetchCertificates = async () => {
@@ -36,53 +36,53 @@ const WinnerList = () => {
 
     const formatBoolean = (value) => {
         return value ? (
-            <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Yes</span>
+            <span className="px-2 py-1 bg-green-900/30 text-green-400 rounded-full text-xs">Yes</span>
         ) : (
-            <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">No</span>
+            <span className="px-2 py-1 bg-red-900/30 text-red-400 rounded-full text-xs">No</span>
         );
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 p-8">
+        <div className="min-h-screen bg-gray-900 p-4 sm:p-8">
             <div className="max-w-6xl mx-auto">
-                <h2 className="text-3xl font-bold text-gray-800 mb-6">Winner Certificates</h2>
+                <h2 className="text-3xl font-bold text-amber-400 mb-6">Winner Certificates</h2>
                 
                 {error && (
-                    <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
+                    <div className="mb-4 p-3 bg-red-900/30 text-red-400 rounded-md">
                         {error}
                     </div>
                 )}
 
-                <div className="bg-white rounded-lg shadow overflow-hidden">
+                <div className="bg-gray-800 rounded-lg shadow overflow-hidden border border-gray-700">
                     <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-gray-50">
+                        <table className="min-w-full divide-y divide-gray-700">
+                            <thead className="bg-gray-900">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Player Name</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Game Type</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Coffee Won</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prize Won</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paid</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-amber-400 uppercase tracking-wider">Player Name</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-amber-400 uppercase tracking-wider">Game Type</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-amber-400 uppercase tracking-wider">Score</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-amber-400 uppercase tracking-wider">Coffee Won</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-amber-400 uppercase tracking-wider">Prize Won</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-amber-400 uppercase tracking-wider">Paid</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-amber-400 uppercase tracking-wider">Date</th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="bg-gray-800 divide-y divide-gray-700">
                                 {certificates.map(cert => (
-                                    <tr key={cert.id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{cert.playerName}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{cert.gameType}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{cert.score}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                    <tr key={cert.id} className="hover:bg-gray-700 transition-colors">
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-300">{cert.playerName}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-400">{cert.gameType}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">{cert.score}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm">
                                             {formatBoolean(cert.hasWonCoffee)}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm">
                                             {formatBoolean(cert.hasWonPrize)}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm">
                                             {formatBoolean(cert.paid)}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-400">
                                             {new Date(cert.created_at).toLocaleDateString('en-GB', {
                                                 day: '2-digit',
                                                 month: 'short',
@@ -93,7 +93,7 @@ const WinnerList = () => {
                                 ))}
                                 {certificates.length === 0 && (
                                     <tr>
-                                        <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
+                                        <td colSpan="7" className="px-4 py-4 text-center text-gray-500">
                                             No certificates found
                                         </td>
                                     </tr>
@@ -107,4 +107,4 @@ const WinnerList = () => {
     );
 };
 
-export default WinnerList;
+export default WinnerList;  

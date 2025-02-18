@@ -1,54 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
-
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import QRCode from 'qrcode';
 
-
-
-    const CardGenerator = () => {
-        const navigate = useNavigate();
-        const [isAdmin, setIsAdmin] = useState(false);
-        const [loadingAuth, setLoadingAuth] = useState(true);
-    
-        useEffect(() => {
-           const checkAuth = async () => {
-             const { data: { user }, error: userError } = await supabase.auth.getUser();
-             if (!user || userError) {
-               navigate('/login');
-               return;
-             }
-       
-             const { data: userData, error: roleError } = await supabase
-               .from('profiles')
-               .select('role')
-               .eq('id', user.id)
-               .single();
-       
-             if (roleError || !userData || userData.role !== 'admin') {
-               navigate('/login');
-               return;
-             }
-       
-             setIsAdmin(true);
-             setLoading(false);
-           };
-       
-           checkAuth();
-       
-           const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-             if (event === 'SIGNED_OUT') navigate('/login');
-           });
-       
-           return () => subscription?.unsubscribe();
-         }, [navigate]);
-       
-
-    if (loadingAuth) return null;
-    if (!isAdmin) return null;
-
+const CardGenerator = () => {
+    // State declarations
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [loadingAuth, setLoadingAuth] = useState(true);
     const [gameTypes, setGameTypes] = useState([]);
     const [gameType, setGameType] = useState(null);
     const [duration, setDuration] = useState(30);
@@ -56,13 +16,47 @@ import QRCode from 'qrcode';
     const [isLoading, setIsLoading] = useState(false);
     const [showDownloadMessage, setShowDownloadMessage] = useState(false);
 
+    const navigate = useNavigate();
 
-    // Generate a 14-digit card number
-    const generateCardNumber = () => {
-        return Array.from({ length: 14 }, () => Math.floor(Math.random() * 10)).join('');
-    };
+    // Authentication check
+    const checkAuth = useCallback(async () => {
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (!user || userError) {
+            navigate('/login');
+            return;
+        }
+  
+        const { data: userData, error: roleError } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+  
+        if (roleError || !userData || userData.role !== 'admin') {
+            navigate('/login');
+            return;
+        }
+  
+        setIsAdmin(true);
+        setLoadingAuth(false);
+    }, [navigate]);
 
-    // Fetch game types on component mount
+    // Authentication effect
+    useEffect(() => {
+        checkAuth();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
+            if (event === 'SIGNED_OUT') {
+                navigate('/login');
+            } else if (event === 'SIGNED_IN') {
+                await checkAuth();
+            }
+        });
+
+        return () => subscription?.unsubscribe();
+    }, [checkAuth, navigate]);
+
+    // Game types effect
     useEffect(() => {
         const fetchGameTypes = async () => {
             const { data, error } = await supabase.from('game_types').select('*');
@@ -74,6 +68,11 @@ import QRCode from 'qrcode';
         };
         fetchGameTypes();
     }, []);
+
+    // Generate a 14-digit card number
+    const generateCardNumber = () => {
+        return Array.from({ length: 14 }, () => Math.floor(Math.random() * 10)).join('');
+    };
 
     // Generate 6 cards
     const generateSixCards = async () => {
@@ -250,59 +249,95 @@ import QRCode from 'qrcode';
         }
     };
 
+    if (loadingAuth) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-600"></div>
+            </div>
+        );
+    }
+    
+    if (!isAdmin) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center p-4">
+                <div className="max-w-md bg-gray-800 rounded-2xl shadow-xl p-8 text-center border border-amber-500/20">
+                    <h2 className="text-2xl font-bold text-amber-400 mb-4">Access Denied</h2>
+                    <p className="text-gray-300 mb-6">
+                        You don't have permission to access this page. Please contact an administrator.
+                    </p>
+                    <button
+                        onClick={() => navigate('/')}
+                        className="bg-amber-500 text-gray-900 px-6 py-2 rounded-lg hover:bg-amber-600 transition duration-300 font-semibold"
+                    >
+                        Return Home
+                    </button>
+                </div>
+            </div>
+        );
+    }
+    
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 p-8">
-            <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-2xl p-8">
-                <h1 className="text-3xl font-bold text-center mb-8 text-blue-600">
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-4 sm:p-8">
+            <div className="max-w-2xl mx-auto bg-gray-800 rounded-2xl shadow-xl p-6 sm:p-8 border border-amber-500/20">
+                <h1 className="text-2xl sm:text-3xl font-bold text-center mb-6 text-amber-400">
                     Game Card Generator
                 </h1>
-
+    
                 <div className="space-y-6">
                     <div>
-                        <label className="block text-gray-700 font-bold mb-2">Game Type</label>
+                        <label className="block text-amber-400 font-semibold mb-2">Game Type</label>
                         <select 
-                            className="w-full p-3 border-2 border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full p-3 bg-gray-700 border border-amber-500/30 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
                             value={gameType || ''}
                             onChange={(e) => setGameType(Number(e.target.value))}
                         >
                             {gameTypes.map(type => (
-                                <option key={type.id} value={type.id}>
+                                <option key={type.id} value={type.id} className="bg-gray-800">
                                     {type.name}
                                 </option>
                             ))}
                         </select>
                     </div>
-
+    
                     <div>
-                        <label className="block text-gray-700 font-bold mb-2">Duration (minutes)</label>
+                        <label className="block text-amber-400 font-semibold mb-2">Duration (minutes)</label>
                         <input 
                             type="number" 
-                            className="w-full p-3 border-2 border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full p-3 bg-gray-700 border border-amber-500/30 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
                             value={duration}
                             min={10}
                             max={120}
                             onChange={(e) => setDuration(Number(e.target.value))}
                         />
                     </div>
-
-                    {/* Generate Cards Button */} <div className="flex space-x-4">
+    
+                    <div className="flex flex-col sm:flex-row gap-4">
                         <button 
                             onClick={generateSixCards}
                             disabled={isLoading}
-                            className={`flex-1 p-3 text-white font-bold rounded-lg ${isLoading ? 'bg-gray-400' : 'bg-red-600 hover:bg-red-700'}`}
+                            className={`flex-1 p-3 font-semibold rounded-lg transition-colors ${
+                                isLoading 
+                                    ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
+                                    : 'bg-amber-500 text-gray-900 hover:bg-amber-600'
+                            }`}
                         >
                             {isLoading ? 'Generating...' : 'Generate Again'}
                         </button>
                         <button 
                             onClick={createA4PdfWithCards}
                             disabled={generatedCards.length === 0}
-                            className={`flex-1 p-3 text-white font-bold rounded-lg ${generatedCards.length === 0 ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'}`}
+                            className={`flex-1 p-3 font-semibold rounded-lg transition-colors ${
+                                generatedCards.length === 0 
+                                    ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
+                                    : 'bg-green-600 text-white hover:bg-green-700'
+                            }`}
                         >
                             Create PDF
                         </button>
                     </div>
+                    
                     {showDownloadMessage && (
-                        <p className="text-center text-green-600 font-semibold">
+                        <p className="text-center text-amber-400 font-semibold">
                             You can download the PDF now!
                         </p>
                     )}

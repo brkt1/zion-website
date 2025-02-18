@@ -12,7 +12,6 @@ import TruthOrDare from "./TruthandDear-Component/TruthOrDare";
 import EmojiGame from "./Emoji-Component/EmojiGame";
 import QRScanMode from "./payment/QRScanMode"; 
 import Landing from "./MainLanding";
-import CardGenerator from "./payment/CardGenerator";
 import TriviaGame from "./Triva-Component/Trivia";
 import CafeOwnerCheckWinner from "./Components/CafeOwnerCheckWinner";
 import Admin from "./Components/admin/AdminPanel";
@@ -252,7 +251,6 @@ const App = () => {
           <Route path="/game-mode" element={<LoveGameMode />} />
           <Route path="/friends-game-mode" element={<FriendsGameMode />} />
           <Route path="/game-screen" element={<GameScreen />} />
-          <Route path="/card-generator" element={<CardGenerator />} />
           <Route path="/qr-scan" element={<QRScanMode />} />
           <Route path="/admin" element={<Admin />} />
           <Route 
