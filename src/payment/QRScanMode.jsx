@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { TimeContext } from '../App';
 import { storage } from '../utils/storage';
-import LoadingSpinner from '../Components/LoadingSpinner';
 
 import QrScanner from 'qr-scanner';
 
@@ -302,7 +301,6 @@ const QRScanMode = () => {
                             </select>
                         )}
 
-                        {isLoading && <LoadingSpinner />}
 
 
                         {isCameraStarted && !hasScanned && (

@@ -1,15 +1,31 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ThankYou from './ThankYou';
 import { TimeContext } from '../App.jsx';
+import type { TimeContextType } from '../@types/app.jsx';
+
+
+
 
 
 // Register service worker and set up message handling
 const registerServiceWorker = async () => {
   if ('serviceWorker' in navigator) {
     try {
-      const registration = await navigator.serviceWorker.register('/service-worker.js');
+      const registration = await navigator.serviceWorker.register('/service-worker.js', {
+        scope: '/',
+        type: 'module'
+      });
       console.log('Service Worker registered:', registration);
+      
+      if (registration.installing) {
+        console.log('Service worker installing');
+      } else if (registration.waiting) {
+        console.log('Service worker installed');
+      } else if (registration.active) {
+        console.log('Service worker active');
+      }
     } catch (error) {
       console.error('Service Worker registration failed:', error);
     }
@@ -17,18 +33,26 @@ const registerServiceWorker = async () => {
 };
 
 
-interface TimeContextType {
-  remainingTime: number;
-  isExpired: boolean;
-  formatTime: (seconds: number) => string;
-  updateTimer: (remainingTime: number, isExpired: boolean) => void;
-}
+
+
+
 
 
 const GameTimer = () => {
   const context = useContext(TimeContext) as TimeContextType;
+
+
   const { remainingTime, isExpired, formatTime } = context;
   const progressPercentage = (remainingTime / 120) * 100;
+
+  const navigate = useNavigate();
+
+  const handleVisibilityChange = useCallback(() => {
+    if (document.hidden && context.remainingTime > 0 && context.isTimerActive) {
+      navigate('/');
+    }
+  }, [context.remainingTime, context.isTimerActive, navigate]);
+
 
   useEffect(() => {
     // Register service worker on component mount
@@ -45,13 +69,19 @@ const GameTimer = () => {
       });
     }
 
+    // Add visibility change listener
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleVisibilityChange);
+
     return () => {
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.removeEventListener('message', () => {});
       }
-
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleVisibilityChange);
     };
-  }, [context]);
+  }, [context, handleVisibilityChange]);
+
 
 
   // Show ThankYou component immediately when timer expires
