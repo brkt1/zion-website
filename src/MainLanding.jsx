@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -6,10 +6,37 @@ import {
     FaQuestionCircle, 
     FaSmile, 
     FaHandRock, 
-    FaPlayCircle 
+    FaPlayCircle,
+    FaDownload
 } from 'react-icons/fa';
 
-const games = [ 
+const Landing = () => {
+  const [showDownloadButton, setShowDownloadButton] = useState(false);
+
+  useEffect(() => {
+    // Check if app is installed
+    const isAppInstalled = () => {
+      try {
+        // Try to open app URL scheme
+        window.location.href = 'zionapp://';
+        return true;
+      } catch (e) {
+        return false;
+      }
+    };
+
+    // Show download button if app is not installed
+    if (!isAppInstalled()) {
+      setShowDownloadButton(true);
+    }
+  }, []);
+
+  const handleDownloadClick = () => {
+    // Replace with your app's download URL
+    window.location.href = 'https://your-app-download-url.com';
+  };
+
+  const games = [ 
     { 
       to: "/emoji-game", 
       label: "Emoji Game", 
@@ -46,9 +73,9 @@ const games = [
       rotate: -12,
       iconColor: "text-emerald-100"
     }
-];
+  ];
 
-const GameButton = ({ game, index }) => {
+  const GameButton = ({ game, index }) => {
     const positionClasses = {
       "top-right": "md:-top-12 md:-right-10 top-[-2rem] right-[-1rem]",
       "top-left": "md:-top-12 md:-left-10 top-[-2rem] left-[-1rem]",
@@ -106,9 +133,8 @@ const GameButton = ({ game, index }) => {
         </Link>
       </motion.div>
     );
-};
+  };
 
-const Landing = () => {
   return (
     <div className="min-h-screen flex flex-col bg-black text-white">
       <div className="flex-grow flex items-center justify-center p-4">
@@ -137,6 +163,59 @@ const Landing = () => {
             {games.map((game, index) => (
               <GameButton key={game.to} game={game} index={index} />
             ))}
+            {showDownloadButton && (
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ 
+                  delay: games.length * 0.07,
+                  type: "spring",
+                  stiffness: 280,
+                  damping: 18
+                }}
+              >
+                <button 
+                  onClick={handleDownloadClick}
+                  className="block group h-full w-full"
+                >
+                  <div className="
+                    h-30 flex flex-col items-center justify-center m-3
+                    p-4 rounded-2xl shadow-xl
+                    bg-gradient-to-br from-blue-900 via-blue-500 to-indigo
+                    hover:shadow-2xl transition-all duration-300
+                    relative overflow-visible
+                  ">
+                    <motion.div 
+                      className="
+                        absolute p-3 rounded-xl bg-black/20 backdrop-blur-lg
+                        md:-top-12 md:-left-10 top-[-2rem] left-[-1rem]
+                        text-blue-100
+                      "
+                      whileHover={{ rotate: 12, scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      transition={{ type: "spring", stiffness: 220 }}
+                    >
+                      <FaDownload className="text-4xl md:text-5xl drop-shadow-xl" />
+                    </motion.div>
+
+                    <div className="flex-grow flex items-center justify-center w-full">
+                      <h3 className="text-xl font-bold text-center z-10 px-4 
+                        text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-200">
+                        Download App
+                      </h3>
+                    </div>
+
+                    <div className="
+                      absolute inset-0 border-2 rounded-2xl transition-all
+                      opacity-50 hover:opacity-80
+                      border-blue-100
+                    "/>
+                  </div>
+                </button>
+              </motion.div>
+            )}
           </div>
 
           <motion.div 
