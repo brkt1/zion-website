@@ -328,7 +328,7 @@ return (
             {/* Emoji Display */}
             <motion.div 
               className="bg-white/5 p-6 rounded-xl border border-white/10 flex items-center justify-center"
-              // ... keep motion props
+              
             >
               <span className="text-6xl sm:text-8xl">{currentEmoji?.emoji || '🎲'}</span>
             </motion.div>
