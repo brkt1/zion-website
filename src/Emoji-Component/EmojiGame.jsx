@@ -105,30 +105,34 @@ const EmojiMastermind = () => {
 
           // Save winner automatically when they win something
           const { error: saveError } = await supabase
-            .from("winners")
+            .from("certificates")
             .insert({
-              player_name: playerName,
-              game_type: "emoji",
+              playerName: playerName,
+              playerId: uuidv4(),
               score: score + 1,
-              won_coffee: true,
-              won_prize: false,
-              // Only include user_id if we have a session
-              ...(session?.user?.id ? { user_id: session.user.id } : {})
+              hasWonCoffee: true,
+              hasWonPrize: false,
+              gameType: "emoji",
+              timestamp: new Date().toISOString()
             });
+
 
           if (saveError) {
             if (saveError.code === '42501') {
               console.log('Permission denied, saving without auth');
               // Try again without user_id
               const { error: retryError } = await supabase
-                .from("winners")
+                .from("certificates")
                 .insert({
-                  player_name: playerName,
-                  game_type: "emoji",
+                  playerName: playerName,
+                  playerId: uuidv4(),
                   score: score + 1,
-                  won_coffee: true,
-                  won_prize: false
+                  hasWonCoffee: true,
+                  hasWonPrize: false,
+                  gameType: "emoji",
+                  timestamp: new Date().toISOString()
                 });
+
               if (retryError) throw retryError;
             } else {
               throw saveError;
