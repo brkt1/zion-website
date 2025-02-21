@@ -1,11 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import QrScanner from 'qr-scanner';
+import { FaCamera } from 'react-icons/fa';
+
 
 const QRScanner = ({ onScan }) => {
   const videoRef = useRef(null);
   const qrScannerRef = useRef(null);
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState(null);
+  const [showPermissionPrompt, setShowPermissionPrompt] = useState(false);
+
 
   useEffect(() => {
     const initializeScanner = async () => {
@@ -39,7 +43,9 @@ const QRScanner = ({ onScan }) => {
         }
       } catch (err) {
         console.error('Camera access denied:', err);
-        setError('Failed to access camera. Please refresh and allow camera access.');
+        setError('Camera access is required to scan QR codes.');
+        setShowPermissionPrompt(true);
+
       }
     };
 
@@ -62,10 +68,27 @@ const QRScanner = ({ onScan }) => {
         Position the QR code within the frame to scan
       </p>
       {error && (
-        <p className="mt-2 text-red-500 text-sm text-center">
-          {error}
-        </p>
+        <div className="mt-2 text-center">
+          <p className="text-red-500 text-sm mb-2">{error}</p>
+          {showPermissionPrompt && (
+            <button
+              onClick={async () => {
+                try {
+                  await navigator.mediaDevices.getUserMedia({ video: true });
+                  window.location.reload();
+                } catch (err) {
+                  setError('Please enable camera access in your browser settings.');
+                }
+              }}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center justify-center gap-2"
+            >
+              <FaCamera />
+              Allow Camera Access
+            </button>
+          )}
+        </div>
       )}
+
       {isScanning && (
         <p className="mt-2 text-green-500 text-sm text-center">
           Scanning...

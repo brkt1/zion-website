@@ -6,9 +6,32 @@ model Certificate {
   has_won_coffee Boolean @default(false)
   has_won_prize   Boolean @default(false)
   gameType    String   // "trivia" or "emoji"
+  game_type_id String
+  game_type   GameType @relation(fields: [game_type_id], references: [id])
   created_at  DateTime @default(now())
 
   @@map("certificates")
+}
+
+model GameType {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  created_at  DateTime @default(now())
+  cards       Card[]
+  certificates Certificate[]
+
+  @@map("game_types")
+}
+
+model Card {
+  id          String   @id @default(uuid())
+  content     String
+  game_type_id String
+  game_type   GameType @relation(fields: [game_type_id], references: [id])
+  created_at  DateTime @default(now())
+
+  @@map("cards")
 }
 
 generator client {
