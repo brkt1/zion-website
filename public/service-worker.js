@@ -1,4 +1,3 @@
-// Basic service worker implementation
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open('zion-v1').then((cache) => {
@@ -6,7 +5,6 @@ self.addEventListener('install', (event) => {
         '/',
         '/index.html',
         '/qr-scan',
-        // Add other core assets here
       ]);
     })
   );

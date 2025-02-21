@@ -1,5 +1,6 @@
 import React, { useState, useContext, useCallback, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Navigate } from 'react-router-dom';
+
 import { supabase } from '../supabaseClient';
 import { TimeContext } from '../App';
 import { storage } from '../utils/storage';
@@ -28,6 +29,14 @@ const QRScanMode = () => {
     const navigate = useNavigate();
     const { startTimer } = useContext(TimeContext);
     const location = useLocation();
+    
+ 
+    
+    // Handle navigation to /qr-scan if needed
+    if (!location.state?.fromGame) {
+        return <Navigate to="/qr-scan" replace state={{ fromGame: true }} />;
+    }
+
 
     const getCameras = async () => {
         try {
@@ -226,6 +235,9 @@ const QRScanMode = () => {
                         fromGame: true
                     },
                 });
+
+
+
 
             } else {
                 setError('Invalid game type');
