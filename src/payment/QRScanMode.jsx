@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { TimeContext } from '../App';
 import { storage } from '../utils/storage';
+import { FaCamera } from 'react-icons/fa';
+
 
 import QrScanner from 'qr-scanner';
 
@@ -80,12 +82,14 @@ const QRScanMode = () => {
                     if (data && !error) {
                         const gameRoute = GAME_ROUTES[data.game_type];
                         if (gameRoute) {
-                            navigate(gameRoute, {
-                                state: {
-                                    cardDetails: data,
-                                    remainingTime: newRemainingTime,
-                                },
-                            });
+          navigate(gameRoute, {
+            state: {
+              cardDetails: data,
+              remainingTime: newRemainingTime,
+              fromGame: true
+            },
+          });
+
                         }
                     }
                 }
@@ -125,11 +129,14 @@ const QRScanMode = () => {
                 setError(null);
             } catch (err) {
                 console.error('Scanner setup error:', err);
-                if (err.name === 'NotAllowedError') {
-                    setError('Camera access denied. Please allow camera permissions.');
-                } else {
-                    setError('Failed to start camera. Please try again.');
-                }
+      if (err.name === 'NotAllowedError') {
+        setError('Camera access is required to scan QR codes.');
+        setIsCameraStarted(false);
+      } else {
+        setError('Failed to start camera. Please try again.');
+        setIsCameraStarted(false);
+      }
+
                 setIsCameraStarted(false);
             }
         };
@@ -216,8 +223,10 @@ const QRScanMode = () => {
                     state: {
                         cardDetails: data,
                         remainingTime: data.duration * 60,
+                        fromGame: true
                     },
                 });
+
             } else {
                 setError('Invalid game type');
             }
@@ -342,14 +351,31 @@ const QRScanMode = () => {
       {error && (
         <div className="bg-red-900/20 border-l-4 border-red-600 text-red-300 p-4 rounded-lg mb-4">
           <p>{error}</p>
-          {(error.includes('denied') || error.includes('Connection failed')) && (
-            <button
-              onClick={handleRetry}
-              className="mt-2 text-red-300 underline hover:text-red-100"
-            >
-              Click here to try again
-            </button>
-          )}
+      {(error.includes('denied') || error.includes('Connection failed')) && (
+        <div className="mt-4">
+          <button
+            onClick={async () => {
+              try {
+                await navigator.mediaDevices.getUserMedia({ video: true });
+                handleRetry();
+              } catch (err) {
+                setError('Please enable camera access in your browser settings.');
+              }
+            }}
+            className="w-full bg-amber-500 text-gray-900 py-3 rounded-lg hover:bg-amber-600 transition duration-300 flex items-center justify-center gap-2 font-bold"
+          >
+            <FaCamera />
+            Allow Camera Access
+          </button>
+          <button
+            onClick={handleManualEntry}
+            className="w-full mt-2 bg-gray-700 text-amber-500 py-3 rounded-lg hover:bg-gray-800 transition duration-300 flex items-center justify-center gap-2 border-2 border-amber-500"
+          >
+            Use Manual Entry Instead
+          </button>
+        </div>
+      )}
+
         </div>
       )}
 
