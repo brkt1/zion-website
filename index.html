@@ -1,48 +1,82 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
+  <head>  
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/zionlogo.png" />
-    <link rel="apple-touch-icon" href="/zionlogo.png" />
-    <link rel="manifest" href="/manifest.json" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="icon" href="/zionlogo.png" type="image/png" sizes="192x192" />
+    <link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
     <meta name="theme-color" content="#4A90E2" />
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Zion is a professional web application that offers a variety of features and services." />
-    <meta name="keywords" content="Zion, web application, features, services" />
-    <meta property="og:title" content="Zion - Professional Web Application" />
-    <meta property="og:description" content="Zion is a professional web application that offers a variety of features and services." />
-    <meta property="og:image" content="/zionlogo.png" />
-    <meta property="og:url" content="https://yourwebsite.com" />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
     
-    <!-- PWA specific meta tags -->
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Yenege">
-    <link rel="apple-touch-startup-image" href="/splash.png">
-    
-    <!-- Splash screen meta tags -->
-    <meta name="msapplication-TileColor" content="#4A90E2">
-    <meta name="msapplication-TileImage" content="/icons/icon-144x144.png">
-    <meta name="msapplication-config" content="/browserconfig.xml">
-    
+    <!-- Primary Meta Tags -->
     <title>Yenege - Professional Web Application</title>
+    <meta name="title" content="Yenege - Professional Web Application" />
+    <meta name="description" content="Yenege is a professional web application that offers a variety of features and services." />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://yourwebsite.com/" />
+    <meta property="og:title" content="Yenege - Professional Web Application" />
+    <meta property="og:description" content="Yenege is a professional web application that offers a variety of features and services." />
+    <meta property="og:image" content="/social-preview.png" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://yourwebsite.com/" />
+    <meta property="twitter:title" content="Yenege - Professional Web Application" />
+    <meta property="twitter:description" content="Yenege is a professional web application that offers a variety of features and services." />
+    <meta property="twitter:image" content="/social-preview.png" />
+
+    <!-- PWA Configuration -->
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Yenege" />
+    <link rel="apple-touch-startup-image" href="/splash.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)" />
+    
+    <!-- Preconnect and Preload -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   </head>
   <body>
+    <noscript>
+      <strong>We're sorry but Yenege doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+    </noscript>
     <div id="root"></div>
-    <script type="module" src="/src/main-v3.jsx"></script>
     
-    <!-- Service Worker Registration -->
+    <!-- Async Script Loading -->
+    <script type="module" src="/src/main-v3.jsx" async></script>
+
+    <!-- Service Worker Registration with Version Control -->
     <script>
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/service-worker.js')
+        const swVersion = 'v3'; // Update this when making changes
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/service-worker.js', { scope: './', type: 'module' })
             .then(registration => {
-              console.log('ServiceWorker registration successful');
+              console.log('ServiceWorker registration successful with scope: ', registration.scope);
+              
+              // Check for updates every hour
+              setInterval(() => {
+                registration.update().then(() => {
+                  console.log('Service Worker update check completed');
+                });
+              }, 60 * 60 * 1000);
             })
             .catch(err => {
-              console.log('ServiceWorker registration failed: ', err);
+              console.error('ServiceWorker registration failed: ', err);
             });
+        });
+
+        // Clear old service workers
+        caches.keys().then(cacheNames => {
+          cacheNames.forEach(cacheName => {
+            if (cacheName !== swVersion) {
+              caches.delete(cacheName);
+            }
+          });
         });
       }
     </script>

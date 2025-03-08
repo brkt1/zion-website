@@ -4,21 +4,47 @@ import { registerSW } from 'virtual:pwa-register'
 import App from './App'
 import './index.css'
 
-// Register service worker with auto-update
-const updateSW = registerSW({
-  onNeedRefresh() {
-    if (confirm('New content available. Reload?')) {
-      updateSW(true)
+// Conditional service worker registration
+if (import.meta.env.PROD) {
+  const updateSW = registerSW({
+    onNeedRefresh() {
+      if (confirm('New version available! Reload to update?')) {
+        updateSW(true)
+      }
+    },
+    onOfflineReady() {
+      console.log('App ready for offline use')
+    },
+    // Add these configurations
+    onRegistered(registration) {
+      console.log('Service Worker registered:', registration)
+    },
+    onRegisterError(error) {
+      console.error('Service Worker registration error:', error)
     }
-  },
-  onOfflineReady() {
-    console.log('App ready to work offline')
-  },
-  immediate: true
-})
+  })
+}
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
+// Create root with strict mode only in development
+const root = ReactDOM.createRoot(document.getElementById('root'))
+
+const renderApp = () => root.render(
+  import.meta.env.DEV ? (
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  ) : (
     <App />
-  </React.StrictMode>,
+  )
 )
+
+// Initialize app
+if (import.meta.env.PROD) {
+  // Production: Wait for service worker to be ready
+  window.addEventListener('load', () => {
+    setTimeout(renderApp, 1000) // Add slight delay for SW initialization
+  })
+} else {
+  // Development: Immediate render
+  renderApp()
+}

@@ -3,32 +3,44 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
-  base: '/',
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
-      base: '/',
-      injectRegister: 'auto',
+      registerType: 'prompt',
+      strategies: 'generateSW',
+      includeAssets: ['**/*.{js,css,html,ico,png,svg,json}'],
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,json}'],
+        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
         cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true,
+        // Exclude Quagga worker files from caching
+        exclude: [/quagga\.worker\.js$/, /quagga\.min\.js$/],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/api\.example\.com\/.*/i,
-            handler: 'NetworkFirst',
+            handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'api-cache',
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 5 * 60
-              },
-              backgroundSync: {
-                name: 'apiQueue',
-                options: {
-                  maxRetentionTime: 24 * 60
-                }
-              }
+              cacheableResponse: { statuses: [0, 200] },
+              expiration: { maxEntries: 50, maxAgeSeconds: 21600 } // 6 hours
+            }
+          },
+          {
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'image-cache',
+              expiration: { maxEntries: 100, maxAgeSeconds: 2592000 } // 30 days
+            }
+          },
+          // Add Quagga worker exception
+          {
+            urlPattern: /quagga\.worker\.js$/,
+            handler: 'NetworkOnly',
+            options: {
+              cacheName: 'quagga-worker-exception'
             }
           }
         ]
@@ -36,37 +48,25 @@ export default defineConfig({
       manifest: {
         name: 'Yenege',
         short_name: 'Yenege',
-        description: 'future is now',
+        description: 'Future is now',
         start_url: '/',
         display: 'standalone',
         background_color: '#ffffff',
         theme_color: '#4A90E2',
         orientation: 'portrait',
-        categories: ['love','productivity', 'social', 'utilities'],
+        categories: ['productivity', 'social', 'utilities'],
         icons: [
           {
-            src: '/zionlogo.png',
+            src: '/icons/icon-192x192.png',
             sizes: '192x192',
             type: 'image/png',
-            purpose: 'any'
+            purpose: 'any maskable'
           },
           {
-            src: '/zionlogo.png',
+            src: '/icons/icon-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any'
-          },
-          {
-            src: '/zionlogo.png',
-            sizes: '384x384',
-            type: 'image/png',
-            purpose: 'maskable'
-          },
-          {
-            src: '/zionlogo.png',
-            sizes: '256x256',
-            type: 'image/png',
-            purpose: 'maskable'
+            purpose: 'any maskable'
           }
         ],
         shortcuts: [
@@ -74,18 +74,13 @@ export default defineConfig({
             name: 'Login',
             short_name: 'Login',
             description: 'Access your account',
-            url: '/login',
-            icons: [
-              {
-                src: '/icons/login-icon.png',
-                sizes: '192x192'
-              }
-            ]
+            url: '/login?source=pwa',
+            icons: [{ src: '/icons/login-192.png', sizes: '192x192' }]
           }
         ]
       },
       devOptions: {
-        enabled: true,
+        enabled: false,
         type: 'module',
         navigateFallback: 'index.html'
       }
@@ -93,7 +88,30 @@ export default defineConfig({
   ],
   server: {
     headers: {
-      'Service-Worker-Allowed': '/'
+      'Service-Worker-Allowed': '/',
+      'Cache-Control': 'no-cache',
+      // Security headers for camera access
+      'Permissions-Policy': 'camera=()',
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+      'Cross-Origin-Opener-Policy': 'same-origin'
     }
+  },
+  build: {
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ['react', 'react-dom'],
+          quagga: ['quagga'], // Separate Quagga chunk
+          vendor: ['lodash', 'moment']
+        }
+      },
+      // Externalize worker dependencies
+      external: ['quagga/dist/quagga.worker.js']
+    }
+  },
+  optimizeDeps: {
+    exclude: ['quagga'], // Prevent Quagga from being optimized
+    include: ['react', 'react-dom']
   }
 })

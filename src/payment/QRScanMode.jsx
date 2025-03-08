@@ -1,429 +1,263 @@
-import React, { useState, useContext, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useContext, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
-
+import { Html5QrcodeScanner, Html5Qrcode } from 'html5-qrcode';
 import { supabase } from '../supabaseClient';
 import { TimeContext } from '../App';
 import { storage } from '../utils/storage';
-import { FaCamera } from 'react-icons/fa';
-
-
-import QrScanner from 'qr-scanner';
+import { FaCamera, FaQrcode } from 'react-icons/fa';
 
 const GAME_ROUTES = {
-    1: '/trivia-game',
-    2: '/truth-or-dare',
-    3: '/rock-paper-scissors',
-    4: '/emoji-game',
+  1: '/trivia-game',
+  2: '/truth-or-dare',
+  3: '/rock-paper-scissors',
+  4: '/emoji-game',
 };
 
 const QRScanMode = () => {
-    const [cardDetails, setCardDetails] = useState(null);
-    const [error, setError] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [scanner, setScanner] = useState(null);
-    const [hasScanned, setHasScanned] = useState(false);
-    const [cameras, setCameras] = useState([]);
-    const [selectedCamera, setSelectedCamera] = useState(null);
-    const [isCameraStarted, setIsCameraStarted] = useState(false);
-    const videoRef = useRef(null);
-    const navigate = useNavigate();
-    const { startTimer } = useContext(TimeContext);
-    const location = useLocation();
-    
- 
-    
-    // Handle navigation to /qr-scan if needed
-    if (!location.state?.fromGame) {
-        return <Navigate to="/qr-scan" replace state={{ fromGame: true }} />;
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [cameras, setCameras] = useState([]);
+  const [selectedCamera, setSelectedCamera] = useState(null);
+  const [scanResult, setScanResult] = useState(null);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const scannerRef = useRef(null);
+  const html5QrCode = useRef(null);
+  const navigate = useNavigate();
+  const { startTimer } = useContext(TimeContext);
+  const location = useLocation();
+
+  const shouldRedirect = !location.state?.fromGame;
+
+  const getCameras = useCallback(async () => {
+    try {
+      const devices = await Html5Qrcode.getCameras();
+      if (devices && devices.length) {
+        setCameras(devices);
+        setSelectedCamera(devices[0].id);
+      }
+    } catch (err) {
+      setError('Camera access required');
+    } finally {
+      setIsInitializing(false);
     }
+  }, []);
 
+  const initScanner = useCallback(async () => {
+    if (!selectedCamera || !scannerRef.current) return;
 
-    const getCameras = async () => {
-        try {
-            const devices = await navigator.mediaDevices.enumerateDevices();
-            const videoDevices = devices.filter(device => device.kind === 'videoinput');
-            if (videoDevices.length === 0) {
-                setError('No cameras found.');
-                return;
-            }
-            setCameras(videoDevices);
-            
-            const defaultCamera = videoDevices.find(device => 
-                device.label.toLowerCase().includes('back') || 
-                device.label.toLowerCase().includes('environment')
-            ) || videoDevices[0];
-            
-            setSelectedCamera(defaultCamera?.deviceId);
-        } catch (err) {
-            console.error('Error getting cameras:', err);
-            setError('Error accessing camera devices.');
-        }
-    };
-
-    useEffect(() => {
-        getCameras();
-    }, []);
-
-    useEffect(() => {
-        const checkExistingGame = async () => {
-            const timerState = localStorage.getItem('gameTimerState');
-            if (!timerState) return;
-
-            try {
-                const { remainingTime, timestamp, isActive } = JSON.parse(timerState);
-                if (!isActive || remainingTime <= 0) return;
-
-                const elapsedSeconds = Math.floor((Date.now() - timestamp) / 1000);
-                const newRemainingTime = Math.max(0, remainingTime - elapsedSeconds);
-                
-                if (newRemainingTime <= 0) return;
-
-                const cards = storage.getCards();
-                const lastCard = cards[cards.length - 1];
-                
-                if (lastCard) {
-                    const { data, error } = await supabase
-                        .from('cards')
-                        .select('*, game_types(name)')
-                        .eq('card_number', lastCard.cardNumber)
-                        .single();
-
-                    if (data && !error) {
-                        const gameRoute = GAME_ROUTES[data.game_type];
-                        if (gameRoute) {
-          navigate(gameRoute, {
-            state: {
-              cardDetails: data,
-              remainingTime: newRemainingTime,
-              fromGame: true
-            },
-          });
-
-                        }
-                    }
-                }
-            } catch (err) {
-                console.error('Error checking game state:', err);
-                navigate('/');
-            }
-        };
-
-        if (!location.state?.fromGame) {
-            checkExistingGame();
-        }
-    }, [navigate, location]);
-
-    useEffect(() => {
-        const setupScanner = async () => {
-            try {
-                if (!videoRef.current || !selectedCamera || !isCameraStarted) return;
-
-                const qrScanner = new QrScanner(
-                    videoRef.current,
-                    result => {
-                        if (result?.data && !hasScanned) {
-                            handleScan(result.data);
-                        }
-                    },
-                    {
-                        preferredCamera: selectedCamera,
-                        highlightScanRegion: true,
-                        maxScansPerSecond: 3,
-                        returnDetailedScanResult: true
-                    }
-                );
-
-                await qrScanner.start();
-                setScanner(qrScanner);
-                setError(null);
-            } catch (err) {
-                console.error('Scanner setup error:', err);
-      if (err.name === 'NotAllowedError') {
-        setError('Camera access is required to scan QR codes.');
-        setIsCameraStarted(false);
-      } else {
-        setError('Failed to start camera. Please try again.');
-        setIsCameraStarted(false);
+    try {
+      if (html5QrCode.current) {
+        await html5QrCode.current.stop();
+        html5QrCode.current.clear();
       }
 
-                setIsCameraStarted(false);
-            }
-        };
+      html5QrCode.current = new Html5Qrcode(scannerRef.current.id);
+      
+      await html5QrCode.current.start(
+        selectedCamera,
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.333333,
+          disableFlip: false,
+        },
+        (decodedText) => handleScan(decodedText),
+        (errorMessage) => setError(errorMessage)
+      );
 
-        setupScanner();
+    } catch (err) {
+      console.error('Scanner error:', err);
+      setError('Failed to start scanner');
+    }
+  }, [selectedCamera]);
 
-        return () => {
-            if (scanner) {
-                scanner.destroy();
-                setScanner(null);
-            }
-        };
-    }, [selectedCamera, hasScanned, isCameraStarted]);
+  const stopScanner = useCallback(async () => {
+    if (html5QrCode.current) {
+      try {
+        await html5QrCode.current.stop();
+        html5QrCode.current.clear();
+      } catch (err) {
+        console.error('Error stopping scanner:', err);
+      }
+    }
+  }, []);
 
-    const verifyQRCode = useCallback(async (scannedData) => {
-        setIsLoading(true);
-        setError(null);
+  const handleScan = useCallback(async (scannedData) => {
+    if (isLoading || !scannedData) return;
+    
+    setIsLoading(true);
+    setError(null);
 
-        try {
-            let cardData;
-            if (typeof scannedData === 'string') {
-                try {
-                    cardData = JSON.parse(scannedData);
-                } catch {
-                    cardData = { card_number: scannedData };
-                }
-            } else if (typeof scannedData === 'object') {
-                cardData = scannedData;
-            } else {
-                setError('Invalid QR code format');
-                return;
-            }
-
-            const cardNumber = cardData.card_number?.toString() || 
-                            cardData.cardNumber?.toString();
-
-            if (!cardNumber || cardNumber.length !== 14) {
-                setError('Invalid Card Number');
-                return;
-            }
+    try {
+      if (!/^\d{14}$/.test(scannedData)) {
+        setError('Invalid card number format');
+        return;
+      }
 
       const { data, error } = await supabase
         .from('cards')
         .select('*, game_types(name)')
-        .eq('card_number', cardNumber)
+        .eq('card_number', scannedData)
         .single();
 
-      if (error) {
-        if (error.code === 'PGRST116') { // 404 error
-          setError('Card not found. Please check the number.');
-        } else if (error.code === 'PGRST100') { // Connection error
-          setError('Connection failed. Please check your internet.');
-        } else {
-          setError('Error verifying card: ' + error.message);
-        }
-        return;
+      if (error) throw error;
+      if (data.used) throw new Error('Card already used');
+
+      await supabase
+        .from('cards')
+        .update({ used: true })
+        .eq('card_number', scannedData);
+
+      storage.setCard(scannedData);
+      setScanResult(data);
+      startTimer(data.duration * 60);
+      await stopScanner();
+
+      const gameRoute = GAME_ROUTES[data.game_type];
+      if (gameRoute) {
+        navigate(gameRoute, {
+          state: {
+            cardDetails: data,
+            remainingTime: data.duration * 60,
+            fromGame: true
+          },
+        });
       }
-
-      if (!data) {
-        setError('Invalid card data received');
-        return;
-      }
-
-
-            if (data.used) {
-                setError('Card has already been used');
-                return;
-            }
-
-            await supabase
-                .from('cards')
-                .update({ used: true })
-                .eq('card_number', cardNumber);
-
-            storage.setCard(cardNumber);
-            setCardDetails(data);
-            setHasScanned(true);
-            startTimer(data.duration * 60);
-
-            const gameRoute = GAME_ROUTES[data.game_type];
-            if (gameRoute) {
-                scanner?.destroy();
-                navigate(gameRoute, {
-                    state: {
-                        cardDetails: data,
-                        remainingTime: data.duration * 60,
-                        fromGame: true
-                    },
-                });
-
-
-
-
-            } else {
-                setError('Invalid game type');
-            }
     } catch (err) {
-      console.error('Error verifying card:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to process card';
-      setError('Error: ' + errorMessage);
+      setError(err.message || 'Failed to process card');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isLoading, navigate, startTimer, stopScanner]);
 
-        } finally {
-            setIsLoading(false);
-        }
-    }, [navigate, startTimer, scanner]);
+  const handleCameraChange = (e) => {
+    setSelectedCamera(e.target.value);
+    stopScanner();
+  };
 
-    const handleScan = useCallback((data) => {
-        if (data) {
-            try {
-                verifyQRCode(JSON.parse(data));
-            } catch (error) {
-                verifyQRCode(data);
-            }
-        }
-    }, [verifyQRCode]);
+  const handleManualEntry = () => {
+    const manualInput = prompt('Enter 14-digit card number:');
+    if (manualInput) handleScan(manualInput);
+  };
 
-    const handleManualEntry = () => {
-        const manualCardNumber = prompt('Enter Card Number:');
-        if (manualCardNumber) {
-            verifyQRCode({ card_number: manualCardNumber });
-        }
+  useEffect(() => {
+    getCameras();
+  }, [getCameras]);
+
+  useEffect(() => {
+    if (selectedCamera) {
+      initScanner();
+    }
+
+    return () => {
+      stopScanner();
     };
+  }, [initScanner, selectedCamera, stopScanner]);
 
-    const handleRetry = async () => {
-        setError(null);
-        setHasScanned(false);
-        setIsCameraStarted(true);
-    };
+  if (shouldRedirect) {
+    return <Navigate to="/qr-scan" replace state={{ fromGame: true }} />;
+  }
 
-    const handleStartCamera = () => {
-        setIsCameraStarted(true);
-    };
+  return (
+    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <div className="bg-gray-900 rounded-xl shadow-2xl overflow-hidden border-2 border-amber-500">
+          <div className="bg-gradient-to-r from-amber-600 to-amber-700 p-6 text-center">
+            <h1 className="text-3xl font-bold text-gray-900 flex items-center justify-center gap-2">
+              <FaQrcode className="animate-pulse" /> SCAN CARD
+            </h1>
+          </div>
 
-    const handleCameraChange = (e) => {
-        setSelectedCamera(e.target.value);
-        setIsCameraStarted(false);
-        if (scanner) {
-            scanner.destroy();
-            setScanner(null);
-        }
-    };
+          <div className="p-6">
+            {cameras.length > 0 && (
+              <select
+                value={selectedCamera || ''}
+                onChange={handleCameraChange}
+                className="w-full p-2 mb-4 bg-gray-800 text-amber-500 rounded border border-amber-500"
+              >
+                {cameras.map(camera => (
+                  <option key={camera.id} value={camera.id}>
+                    {camera.label || `Camera ${camera.id}`}
+                  </option>
+                ))}
+              </select>
+            )}
 
-    return (
-        <div className="min-h-screen bg-black flex items-center justify-center p-4">
-            <div className="w-full max-w-md">
-                <div className="bg-gray-900 rounded-xl shadow-2xl overflow-hidden border-2 border-amber-500">
-                    <div className="bg-gradient-to-r from-amber-600 to-amber-700 p-6 text-center">
-                        <h1 className="text-3xl font-bold text-gray-900">SCAN QR CODE</h1>
-                    </div>
-
-                    <div className="p-6">
-                        {!isCameraStarted && (
-                            <button 
-                                onClick={handleStartCamera}
-                                className="w-full bg-amber-500 text-gray-900 py-3 rounded-lg hover:bg-amber-600 transition duration-300 mb-4
-                                font-bold uppercase tracking-wider"
-                            >
-                                Activate Scanner
-                            </button>
-                        )}
-
-                        {cameras.length > 0 && isCameraStarted && (
-                            <select 
-                                value={selectedCamera || ''}
-                                onChange={handleCameraChange}
-                                className="w-full p-3 mb-4 border-2 border-amber-500 rounded bg-gray-800 text-amber-500
-                                focus:outline-none focus:ring-2 focus:ring-amber-500"
-                            >
-                                {cameras.map(camera => (
-                                    <option key={camera.deviceId} value={camera.deviceId}>
-                                        {camera.label || `Camera ${camera.deviceId}`}
-                                    </option>
-                                ))}
-                            </select>
-                        )}
-
-
-
-                        {isCameraStarted && !hasScanned && (
-                            <div className="mb-6 border-4 border-amber-500 rounded-lg overflow-hidden relative">
-                                <video ref={videoRef} className="w-full h-64 object-cover" />
-                                <div className="absolute inset-0 pointer-events-none">
-                                    <div className="absolute inset-0 border-2 border-amber-500 opacity-30"></div>
-                                    <div className="absolute left-1/4 right-1/4 top-1/4 bottom-1/4 border-2 border-amber-500"></div>
-                                </div>
-                            </div>
-                        )}
-
-                        {!hasScanned && (
-                            <div className="flex space-x-4 mb-4">
-                                <button 
-                                    onClick={handleManualEntry}
-                                    className="flex-1 bg-amber-500 text-gray-900 py-3 rounded-lg hover:bg-amber-600 transition duration-300 
-                                    ease-in-out transform hover:scale-105 flex items-center justify-center space-x-2 font-semibold"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                    </svg>
-                                    <span>Manual Entry</span>
-                                </button>
-
-                                <button 
-                                    onClick={handleRetry}
-                                    className="flex-1 bg-gray-700 text-amber-500 py-3 rounded-lg hover:bg-gray-800 transition duration-300 
-                                    ease-in-out transform hover:scale-105 flex items-center justify-center space-x-2 border-2 border-amber-500"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
-                                    </svg>
-                                    <span>Retry Scan</span>
-                                </button>
-                            </div>
-                        )}
-
-      {error && (
-        <div className="bg-red-900/20 border-l-4 border-red-600 text-red-300 p-4 rounded-lg mb-4">
-          <p>{error}</p>
-      {(error.includes('denied') || error.includes('Connection failed')) && (
-        <div className="mt-4">
-          <button
-            onClick={async () => {
-              try {
-                await navigator.mediaDevices.getUserMedia({ video: true });
-                handleRetry();
-              } catch (err) {
-                setError('Please enable camera access in your browser settings.');
-              }
-            }}
-            className="w-full bg-amber-500 text-gray-900 py-3 rounded-lg hover:bg-amber-600 transition duration-300 flex items-center justify-center gap-2 font-bold"
-          >
-            <FaCamera />
-            Allow Camera Access
-          </button>
-          <button
-            onClick={handleManualEntry}
-            className="w-full mt-2 bg-gray-700 text-amber-500 py-3 rounded-lg hover:bg-gray-800 transition duration-300 flex items-center justify-center gap-2 border-2 border-amber-500"
-          >
-            Use Manual Entry Instead
-          </button>
-        </div>
-      )}
-
-        </div>
-      )}
-
-
-                        {cardDetails && (
-                            <div className="bg-gray-800 border-l-4 border-amber-500 p-4 rounded-lg">
-                                <h2 className="text-xl font-bold mb-2 text-amber-500">Card Details</h2>
-                                <div className="space-y-2 text-gray-300">
-                                    <p className="flex items-center space-x-2">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
-                                            <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
-                                        </svg>
-                                        <span>Card Number: {cardDetails.card_number}</span>
-                                    </p>
-                                    <p className="flex items-center space-x-2">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
-                                            <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 100-12 6 6 0 000 12z" />
-                                            <path d="M10 4a6 6 0 100 12 6 6 0 000-12zm0 10a4 4 0 100-8 4 4 0 000 8z" />
-                                        </svg>
-                                        <span>Game Type: {cardDetails.game_types.name}</span>
-                                    </p>
-                                    <p className="flex items-center space-x-2">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
-                                            <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 100-12 6 6 0 000 12z" />
-                                            <path d="M10 4a6 6 0 100 12 6 6 0 000-12zm0 10a4 4 0 100-8 4 4 0 000 8z" />
-                                        </svg>
-                                        <span>Duration: {cardDetails.duration} minutes</span>
-                                    </p>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
+            <div className="relative mb-6 border-4 border-amber-500 rounded-lg overflow-hidden">
+              <div 
+                id="scanner-container" 
+                ref={scannerRef}
+                className="h-64 bg-black relative"
+              >
+                {isInitializing && (
+                  <div className="absolute inset-0 bg-black flex items-center justify-center text-amber-500">
+                    Initializing camera...
+                  </div>
+                )}
+                {!isInitializing && (
+                  <div className="absolute inset-0 animate-pulse">
+                    <div className="absolute left-1/4 right-1/4 top-1/4 bottom-1/4 border-2 border-amber-500"></div>
+                  </div>
+                )}
+              </div>
             </div>
+
+            <div className="flex gap-4 mb-4">
+              <button
+                onClick={handleManualEntry}
+                className="flex-1 bg-amber-500 text-black py-3 rounded hover:bg-amber-600
+                         flex items-center justify-center gap-2 font-bold"
+              >
+                <FaCamera /> Manual Entry
+              </button>
+              <button
+                onClick={initScanner}
+                className="bg-gray-800 text-amber-500 px-6 py-3 rounded hover:bg-gray-700
+                         border-2 border-amber-500 font-bold"
+              >
+                Retry
+              </button>
+            </div>
+
+            {error && (
+              <div className="p-4 mb-4 bg-red-900/20 border-l-4 border-red-500 text-red-300 rounded">
+                {error}
+                {error.includes('Camera access') && (
+                  <button
+                    onClick={async () => {
+                      try {
+                        await Html5Qrcode.getCameras();
+                        getCameras();
+                      } catch (err) {
+                        setError('Please enable camera access in browser settings');
+                      }
+                    }}
+                    className="w-full mt-2 bg-amber-500 text-black py-2 rounded hover:bg-amber-600"
+                  >
+                    <FaCamera /> Allow Camera Access
+                  </button>
+                )}
+              </div>
+            )}
+
+            {isLoading && (
+              <div className="p-4 text-center text-amber-500 animate-pulse">
+                Verifying card...
+              </div>
+            )}
+
+            {scanResult && (
+              <div className="p-4 bg-gray-800 rounded border-l-4 border-amber-500">
+                <h3 className="text-xl font-bold text-amber-500 mb-2">Card Verified!</h3>
+                <p className="text-gray-300">Game: {scanResult.game_types.name}</p>
+                <p className="text-gray-300">Duration: {scanResult.duration} minutes</p>
+              </div>
+            )}
+          </div>
         </div>
-    );
+      </div>
+    </div>
+  );
 };
 
 export default QRScanMode;
