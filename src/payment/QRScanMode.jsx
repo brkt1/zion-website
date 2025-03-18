@@ -98,17 +98,20 @@ const QRScanMode = () => {
     setError(null);
 
     try {
-      console.log('Scanned data before validation:', scannedData);
-      if (!/^\d{14}$/.test(scannedData)) {
+console.log('Scanned data before validation:', scannedData);
+      const scannedCardNumber = scannedData; // Use scanned data directly
+      console.log('Scanned card number:', scannedCardNumber);
+      if (!/^\d{13}$/.test(scannedCardNumber)) {
 
         console.log('Scanned data:', scannedData);
-        throw new Error('Invalid 14-digit card number');
+        throw new Error('Invalid 13-digit card number');
       }
 
-      const { data, error } = await supabase
+console.log('Attempting to query Supabase for card number:', scannedCardNumber);
+const { data, error } = await supabase
         .from('cards')
         .select('*, game_types(name)')
-        .eq('card_number', scannedData)
+        .eq('card_number', scannedCardNumber)
         .single();
       console.log('Supabase query result:', data, error);
 
@@ -166,12 +169,12 @@ const QRScanMode = () => {
   };
 
   const handleManualEntry = () => {
-    const manualInput = prompt('Enter 14-digit card number:');
+    const manualInput = prompt('Enter 13-digit card number:');
     if (manualInput) {
-      if (/^\d{14}$/.test(manualInput)) {
+      if (/^\d{13}$/.test(manualInput)) {
         handleScan(manualInput);
       } else {
-        setError('Invalid format - must be 14 digits');
+        setError('Invalid format - must be 13 digits');
       }
     }
   };

@@ -49,7 +49,7 @@ const STORAGE_CONFIG = {
 
 // Schemas
 const CardSchema = z.object({
-  cardNumber: z.string().length(14).regex(/^\d+$/),
+  cardNumber: z.string().length(13).regex(/^\d+$/),
   timestamp: z.number().positive()
 });
 
