@@ -8,7 +8,8 @@ const Friends = () => {
   const navigate = useNavigate();
   const { gameMode } = location.state || {};
 
-  const [players, setPlayers] = useState([]);
+  const [players, setPlayers] = useState<string[]>([]);
+
   const [currentPlayerInput, setCurrentPlayerInput] = useState("");
 
   // Fetch game mode validation
@@ -22,7 +23,8 @@ const Friends = () => {
   const addPlayer = () => {
     if (currentPlayerInput.trim() && !players.includes(currentPlayerInput.trim())) {
       const newPlayers = [...players, currentPlayerInput.trim()];
-      setPlayers(newPlayers);
+      setPlayers(newPlayers as string[]);
+
       setCurrentPlayerInput("");
 
       // Navigate to game mode if conditions are met
@@ -75,7 +77,7 @@ const Friends = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0f0f1c] to-[#0d1323]">
-      <AnimatePresence exitBeforeEnter>
+      <AnimatePresence mode="wait">
         {renderPlayerInput()}
       </AnimatePresence>
     </div>

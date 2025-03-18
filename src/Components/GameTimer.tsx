@@ -2,10 +2,11 @@ import React, { useContext, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ThankYou from './ThankYou';
-import { TimeContext } from '../App.jsx';
-import type { TimeContextType } from '../@types/app.jsx';
+import { TimeContext } from '../App.jsx'; // Reverted to reference .jsx
 
 
+
+import type { TimeContextType } from '../@types/app.jsx'; // Reverted to reference .jsx
 
 
 
@@ -13,10 +14,11 @@ import type { TimeContextType } from '../@types/app.jsx';
 const registerServiceWorker = async () => {
   if ('serviceWorker' in navigator) {
     try {
-      const registration = await navigator.serviceWorker.register('/service-worker.js', {
-        scope: '/',
-        type: 'module'
+      const registration = await navigator.serviceWorker.register('/service-worker.js', { 
+        scope: './', 
+        type: 'module' 
       });
+
       console.log('Service Worker registered:', registration);
       
       if (registration.installing) {
@@ -32,15 +34,8 @@ const registerServiceWorker = async () => {
   }
 };
 
-
-
-
-
-
-
 const GameTimer = () => {
   const context = useContext(TimeContext) as TimeContextType;
-
 
   const { remainingTime, isExpired, formatTime } = context;
   const progressPercentage = (remainingTime / 120) * 100;
@@ -52,7 +47,6 @@ const GameTimer = () => {
       navigate('/');
     }
   }, [context.remainingTime, context.isTimerActive, navigate]);
-
 
   useEffect(() => {
     // Register service worker on component mount
@@ -81,8 +75,6 @@ const GameTimer = () => {
       window.removeEventListener('beforeunload', handleVisibilityChange);
     };
   }, [context, handleVisibilityChange]);
-
-
 
   // Show ThankYou component immediately when timer expires
   if (isExpired) {

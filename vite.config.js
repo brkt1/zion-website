@@ -1,10 +1,20 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import fs from 'fs' // Import fs module
 
 export default defineConfig({
   plugins: [
-    react(),
+    react({
+      babel: {
+        plugins: [
+          ['@babel/plugin-transform-react-jsx', { runtime: 'automatic' }],
+          ['@babel/plugin-transform-runtime', { regenerator: true }]
+        ]
+      },
+      jsxRuntime: 'automatic',
+      jsxImportSource: 'react'
+    }),
     VitePWA({
       registerType: 'prompt',
       strategies: 'generateSW',
@@ -15,7 +25,6 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         skipWaiting: true,
         clientsClaim: true,
-        // Exclude Quagga worker files from caching
         exclude: [/quagga\.worker\.js$/, /quagga\.min\.js$/],
         runtimeCaching: [
           {
@@ -35,7 +44,6 @@ export default defineConfig({
               expiration: { maxEntries: 100, maxAgeSeconds: 2592000 } // 30 days
             }
           },
-          // Add Quagga worker exception
           {
             urlPattern: /quagga\.worker\.js$/,
             handler: 'NetworkOnly',
@@ -87,31 +95,17 @@ export default defineConfig({
     })
   ],
   server: {
+    https: process.env.NODE_ENV === 'production' ? true : false,
     headers: {
       'Service-Worker-Allowed': '/',
       'Cache-Control': 'no-cache',
-      // Security headers for camera access
-      'Permissions-Policy': 'camera=()',
+      'Permissions-Policy': 'camera=self',
       'Cross-Origin-Embedder-Policy': 'require-corp',
-      'Cross-Origin-Opener-Policy': 'same-origin'
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      "Content-Security-Policy": "default-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-eval' 'unsafe-inline' 'unsafe-hashes' https://cdnjs.cloudflare.com; script-src-elem 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' 'unsafe-hashes'; style-src-attr 'self' 'unsafe-inline'; style-src-elem 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://api.example.com https://rpaxjodkgxfgneflavnj.supabase.co https://cdnjs.cloudflare.com; worker-src 'self';"
     }
   },
   build: {
-    sourcemap: true,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          react: ['react', 'react-dom'],
-          quagga: ['quagga'], // Separate Quagga chunk
-          vendor: ['lodash', 'moment']
-        }
-      },
-      // Externalize worker dependencies
-      external: ['quagga/dist/quagga.worker.js']
-    }
-  },
-  optimizeDeps: {
-    exclude: ['quagga'], // Prevent Quagga from being optimized
-    include: ['react', 'react-dom']
+    target: 'esnext'
   }
 })

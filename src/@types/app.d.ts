@@ -1,13 +1,14 @@
-import { Context } from 'react';
-
-export type TimeContextType = {
-  remainingTime: number;
-  isExpired: boolean;
-  isTimerActive: boolean;
-  formatTime: (time: number) => string;
-  updateTimer: (remainingTime: number, isExpired: boolean) => void;
-};
-
 declare module '../App' {
-  export const TimeContext: Context<TimeContextType>;
+
+  import React from 'react';
+
+  // Removed duplicate TimeContextType definition
+
+
+
+export const TimeContext: React.Context<TimeContextType>; // Keep this definition
+
+export default function App(): JSX.Element;
+
+  export default function App(): JSX.Element;
 }

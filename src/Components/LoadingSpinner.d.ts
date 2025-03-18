@@ -1,5 +1,5 @@
-declare module '../Components/LoadingSpinner' {
-  import { FC } from 'react';
-  const LoadingSpinner: FC;
-  export default LoadingSpinner;
-}
+// LoadingSpinner.d.ts
+import { FC } from 'react';
+
+declare const LoadingSpinner: FC;
+export default LoadingSpinner;

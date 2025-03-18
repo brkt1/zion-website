@@ -1,9 +1,10 @@
 import React, { useState, useContext, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { Html5QrcodeScanner, Html5Qrcode } from 'html5-qrcode';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { supabase } from '../supabaseClient';
 import { TimeContext } from '../App';
-import { storage } from '../utils/storage';
+import gameStorage from '../utils/storage';
+
 import { FaCamera, FaQrcode } from 'react-icons/fa';
 
 const GAME_ROUTES = {
@@ -30,6 +31,8 @@ const QRScanMode = () => {
 
   const getCameras = useCallback(async () => {
     try {
+      // First request camera access explicitly
+      await navigator.mediaDevices.getUserMedia({ video: true });
       const devices = await Html5Qrcode.getCameras();
       if (devices && devices.length) {
         setCameras(devices);
@@ -57,22 +60,29 @@ const QRScanMode = () => {
         selectedCamera,
         {
           fps: 10,
-          qrbox: { width: 250, height: 250 },
-          aspectRatio: 1.333333,
+          qrbox: { width: 300, height: 300 },
+          aspectRatio: 1.777778, // 16:9 aspect ratio
           disableFlip: false,
+          supportedFormats: [Html5QrcodeSupportedFormats.QR_CODE],
         },
         (decodedText) => handleScan(decodedText),
-        (errorMessage) => setError(errorMessage)
+        (errorMessage) => {
+          if (errorMessage.includes('NotFoundException')) {
+            setError('Position QR code within frame. Ensure good lighting and focus.');
+          } else {
+            console.error('Scan error:', errorMessage);
+            setError(errorMessage);
+          }
+        }
       );
-
     } catch (err) {
-      console.error('Scanner error:', err);
-      setError('Failed to start scanner');
+      console.error('Scanner init error:', err);
+      setError(err.message || 'Failed to start scanner');
     }
   }, [selectedCamera]);
 
   const stopScanner = useCallback(async () => {
-    if (html5QrCode.current) {
+    if (html5QrCode.current && html5QrCode.current.isScanning) {
       try {
         await html5QrCode.current.stop();
         html5QrCode.current.clear();
@@ -90,8 +100,7 @@ const QRScanMode = () => {
 
     try {
       if (!/^\d{14}$/.test(scannedData)) {
-        setError('Invalid card number format');
-        return;
+        throw new Error('Invalid 14-digit card number');
       }
 
       const { data, error } = await supabase
@@ -101,7 +110,7 @@ const QRScanMode = () => {
         .single();
 
       if (error) throw error;
-      if (data.used) throw new Error('Card already used');
+      if (data.used) throw new Error('Card already redeemed');
 
       await supabase
         .from('cards')
@@ -125,6 +134,7 @@ const QRScanMode = () => {
       }
     } catch (err) {
       setError(err.message || 'Failed to process card');
+      setTimeout(() => setError(null), 5000); // Auto-clear errors
     } finally {
       setIsLoading(false);
     }
@@ -135,9 +145,27 @@ const QRScanMode = () => {
     stopScanner();
   };
 
+  const launchApp = () => {
+    const appUrl = 'zionapp://';
+    const fallbackUrl = 'https://example.com/download-app';
+
+    window.location.href = appUrl;
+    setTimeout(() => {
+      if (!document.hidden) {
+        window.location.href = fallbackUrl;
+      }
+    }, 1000);
+  };
+
   const handleManualEntry = () => {
     const manualInput = prompt('Enter 14-digit card number:');
-    if (manualInput) handleScan(manualInput);
+    if (manualInput) {
+      if (/^\d{14}$/.test(manualInput)) {
+        handleScan(manualInput);
+      } else {
+        setError('Invalid format - must be 14 digits');
+      }
+    }
   };
 
   useEffect(() => {
@@ -145,14 +173,14 @@ const QRScanMode = () => {
   }, [getCameras]);
 
   useEffect(() => {
-    if (selectedCamera) {
+    if (selectedCamera && !isInitializing) {
       initScanner();
     }
 
     return () => {
       stopScanner();
     };
-  }, [initScanner, selectedCamera, stopScanner]);
+  }, [initScanner, selectedCamera, stopScanner, isInitializing]);
 
   if (shouldRedirect) {
     return <Navigate to="/qr-scan" replace state={{ fromGame: true }} />;
@@ -211,6 +239,13 @@ const QRScanMode = () => {
                 <FaCamera /> Manual Entry
               </button>
               <button
+                onClick={launchApp}
+                className="flex-1 bg-amber-500 text-black py-3 rounded hover:bg-amber-600
+                         flex items-center justify-center gap-2 font-bold"
+              >
+                <FaQrcode /> Launch App
+              </button>
+              <button
                 onClick={initScanner}
                 className="bg-gray-800 text-amber-500 px-6 py-3 rounded hover:bg-gray-700
                          border-2 border-amber-500 font-bold"
@@ -226,15 +261,15 @@ const QRScanMode = () => {
                   <button
                     onClick={async () => {
                       try {
-                        await Html5Qrcode.getCameras();
-                        getCameras();
+                        await navigator.mediaDevices.getUserMedia({ video: true });
+                        await getCameras();
                       } catch (err) {
                         setError('Please enable camera access in browser settings');
                       }
                     }}
                     className="w-full mt-2 bg-amber-500 text-black py-2 rounded hover:bg-amber-600"
                   >
-                    <FaCamera /> Allow Camera Access
+                    <FaCamera /> Enable Camera
                   </button>
                 )}
               </div>

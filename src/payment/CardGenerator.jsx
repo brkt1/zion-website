@@ -75,7 +75,12 @@ const CardGenerator = () => {
     };
 
     // Generate 6 cards
-    const generateSixCards = async () => {
+const generateSixCards = async () => {
+    if (!canUseLocalStorage()) {
+        alert('Local storage is unavailable. Please ensure you are running in a secure context (HTTPS) to generate cards.');
+        return;
+    }
+
         setIsLoading(true);
         setShowDownloadMessage(false);
         try {

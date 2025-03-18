@@ -1,4 +1,7 @@
 import React, { createContext, useState, useEffect, useRef } from "react";
+import ErrorBoundary from "./Components/ErrorBoundary";
+import { TimeContextType } from "./@types/TimeContextType";
+
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom"; 
 import { motion } from 'framer-motion';
 import Lovers from "./TruthandDear-Component/Lovers";
@@ -7,7 +10,7 @@ import RockPaperScissors from "./Components/RockPaperScissors";
 import Friends from "./TruthandDear-Component/Friends";
 import LoveGameMode from "./TruthandDear-Component/LoveGameMode";
 import FriendsGameMode from "./TruthandDear-Component/FriendsGameMode";
-import GameScreen from "./components/GameScreen";
+import GameScreen from "./Components/GameScreen";
 import TruthOrDare from "./TruthandDear-Component/TruthOrDare";
 import EmojiGame from "./Emoji-Component/EmojiGame";
 import QRScanMode from "./payment/QRScanMode"; 
@@ -17,16 +20,30 @@ import CafeOwnerCheckWinner from "./Components/CafeOwnerCheckWinner";
 import Admin from "./Components/admin/AdminPanel";
 import Login from "./Components/auth/Login";
 
-export const TimeContext = createContext();
+/**
+ * @typedef {import('./@types/app').TimeContextType} TimeContextType
+ */
 
-const formatTime = (seconds) => {
+// Create context with JSDoc type
+/** @type {React.Context<TimeContextType>} */
+export const TimeContext = createContext<TimeContextType | null>(null);
+
+
+
+const formatTime = (seconds: number): string => { 
+
+
+
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
   return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
 };
 
 // Modern Time Display Component
-const TimeDisplay = ({ remainingTime }) => {
+const TimeDisplay = ({ remainingTime }: { remainingTime: number }): JSX.Element => { 
+
+
+
   const navigate = useNavigate(); 
 
   const getProgressPercentage = () => {
@@ -102,7 +119,7 @@ const TimeDisplay = ({ remainingTime }) => {
 };
 
 // Protected Route Component
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children }: { children: React.ReactElement }): JSX.Element => { 
   const location = useLocation();
   const state = location.state;
 
@@ -122,18 +139,22 @@ const TIMER_STORAGE_KEY = 'gameTimerState';
 const App = () => {
   // Initialize state from localStorage
   const initializeTimerState = () => {
-    const savedState = localStorage.getItem(TIMER_STORAGE_KEY);
-    if (savedState) {
-      const { remainingTime: savedTime, timestamp, isActive } = JSON.parse(savedState);
-      if (savedTime > 0) {
-        const elapsedSeconds = Math.floor((Date.now() - timestamp) / 1000);
-        const newRemainingTime = Math.max(0, savedTime - (isActive ? elapsedSeconds : 0));
-        return {
-          remainingTime: newRemainingTime,
-          isTimerActive: isActive && newRemainingTime > 0,
-          isExpired: newRemainingTime <= 0
-        };
+    try {
+      const savedState = localStorage.getItem(TIMER_STORAGE_KEY);
+      if (savedState) {
+        const { remainingTime: savedTime, timestamp, isActive } = JSON.parse(savedState);
+        if (savedTime > 0) {
+          const elapsedSeconds = Math.floor((Date.now() - timestamp) / 1000);
+          const newRemainingTime = Math.max(0, savedTime - (isActive ? elapsedSeconds : 0));
+          return {
+            remainingTime: newRemainingTime,
+            isTimerActive: isActive && newRemainingTime > 0,
+            isExpired: newRemainingTime <= 0
+          };
+        }
       }
+    } catch (error) {
+      console.error("Error initializing timer state from localStorage:", error);
     }
     return { remainingTime: 0, isTimerActive: false, isExpired: false };
   };
@@ -142,19 +163,23 @@ const App = () => {
   
   const [remainingTime, setRemainingTime] = useState(initialTime);
   const [isTimerActive, setIsTimerActive] = useState(initialIsActive);
-  const timerRef = useRef(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
   const [isExpired, setIsExpired] = useState(initialIsExpired);
 
   // Save timer state to localStorage whenever it changes
   useEffect(() => {
-    if (remainingTime > 0) {
-      localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify({
-        remainingTime,
-        isActive: isTimerActive,
-        timestamp: Date.now()
-      }));
-    } else {
-      localStorage.removeItem(TIMER_STORAGE_KEY);
+    try {
+      if (remainingTime > 0) {
+        localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify({
+          remainingTime,
+          isActive: isTimerActive,
+          timestamp: Date.now()
+        }));
+      } else {
+        localStorage.removeItem(TIMER_STORAGE_KEY);
+      }
+    } catch (error) {
+      console.error("Error saving timer state to localStorage:", error);
     }
   }, [remainingTime, isTimerActive]);
 
@@ -165,7 +190,9 @@ const App = () => {
         setRemainingTime((prevTime) => {
           if (prevTime <= 0) {
             setIsExpired(true);
-            clearInterval(timerRef.current);
+            if (timerRef.current) {
+              clearInterval(timerRef.current);
+            }
             localStorage.removeItem(TIMER_STORAGE_KEY);
             return 0;
           }
@@ -174,7 +201,11 @@ const App = () => {
       }, 1000);
     }
 
-    return () => clearInterval(timerRef.current);
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
   }, [isTimerActive]);
 
   // Handle page visibility changes
@@ -182,24 +213,32 @@ const App = () => {
     const handleVisibilityChange = () => {
       if (document.hidden) {
         // Save current state when page is hidden
-        if (remainingTime > 0) {
-          localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify({
-            remainingTime,
-            isActive: isTimerActive,
-            timestamp: Date.now()
-          }));
+        try {
+          if (remainingTime > 0) {
+            localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify({
+              remainingTime,
+              isActive: isTimerActive,
+              timestamp: Date.now()
+            }));
+          }
+        } catch (error) {
+          console.error("Error saving timer state on visibility change:", error);
         }
       } else {
         // Recalculate time when page becomes visible
-        const savedState = localStorage.getItem(TIMER_STORAGE_KEY);
-        if (savedState) {
-          const { remainingTime: savedTime, timestamp, isActive } = JSON.parse(savedState);
-          const elapsedSeconds = Math.floor((Date.now() - timestamp) / 1000);
-          const newRemainingTime = Math.max(0, savedTime - (isActive ? elapsedSeconds : 0));
-          
-          setRemainingTime(newRemainingTime);
-          setIsTimerActive(isActive && newRemainingTime > 0);
-          setIsExpired(newRemainingTime <= 0);
+        try {
+          const savedState = localStorage.getItem(TIMER_STORAGE_KEY);
+          if (savedState) {
+            const { remainingTime: savedTime, timestamp, isActive } = JSON.parse(savedState);
+            const elapsedSeconds = Math.floor((Date.now() - timestamp) / 1000);
+            const newRemainingTime = Math.max(0, savedTime - (isActive ? elapsedSeconds : 0));
+            
+            setRemainingTime(newRemainingTime);
+            setIsTimerActive(isActive && newRemainingTime > 0);
+            setIsExpired(newRemainingTime <= 0);
+          }
+        } catch (error) {
+          console.error("Error recalculating timer state on visibility change:", error);
         }
       }
     };
@@ -210,7 +249,12 @@ const App = () => {
 
   // Remove automatic navigation on expiry to let user choose
 
-  const startTimer = (initialTime) => {
+const startTimer = (initialTime: number): void => { 
+  // Start the timer with the given initial time
+
+  // Start the timer with the given initial time
+
+
     setRemainingTime(initialTime);
     setIsTimerActive(true);
     setIsExpired(false);
@@ -220,14 +264,20 @@ const App = () => {
     setIsTimerActive(false);
   };
 
-  const resetTimer = (initialTime) => {
+const resetTimer = (initialTime: number): void => { 
+  // Reset the timer to the initial time
+
+  // Reset the timer to the initial time
+
+
     setRemainingTime(initialTime);
     setIsTimerActive(false);
     setIsExpired(false);
   };
 
   return (
-    <TimeContext.Provider 
+    <ErrorBoundary>
+      <TimeContext.Provider 
       value={{ 
         remainingTime, 
         setRemainingTime, 
@@ -292,6 +342,7 @@ const App = () => {
         </Routes>
       </BrowserRouter>
     </TimeContext.Provider>
+    </ErrorBoundary>
   );
 };
 
