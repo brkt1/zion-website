@@ -94,7 +94,7 @@ const AddCafeOwner = () => {
                             <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
                             <input
                                 type="email"
-                                placeholder="john@example.com"
+                                placeholder="john@yenege.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 className="w-full p-3 bg-gray-700 border border-amber-500/30 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500"

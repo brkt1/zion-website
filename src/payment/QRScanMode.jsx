@@ -31,7 +31,6 @@ const QRScanMode = () => {
 
   const getCameras = useCallback(async () => {
     try {
-      // First request camera access explicitly
       await navigator.mediaDevices.getUserMedia({ video: true });
       const devices = await Html5Qrcode.getCameras();
       if (devices && devices.length) {
@@ -61,7 +60,7 @@ const QRScanMode = () => {
         {
           fps: 10,
           qrbox: { width: 300, height: 300 },
-          aspectRatio: 1.777778, // 16:9 aspect ratio
+          aspectRatio: 1.777778,
           disableFlip: false,
           supportedFormats: [Html5QrcodeSupportedFormats.QR_CODE],
         },
@@ -99,7 +98,10 @@ const QRScanMode = () => {
     setError(null);
 
     try {
+      console.log('Scanned data before validation:', scannedData);
       if (!/^\d{14}$/.test(scannedData)) {
+
+        console.log('Scanned data:', scannedData);
         throw new Error('Invalid 14-digit card number');
       }
 
@@ -108,16 +110,22 @@ const QRScanMode = () => {
         .select('*, game_types(name)')
         .eq('card_number', scannedData)
         .single();
+      console.log('Supabase query result:', data, error);
+
+      console.log('Supabase response:', data, error);
 
       if (error) throw error;
-      if (data.used) throw new Error('Card already redeemed');
+      if (data.used) {
+        console.log('Card already redeemed:', scannedData);
+        throw new Error('Card already redeemed');
+      }
 
       await supabase
         .from('cards')
         .update({ used: true })
         .eq('card_number', scannedData);
 
-      storage.setCard(scannedData);
+      gameStorage.setCard(scannedData);
       setScanResult(data);
       startTimer(data.duration * 60);
       await stopScanner();
@@ -134,7 +142,7 @@ const QRScanMode = () => {
       }
     } catch (err) {
       setError(err.message || 'Failed to process card');
-      setTimeout(() => setError(null), 5000); // Auto-clear errors
+      setTimeout(() => setError(null), 5000);
     } finally {
       setIsLoading(false);
     }
@@ -147,7 +155,7 @@ const QRScanMode = () => {
 
   const launchApp = () => {
     const appUrl = 'zionapp://';
-    const fallbackUrl = 'https://example.com/download-app';
+    const fallbackUrl = 'https://yenege.com/download-app';
 
     window.location.href = appUrl;
     setTimeout(() => {
@@ -238,13 +246,8 @@ const QRScanMode = () => {
               >
                 <FaCamera /> Manual Entry
               </button>
-              <button
-                onClick={launchApp}
-                className="flex-1 bg-amber-500 text-black py-3 rounded hover:bg-amber-600
-                         flex items-center justify-center gap-2 font-bold"
-              >
-                <FaQrcode /> Launch App
-              </button>
+             
+
               <button
                 onClick={initScanner}
                 className="bg-gray-800 text-amber-500 px-6 py-3 rounded hover:bg-gray-700
@@ -253,6 +256,14 @@ const QRScanMode = () => {
                 Retry
               </button>
             </div>
+            <div className="flex gap-4 mb-4">
+            <button
+                onClick={launchApp}
+                className="flex-1 bg-gradient-to-r from-amber-400 to-amber-600 text-white py-4 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 flex items-center justify-center gap-2 font-semibold"
+              >
+                <FaQrcode className="text-xl" /> for better experience use our app
+              </button>
+              </div>
 
             {error && (
               <div className="p-4 mb-4 bg-red-900/20 border-l-4 border-red-500 text-red-300 rounded">

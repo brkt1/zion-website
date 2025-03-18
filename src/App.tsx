@@ -250,11 +250,6 @@ const App = () => {
   // Remove automatic navigation on expiry to let user choose
 
 const startTimer = (initialTime: number): void => { 
-  // Start the timer with the given initial time
-
-  // Start the timer with the given initial time
-
-
     setRemainingTime(initialTime);
     setIsTimerActive(true);
     setIsExpired(false);
@@ -265,11 +260,6 @@ const startTimer = (initialTime: number): void => {
   };
 
 const resetTimer = (initialTime: number): void => { 
-  // Reset the timer to the initial time
-
-  // Reset the timer to the initial time
-
-
     setRemainingTime(initialTime);
     setIsTimerActive(false);
     setIsExpired(false);
