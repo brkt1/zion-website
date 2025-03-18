@@ -102,7 +102,7 @@ export default defineConfig({
       'Permissions-Policy': 'camera=self',
       'Cross-Origin-Embedder-Policy': 'require-corp',
       'Cross-Origin-Opener-Policy': 'same-origin',
-      "Content-Security-Policy": "default-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-eval' 'unsafe-inline' 'unsafe-hashes' https://cdnjs.cloudflare.com; script-src-elem 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' 'unsafe-hashes'; style-src-attr 'self' 'unsafe-inline'; style-src-elem 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://api.example.com https://rpaxjodkgxfgneflavnj.supabase.co https://cdnjs.cloudflare.com; worker-src 'self';"
+
     }
   },
   build: {
