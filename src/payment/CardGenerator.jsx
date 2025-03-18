@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { canUseLocalStorage } from '../utils/storage'; 
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import jsPDF from 'jspdf';

@@ -107,7 +107,7 @@ const isSecureContext = () => {
          navigator.userAgent.indexOf('CriOS') === -1;
 };
 
-const canUseLocalStorage = () => {
+export const canUseLocalStorage = () => {
   return true; // Always return true since SafeStorage will handle the fallback
 };
 
@@ -141,7 +141,7 @@ class SecureStorage {
   }
 
   // Public API
-  public get = <T>(key: string, schema: z.ZodSchema<T>, version: number): T | null => {
+  public get = <T>(key: string, schema: z.ZodSchema<T>): T | null => {
     try {
       const item = this.engine.getItem(key);
       if (!item) return null;
@@ -155,7 +155,7 @@ class SecureStorage {
       this.validateData(migrated.data, schema);
 
       if (parsed.version !== migrated.version) {
-        this.set(key, migrated.data, schema, migrated.version);
+        this.set(key, migrated.data, schema);
       }
 
       return migrated.data;
@@ -165,13 +165,13 @@ class SecureStorage {
     }
   };
 
-  public set = <T>(key: string, data: T, schema: z.ZodSchema<T>, version: number): boolean => {
+  public set = <T>(key: string, data: T, schema: z.ZodSchema<T>): boolean => {
     try {
       this.validateData(data, schema);
       this.checkStorageQuota(data);
 
       const storageItem: StorageItem<T> = {
-        version,
+        version: STORAGE_CONFIG.VERSIONS.CARDS,
         data,
         timestamp: Date.now()
       };
@@ -268,28 +268,28 @@ const safeStorageInstance = new SecureStorage("0fc8dab0c90a27c7316113507f1567567
 // Game-specific Implementations
 export const gameStorage = {
   getGameState: () => 
-    storage.get('gameState', GameStateSchema, STORAGE_CONFIG.VERSIONS.GAME_STATE) || {
+    storage.get('gameState') || {
       isPlaying: false,
       winner: '',
       score: 0
     },
 
   setGameState: (state: z.infer<typeof GameStateSchema>) =>
-    storage.set('gameState', state, GameStateSchema, STORAGE_CONFIG.VERSIONS.GAME_STATE),
+    storage.set('gameState', state),
 
   getWinners: () =>
-    storage.get('winners', z.array(WinnerSchema), STORAGE_CONFIG.VERSIONS.WINNERS) || [],
+    storage.get('winners') || [],
 
   setWinners: (winners: z.infer<typeof WinnerSchema>[]) =>
-    storage.set('winners', winners, z.array(WinnerSchema), STORAGE_CONFIG.VERSIONS.WINNERS),
+    storage.set('winners', winners),
 
   getCards: () =>
-    storage.get('cards', z.array(CardSchema), STORAGE_CONFIG.VERSIONS.CARDS) || [],
+    storage.get('cards') || [],
 
   setCard: (cardNumber: string) => {
-    const cards = gameStorage.getCards();
+    const cards = gameStorage.getCards() as Array<{ cardNumber: string; timestamp: number }>;
     const newCard = { cardNumber, timestamp: Date.now() };
-    return storage.set('cards', [...cards, newCard], z.array(CardSchema), STORAGE_CONFIG.VERSIONS.CARDS);
+    return storage.set('cards', [...cards, newCard]);
   },
 
   clearGameData: () => {
