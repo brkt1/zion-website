@@ -15,7 +15,7 @@ const GAME_ROUTES = {
 };
 
 const QRScanMode = () => {
-  const [error, setError] = useState(null);
+  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [cameras, setCameras] = useState([]);
   const [selectedCamera, setSelectedCamera] = useState(null);
@@ -38,7 +38,7 @@ const QRScanMode = () => {
         setSelectedCamera(devices[0].id);
       }
     } catch (err) {
-      setError('Camera access required');
+      setError('Camera access is required. Please enable it in your browser settings.');
     } finally {
       setIsInitializing(false);
     }
@@ -62,12 +62,18 @@ const QRScanMode = () => {
           qrbox: { width: 300, height: 300 },
           aspectRatio: 1.777778,
           disableFlip: false,
-          supportedFormats: [Html5QrcodeSupportedFormats.QR_CODE],
+          supportedFormats: [
+            Html5QrcodeSupportedFormats.QR_CODE,
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.EAN_8,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.UPC_E,
+          ],
         },
         (decodedText) => handleScan(decodedText),
         (errorMessage) => {
           if (errorMessage.includes('NotFoundException')) {
-            setError('Position QR code within frame. Ensure good lighting and focus.');
+            setError('Position QR code within frame. Ensure good lighting and focus. If the issue persists, check the QR code quality.');
           } else {
             console.error('Scan error:', errorMessage);
             setError(errorMessage);
@@ -91,47 +97,46 @@ const QRScanMode = () => {
     }
   }, []);
 
-const handleScan = useCallback(async (scannedData) => {
+  const handleScan = useCallback(async (scannedData) => {
     setIsLoading(true);
     setError(null);
     if (isLoading || !scannedData) return;
-    if (isLoading || !scannedData) return;
-    
-    setIsLoading(true);
-    setError(null);
 
     try {
       console.log('Scanned data before validation:', scannedData);
       console.log('Attempting to parse QR code...');
 
-      console.log('Starting card validation...');
       const scannedCardNumber = scannedData; // Use scanned data directly
       console.log('Scanned card number:', scannedCardNumber);
       console.log('Validating card number format...');
 
       if (!/^\d{13}$/.test(scannedCardNumber)) {
-
-        console.log('Scanned data:', scannedData);
+        console.log('Invalid card number format:', scannedCardNumber);
         throw new Error('Invalid 13-digit card number');
       }
 
-const { data, error } = await supabase
+      const { data, error } = await supabase
         .from('cards')
+
         .select('*, game_types(name)')
         .eq('card_number', scannedCardNumber)
         .single();
       console.log('Supabase query result:', data, error);
 
-      console.log('Supabase response:', data, error);
+      if (error) {
+        console.error('Error fetching card data:', error);
+        throw error;
+      }
 
-      if (error) throw error;
       if (data.used) {
         console.log('Card already redeemed:', scannedData);
         throw new Error('Card already redeemed');
       }
 
-      await supabase
+      await supabase 
         .from('cards')
+
+       
         .update({ used: true })
         .eq('card_number', scannedData);
 
@@ -142,16 +147,20 @@ const { data, error } = await supabase
 
       const gameRoute = GAME_ROUTES[data.game_type];
       if (gameRoute) {
-        navigate(gameRoute, {
-          state: {
-            cardDetails: data,
-            remainingTime: data.duration * 60,
-            fromGame: true
-          },
-        });
+        if (window.confirm('Card verified! Do you want to proceed to the game?')) {
+          startTimer(data.duration * 60); // Start the timer
+          navigate(gameRoute, {
+            state: {
+              cardDetails: data,
+              remainingTime: data.duration * 60,
+              fromGame: true
+            },
+          });
+        }
       }
+
     } catch (err) {
-      setError(err.message || 'Failed to process card');
+      setError(err.message || 'Failed to process the card. Please try again.');
       setTimeout(() => setError(null), 5000);
     } finally {
       setIsLoading(false);
@@ -256,8 +265,6 @@ const { data, error } = await supabase
               >
                 <FaCamera /> Manual Entry
               </button>
-             
-
               <button
                 onClick={initScanner}
                 className="bg-gray-800 text-amber-500 px-6 py-3 rounded hover:bg-gray-700
@@ -267,13 +274,13 @@ const { data, error } = await supabase
               </button>
             </div>
             <div className="flex gap-4 mb-4">
-            <button
+              <button
                 onClick={launchApp}
                 className="flex-1 bg-gradient-to-r from-amber-400 to-amber-600 text-white py-4 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 flex items-center justify-center gap-2 font-semibold"
               >
                 <FaQrcode className="text-xl" /> for better experience use our app
               </button>
-              </div>
+            </div>
 
             {error && (
               <div className="p-4 mb-4 bg-red-900/20 border-l-4 border-red-500 text-red-300 rounded">
@@ -298,7 +305,7 @@ const { data, error } = await supabase
 
             {isLoading && (
               <div className="p-4 text-center text-amber-500 animate-pulse">
-                Verifying card...
+                <span>Verifying card...</span>
               </div>
             )}
 

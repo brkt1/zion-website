@@ -70,9 +70,10 @@ const CardGenerator = () => {
         fetchGameTypes();
     }, []);
 
-    // Generate a 14-digit card number
+    // Generate a 13-digit card number
     const generateCardNumber = () => {
-        return Array.from({ length: 14 }, () => Math.floor(Math.random() * 10)).join('');
+        return Array.from({ length: 13 }, () => Math.floor(Math.random() * 10)).join('');
+
     };
 
     // Generate 6 cards
