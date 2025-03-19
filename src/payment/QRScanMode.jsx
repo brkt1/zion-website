@@ -4,7 +4,6 @@ import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { supabase } from '../supabaseClient';
 import { TimeContext } from '../App';
 import gameStorage from '../utils/storage';
-
 import { FaCamera, FaQrcode } from 'react-icons/fa';
 
 const GAME_ROUTES = {
@@ -15,7 +14,7 @@ const GAME_ROUTES = {
 };
 
 const QRScanMode = () => {
-  const [error, setError] = useState('');
+  const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [cameras, setCameras] = useState([]);
   const [selectedCamera, setSelectedCamera] = useState(null);
@@ -38,7 +37,7 @@ const QRScanMode = () => {
         setSelectedCamera(devices[0].id);
       }
     } catch (err) {
-      setError('Camera access is required. Please enable it in your browser settings.');
+      setError('Camera access required - Please enable in browser settings');
     } finally {
       setIsInitializing(false);
     }
@@ -59,21 +58,15 @@ const QRScanMode = () => {
         selectedCamera,
         {
           fps: 10,
-          qrbox: { width: 300, height: 300 },
-          aspectRatio: 1.777778,
-          disableFlip: false,
-          supportedFormats: [
-            Html5QrcodeSupportedFormats.QR_CODE,
-            Html5QrcodeSupportedFormats.EAN_13,
-            Html5QrcodeSupportedFormats.EAN_8,
-            Html5QrcodeSupportedFormats.UPC_A,
-            Html5QrcodeSupportedFormats.UPC_E,
-          ],
+          qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.0,
+          disableFlip: true,
+          supportedFormats: [Html5QrcodeSupportedFormats.QR_CODE],
         },
         (decodedText) => handleScan(decodedText),
         (errorMessage) => {
           if (errorMessage.includes('NotFoundException')) {
-            setError('Position QR code within frame. Ensure good lighting and focus. If the issue persists, check the QR code quality.');
+            setError('Position QR code within frame. Ensure good lighting and focus.');
           } else {
             console.error('Scan error:', errorMessage);
             setError(errorMessage);
@@ -87,85 +80,116 @@ const QRScanMode = () => {
   }, [selectedCamera]);
 
   const stopScanner = useCallback(async () => {
-    if (html5QrCode.current && html5QrCode.current.isScanning) {
-      try {
+    try {
+      if (html5QrCode.current?.isScanning) {
         await html5QrCode.current.stop();
         html5QrCode.current.clear();
-      } catch (err) {
-        console.error('Error stopping scanner:', err);
       }
+      html5QrCode.current = null;
+    } catch (err) {
+      console.error('Error stopping scanner:', err);
     }
   }, []);
 
   const handleScan = useCallback(async (scannedData) => {
     setIsLoading(true);
     setError(null);
-    if (isLoading || !scannedData) return;
+    if (isLoading) return;
 
     try {
-      console.log('Scanned data before validation:', scannedData);
-      console.log('Attempting to parse QR code...');
+      const cleanedData = scannedData.replace(/\D/g, '');
+      console.log('Cleaned scan data:', cleanedData);
 
-      const scannedCardNumber = scannedData; // Use scanned data directly
-      console.log('Scanned card number:', scannedCardNumber);
-      console.log('Validating card number format...');
-
-      if (!/^\d{13}$/.test(scannedCardNumber)) {
-        console.log('Invalid card number format:', scannedCardNumber);
-        throw new Error('Invalid 13-digit card number');
+      if (!/^\d{13}$/.test(cleanedData)) {
+        throw new Error(`Invalid 13-digit card number. Scanned: ${scannedData}`);
       }
 
       const { data, error } = await supabase
         .from('cards')
-
         .select('*, game_types(name)')
-        .eq('card_number', scannedCardNumber)
+        .eq('card_number', cleanedData)
         .single();
-      console.log('Supabase query result:', data, error);
 
-      if (error) {
-        console.error('Error fetching card data:', error);
-        throw error;
-      }
+      if (error) throw error;
+      if (data.used) throw new Error('Card already redeemed');
 
-      if (data.used) {
-        console.log('Card already redeemed:', scannedData);
-        throw new Error('Card already redeemed');
-      }
-
-      await supabase 
+      await supabase
         .from('cards')
-
-       
         .update({ used: true })
-        .eq('card_number', scannedData);
+        .eq('card_number', cleanedData);
 
-      gameStorage.setCard(scannedData);
+      gameStorage.setCard(cleanedData);
       setScanResult(data);
       startTimer(data.duration * 60);
       await stopScanner();
 
       const gameRoute = GAME_ROUTES[data.game_type];
       if (gameRoute) {
-        if (window.confirm('Card verified! Do you want to proceed to the game?')) {
-          startTimer(data.duration * 60); // Start the timer
-          navigate(gameRoute, {
-            state: {
-              cardDetails: data,
-              remainingTime: data.duration * 60,
-              fromGame: true
-            },
-          });
-        }
+        navigate(gameRoute, {
+          state: {
+            cardDetails: data,
+            remainingTime: data.duration * 60,
+            fromGame: true
+          },
+        });
       }
 
     } catch (err) {
-      setError(err.message || 'Failed to process the card. Please try again.');
+      setError(err.message);
       setTimeout(() => setError(null), 5000);
     } finally {
       setIsLoading(false);
     }
   }, [isLoading, navigate, startTimer, stopScanner]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) stopScanner();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      stopScanner();
+    };
+  }, [stopScanner]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const initialize = async () => {
+      try {
+        await navigator.mediaDevices.getUserMedia({ video: true });
+        const devices = await Html5Qrcode.getCameras();
+        if (isMounted && devices?.length) {
+          setCameras(devices);
+          setSelectedCamera(devices[0].id);
+        }
+      } catch (err) {
+        setError('Camera access required - Please enable in browser settings');
+      } finally {
+        if (isMounted) setIsInitializing(false);
+      }
+    };
+
+    initialize();
+    return () => { isMounted = false; };
+  }, []);
+
+  useEffect(() => {
+    if (selectedCamera && !isInitializing) {
+      initScanner();
+    }
+
+    return () => {
+      stopScanner();
+    };
+  }, [initScanner, selectedCamera, stopScanner, isInitializing]);
+
+  useEffect(() => {
+    const handleBeforeUnload = () => stopScanner();
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [stopScanner]);
 
   const handleCameraChange = (e) => {
     setSelectedCamera(e.target.value);
@@ -187,27 +211,14 @@ const QRScanMode = () => {
   const handleManualEntry = () => {
     const manualInput = prompt('Enter 13-digit card number:');
     if (manualInput) {
-      if (/^\d{13}$/.test(manualInput)) {
-        handleScan(manualInput);
+      const cleanedInput = manualInput.replace(/\D/g, '');
+      if (/^\d{13}$/.test(cleanedInput)) {
+        handleScan(cleanedInput);
       } else {
         setError('Invalid format - must be 13 digits');
       }
     }
   };
-
-  useEffect(() => {
-    getCameras();
-  }, [getCameras]);
-
-  useEffect(() => {
-    if (selectedCamera && !isInitializing) {
-      initScanner();
-    }
-
-    return () => {
-      stopScanner();
-    };
-  }, [initScanner, selectedCamera, stopScanner, isInitializing]);
 
   if (shouldRedirect) {
     return <Navigate to="/qr-scan" replace state={{ fromGame: true }} />;
@@ -265,6 +276,7 @@ const QRScanMode = () => {
               >
                 <FaCamera /> Manual Entry
               </button>
+
               <button
                 onClick={initScanner}
                 className="bg-gray-800 text-amber-500 px-6 py-3 rounded hover:bg-gray-700
@@ -273,12 +285,13 @@ const QRScanMode = () => {
                 Retry
               </button>
             </div>
+            
             <div className="flex gap-4 mb-4">
               <button
                 onClick={launchApp}
                 className="flex-1 bg-gradient-to-r from-amber-400 to-amber-600 text-white py-4 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 flex items-center justify-center gap-2 font-semibold"
               >
-                <FaQrcode className="text-xl" /> for better experience use our app
+                <FaQrcode className="text-xl" /> For better experience use our app
               </button>
             </div>
 
@@ -305,7 +318,7 @@ const QRScanMode = () => {
 
             {isLoading && (
               <div className="p-4 text-center text-amber-500 animate-pulse">
-                <span>Verifying card...</span>
+                Verifying card...
               </div>
             )}
 
