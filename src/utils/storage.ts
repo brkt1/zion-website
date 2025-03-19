@@ -13,11 +13,7 @@
 import { AES, enc } from 'crypto-js';
 import { z, ZodError } from 'zod';
 
-import SafeStorage from './safeStorage.js'; // Updated to include .js extension
-
 // Types
-const storage = new SafeStorage();
-
 interface StorageItem<T> {
   version: number;
   timestamp: number;
@@ -268,33 +264,36 @@ const safeStorageInstance = new SecureStorage("0fc8dab0c90a27c7316113507f1567567
 // Game-specific Implementations
 export const gameStorage = {
   getGameState: () => 
-    storage.get('gameState') || {
+    safeStorageInstance.get('gameState', GameStateSchema) || {
       isPlaying: false,
       winner: '',
       score: 0
     },
 
   setGameState: (state: z.infer<typeof GameStateSchema>) =>
-    storage.set('gameState', state),
+    safeStorageInstance.set('gameState', state, GameStateSchema),
 
   getWinners: () =>
-    storage.get('winners') || [],
+    safeStorageInstance.get('winners', WinnerSchema) || [],
 
   setWinners: (winners: z.infer<typeof WinnerSchema>[]) =>
-    storage.set('winners', winners),
+    safeStorageInstance.set('winners', winners, z.array(WinnerSchema)),
+
+
 
   getCards: () =>
-    storage.get('cards') || [],
+    safeStorageInstance.get('cards', CardSchema) || [],
 
   setCard: (cardNumber: string) => {
     const cards = gameStorage.getCards() as Array<{ cardNumber: string; timestamp: number }>;
     const newCard = { cardNumber, timestamp: Date.now() };
-    return storage.set('cards', [...cards, newCard]);
+    return safeStorageInstance.set('cards', newCard, CardSchema);
+
   },
 
   clearGameData: () => {
     try {
-      ['gameState', 'winners', 'cards'].forEach(key => storage.engine.removeItem(key));
+      ['gameState', 'winners', 'cards'].forEach(key => safeStorageInstance.engine.removeItem(key));
       return true;
     } catch (error) {
       console.error('Game data clearance failed:', error);

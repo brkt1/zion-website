@@ -93,7 +93,8 @@ const generateSixCards = async () => {
                 card_number: generateCardNumber()
             }));
 
-            const { data, error } = await supabase
+            const { data, error: insertError } = await supabase
+
                 .from('cards')
                 .insert(cardsToGenerate)
                 .select('*');
@@ -102,9 +103,11 @@ const generateSixCards = async () => {
                 setGeneratedCards(data);
                 setShowDownloadMessage(true);
             }
-            if (error) throw error;
+            if (insertError) throw insertError;
+
         } catch (error) {
-            console.error('Error generating cards:', error);
+            console.error('Error generating cards:', insertError);
+
             alert('Failed to generate cards');
         } finally {
             setIsLoading(false);
