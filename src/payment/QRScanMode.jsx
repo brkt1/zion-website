@@ -91,23 +91,30 @@ const QRScanMode = () => {
     }
   }, []);
 
-  const handleScan = useCallback(async (scannedData) => {
+const handleScan = useCallback(async (scannedData) => {
+    setIsLoading(true);
+    setError(null);
+    if (isLoading || !scannedData) return;
     if (isLoading || !scannedData) return;
     
     setIsLoading(true);
     setError(null);
 
     try {
-console.log('Scanned data before validation:', scannedData);
+      console.log('Scanned data before validation:', scannedData);
+      console.log('Attempting to parse QR code...');
+
+      console.log('Starting card validation...');
       const scannedCardNumber = scannedData; // Use scanned data directly
       console.log('Scanned card number:', scannedCardNumber);
+      console.log('Validating card number format...');
+
       if (!/^\d{13}$/.test(scannedCardNumber)) {
 
         console.log('Scanned data:', scannedData);
         throw new Error('Invalid 13-digit card number');
       }
 
-console.log('Attempting to query Supabase for card number:', scannedCardNumber);
 const { data, error } = await supabase
         .from('cards')
         .select('*, game_types(name)')

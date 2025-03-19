@@ -120,48 +120,26 @@ const generateSixCards = async () => {
     
         // Create a container for the cards
         const container = document.createElement('div');
-        container.style.display = 'grid';
-        container.style.gridTemplateColumns = 'repeat(3, 1fr)';
-        container.style.gridTemplateRows = 'repeat(2, 1fr)';
-        container.style.gap = '20px';
-        container.style.padding = '20px';
-        container.style.width = '210mm';
-        container.style.height = '297mm';
-        container.style.backgroundColor = '#F3F4F6';
-        container.style.fontFamily = 'Arial, sans-serif';
+        container.className = 'card-container'; // Use the new CSS class
+
     
         // Create promises for QR code generation
         const cardPromises = generatedCards.map(async (card) => {
             return new Promise((resolve) => {
                 const cardDiv = document.createElement('div');
-                cardDiv.style.backgroundColor = 'white';
-                cardDiv.style.border = '2px solid #4338CA';
-                cardDiv.style.borderRadius = '16px';
-                cardDiv.style.display = 'flex';
-                cardDiv.style.flexDirection = 'column';
-                cardDiv.style.alignItems = 'center';
-                cardDiv.style.justifyContent = 'space-between';
-                cardDiv.style.overflow = 'hidden';
-                cardDiv.style.boxShadow = '0 10px 20px rgba(0,0,0,0.1)';
-                cardDiv.style.transition = 'transform 0.3s ease';
+                cardDiv.className = 'card'; // Use the new CSS class
+
     
                 // Header with gradient background
                 const headerDiv = document.createElement('div');
-                headerDiv.style.width = '100%';
-                headerDiv.style.background = 'linear-gradient(135deg, #4338CA, #6366F1)';
-                headerDiv.style.color = 'white';
-                headerDiv.style.padding = '12px';
-                headerDiv.style.textAlign = 'center';
-                headerDiv.style.fontWeight = 'bold';
+                headerDiv.className = 'card-header'; // Use the new CSS class
+
                 headerDiv.innerHTML = `Game Card #${card.card_number}`;
     
                 // QR Code Container
                 const qrContainer = document.createElement('div');
-                qrContainer.style.margin = '15px 0';
-                qrContainer.style.border = '3px dashed #4338CA';
-                qrContainer.style.borderRadius = '12px';
-                qrContainer.style.padding = '10px';
-                qrContainer.style.backgroundColor = '#F0F5FF';
+                qrContainer.className = 'qr-container'; // Use the new CSS class
+
     
                 // Create QR Code canvas
                 const canvas = document.createElement('canvas');
@@ -182,11 +160,10 @@ const generateSixCards = async () => {
     
                 // Card Details
                 const detailsDiv = document.createElement('div');
-                detailsDiv.style.textAlign = 'center';
-                detailsDiv.style.width = '100%';
-                detailsDiv.style.padding = '0 15px';
+                detailsDiv.className = 'card-details'; // Use the new CSS class
                 detailsDiv.innerHTML = `
-                    <div style="background-color: #E6E7F0; padding: 12px; border-radius: 10px; margin: 10px 0;">
+                    <div class="card-details"> <!-- Use the new CSS class -->
+
                         <p style="margin: 8px 0; color: #1E293B; font-size: 14px;">
                             <span style="font-weight: bold; color: #4338CA;">Game Type:</span> 
                             ${gameTypes.find(g => g.id === card.game_type)?.name}
@@ -200,12 +177,8 @@ const generateSixCards = async () => {
     
                 // Footer
                 const footerDiv = document.createElement('div');
-                footerDiv.style.width = '100%';
-                footerDiv.style.background = '#4338CA';
-                footerDiv.style.color = 'white';
-                footerDiv.style.padding = '10px';
-                footerDiv.style.textAlign = 'center';
-                footerDiv.style.fontSize = '12px';
+                footerDiv.className = 'card-footer'; // Use the new CSS class
+
                 footerDiv.innerHTML = 'Valid for One Game Session';
     
                 // Assemble Card

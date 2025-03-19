@@ -1,7 +1,6 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { VitePWA } from 'vite-plugin-pwa'
-import fs from 'fs' // Import fs module
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
   plugins: [
@@ -25,7 +24,6 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         skipWaiting: true,
         clientsClaim: true,
-        exclude: [/quagga\.worker\.js$/, /quagga\.min\.js$/],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/api\.example\.com\/.*/i,
@@ -33,7 +31,7 @@ export default defineConfig({
             options: {
               cacheName: 'api-cache',
               cacheableResponse: { statuses: [0, 200] },
-              expiration: { maxEntries: 50, maxAgeSeconds: 21600 } // 6 hours
+              expiration: { maxEntries: 50, maxAgeSeconds: 21600 }
             }
           },
           {
@@ -41,14 +39,7 @@ export default defineConfig({
             handler: 'CacheFirst',
             options: {
               cacheName: 'image-cache',
-              expiration: { maxEntries: 100, maxAgeSeconds: 2592000 } // 30 days
-            }
-          },
-          {
-            urlPattern: /quagga\.worker\.js$/,
-            handler: 'NetworkOnly',
-            options: {
-              cacheName: 'quagga-worker-exception'
+              expiration: { maxEntries: 100, maxAgeSeconds: 2592000 }
             }
           }
         ]
@@ -95,17 +86,24 @@ export default defineConfig({
     })
   ],
   server: {
-    https: process.env.NODE_ENV === 'production' ? true : false,
     headers: {
-      'Service-Worker-Allowed': '/',
-      'Cache-Control': 'no-cache',
-      'Permissions-Policy': 'camera=self',
-      'Cross-Origin-Embedder-Policy': 'require-corp',
-      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Content-Security-Policy': `
+        default-src 'self';
+        script-src 'self' https://cdnjs.cloudflare.com 'unsafe-inline' 'unsafe-eval' http://localhost:*; 
+        style-src 'self' 'unsafe-inline' http://localhost:*; 
+        connect-src 'self' https://*.supabase.co ws://localhost:*; 
+        img-src 'self' data: https://*.supabase.co;
+        media-src 'self' blob:;
+        worker-src 'self' blob:;
+        font-src 'self';
+        frame-src 'none';
+        object-src 'none';
+      `.replace(/\n/g, ' ').trim()
 
     }
   },
   build: {
-    target: 'esnext'
+    target: 'esnext',
+    sourcemap: process.env.NODE_ENV !== 'production'
   }
-})
+});

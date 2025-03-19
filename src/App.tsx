@@ -1,7 +1,8 @@
 import React, { createContext, useState, useEffect, useRef } from "react";
+import './App.css'; // Import the new CSS file
+
 import ErrorBoundary from "./Components/ErrorBoundary";
 import { TimeContextType } from "./@types/TimeContextType";
-
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom"; 
 import { motion } from 'framer-motion';
 import Lovers from "./TruthandDear-Component/Lovers";
@@ -65,13 +66,11 @@ const TimeDisplay = ({ remainingTime }: { remainingTime: number }): JSX.Element 
     <div className="fixed top-0 left-0 right-0 z-50 p-4">
       <div>
         <div className="w-full h-1 bg-white/10 backdrop-blur-sm rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-gradient-to-r from-blue-500/70 to-purple-600/70 transition-all duration-500 ease-in-out"
-            style={{
-              width: `${getProgressPercentage()}%`,
-              transformOrigin: 'left'
-            }}
+          <div
+            className="progress-fill"
+            style={{ width: `${getProgressPercentage()}%` }}
           />
+
         </div>
         <div className="flex items-center justify-center py-3 px-6">
           <div className="flex items-center space-x-3">
