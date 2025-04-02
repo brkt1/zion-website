@@ -3,7 +3,7 @@ import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { supabase } from '../supabaseClient';
 import { TimeContext } from '../App';
-import gameStorage from '../utils/storage';
+import { gameStorage } from '../utils/storage';
 import { FaCamera, FaQrcode } from 'react-icons/fa';
 
 const GAME_ROUTES = {

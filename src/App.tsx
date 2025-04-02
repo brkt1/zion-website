@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useRef } from "react";
+import React, { createContext, useEffect, useRef } from "react";
 import './App.css'; // Import the new CSS file
 
 import ErrorBoundary from "./Components/ErrorBoundary";
@@ -20,6 +20,8 @@ import TriviaGame from "./Triva-Component/Trivia";
 import CafeOwnerCheckWinner from "./Components/CafeOwnerCheckWinner";
 import Admin from "./Components/admin/AdminPanel";
 import Login from "./Components/auth/Login";
+import { useGameStore } from './app/store';
+import { useTimerStore } from './app/store';
 
 /**
  * @typedef {import('./@types/app').TimeContextType} TimeContextType
@@ -29,12 +31,7 @@ import Login from "./Components/auth/Login";
 /** @type {React.Context<TimeContextType>} */
 export const TimeContext = createContext<TimeContextType | null>(null);
 
-
-
 const formatTime = (seconds: number): string => { 
-
-
-
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
   return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
@@ -42,9 +39,6 @@ const formatTime = (seconds: number): string => {
 
 // Modern Time Display Component
 const TimeDisplay = ({ remainingTime }: { remainingTime: number }): JSX.Element => { 
-
-
-
   const navigate = useNavigate(); 
 
   const getProgressPercentage = () => {
@@ -70,7 +64,6 @@ const TimeDisplay = ({ remainingTime }: { remainingTime: number }): JSX.Element 
             className="progress-fill"
             style={{ width: `${getProgressPercentage()}%` }}
           />
-
         </div>
         <div className="flex items-center justify-center py-3 px-6">
           <div className="flex items-center space-x-3">
@@ -121,8 +114,9 @@ const TimeDisplay = ({ remainingTime }: { remainingTime: number }): JSX.Element 
 const ProtectedRoute = ({ children }: { children: React.ReactElement }): JSX.Element => { 
   const location = useLocation();
   const state = location.state;
+  const { isPlaying } = useGameStore.getState();
 
-  if (!state?.cardDetails || state.remainingTime <= 0) {
+  if (!isPlaying) {
     return <Navigate to="/qr-scan" replace />;
   }
 
@@ -133,143 +127,45 @@ const ProtectedRoute = ({ children }: { children: React.ReactElement }): JSX.Ele
 };
 
 // Main App Component
-const TIMER_STORAGE_KEY = 'gameTimerState';
-
 const App = () => {
-  // Initialize state from localStorage
-  const initializeTimerState = () => {
-    try {
-      const savedState = localStorage.getItem(TIMER_STORAGE_KEY);
-      if (savedState) {
-        const { remainingTime: savedTime, timestamp, isActive } = JSON.parse(savedState);
-        if (savedTime > 0) {
-          const elapsedSeconds = Math.floor((Date.now() - timestamp) / 1000);
-          const newRemainingTime = Math.max(0, savedTime - (isActive ? elapsedSeconds : 0));
-          return {
-            remainingTime: newRemainingTime,
-            isTimerActive: isActive && newRemainingTime > 0,
-            isExpired: newRemainingTime <= 0
-          };
-        }
-      }
-    } catch (error) {
-      console.error("Error initializing timer state from localStorage:", error);
-    }
-    return { remainingTime: 0, isTimerActive: false, isExpired: false };
-  };
+  const { remainingTime, isTimerActive, isExpired, startTimer, pauseTimer, resetTimer } = useTimerStore();
 
-  const { remainingTime: initialTime, isTimerActive: initialIsActive, isExpired: initialIsExpired } = initializeTimerState();
-  
-  const [remainingTime, setRemainingTime] = useState(initialTime);
-  const [isTimerActive, setIsTimerActive] = useState(initialIsActive);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const [isExpired, setIsExpired] = useState(initialIsExpired);
-
-  // Save timer state to localStorage whenever it changes
+  // Save timer state to local storage
   useEffect(() => {
-    try {
-      if (remainingTime > 0) {
-        localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify({
-          remainingTime,
-          isActive: isTimerActive,
-          timestamp: Date.now()
-        }));
-      } else {
-        localStorage.removeItem(TIMER_STORAGE_KEY);
-      }
-    } catch (error) {
-      console.error("Error saving timer state to localStorage:", error);
+    if (isTimerActive) {
+      localStorage.setItem('timerState', JSON.stringify({ remainingTime, isTimerActive }));
+    } else {
+      localStorage.removeItem('timerState');
     }
   }, [remainingTime, isTimerActive]);
 
-  // Handle timer countdown
-  useEffect(() => {
-    if (isTimerActive) {
-      timerRef.current = setInterval(() => {
-        setRemainingTime((prevTime) => {
-          if (prevTime <= 0) {
-            setIsExpired(true);
-            if (timerRef.current) {
-              clearInterval(timerRef.current);
-            }
-            localStorage.removeItem(TIMER_STORAGE_KEY);
-            return 0;
-          }
-          return prevTime - 1;
-        });
-      }, 1000);
-    }
-
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    };
-  }, [isTimerActive]);
-
-  // Handle page visibility changes
+  // Restore timer state on visibility change
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        // Save current state when page is hidden
-        try {
-          if (remainingTime > 0) {
-            localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify({
-              remainingTime,
-              isActive: isTimerActive,
-              timestamp: Date.now()
-            }));
-          }
-        } catch (error) {
-          console.error("Error saving timer state on visibility change:", error);
-        }
+        localStorage.setItem('timerState', JSON.stringify({ remainingTime, isTimerActive }));
       } else {
-        // Recalculate time when page becomes visible
-        try {
-          const savedState = localStorage.getItem(TIMER_STORAGE_KEY);
-          if (savedState) {
-            const { remainingTime: savedTime, timestamp, isActive } = JSON.parse(savedState);
-            const elapsedSeconds = Math.floor((Date.now() - timestamp) / 1000);
-            const newRemainingTime = Math.max(0, savedTime - (isActive ? elapsedSeconds : 0));
-            
-            setRemainingTime(newRemainingTime);
-            setIsTimerActive(isActive && newRemainingTime > 0);
-            setIsExpired(newRemainingTime <= 0);
+        const savedState = localStorage.getItem('timerState');
+        if (savedState) {
+          const { remainingTime: savedTime, isTimerActive: savedIsActive } = JSON.parse(savedState);
+          if (savedIsActive) {
+            startTimer(savedTime);
           }
-        } catch (error) {
-          console.error("Error recalculating timer state on visibility change:", error);
         }
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [remainingTime, isTimerActive]);
-
-  // Remove automatic navigation on expiry to let user choose
-
-const startTimer = (initialTime: number): void => { 
-    setRemainingTime(initialTime);
-    setIsTimerActive(true);
-    setIsExpired(false);
-  };
-
-  const pauseTimer = () => {
-    setIsTimerActive(false);
-  };
-
-const resetTimer = (initialTime: number): void => { 
-    setRemainingTime(initialTime);
-    setIsTimerActive(false);
-    setIsExpired(false);
-  };
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [startTimer]);
 
   return (
     <ErrorBoundary>
       <TimeContext.Provider 
       value={{ 
         remainingTime, 
-        setRemainingTime, 
         startTimer, 
         pauseTimer, 
         resetTimer,
