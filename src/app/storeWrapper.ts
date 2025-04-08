@@ -1,4 +1,4 @@
-import {create} from 'zustand';
+import { create } from 'zustand';
 
 // Define the state interface
 interface GameState {
@@ -39,21 +39,4 @@ const useStore = create<{
   resetTimer: (time) => set({ timer: { remainingTime: time, isTimerActive: false, isExpired: false } }),
 }));
 
-// Create a private store wrapper
-const createStoreWrapper = () => {
-  const { game, timer, setGameState, startTimer, pauseTimer, resetTimer } = useStore();
-
-  return {
-    getGame: () => ({ ...game }), // Return a copy of the game state
-    getTimer: () => ({ ...timer }), // Return a copy of the timer state
-    setGameState, // Expose this method
-    startTimer,   // Expose this method
-    pauseTimer,   // Expose this method
-    resetTimer,   // Expose this method
-    // Other methods can be added here as needed
-  };
-};
-
-const useStoreWrapper = createStoreWrapper();
-
-export default useStoreWrapper;
+export default useStore;

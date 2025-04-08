@@ -1,5 +1,11 @@
 import React, { createContext, useEffect, useRef } from "react";
+import * as Sentry from "@sentry/react"; // Import Sentry
 import './App.css'; // Import the new CSS file
+
+Sentry.init({
+  dsn: "https://3fde7eac728bdae0b3212527b40231de@o4509093151899648.ingest.de.sentry.io/4509093158912080" // Initialize Sentry
+
+});
 
 import ErrorBoundary from "./Components/ErrorBoundary";
 import { TimeContextType } from "./@types/TimeContextType";
@@ -128,6 +134,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactElement }): JSX.Ele
 
 // Main App Component
 const App = () => {
+  // Initialize Sentry
+
   const { remainingTime, isTimerActive, isExpired, startTimer, pauseTimer, resetTimer } = useTimerStore();
 
   // Save timer state to local storage

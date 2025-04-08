@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import useStoreWrapper from '../app/storeWrapper';
+import useStore from '../app/storeWrapper';
 
 // Game State Schema
 const GameStateSchema = z.object({
@@ -8,20 +8,30 @@ const GameStateSchema = z.object({
   score: z.number().nonnegative(),
 });
 
+// Function to check if local storage is available
+export const canUseLocalStorage = () => {
+  try {
+    const testKey = '__test__';
+    window.localStorage.setItem(testKey, 'test');
+    window.localStorage.removeItem(testKey);
+    return true;
+  } catch (error) {
+    return false;
+  }
+};
+
 // Game-specific Implementations
 export const gameStorage = {
   getGameState: () => {
-    const { getGame } = useStoreWrapper;
-    return getGame();
+    const { game } = useStore.getState(); // Access game state directly
+    return game;
   },
 
   setGameState: (state: z.infer<typeof GameStateSchema>) => {
-    const { setGameState } = useStoreWrapper;
-    setGameState(state);
+    useStore.getState().setGameState(state); // Call setGameState directly
   },
 
   clearGameData: () => {
-    const { setGameState } = useStoreWrapper;
-    setGameState({ isPlaying: false, winner: '', score: 0 });
+    useStore.getState().setGameState({ isPlaying: false, winner: '', score: 0 });
   },
 };
