@@ -32,12 +32,7 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, ErrorBounda
       );
     }
 
-    return (
-      <>
-        <button onClick={() => {throw new Error("This is your first error!");}}>Break the world</button>
-        {this.props.children}
-      </>
-    );
+    return this.props.children;
   }
 }
 

@@ -72,7 +72,7 @@ self.addEventListener('fetch', (event) => {
     requestUrl.pathname.includes('@vite') ||
     requestUrl.pathname.includes('__webpack') ||
     // API requests
-    requestUrl.pathname.startsWith('/api/') ||
+    requestUrl.pathname.startsWith('/graphql/') ||
     // Non-GET requests
     request.method !== 'GET' ||
     // WebSockets
