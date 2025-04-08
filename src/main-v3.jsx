@@ -3,58 +3,121 @@ import ReactDOM from 'react-dom/client';
 import { registerSW } from 'virtual:pwa-register';
 import App from './App';
 import './index.css';
-import * as Sentry from '@sentry/react';
-import { Integrations } from '@sentry/tracing';
+import * as Sentry from '@sentry/browser';
+import { BrowserTracing } from '@sentry/tracing';
 
-// Initialize Sentry
-Sentry.init({
-  dsn: 'https://3fde7eac728bdae0b3212527b40231de@o4509093151899648.ingest.de.sentry.io/4509093158912080',
-  integrations: [
-    new Integrations.BrowserTracing({
-      tracingOrigins: ['localhost', 'https://your-production-url.com'],
-    }),
-  ],
-  tracesSampleRate: 1.0, // Adjust this value in production
-});
-
-// Conditional service worker registration
+// Initialize Sentry with error boundary and more configuration
 if (import.meta.env.PROD) {
-  const updateSW = registerSW({
-    onNeedRefresh() {
-      if (confirm('New version available! Reload to update?')) {
-        updateSW(true);
-      }
-    },
-    onOfflineReady() {
-      console.log('App ready for offline use');
-    },
-    onRegistered(registration) {
-      console.log('Service Worker registered:', registration);
-    },
-    onRegisterError(error) {
-      console.error('Service Worker registration error:', error);
+  Sentry.init({
+    dsn: 'yenege.com',
+    release: 'your-app-name@' + process.env.npm_package_version,
+    environment: import.meta.env.MODE,
+    integrations: [
+      new BrowserTracing({
+        tracingOrigins: ['localhost', 'your-production-domain.com'],
+        routingInstrumentation: Sentry.reactRouterV6Instrumentation,
+      }),
+    ],
+    tracesSampleRate: 0.2, // Reduced from 1.0 for production
+    beforeSend(event) {
+      // Filter out benign errors
+      if (event.message?.includes('ResizeObserver')) return null;
+      return event;
     },
   });
 }
 
-// Create root with strict mode only in development
-const root = ReactDOM.createRoot(document.getElementById('root'));
+// Quagga initializer with better error handling
+const initQuagga = async () => {
+  try {
+    const Quagga = await import(
+      /* webpackIgnore: true */
+      'https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js'
+    );
+    
+    // Configure Quagga here
+    console.log('Quagga initialized successfully');
+  } catch (err) {
+    console.error('Quagga initialization failed:', err);
+    if (import.meta.env.PROD) {
+      Sentry.captureException(err, {
+        tags: { module: 'quagga' },
+      });
+    }
+  }
+};
 
-const renderApp = () => root.render(
+// Enhanced Service Worker Registration
+const registerServiceWorker = () => {
+  const updateSW = registerSW({
+    onNeedRefresh: () => {
+      if (confirm('New version available! Reload to update?')) {
+        updateSW(true);
+      }
+    },
+    onOfflineReady: () => {
+      console.log('App is ready for offline use');
+    },
+    onRegistered: (registration) => {
+      if (!registration) return;
+      console.log('Service Worker registered');
+      
+      // Check for updates hourly
+      setInterval(() => {
+        registration.update().catch(err => {
+          console.log('SW update check failed:', err);
+        });
+      }, 60 * 60 * 1000);
+      
+      initQuagga(); // Initialize after SW registration
+    },
+    onRegisterError: (error) => {
+      console.error('SW registration failed:', error);
+      Sentry.captureException(error);
+    },
+  });
+};
+
+// Render App with error boundary
+const RootComponent = () => (
   import.meta.env.DEV ? (
     <React.StrictMode>
       <App />
     </React.StrictMode>
   ) : (
-    <App />
+    <Sentry.ErrorBoundary
+      fallback={<div>An error occurred</div>}
+      onError={(error) => {
+        Sentry.captureException(error);
+      }}
+    >
+      <App />
+    </Sentry.ErrorBoundary>
   )
 );
 
-// Initialize app
-if (import.meta.env.PROD) {
-  window.addEventListener('load', () => {
-    setTimeout(renderApp, 1000); // Add slight delay for SW initialization
-  });
-} else {
-  renderApp();
-}
+// Initialize the app
+const startApp = () => {
+  const root = ReactDOM.createRoot(document.getElementById('root'));
+  
+  // Prevent FOUC with better handling
+  if (document.readyState === 'complete') {
+    document.body.classList.add('loaded');
+  } else {
+    window.addEventListener('load', () => {
+      document.body.classList.add('loaded');
+    });
+  }
+
+  root.render(<RootComponent />);
+
+  // Service Worker and Quagga initialization
+  if ('serviceWorker' in navigator && import.meta.env.PROD) {
+    window.addEventListener('load', registerServiceWorker);
+  } else if (import.meta.env.DEV) {
+    initQuagga();
+  }
+};
+
+// Start the application
+startApp();
