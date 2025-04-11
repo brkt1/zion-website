@@ -6,18 +6,18 @@ import {
     FaQuestionCircle, 
     FaSmile, 
     FaHandRock, 
-    FaPlayCircle,
-    FaDownload
+    FaDownload,
+    FaCrown,
+    FaStar,
+    FaChevronRight
 } from 'react-icons/fa';
 
 const Landing = () => {
   const [showDownloadButton, setShowDownloadButton] = useState(false);
 
   useEffect(() => {
-    // Check if app is installed
     const isAppInstalled = () => {
       try {
-        // Try to open app URL scheme
         window.location.href = 'zionapp://';
         return true;
       } catch (e) {
@@ -25,110 +25,92 @@ const Landing = () => {
       }
     };
 
-    // Show download button if app is not installed
     if (!isAppInstalled()) {
       setShowDownloadButton(true);
     }
   }, []);
 
   const handleDownloadClick = () => {
-    // Replace with your app's download URL
-    window.location.href = 'https://your-app-download-url.com';
+    window.location.href = 'https://yenege.com';
   };
 
   const games = [ 
     { 
       to: "/emoji-game", 
       label: "Emoji Game", 
-      bgColor: "bg-gradient-to-br from-amber-900 via-amber-500 to-amber",
+      description: "Guess the hidden emoji phrases",
       icon: FaSmile,
-      position: "top-left",
-      rotate: 12,
-      iconColor: "text-amber-100"
+      accentColor: "bg-gold-primary"
     },
     { 
       to: "/truth-or-dare", 
       label: "Truth or Dare", 
-      bgColor: "bg-gradient-to-br from-purple-900 via-fuchsia-500 to-rose",
+      description: "Classic party game with friends",
       icon: FaGamepad,
-      position: "top-left",
-      rotate: -8,
-      iconColor: "text-purple-100"
+      accentColor: "bg-gold-secondary"
     },
     { 
       to: "/trivia-game", 
       label: "Trivia Challenge", 
-      bgColor: "bg-gradient-to-br from-cyan-900 via-sky-500 to-blue",
+      description: "Test your knowledge across categories",
       icon: FaQuestionCircle,
-      position: "bottom-left",
-      rotate: 12,
-      iconColor: "text-cyan-100"
+      accentColor: "bg-gold-primary"
     },
     { 
       to: "/rock-paper-scissors", 
       label: "Rock Paper Scissors", 
-      bgColor: "bg-gradient-to-br from-emerald-900 via-teal-500 to-green", 
+      description: "The ultimate showdown", 
       icon: FaHandRock,
-      position: "bottom-left",
-      rotate: -12,
-      iconColor: "text-emerald-100"
+      accentColor: "bg-gold-secondary"
     }
   ];
 
   const GameButton = ({ game, index }) => {
-    const positionClasses = {
-      "top-right": "md:-top-12 md:-right-10 top-[-2rem] right-[-1rem]",
-      "top-left": "md:-top-12 md:-left-10 top-[-2rem] left-[-1rem]",
-      "bottom-right": "md:-bottom-6 md:-right-6 bottom-[-1rem] right-[-1rem]",
-      "bottom-left": "md:-bottom-6 md:-left-6 bottom-[-1rem] left-[-1rem]"
-    };
-
     return (
       <motion.div
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
+        whileHover={{ y: -5 }}
+        whileTap={{ scale: 0.98 }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ 
-          delay: index * 0.07,
+          delay: index * 0.1,
           type: "spring",
-          stiffness: 280,
-          damping: 18
+          stiffness: 300,
+          damping: 15
         }}
       >
-        <Link to={game.to} className="block group h-full">
+        <Link to={game.to} className="block h-full group">
           <div className={`
-            h-30 flex flex-col items-center justify-center m-3
-            p-4 rounded-2xl shadow-xl
-            ${game.bgColor}
-            hover:shadow-2xl transition-all duration-300
-            relative overflow-visible
+            h-full flex flex-col p-6 rounded-xl
+            bg-black-secondary
+            relative overflow-hidden
+            border border-gray-dark hover:border-gold-primary
+            transition-all duration-300
+            group-hover:shadow-lg group-hover:shadow-gold-primary/10
           `}>
-            <motion.div 
-              className={`
-                absolute p-3 rounded-xl bg-black/20 backdrop-blur-lg
-                ${positionClasses[game.position]}
-                ${game.iconColor}
-              `}
-              whileHover={{ rotate: game.rotate + 4, scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              transition={{ type: "spring", stiffness: 220 }}
-            >
-              <game.icon className="text-4xl md:text-5xl drop-shadow-xl" />
-            </motion.div>
-
-            <div className="flex-grow flex items-center justify-center w-full">
-              <h3 className="text-xl font-bold text-center z-10 px-4 
-                text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-200">
-                {game.label}
-              </h3>
+            <div className={`absolute top-4 right-4 p-3 rounded-lg ${game.accentColor} bg-opacity-20 text-gold-primary`}>
+              <game.icon className="text-xl" />
             </div>
-
-            <div className={`
-              absolute inset-0 border-2 rounded-2xl transition-all
-              opacity-50 hover:opacity-80
-              ${game.iconColor.replace("text", "border")}
-            `}/>
+            
+            <div className="flex-grow flex flex-col justify-between">
+              <div>
+                <h3 className="text-xl font-bold text-white mb-2">
+                  {game.label}
+                </h3>
+                <p className="text-gray-light text-sm mb-4">
+                  {game.description}
+                </p>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div className={`h-1 w-8 rounded-full ${game.accentColor} transition-all duration-300 group-hover:w-12`}></div>
+                <FaChevronRight className="text-gold-light opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              </div>
+            </div>
+            
+            {/* Decorative elements */}
+            <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-full bg-gold-primary opacity-5 group-hover:opacity-10 transition-opacity duration-300"></div>
+            <div className="absolute -top-4 -left-4 w-16 h-16 rounded-full bg-gold-secondary opacity-5 group-hover:opacity-10 transition-opacity duration-300"></div>
           </div>
         </Link>
       </motion.div>
@@ -136,104 +118,119 @@ const Landing = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-black text-white">
-      <div className="flex-grow flex items-center justify-center p-4">
+    <div className="min-h-screen bg-black-primary text-cream">
+      {/* Decorative background elements */}
+      <div className="fixed inset-0 overflow-hidden opacity-10">
+        <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-gold-primary filter blur-3xl"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 rounded-full bg-gold-secondary filter blur-3xl"></div>
+      </div>
+      
+      <div className="relative min-h-screen flex flex-col items-center justify-center p-6 max-w-7xl mx-auto">
         <motion.div 
-          className="w-full max-w-2xl p-6 md:p-8 space-y-6 bg-black/40 backdrop-blur-2xl rounded-3xl shadow-2xl border border-amber-400/30"
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, type: "spring" }}
+          className="w-full"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6 }}
         >
-          <motion.div 
-            className="text-center space-y-4"
+          <motion.header 
+            className="text-center mb-12"
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2 }}
           >
-            <h1 className="text-2xl font-bold text-transparent bg-clip-text 
-              bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 mb-2
-              font-['Bebas_Neue'] tracking-wide">
-              HAVE A BEAUTIFUL TIME
+            <motion.div 
+              className="inline-flex items-center mb-6 px-6 py-2 rounded-full bg-black-secondary border border-gray-dark shadow-sm"
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring' }}
+            >
+              <FaCrown className="text-gold-primary mr-2" />
+              <span className="font-medium text-gold-light">PREMIUM COLLECTION</span>
+            </motion.div>
+            
+            <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
+              <span className="text-gold-primary">Yenege</span> GameHub
             </h1>
-            <p className="text-amber-200/90 text-lg font-light tracking-wide">
-              Future is now!
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {games.map((game, index) => (
-              <GameButton key={game.to} game={game} index={index} />
-            ))}
-            {showDownloadButton && (
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ 
-                  delay: games.length * 0.07,
-                  type: "spring",
-                  stiffness: 280,
-                  damping: 18
-                }}
-              >
-                <button 
-                  onClick={handleDownloadClick}
-                  className="block group h-full w-full"
-                >
-                  <div className="
-                    h-30 flex flex-col items-center justify-center m-3
-                    p-4 rounded-2xl shadow-xl
-                    bg-gradient-to-br from-blue-900 via-blue-500 to-indigo
-                    hover:shadow-2xl transition-all duration-300
-                    relative overflow-visible
-                  ">
-                    <motion.div 
-                      className="
-                        absolute p-3 rounded-xl bg-black/20 backdrop-blur-lg
-                        md:-top-12 md:-left-10 top-[-2rem] left-[-1rem]
-                        text-blue-100
-                      "
-                      whileHover={{ rotate: 12, scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      transition={{ type: "spring", stiffness: 220 }}
-                    >
-                      <FaDownload className="text-4xl md:text-5xl drop-shadow-xl" />
-                    </motion.div>
-
-                    <div className="flex-grow flex items-center justify-center w-full">
-                      <h3 className="text-xl font-bold text-center z-10 px-4 
-                        text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-200">
-                        Download App
-                      </h3>
-                    </div>
-
-                    <div className="
-                      absolute inset-0 border-2 rounded-2xl transition-all
-                      opacity-50 hover:opacity-80
-                      border-blue-100
-                    "/>
-                  </div>
-                </button>
-              </motion.div>
-            )}
-          </div>
+            
+            <div className="max-w-2xl mx-auto">
+              <p className="text-lg text-gray-light mb-6">
+                Experience premium entertainment with our curated collection of exclusive games
+              </p>
+              
+              <div className="h-px bg-gradient-to-r from-transparent via-gray-medium to-transparent my-6"></div>
+              
+              <div className="flex flex-wrap justify-center gap-4">
+                <div className="flex items-center text-sm">
+                  <div className="w-2 h-2 rounded-full bg-gold-primary mr-2"></div>
+                  <span className="text-gray-light">No ads</span>
+                </div>
+                <div className="flex items-center text-sm">
+                  <div className="w-2 h-2 rounded-full bg-gold-primary mr-2"></div>
+                  <span className="text-gray-light">Premium content</span>
+                </div>
+                <div className="flex items-center text-sm">
+                  <div className="w-2 h-2 rounded-full bg-gold-primary mr-2"></div>
+                  <span className="text-gray-light">Exclusive features</span>
+                </div>
+              </div>
+            </div>
+          </motion.header>
 
           <motion.div 
-            className="text-center pt-6 border-t border-amber-400/20"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
           >
-            <div className="mt-4 flex justify-center">
-              <motion.img 
-                src="/zionlogo.png" 
-                alt="GameHub Logo"
-                whileHover={{ scale: 1.05, rotate: 2 }}
-                whileTap={{ scale: 0.95 }}
-                className="w-40 opacity-90 hover:opacity-100 transition-opacity"
-              />
-            </div>
+            {games.map((game, index) => (
+              <GameButton key={game.to} game={game} index={index} />
+            ))}
           </motion.div>
+
+          {showDownloadButton && (
+            <motion.div
+              className="flex justify-center mb-16"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 }}
+            >
+              <motion.button
+                onClick={handleDownloadClick}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+                className="px-8 py-4 rounded-lg bg-gradient-to-r from-gold-primary to-gold-secondary text-black-primary font-medium flex items-center shadow-lg hover:shadow-xl transition-all group"
+              >
+                <span className="relative">
+                  <span className="block group-hover:opacity-0 transition-opacity">
+                    <FaDownload className="mr-3 inline" />
+                    Download Now
+                  </span>
+                  <span className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span>Unlock All Games</span>
+                    <FaChevronRight className="ml-2" />
+                  </span>
+                </span>
+              </motion.button>
+            </motion.div>
+          )}
+
+          <motion.footer 
+            className="mt-16 text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+          >
+            <div className="inline-flex flex-col items-center">
+                <img 
+                  src="/zionlogo.png" 
+                  alt="GameHub Logo"
+                  className="h-[200px] opacity-90 hover:opacity-100 transition-opacity"
+                />
+              <p className="text-sm text-gray-medium">
+                © {new Date().getFullYear()} Yenege GameHub. All rights reserved.
+              </p>
+            </div>
+          </motion.footer>
         </motion.div>
       </div>
     </div>

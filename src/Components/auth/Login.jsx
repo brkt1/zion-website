@@ -1,79 +1,166 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../../supabaseClient';
+import { createClient } from '@supabase/supabase-js';
 import { motion } from 'framer-motion';
-import { FaEnvelope, FaLock, FaSignInAlt } from 'react-icons/fa';
+import { FaEnvelope, FaLock, FaSignInAlt, FaSpinner } from 'react-icons/fa';
+
+// Initialize Supabase client
+const supabaseUrl = 'https://rpaxjodkgxfgneflavnj.supabase.co';
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwYXhqb2RrZ3hmZ25lZmxhdm5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzE4NDQyMzcsImV4cCI6MjA0NzQyMDIzN30.GSzz1RA75KCX3NiGfz2LOIAuXMPFYQy-fjXYH1S93cc";
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const Login = () => {
   const navigate = useNavigate();
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError(null);
+    setIsLoading(true);
 
-    const { data, error: loginError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    const user = data?.user;
+    try {
+      // Log in the user
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (loginError) {
-      setError(loginError.message);
-      return;
-    }
+      if (authError) {
+        throw authError;
+      }
 
-    if (user) {
-      // Handle successful login (e.g., redirect or set user state)
-      console.log('Login successful:', user);
-      navigate('/admin');
+      const user = authData?.user;
+      if (!user) {
+        throw new Error('Authentication failed - no user returned');
+      }
+
+      // Check if profile exists
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError && profileError.code !== '406') {
+        throw profileError;
+      }
+
+      // Handle profile creation if needed
+      if (!profileData) {
+        const { error: upsertError } = await supabase
+          .from('profiles')
+          .upsert({
+            id: user.id,
+            role: 'user' // default role
+          });
+
+        if (upsertError) {
+          console.warn('Failed to create profile:', upsertError);
+        }
+      }
+
+      // Redirect based on role
+      const role = profileData?.role || 'user';
+      if (role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
+
+    } catch (error) {
+      console.error('Login error:', error);
+      setError(error.message || 'Login failed. Please try again.');
+      
+      if (error.code === '406') {
+        setError('Profile system not properly configured. Contact support.');
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-600 to-purple-600 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black-primary to-black-secondary p-4">
       <motion.div 
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md"
+        className="bg-black-secondary rounded-xl shadow-2xl p-8 w-full max-w-md border border-gray-dark"
       >
-        <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">Login</h1>
-        <form onSubmit={handleLogin} className="space-y-4">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gold-primary mb-2">Welcome Back</h1>
+          <p className="text-gray-light">Sign in to your GameHub account</p>
+        </div>
+
+        <form onSubmit={handleLogin} className="space-y-5">
           <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <FaEnvelope className="text-gray-medium" />
+            </div>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full p-4 pl-10 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="Email"
+              className="w-full py-3 pl-10 pr-4 bg-black-primary text-cream rounded-lg border border-gray-dark focus:outline-none focus:ring-1 focus:ring-gold-primary"
+              placeholder="Email address"
             />
-            <FaEnvelope className="absolute left-3 top-3 text-gray-400" />
           </div>
+
           <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <FaLock className="text-gray-medium" />
+            </div>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full p-4 pl-10 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full py-3 pl-10 pr-4 bg-black-primary text-cream rounded-lg border border-gray-dark focus:outline-none focus:ring-1 focus:ring-gold-primary"
               placeholder="Password"
             />
-            <FaLock className="absolute left-3 top-3 text-gray-400" />
           </div>
+
           <button 
             type="submit" 
-            className="w-full py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-200 flex items-center justify-center"
+            disabled={isLoading}
+            className={`w-full py-3 rounded-lg transition-all duration-200 flex items-center justify-center
+              ${isLoading 
+                ? 'bg-gold-secondary/70 cursor-not-allowed' 
+                : 'bg-gradient-to-r from-gold-primary to-gold-secondary hover:from-gold-primary/90 hover:to-gold-secondary/90'}
+            `}
           >
-            <FaSignInAlt className="mr-2" />
-            Login
+            {isLoading ? (
+              <>
+                <FaSpinner className="animate-spin mr-2" />
+                Signing in...
+              </>
+            ) : (
+              <>
+                <FaSignInAlt className="mr-2" />
+                Sign In
+              </>
+            )}
           </button>
         </form>
-        {error && <p className="text-red-500 text-center mt-4">{error}</p>}
+
+        {error && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mt-4 p-3 bg-red-900/20 text-red-300 rounded-lg border-l-4 border-red-500"
+          >
+            {error}
+          </motion.div>
+        )}
+
+        <div className="mt-6 text-center text-sm text-gray-light">
+          Don't have an account? please connect to the admin
+        </div>
       </motion.div>
     </div>
   );

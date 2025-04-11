@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { supabase } from '../supabaseClient';
-import { FaCamera, FaQrcode } from 'react-icons/fa';
+import { FaCamera, FaQrcode, FaKeyboard, FaMobileAlt } from 'react-icons/fa';
 import { useCardStore, useTimerStore, useGameStore } from '../app/store';
 
 const GAME_ROUTES = {
@@ -224,108 +224,146 @@ const QRScanMode = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+    <div className="min-h-screen bg-black-primary text-cream flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="bg-gray-900 rounded-xl shadow-2xl overflow-hidden border-2 border-amber-500">
-          <div className="bg-gradient-to-r from-amber-600 to-amber-700 p-6 text-center">
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center justify-center gap-2">
-              <FaQrcode className="animate-pulse" /> SCAN CARD
+        {/* Scanner Card */}
+        <div className="bg-black-secondary rounded-xl shadow-lg overflow-hidden border border-gray-dark">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-gold-primary to-gold-secondary p-6 text-center">
+            <h1 className="text-2xl font-bold text-black-primary flex items-center justify-center gap-3">
+              <FaQrcode className="text-xl" /> SCAN GAME CARD
             </h1>
+            <p className="text-sm text-black-primary mt-1 opacity-90">
+              Scan the QR code on your game card to start playing
+            </p>
           </div>
 
           <div className="p-6">
+            {/* Camera Selection */}
             {cameras.length > 0 && (
-              <select
-                value={selectedCamera || ''}
-                onChange={handleCameraChange}
-                className="w-full p-2 mb-4 bg-gray-800 text-amber-500 rounded border border-amber-500"
-              >
-                {cameras.map(camera => (
-                  <option key={camera.id} value={camera.id}>
-                    {camera.label || `Camera ${camera.id}`}
-                  </option>
-                ))}
-              </select>
+              <div className="mb-4">
+                <label className="block text-gold-light text-sm font-medium mb-2">
+                  Camera Selection
+                </label>
+                <select
+                  value={selectedCamera || ''}
+                  onChange={handleCameraChange}
+                  className="w-full p-3 bg-black-primary text-cream rounded-lg border border-gray-medium focus:border-gold-primary focus:ring-1 focus:ring-gold-primary"
+                >
+                  {cameras.map(camera => (
+                    <option key={camera.id} value={camera.id}>
+                      {camera.label || `Camera ${camera.id}`}
+                    </option>
+                  ))}
+                </select>
+              </div>
             )}
 
-            <div className="relative mb-6 border-4 border-amber-500 rounded-lg overflow-hidden">
+            {/* Scanner View */}
+            <div className="relative mb-6 border-2 border-gold-primary rounded-lg overflow-hidden bg-black-primary">
               <div 
                 id="scanner-container" 
                 ref={scannerRef}
-                className="h-64 bg-black relative"
+                className="h-64 w-full flex items-center justify-center relative"
               >
                 {isInitializing && (
-                  <div className="absolute inset-0 bg-black flex items-center justify-center text-amber-500">
-                    Initializing camera...
+                  <div className="absolute inset-0 bg-black-primary flex items-center justify-center text-gold-light">
+                    <div className="animate-pulse flex flex-col items-center">
+                      <FaCamera className="text-2xl mb-2" />
+                      <span>Initializing camera...</span>
+                    </div>
                   </div>
                 )}
                 {!isInitializing && (
-                  <div className="absolute inset-0 animate-pulse">
-                    <div className="absolute left-1/4 right-1/4 top-1/4 bottom-1/4 border-2 border-amber-500"></div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="absolute w-64 h-64 border-2 border-gold-primary rounded-lg animate-pulse"></div>
+                    <div className="absolute top-0 left-0 right-0 bottom-0 border-8 border-black-primary opacity-30"></div>
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="flex gap-4 mb-4">
+            {/* Action Buttons */}
+            <div className="grid grid-cols-2 gap-4 mb-4">
               <button
                 onClick={handleManualEntry}
-                className="flex-1 bg-amber-500 text-black py-3 rounded hover:bg-amber-600
-                         flex items-center justify-center gap-2 font-bold"
+                className="flex items-center justify-center gap-2 bg-black-primary hover:bg-gray-dark text-gold-primary py-3 px-4 rounded-lg border border-gold-primary transition-colors"
               >
-                <FaCamera /> Manual Entry
+                <FaKeyboard /> Manual Entry
               </button>
 
               <button
                 onClick={initScanner}
-                className="bg-gray-800 text-amber-500 px-6 py-3 rounded hover:bg-gray-700
-                         border-2 border-amber-500 font-bold"
+                className="flex items-center justify-center gap-2 bg-gold-primary hover:bg-gold-secondary text-black-primary py-3 px-4 rounded-lg font-medium transition-colors"
               >
-                Retry
+                <FaCamera /> Retry Scan
               </button>
             </div>
             
-            <div className="flex gap-4 mb-4">
+            {/* App Promotion */}
+            <div className="mb-6">
               <button
                 onClick={launchApp}
-                className="flex-1 bg-gradient-to-r from-amber-400 to-amber-600 text-white py-4 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 flex items-center justify-center gap-2 font-semibold"
+                className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-gold-primary/90 to-gold-secondary/90 hover:from-gold-primary hover:to-gold-secondary text-black-primary py-3 px-6 rounded-lg font-medium transition-all shadow-md hover:shadow-lg"
               >
-                <FaQrcode className="text-xl" /> For better experience use our app
+                <FaMobileAlt className="text-xl" />
+                <span>For better experience use our app</span>
               </button>
             </div>
 
+            {/* Status Messages */}
             {error && (
-              <div className="p-4 mb-4 bg-red-900/20 border-l-4 border-red-500 text-red-300 rounded">
-                {error}
-                {error.includes('Camera access') && (
-                  <button
-                    onClick={async () => {
-                      try {
-                        await navigator.mediaDevices.getUserMedia({ video: true });
-                        await getCameras();
-                      } catch (err) {
-                        setError('Please enable camera access in browser settings');
-                      }
-                    }}
-                    className="w-full mt-2 bg-amber-500 text-black py-2 rounded hover:bg-amber-600"
-                  >
-                    <FaCamera /> Enable Camera
-                  </button>
-                )}
+              <div className="p-4 mb-4 bg-red-900/20 rounded-lg border-l-4 border-red-500">
+                <div className="text-red-300 flex items-start gap-2">
+                  <div className="flex-1">
+                    <p className="font-medium">{error}</p>
+                    {error.includes('Camera access') && (
+                      <button
+                        onClick={async () => {
+                          try {
+                            await navigator.mediaDevices.getUserMedia({ video: true });
+                            await getCameras();
+                          } catch (err) {
+                            setError('Please enable camera access in browser settings');
+                          }
+                        }}
+                        className="w-full mt-3 bg-gold-primary text-black-primary py-2 rounded-lg hover:bg-gold-secondary transition-colors flex items-center justify-center gap-2"
+                      >
+                        <FaCamera /> Enable Camera
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
 
             {isLoading && (
-              <div className="p-4 text-center text-amber-500 animate-pulse">
-                Verifying card...
+              <div className="p-4 text-center text-gold-primary">
+                <div className="inline-flex items-center gap-2 animate-pulse">
+                  <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Verifying card...
+                </div>
               </div>
             )}
 
             {scanResult && (
-              <div className="p-4 bg-gray-800 rounded border-l-4 border-amber-500">
-                <h3 className="text-xl font-bold text-amber-500 mb-2">Card Verified!</h3>
-                <p className="text-gray-300">Game: {scanResult.game_types?.name}</p>
-                <p className="text-gray-300">Duration: {scanResult.duration} minutes</p>
+              <div className="p-4 bg-black-primary rounded-lg border-l-4 border-gold-primary">
+                <h3 className="text-xl font-bold text-gold-primary mb-2 flex items-center gap-2">
+                  <FaQrcode /> Card Verified!
+                </h3>
+                <div className="space-y-1 text-cream">
+                  <p className="flex items-center gap-2">
+                    <span className="text-gold-light">Game:</span> 
+                    <span className="font-medium">{scanResult.game_types?.name}</span>
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <span className="text-gold-light">Duration:</span> 
+                    <span className="font-medium">{scanResult.duration} minutes</span>
+                  </p>
+                </div>
               </div>
             )}
           </div>
