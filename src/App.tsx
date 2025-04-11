@@ -20,7 +20,7 @@ import FriendsGameMode from "./TruthandDear-Component/FriendsGameMode";
 import GameScreen from "./Components/GameScreen";
 import TruthOrDare from "./TruthandDear-Component/TruthOrDare";
 import EmojiGame from "./Emoji-Component/EmojiGame";
-import QRScanMode from "./payment/QRScanMode"; 
+import QRScanMode from "./payment/QRScanMode";
 import Landing from "./MainLanding";
 import TriviaGame from "./Triva-Component/Trivia";
 import CafeOwnerCheckWinner from "./Components/CafeOwnerCheckWinner";

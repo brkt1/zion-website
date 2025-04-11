@@ -6,6 +6,9 @@ export default defineConfig({
   plugins: [
     react({
       babel: {
+        presets: [
+          '@babel/preset-typescript', // Added TypeScript preset
+        ],
         plugins: [
           ['@babel/plugin-transform-react-jsx', { runtime: 'automatic' }],
           ['@babel/plugin-transform-runtime', { regenerator: true }]
@@ -99,7 +102,6 @@ export default defineConfig({
         frame-src 'none';
         object-src 'none';
       `.replace(/\n/g, ' ').trim()
-
     }
   },
   build: {

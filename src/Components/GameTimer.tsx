@@ -2,15 +2,9 @@ import React, { useContext, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ThankYou from './ThankYou';
-import { TimeContext } from '../App.jsx'; // Reverted to reference .jsx
+import { TimeContext } from '../App.jsx';
+import type { TimeContextType } from '../@types/app.jsx';
 
-
-
-import type { TimeContextType } from '../@types/app.jsx'; // Reverted to reference .jsx
-
-
-
-// Register service worker and set up message handling
 const registerServiceWorker = async () => {
   if ('serviceWorker' in navigator) {
     try {
@@ -18,7 +12,6 @@ const registerServiceWorker = async () => {
         scope: './', 
         type: 'module' 
       });
-
       console.log('Service Worker registered:', registration);
       
       if (registration.installing) {
@@ -36,34 +29,62 @@ const registerServiceWorker = async () => {
 
 const GameTimer = () => {
   const context = useContext(TimeContext) as TimeContextType;
-
-  const { remainingTime, isExpired, formatTime } = context;
+  const { remainingTime, isExpired, formatTime, updateTimer, isTimerActive } = context;
   const progressPercentage = (remainingTime / 120) * 100;
-
   const navigate = useNavigate();
 
+  // Save timer state to sessionStorage whenever it changes
+  useEffect(() => {
+    sessionStorage.setItem('timerState', JSON.stringify({
+      remainingTime,
+      isExpired,
+      isTimerActive,
+      lastUpdated: Date.now()
+    }));
+  }, [remainingTime, isExpired, isTimerActive]);
+
+  // Load timer state from sessionStorage on component mount
+  useEffect(() => {
+    const savedState = sessionStorage.getItem('timerState');
+    if (savedState) {
+      try {
+        const { remainingTime, isExpired, isTimerActive, lastUpdated } = JSON.parse(savedState);
+        
+        // Calculate elapsed time since last save
+        const elapsedSeconds = Math.floor((Date.now() - lastUpdated) / 1000);
+        const updatedRemainingTime = Math.max(0, remainingTime - elapsedSeconds);
+        const updatedIsExpired = updatedRemainingTime <= 0;
+        
+        updateTimer(updatedRemainingTime, updatedIsExpired);
+        
+        // If timer was active and now expired, show thank you
+        if (isTimerActive && updatedIsExpired) {
+          navigate('/thank-you'); // or show the ThankYou component directly
+        }
+      } catch (error) {
+        console.error('Failed to parse saved timer state:', error);
+      }
+    }
+  }, [updateTimer, navigate]);
+
   const handleVisibilityChange = useCallback(() => {
-    if (document.hidden && context.remainingTime > 0 && context.isTimerActive) {
+    if (document.hidden && remainingTime > 0 && isTimerActive) {
       navigate('/');
     }
-  }, [context.remainingTime, context.isTimerActive, navigate]);
+  }, [remainingTime, isTimerActive, navigate]);
 
   useEffect(() => {
-    // Register service worker on component mount
     registerServiceWorker();
 
-    // Set up message listener for timer updates
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
       navigator.serviceWorker.addEventListener('message', (event) => {
         if (event.data.type === 'TIMER_UPDATE') {
-          // Handle timer updates from service worker
           const { remainingTime, isExpired } = event.data;
-          context.updateTimer(remainingTime, isExpired);
+          updateTimer(remainingTime, isExpired);
         }
       });
     }
 
-    // Add visibility change listener
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('beforeunload', handleVisibilityChange);
 
@@ -74,9 +95,8 @@ const GameTimer = () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', handleVisibilityChange);
     };
-  }, [context, handleVisibilityChange]);
+  }, [updateTimer, handleVisibilityChange]);
 
-  // Show ThankYou component immediately when timer expires
   if (isExpired) {
     return (
       <div className="fixed inset-0 z-50">

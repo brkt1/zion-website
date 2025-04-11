@@ -32,7 +32,8 @@ const initQuagga = async () => {
   try {
     const Quagga = await import(
       /* webpackIgnore: true */
-      'https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js'
+      'https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js'
+
     );
     
     // Configure Quagga here

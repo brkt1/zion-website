@@ -1,5 +1,3 @@
-// service-worker.js
-
 const CACHE_VERSION = 'v2'; // Incremented version
 const STATIC_CACHE = `static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `dynamic-${CACHE_VERSION}`;
@@ -9,7 +7,7 @@ const IMMUTABLE_CACHE = `immutable-${CACHE_VERSION}`;
 const PRECACHE_ASSETS = [
   '/',
   '/offline.html',
-  '/manifest.json',
+  '/public/manifest.json', // Updated path
   'offline.png' // Updated path
 ];
 

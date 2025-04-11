@@ -1,10 +1,9 @@
-import React, { useState, useContext, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { supabase } from '../supabaseClient';
-import { TimeContext } from '../App';
-import { gameStorage } from '../utils/storage';
 import { FaCamera, FaQrcode } from 'react-icons/fa';
+import { useCardStore, useTimerStore, useGameStore } from '../app/store';
 
 const GAME_ROUTES = {
   1: '/trivia-game',
@@ -14,16 +13,23 @@ const GAME_ROUTES = {
 };
 
 const QRScanMode = () => {
+  // Zustand stores
+  const { setCurrentCard, markCardAsUsed } = useCardStore();
+  const { startTimer } = useTimerStore();
+  const { setGameState } = useGameStore();
+
+  // Local state
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [cameras, setCameras] = useState([]);
   const [selectedCamera, setSelectedCamera] = useState(null);
   const [scanResult, setScanResult] = useState(null);
   const [isInitializing, setIsInitializing] = useState(true);
+  
+  // Refs
   const scannerRef = useRef(null);
   const html5QrCode = useRef(null);
   const navigate = useNavigate();
-  const { startTimer } = useContext(TimeContext);
   const location = useLocation();
 
   const shouldRedirect = !location.state?.fromGame;
@@ -75,7 +81,7 @@ const QRScanMode = () => {
       );
     } catch (err) {
       console.error('Scanner init error:', err);
-      setError(err.message || 'Failed to start scanner');
+      setError(err instanceof Error ? err.message : 'Failed to start scanner');
     }
   }, [selectedCamera]);
 
@@ -113,14 +119,13 @@ const QRScanMode = () => {
       if (error) throw error;
       if (data.used) throw new Error('Card already redeemed');
 
-      await supabase
-        .from('cards')
-        .update({ used: true })
-        .eq('card_number', cleanedData);
-
-      gameStorage.setCard(cleanedData);
-      setScanResult(data);
+      // Zustand state updates
+      setCurrentCard(data);
       startTimer(data.duration * 60);
+      setGameState({ isPlaying: true, score: 0, winner: '' });
+
+      await markCardAsUsed(data.id);
+      setScanResult(data);
       await stopScanner();
 
       const gameRoute = GAME_ROUTES[data.game_type];
@@ -135,12 +140,12 @@ const QRScanMode = () => {
       }
 
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'Scan failed');
       setTimeout(() => setError(null), 5000);
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading, navigate, startTimer, stopScanner]);
+  }, [isLoading, navigate, setCurrentCard, startTimer, markCardAsUsed, setGameState, stopScanner]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -184,12 +189,6 @@ const QRScanMode = () => {
       stopScanner();
     };
   }, [initScanner, selectedCamera, stopScanner, isInitializing]);
-
-  useEffect(() => {
-    const handleBeforeUnload = () => stopScanner();
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [stopScanner]);
 
   const handleCameraChange = (e) => {
     setSelectedCamera(e.target.value);
@@ -325,7 +324,7 @@ const QRScanMode = () => {
             {scanResult && (
               <div className="p-4 bg-gray-800 rounded border-l-4 border-amber-500">
                 <h3 className="text-xl font-bold text-amber-500 mb-2">Card Verified!</h3>
-                <p className="text-gray-300">Game: {scanResult.game_types.name}</p>
+                <p className="text-gray-300">Game: {scanResult.game_types?.name}</p>
                 <p className="text-gray-300">Duration: {scanResult.duration} minutes</p>
               </div>
             )}
