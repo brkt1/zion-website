@@ -6,119 +6,91 @@ import './index.css';
 import * as Sentry from '@sentry/browser';
 import { BrowserTracing } from '@sentry/tracing';
 
-// Initialize Sentry with error boundary and more configuration
+// Initialize Sentry only in production
 if (import.meta.env.PROD) {
   Sentry.init({
-    dsn: 'yenege.com',
-    release: 'your-app-name@' + process.env.npm_package_version,
-    environment: import.meta.env.MODE,
-    integrations: [
-      new BrowserTracing({
-        tracingOrigins: ['localhost', 'your-production-domain.com'],
-        routingInstrumentation: Sentry.reactRouterV6Instrumentation,
-      }),
-    ],
-    tracesSampleRate: 0.2, // Reduced from 1.0 for production
+    dsn: 'your-dsn-here',
+    integrations: [new BrowserTracing()],
+    tracesSampleRate: 0.2,
     beforeSend(event) {
       // Filter out benign errors
       if (event.message?.includes('ResizeObserver')) return null;
       return event;
-    },
+    }
   });
 }
 
-// Quagga initializer with better error handling
-const initQuagga = async () => {
-  try {
-    const Quagga = await import(
-      /* webpackIgnore: true */
-      'https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js'
+// Error Boundary Component
+const ErrorBoundary = ({ children }) => {
+  const [hasError, setHasError] = React.useState(false);
 
+  if (hasError) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-100">
+        <div className="p-6 bg-white rounded-lg shadow-md">
+          <h2 className="text-xl font-bold text-red-600 mb-4">
+            Something went wrong
+          </h2>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Reload Page
+          </button>
+        </div>
+      </div>
     );
-    
-    // Configure Quagga here
-    console.log('Quagga initialized successfully');
-  } catch (err) {
-    console.error('Quagga initialization failed:', err);
-    if (import.meta.env.PROD) {
-      Sentry.captureException(err, {
-        tags: { module: 'quagga' },
-      });
-    }
   }
+
+  return children;
 };
 
-// Enhanced Service Worker Registration
+// Root Component
+const RootComponent = () => (
+  <ErrorBoundary>
+    {import.meta.env.DEV ? (
+      <React.StrictMode>
+        <App />
+      </React.StrictMode>
+    ) : (
+      <App />
+    )}
+  </ErrorBoundary>
+);
+
+// Service Worker Registration
 const registerServiceWorker = () => {
   const updateSW = registerSW({
     onNeedRefresh: () => {
-      if (confirm('New version available! Reload to update?')) {
+      const toast = document.createElement('div');
+      toast.className = 'fixed bottom-4 right-4 bg-white p-4 shadow-lg rounded-lg border';
+      toast.innerHTML = `
+        <p class="mb-2">New version available!</p>
+        <button class="px-3 py-1 bg-blue-500 text-white rounded mr-2">Update</button>
+        <button class="px-3 py-1 bg-gray-200 rounded">Dismiss</button>
+      `;
+      document.body.appendChild(toast);
+      
+      toast.querySelector('button:first-child').onclick = () => {
         updateSW(true);
-      }
+        toast.remove();
+      };
+      toast.querySelector('button:last-child').onclick = () => toast.remove();
     },
     onOfflineReady: () => {
       console.log('App is ready for offline use');
     },
-    onRegistered: (registration) => {
-      if (!registration) return;
-      console.log('Service Worker registered');
-      
-      // Check for updates hourly
-      setInterval(() => {
-        registration.update().catch(err => {
-          console.log('SW update check failed:', err);
-        });
-      }, 60 * 60 * 1000);
-      
-      initQuagga(); // Initialize after SW registration
-    },
-    onRegisterError: (error) => {
-      console.error('SW registration failed:', error);
-      Sentry.captureException(error);
-    },
   });
 };
 
-// Render App with error boundary
-const RootComponent = () => (
-  import.meta.env.DEV ? (
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>
-  ) : (
-    <Sentry.ErrorBoundary
-      fallback={<div>An error occurred</div>}
-      onError={(error) => {
-        Sentry.captureException(error);
-      }}
-    >
-      <App />
-    </Sentry.ErrorBoundary>
-  )
-);
-
-// Initialize the app
+// Initialize App
 const startApp = () => {
+  if ('serviceWorker' in navigator) {
+    registerServiceWorker();
+  }
+
   const root = ReactDOM.createRoot(document.getElementById('root'));
-  
-  // Prevent FOUC with better handling
-  if (document.readyState === 'complete') {
-    document.body.classList.add('loaded');
-  } else {
-    window.addEventListener('load', () => {
-      document.body.classList.add('loaded');
-    });
-  }
-
   root.render(<RootComponent />);
-
-  // Service Worker and Quagga initialization
-  if ('serviceWorker' in navigator && import.meta.env.PROD) {
-    window.addEventListener('load', registerServiceWorker);
-  } else if (import.meta.env.DEV) {
-    initQuagga();
-  }
 };
 
-// Start the application
 startApp();

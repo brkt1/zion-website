@@ -1,14 +1,18 @@
 import { create } from 'zustand';
 import { supabase } from '../supabaseClient';
 
+interface GameType {
+  name: string;
+}
+
 interface Card {
   id: number;
   duration: number;
   used: boolean;
   game_type: number;
   created_at: string;
-  card_number: number;
-  game_types?: { name: string };
+  card_number: string;
+  game_types?: GameType;
 }
 
 interface CardState {
@@ -16,6 +20,7 @@ interface CardState {
   currentCard: Card | null;
   setCurrentCard: (card: Card) => void;
   markCardAsUsed: (cardId: number) => Promise<void>;
+  fetchCards: () => Promise<void>;
 }
 
 export const useCardStore = create<CardState>((set) => ({
@@ -27,10 +32,21 @@ export const useCardStore = create<CardState>((set) => ({
       .from('cards')
       .update({ used: true })
       .eq('id', cardId);
+      
     if (!error) {
       set((state) => ({
-        cards: state.cards.filter(card => card.id !== cardId)
+        cards: state.cards.filter(card => card.id !== cardId),
+        currentCard: state.currentCard?.id === cardId ? null : state.currentCard
       }));
+    }
+  },
+  fetchCards: async () => {
+    const { data, error } = await supabase
+      .from('cards')
+      .select('*, game_types(name)');
+      
+    if (!error && data) {
+      set({ cards: data });
     }
   }
 }));
@@ -40,37 +56,45 @@ interface GameState {
   winner: string;
   score: number;
   setGameState: (state: Partial<GameState>) => void;
+  resetGame: () => void;
 }
 
 export const useGameStore = create<GameState>((set) => ({
   isPlaying: false,
   winner: '',
   score: 0,
-  setGameState: (state) => set(state)
+  setGameState: (state) => set(state),
+  resetGame: () => set({ isPlaying: false, winner: '', score: 0 })
 }));
 
 interface TimerState {
   remainingTime: number;
   isTimerActive: boolean;
   isExpired: boolean;
-  startTimer: (time: number) => void;
+  startTimer: (duration: number) => void;
   pauseTimer: () => void;
-  resetTimer: (time: number) => void;
+  resetTimer: (options?: { time?: number; expire?: boolean }) => void;
+  formatTime: (seconds: number) => string;
 }
 
 export const useTimerStore = create<TimerState>((set) => ({
   remainingTime: 0,
   isTimerActive: false,
   isExpired: false,
-  startTimer: (time) => set({ 
-    remainingTime: time, 
-    isTimerActive: true, 
+  startTimer: (duration) => set({ 
+    remainingTime: duration, 
+    isTimerActive: true,
     isExpired: false 
   }),
   pauseTimer: () => set({ isTimerActive: false }),
-  resetTimer: (time) => set({ 
-    remainingTime: time, 
-    isTimerActive: false, 
-    isExpired: false 
-  })
+  resetTimer: ({ time = 0, expire = false } = {}) => set({ 
+    remainingTime: time,
+    isTimerActive: false,
+    isExpired: expire 
+  }),
+  formatTime: (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  }
 }));

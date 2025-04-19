@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import { Html5Qrcode } from 'html5-qrcode';
 import { supabase } from '../supabaseClient';
-import { FaCamera, FaQrcode, FaKeyboard, FaMobileAlt } from 'react-icons/fa';
+import { FaCamera, FaQrcode, FaKeyboard, FaRedo } from 'react-icons/fa';
 import { useCardStore, useTimerStore, useGameStore } from '../app/store';
 
 const GAME_ROUTES = {
@@ -13,20 +13,18 @@ const GAME_ROUTES = {
 };
 
 const QRScanMode = () => {
-  // Zustand stores
   const { setCurrentCard, markCardAsUsed } = useCardStore();
   const { startTimer } = useTimerStore();
   const { setGameState } = useGameStore();
 
-  // Local state
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [cameras, setCameras] = useState([]);
   const [selectedCamera, setSelectedCamera] = useState(null);
   const [scanResult, setScanResult] = useState(null);
-  const [isInitializing, setIsInitializing] = useState(true);
+  const [hasCameraAccess, setHasCameraAccess] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
   
-  // Refs
   const scannerRef = useRef(null);
   const html5QrCode = useRef(null);
   const navigate = useNavigate();
@@ -34,56 +32,75 @@ const QRScanMode = () => {
 
   const shouldRedirect = !location.state?.fromGame;
 
+  const requestCameraAccess = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      setHasCameraAccess(true);
+      // Release camera stream immediately after getting access
+      stream.getTracks().forEach(track => track.stop());
+      return true;
+    } catch (err) {
+      setError('Camera access required - Please enable in browser settings');
+      setHasCameraAccess(false);
+      return false;
+    }
+  }, []);
+
   const getCameras = useCallback(async () => {
     try {
-      await navigator.mediaDevices.getUserMedia({ video: true });
+      const hasAccess = await requestCameraAccess();
+      if (!hasAccess) return;
+
       const devices = await Html5Qrcode.getCameras();
-      if (devices && devices.length) {
+      if (devices?.length) {
         setCameras(devices);
         setSelectedCamera(devices[0].id);
       }
     } catch (err) {
-      setError('Camera access required - Please enable in browser settings');
-    } finally {
-      setIsInitializing(false);
+      setError('Failed to get camera devices');
     }
-  }, []);
+  }, [requestCameraAccess]);
 
   const initScanner = useCallback(async () => {
-    if (!selectedCamera || !scannerRef.current) return;
+    if (!selectedCamera || !scannerRef.current || !hasCameraAccess) return;
 
     try {
-      if (html5QrCode.current) {
+      if (html5QrCode.current?.isScanning) {
         await html5QrCode.current.stop();
-        html5QrCode.current.clear();
       }
 
-      html5QrCode.current = new Html5Qrcode(scannerRef.current.id);
+      const container = scannerRef.current;
+      const qrboxSize = Math.min(
+        container.offsetWidth - 40,
+        container.offsetHeight - 40,
+        300
+      );
+
+      html5QrCode.current = new Html5Qrcode(container.id);
+      setIsScanning(true);
       
       await html5QrCode.current.start(
         selectedCamera,
         {
           fps: 10,
-          qrbox: { width: 250, height: 250 },
+          qrbox: { width: qrboxSize, height: qrboxSize },
           aspectRatio: 1.0,
-          disableFlip: true,
-          supportedFormats: [Html5QrcodeSupportedFormats.QR_CODE],
+          disableFlip: false,
         },
         (decodedText) => handleScan(decodedText),
         (errorMessage) => {
-          if (errorMessage.includes('NotFoundException')) {
-            setError('Position QR code within frame. Ensure good lighting and focus.');
-          } else {
-            console.error('Scan error:', errorMessage);
+          if (!errorMessage.includes('NotFoundException')) {
             setError(errorMessage);
           }
         }
       );
     } catch (err) {
-      console.error('Scanner init error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to start scanner');
+      setError(err.message.includes('permission') 
+        ? 'Camera access denied - check browser settings'
+        : 'Failed to initialize scanner');
+      setIsScanning(false);
     }
-  }, [selectedCamera]);
+  }, [selectedCamera, hasCameraAccess]);
 
   const stopScanner = useCallback(async () => {
     try {
@@ -91,23 +108,21 @@ const QRScanMode = () => {
         await html5QrCode.current.stop();
         html5QrCode.current.clear();
       }
-      html5QrCode.current = null;
+      setIsScanning(false);
     } catch (err) {
       console.error('Error stopping scanner:', err);
     }
   }, []);
 
   const handleScan = useCallback(async (scannedData) => {
+    if (isLoading) return;
     setIsLoading(true);
     setError(null);
-    if (isLoading) return;
 
     try {
       const cleanedData = scannedData.replace(/\D/g, '');
-      console.log('Cleaned scan data:', cleanedData);
-
       if (!/^\d{13}$/.test(cleanedData)) {
-        throw new Error(`Invalid 13-digit card number. Scanned: ${scannedData}`);
+        throw new Error(`Invalid 13-digit card number: ${scannedData}`);
       }
 
       const { data, error } = await supabase
@@ -119,15 +134,11 @@ const QRScanMode = () => {
       if (error) throw error;
       if (data.used) throw new Error('Card already redeemed');
 
-      // Zustand state updates
       setCurrentCard(data);
       startTimer(data.duration * 60);
       setGameState({ isPlaying: true, score: 0, winner: '' });
-
       await markCardAsUsed(data.id);
-      setScanResult(data);
-      await stopScanner();
-
+      
       const gameRoute = GAME_ROUTES[data.game_type];
       if (gameRoute) {
         navigate(gameRoute, {
@@ -138,74 +149,43 @@ const QRScanMode = () => {
           },
         });
       }
-
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Scan failed');
+      setError(err.message);
       setTimeout(() => setError(null), 5000);
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading, navigate, setCurrentCard, startTimer, markCardAsUsed, setGameState, stopScanner]);
+  }, [isLoading, navigate, setCurrentCard, startTimer, markCardAsUsed, setGameState]);
+
+  useEffect(() => {
+    getCameras();
+    return () => {
+      stopScanner();
+      window.stream?.getTracks().forEach(track => track.stop());
+    };
+  }, [getCameras, stopScanner]);
+
+  useEffect(() => {
+    if (selectedCamera && hasCameraAccess) {
+      initScanner();
+    }
+    return () => {
+      stopScanner();
+    };
+  }, [selectedCamera, hasCameraAccess, initScanner, stopScanner]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.hidden) stopScanner();
+      if (document.hidden) {
+        stopScanner();
+      } else if (hasCameraAccess) {
+        initScanner();
+      }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      stopScanner();
-    };
-  }, [stopScanner]);
-
-  useEffect(() => {
-    let isMounted = true;
-    const initialize = async () => {
-      try {
-        await navigator.mediaDevices.getUserMedia({ video: true });
-        const devices = await Html5Qrcode.getCameras();
-        if (isMounted && devices?.length) {
-          setCameras(devices);
-          setSelectedCamera(devices[0].id);
-        }
-      } catch (err) {
-        setError('Camera access required - Please enable in browser settings');
-      } finally {
-        if (isMounted) setIsInitializing(false);
-      }
-    };
-
-    initialize();
-    return () => { isMounted = false; };
-  }, []);
-
-  useEffect(() => {
-    if (selectedCamera && !isInitializing) {
-      initScanner();
-    }
-
-    return () => {
-      stopScanner();
-    };
-  }, [initScanner, selectedCamera, stopScanner, isInitializing]);
-
-  const handleCameraChange = (e) => {
-    setSelectedCamera(e.target.value);
-    stopScanner();
-  };
-
-  const launchApp = () => {
-    const appUrl = 'zionapp://';
-    const fallbackUrl = 'https://yenege.com/download-app';
-
-    window.location.href = appUrl;
-    setTimeout(() => {
-      if (!document.hidden) {
-        window.location.href = fallbackUrl;
-      }
-    }, 1000);
-  };
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [stopScanner, initScanner, hasCameraAccess]);
 
   const handleManualEntry = () => {
     const manualInput = prompt('Enter 13-digit card number:');
@@ -226,9 +206,7 @@ const QRScanMode = () => {
   return (
     <div className="min-h-screen bg-black-primary text-cream flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Scanner Card */}
         <div className="bg-black-secondary rounded-xl shadow-lg overflow-hidden border border-gray-dark">
-          {/* Header */}
           <div className="bg-gradient-to-r from-gold-primary to-gold-secondary p-6 text-center">
             <h1 className="text-2xl font-bold text-black-primary flex items-center justify-center gap-3">
               <FaQrcode className="text-xl" /> SCAN GAME CARD
@@ -239,7 +217,6 @@ const QRScanMode = () => {
           </div>
 
           <div className="p-6">
-            {/* Camera Selection */}
             {cameras.length > 0 && (
               <div className="mb-4">
                 <label className="block text-gold-light text-sm font-medium mb-2">
@@ -247,7 +224,7 @@ const QRScanMode = () => {
                 </label>
                 <select
                   value={selectedCamera || ''}
-                  onChange={handleCameraChange}
+                  onChange={(e) => setSelectedCamera(e.target.value)}
                   className="w-full p-3 bg-black-primary text-cream rounded-lg border border-gray-medium focus:border-gold-primary focus:ring-1 focus:ring-gold-primary"
                 >
                   {cameras.map(camera => (
@@ -259,31 +236,38 @@ const QRScanMode = () => {
               </div>
             )}
 
-            {/* Scanner View */}
             <div className="relative mb-6 border-2 border-gold-primary rounded-lg overflow-hidden bg-black-primary">
               <div 
                 id="scanner-container" 
                 ref={scannerRef}
-                className="h-64 w-full flex items-center justify-center relative"
+                className="h-64 w-full flex items-center justify-center relative min-h-[256px]"
               >
-                {isInitializing && (
-                  <div className="absolute inset-0 bg-black-primary flex items-center justify-center text-gold-light">
-                    <div className="animate-pulse flex flex-col items-center">
-                      <FaCamera className="text-2xl mb-2" />
-                      <span>Initializing camera...</span>
-                    </div>
+                {!hasCameraAccess ? (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-4">
+                    <FaCamera className="text-4xl text-gold-primary" />
+                    <button
+                      onClick={getCameras}
+                      className="bg-gold-primary text-black-primary py-2 px-6 rounded-lg hover:bg-gold-secondary transition-colors flex items-center gap-2"
+                    >
+                      <FaRedo /> Enable Camera
+                    </button>
+                    <p className="text-center text-gold-light text-sm">
+                      Camera access is required to scan QR codes
+                    </p>
                   </div>
-                )}
-                {!isInitializing && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="absolute w-64 h-64 border-2 border-gold-primary rounded-lg animate-pulse"></div>
-                    <div className="absolute top-0 left-0 right-0 bottom-0 border-8 border-black-primary opacity-30"></div>
+                ) : isScanning ? (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                    <div className="border-2 border-gold-primary rounded-lg animate-pulse"
+                      style={{
+                        width: 'min(300px, 80vw)',
+                        height: 'min(300px, 80vw)'
+                      }}
+                    />
                   </div>
-                )}
+                ) : null}
               </div>
             </div>
 
-            {/* Action Buttons */}
             <div className="grid grid-cols-2 gap-4 mb-4">
               <button
                 onClick={handleManualEntry}
@@ -294,45 +278,25 @@ const QRScanMode = () => {
 
               <button
                 onClick={initScanner}
-                className="flex items-center justify-center gap-2 bg-gold-primary hover:bg-gold-secondary text-black-primary py-3 px-4 rounded-lg font-medium transition-colors"
+                disabled={!hasCameraAccess}
+                className="flex items-center justify-center gap-2 bg-gold-primary hover:bg-gold-secondary text-black-primary py-3 px-4 rounded-lg font-medium transition-colors disabled:opacity-50"
               >
-                <FaCamera /> Retry Scan
-              </button>
-            </div>
-            
-            {/* App Promotion */}
-            <div className="mb-6">
-              <button
-                onClick={launchApp}
-                className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-gold-primary/90 to-gold-secondary/90 hover:from-gold-primary hover:to-gold-secondary text-black-primary py-3 px-6 rounded-lg font-medium transition-all shadow-md hover:shadow-lg"
-              >
-                <FaMobileAlt className="text-xl" />
-                <span>For better experience use our app</span>
+                <FaCamera /> {isScanning ? 'Scanning...' : 'Start Scan'}
               </button>
             </div>
 
-            {/* Status Messages */}
             {error && (
               <div className="p-4 mb-4 bg-red-900/20 rounded-lg border-l-4 border-red-500">
-                <div className="text-red-300 flex items-start gap-2">
-                  <div className="flex-1">
-                    <p className="font-medium">{error}</p>
-                    {error.includes('Camera access') && (
-                      <button
-                        onClick={async () => {
-                          try {
-                            await navigator.mediaDevices.getUserMedia({ video: true });
-                            await getCameras();
-                          } catch (err) {
-                            setError('Please enable camera access in browser settings');
-                          }
-                        }}
-                        className="w-full mt-3 bg-gold-primary text-black-primary py-2 rounded-lg hover:bg-gold-secondary transition-colors flex items-center justify-center gap-2"
-                      >
-                        <FaCamera /> Enable Camera
-                      </button>
-                    )}
-                  </div>
+                <div className="text-red-300">
+                  <p className="font-medium">{error}</p>
+                  {error.includes('Camera access') && (
+                    <button
+                      onClick={getCameras}
+                      className="w-full mt-3 bg-gold-primary text-black-primary py-2 rounded-lg hover:bg-gold-secondary transition-colors flex items-center justify-center gap-2"
+                    >
+                      <FaRedo /> Retry Camera Access
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -340,29 +304,11 @@ const QRScanMode = () => {
             {isLoading && (
               <div className="p-4 text-center text-gold-primary">
                 <div className="inline-flex items-center gap-2 animate-pulse">
-                  <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" fill="none" strokeWidth="4" className="opacity-25 stroke-current"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
                   </svg>
                   Verifying card...
-                </div>
-              </div>
-            )}
-
-            {scanResult && (
-              <div className="p-4 bg-black-primary rounded-lg border-l-4 border-gold-primary">
-                <h3 className="text-xl font-bold text-gold-primary mb-2 flex items-center gap-2">
-                  <FaQrcode /> Card Verified!
-                </h3>
-                <div className="space-y-1 text-cream">
-                  <p className="flex items-center gap-2">
-                    <span className="text-gold-light">Game:</span> 
-                    <span className="font-medium">{scanResult.game_types?.name}</span>
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <span className="text-gold-light">Duration:</span> 
-                    <span className="font-medium">{scanResult.duration} minutes</span>
-                  </p>
                 </div>
               </div>
             )}

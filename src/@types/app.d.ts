@@ -1,14 +1,14 @@
-declare module '../App' {
+import React from 'react';
 
-  import React from 'react';
+export interface TimeContextType {
+  remainingTime: number;
+  startTimer: (duration: number) => void;
+  pauseTimer: () => void;
+  resetTimer: (options?: { time?: number; expire?: boolean }) => void;
+  isExpired: boolean;
+  formatTime: (seconds: number) => string;
+}
 
-  // Removed duplicate TimeContextType definition
-
-
-
-export const TimeContext: React.Context<TimeContextType>; // Keep this definition
+export const TimeContext: React.Context<TimeContextType>;
 
 export default function App(): JSX.Element;
-
-  export default function App(): JSX.Element;
-}

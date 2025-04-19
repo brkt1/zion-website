@@ -1,61 +1,47 @@
-import React, { createContext, useEffect, useRef } from "react";
-import * as Sentry from "@sentry/react"; // Import Sentry
-import './App.css'; // Import the new CSS file
-
-Sentry.init({
-  dsn: "https://3fde7eac728bdae0b3212527b40231de@o4509093151899648.ingest.de.sentry.io/4509093158912080" // Initialize Sentry
-
-});
-
+import React, { createContext, useEffect, useMemo, lazy, Suspense } from "react";
+import * as Sentry from "@sentry/react";
+import './App.css';
 import ErrorBoundary from "./Components/ErrorBoundary";
-import { TimeContextType } from "./@types/TimeContextType";
-import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom"; 
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { motion } from 'framer-motion';
-import Lovers from "./TruthandDear-Component/Lovers";
-import ThankYou from "./Components/ThankYou";
-import RockPaperScissors from "./Components/RockPaperScissors";
-import Friends from "./TruthandDear-Component/Friends";
-import LoveGameMode from "./TruthandDear-Component/LoveGameMode";
-import FriendsGameMode from "./TruthandDear-Component/FriendsGameMode";
-import GameScreen from "./Components/GameScreen";
-import TruthOrDare from "./TruthandDear-Component/TruthOrDare";
-import EmojiGame from "./Emoji-Component/EmojiGame";
-import QRScanMode from "./payment/QRScanMode";
-import Landing from "./MainLanding";
-import TriviaGame from "./Triva-Component/Trivia";
-import CafeOwnerCheckWinner from "./Components/CafeOwnerCheckWinner";
-import Admin from "./Components/admin/AdminPanel";
-import Login from "./Components/auth/Login";
-import { useGameStore } from './app/store';
-import { useTimerStore } from './app/store';
+import { useGameStore, useTimerStore } from './app/store';
 
-/**
- * @typedef {import('./@types/app').TimeContextType} TimeContextType
- */
+// Lazy-loaded components
+const Lovers = lazy(() => import("./TruthandDear-Component/Lovers"));
+const ThankYou = lazy(() => import("./Components/ThankYou"));
+const RockPaperScissors = lazy(() => import("./Components/RockPaperScissors"));
+const Friends = lazy(() => import("./TruthandDear-Component/Friends"));
+const LoveGameMode = lazy(() => import("./TruthandDear-Component/LoveGameMode"));
+const FriendsGameMode = lazy(() => import("./TruthandDear-Component/FriendsGameMode"));
+const GameScreen = lazy(() => import("./Components/GameScreen"));
+const TruthOrDare = lazy(() => import("./TruthandDear-Component/TruthOrDare"));
+const EmojiGame = lazy(() => import("./Emoji-Component/EmojiGame"));
+const QRScanMode = lazy(() => import("./payment/QRScanMode"));
+const Landing = lazy(() => import("./MainLanding"));
+const TriviaGame = lazy(() => import("./Triva-Component/Trivia"));
+const CafeOwnerCheckWinner = lazy(() => import("./Components/CafeOwnerCheckWinner"));
+const Admin = lazy(() => import("./Components/admin/AdminPanel"));
+const Login = lazy(() => import("./Components/auth/Login"));
 
-// Create context with JSDoc type
-/** @type {React.Context<TimeContextType>} */
+interface TimeContextType {
+  remainingTime: number;
+  startTimer: (duration: number) => void;
+  pauseTimer: () => void;
+  resetTimer: (options?: { time?: number; expire?: boolean }) => void;
+  isExpired: boolean;
+  formatTime: (seconds: number) => string;
+}
+
 export const TimeContext = createContext<TimeContextType | null>(null);
 
-const formatTime = (seconds: number): string => { 
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-};
-
-// Modern Time Display Component
-const TimeDisplay = ({ remainingTime }: { remainingTime: number }): JSX.Element => { 
-  const navigate = useNavigate(); 
-
-  const getProgressPercentage = () => {
-    return ((300 - remainingTime) / 300) * 100;
-  };
+const TimeDisplay: React.FC = () => {
+  const navigate = useNavigate();
+  const remainingTime = useTimerStore(state => state.remainingTime);
+  const formatTime = useTimerStore(state => state.formatTime);
 
   useEffect(() => {
-    if (remainingTime <= 30) {
-      if ('vibrate' in navigator) {
-        navigator.vibrate([200, 100, 200]);
-      }
+    if (remainingTime <= 30 && 'vibrate' in navigator) {
+      navigator.vibrate([200, 100, 200]);
     }
     if (remainingTime <= 0) {
       navigate('/thank-you');
@@ -64,177 +50,122 @@ const TimeDisplay = ({ remainingTime }: { remainingTime: number }): JSX.Element 
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 p-4">
-      <div>
-        <div className="w-full h-1 bg-white/10 backdrop-blur-sm rounded-full overflow-hidden">
-          <div
-            className="progress-fill"
-            style={{ width: `${getProgressPercentage()}%` }}
-          />
-        </div>
-        <div className="flex items-center justify-center py-3 px-6">
-          <div className="flex items-center space-x-3">
-            <motion.svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className="h-6 w-6"
-              initial={{ rotate: 0 }}
-              animate={{ 
-                rotate: remainingTime <= 30 ? [0, 15, -15, 0] : 0,
-              }}
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" 
-              />
-            </motion.svg>
-
-            <motion.span 
-              className="text-2xl font-bold tracking-wider"
-              initial={{ opacity: 1, scale: 1 }}
-              animate={
-                remainingTime <= 30 
-                  ? { 
-                      scale: [1, 1.1, 1],
-                      transition: { 
-                        duration: 0.5,
-                        repeat: Infinity 
-                      }
-                    }
-                  : {}
-              }
-            >
-              {formatTime(remainingTime)}
-            </motion.span>
-          </div>
+      <div className="w-full h-1 bg-white/10 backdrop-blur-sm rounded-full overflow-hidden">
+        <div
+          className="progress-fill"
+          style={{ width: `${((300 - remainingTime) / 300) * 100}%` }}
+        />
+      </div>
+      <div className="flex items-center justify-center py-3 px-6">
+        <div className="flex items-center space-x-3">
+          <motion.svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            className="h-6 w-6"
+            animate={{ 
+              rotate: remainingTime <= 30 ? [0, 15, -15, 0] : 0,
+            }}
+            fill="none" 
+            viewBox="0 0 24 24" 
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </motion.svg>
+          <motion.span 
+            className="text-2xl font-bold tracking-wider"
+            animate={
+              remainingTime <= 30 
+                ? { 
+                    scale: [1, 1.1, 1],
+                    transition: { duration: 0.5, repeat: Infinity } 
+                  }
+                : {}
+            }
+          >
+            {formatTime(remainingTime)}
+          </motion.span>
         </div>
       </div>
     </div>
   );
 };
 
-// Protected Route Component
-const ProtectedRoute = ({ children }: { children: React.ReactElement }): JSX.Element => { 
+interface ProtectedRouteProps {
+  children: React.ReactElement;
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const location = useLocation();
-  const state = location.state;
-  const { isPlaying } = useGameStore.getState();
+  const isPlaying = useGameStore(state => state.isPlaying);
 
   if (!isPlaying) {
-    return <Navigate to="/qr-scan" replace />;
+    return <Navigate to="/qr-scan" replace state={{ fromGame: true }} />;
   }
 
   return React.cloneElement(children, {
-    cardDetails: state.cardDetails,
-    remainingTime: state.remainingTime,
+    ...location.state
   });
 };
 
-// Main App Component
-const App = () => {
-  // Initialize Sentry
+const App: React.FC = () => {
+  const { remainingTime, isTimerActive, startTimer, pauseTimer, resetTimer, isExpired, formatTime } = useTimerStore();
 
-  const { remainingTime, isTimerActive, isExpired, startTimer, pauseTimer, resetTimer } = useTimerStore();
-
-  // Save timer state to local storage
-  useEffect(() => {
-    if (isTimerActive) {
-      localStorage.setItem('timerState', JSON.stringify({ remainingTime, isTimerActive }));
-    } else {
-      localStorage.removeItem('timerState');
-    }
-  }, [remainingTime, isTimerActive]);
-
-  // Restore timer state on visibility change
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.hidden) {
-        localStorage.setItem('timerState', JSON.stringify({ remainingTime, isTimerActive }));
-      } else {
-        const savedState = localStorage.getItem('timerState');
-        if (savedState) {
-          const { remainingTime: savedTime, isTimerActive: savedIsActive } = JSON.parse(savedState);
-          if (savedIsActive) {
-            startTimer(savedTime);
-          }
-        }
-      }
+      localStorage.setItem('timerState', JSON.stringify({ 
+        remainingTime, 
+        isTimerActive: document.hidden ? false : isTimerActive 
+      }));
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [startTimer]);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [remainingTime, isTimerActive]);
+
+  const contextValue = useMemo(() => ({
+    remainingTime,
+    startTimer,
+    pauseTimer,
+    resetTimer,
+    isExpired,
+    formatTime
+  }), [remainingTime, startTimer, pauseTimer, resetTimer, isExpired, formatTime]);
+
+  // Initialize Sentry in production
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'production') {
+      Sentry.init({
+        dsn: "https://3fde7eac728bdae0b3212527b40231de@o4509093151899648.ingest.de.sentry.io/4509093158912080",
+        tracesSampleRate: 1.0
+      });
+    }
+  }, []);
 
   return (
     <ErrorBoundary>
-      <TimeContext.Provider 
-      value={{ 
-        remainingTime, 
-        startTimer, 
-        pauseTimer, 
-        resetTimer,
-        formatTime,
-        isExpired 
-      }}
-    >
-      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        {isTimerActive && (
-          <TimeDisplay remainingTime={remainingTime} />
-        )}
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/" element={<Landing />} />
-          <Route path="/thank-you" element={<ThankYou />} />
-          <Route path="/lovers" element={<Lovers />} />
-          <Route path="/friends" element={<Friends />} />
-          <Route path="/game-mode" element={<LoveGameMode />} />
-          <Route path="/friends-game-mode" element={<FriendsGameMode />} />
-          <Route path="/game-screen" element={<GameScreen />} />
-          <Route path="/qr-scan" element={<QRScanMode />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route 
-            path="/trivia-game" 
-            element={
-              <ProtectedRoute>
-                <TriviaGame />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/truth-or-dare" 
-            element={
-              <ProtectedRoute>
-                <TruthOrDare />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/rock-paper-scissors" 
-            element={
-              <ProtectedRoute>
-                <RockPaperScissors />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/emoji-game" 
-            element={
-              <ProtectedRoute>
-                <EmojiGame />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/cafe-owner/check-winner" 
-            element={<CafeOwnerCheckWinner />} 
-          />
-        </Routes>
-      </BrowserRouter>
-    </TimeContext.Provider>
+      <TimeContext.Provider value={contextValue}>
+        <BrowserRouter>
+          {isTimerActive && <TimeDisplay />}
+          <Suspense fallback={<div className="loading-spinner" />}>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/" element={<Landing />} />
+              <Route path="/thank-you" element={<ThankYou />} />
+              <Route path="/lovers" element={<Lovers />} />
+              <Route path="/friends" element={<Friends />} />
+              <Route path="/game-mode" element={<LoveGameMode />} />
+              <Route path="/friends-game-mode" element={<FriendsGameMode />} />
+              <Route path="/game-screen" element={<GameScreen />} />
+              <Route path="/qr-scan" element={<QRScanMode />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/trivia-game" element={<ProtectedRoute><TriviaGame /></ProtectedRoute>} />
+              <Route path="/truth-or-dare" element={<ProtectedRoute><TruthOrDare /></ProtectedRoute>} />
+              <Route path="/rock-paper-scissors" element={<ProtectedRoute><RockPaperScissors /></ProtectedRoute>} />
+              <Route path="/emoji-game" element={<ProtectedRoute><EmojiGame /></ProtectedRoute>} />
+              <Route path="/cafe-owner/check-winner" element={<CafeOwnerCheckWinner />} />
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      </TimeContext.Provider>
     </ErrorBoundary>
   );
 };

@@ -5,17 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <link rel="icon" href="/zionlogo.png" type="image/png" sizes="192x192" />
-    <link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
+    <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#4A90E2" />
 
     
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://cdn.jsdelivr.net; connect-src 'self' https://*.supabase.co ws://localhost:* https://cdn.jsdelivr.net;">
+<meta http-equiv="Content-Security-Policy" 
+      content="script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net 'unsafe-inline' 'unsafe-eval' http://localhost:*">
 
     
     <!-- Primary Meta Tags -->
     <title>Yenege</title>
     <meta name="title" content="Yenege - premium connection" />
     <meta name="description" content="Yenege is a premium connection that offers a variety of features and services." />
+   
+    <meta http-equiv="Content-Security-Policy" 
+      content="connect-src 'self' https://*.supabase.co ws://localhost:* https://*.ingest.sentry.io">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />

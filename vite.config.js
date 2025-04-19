@@ -6,57 +6,32 @@ export default defineConfig({
   plugins: [
     react({
       babel: {
-        presets: [
-          '@babel/preset-typescript', // Added TypeScript preset
-        ],
+        presets: ['@babel/preset-typescript'],
         plugins: [
           ['@babel/plugin-transform-react-jsx', { runtime: 'automatic' }],
-          ['@babel/plugin-transform-runtime', { regenerator: true }]
+          ['@babel/plugin-transform-runtime', { 
+            regenerator: true,
+            helpers: true,
+            useESModules: true
+          }]
         ]
       },
       jsxRuntime: 'automatic',
       jsxImportSource: 'react'
     }),
     VitePWA({
-      registerType: 'prompt',
-      strategies: 'generateSW',
-      includeAssets: ['**/*.{js,css,html,ico,png,svg,json}'],
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,json}'],
-        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
-        cleanupOutdatedCaches: true,
-        skipWaiting: true,
-        clientsClaim: true,
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/api\.example\.com\/.*/i,
-            handler: 'StaleWhileRevalidate',
-            options: {
-              cacheName: 'api-cache',
-              cacheableResponse: { statuses: [0, 200] },
-              expiration: { maxEntries: 50, maxAgeSeconds: 21600 }
-            }
-          },
-          {
-            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'image-cache',
-              expiration: { maxEntries: 100, maxAgeSeconds: 2592000 }
-            }
-          }
-        ]
-      },
+      registerType: 'autoUpdate',
+      strategies: 'generateSW', // Changed from injectManifest for better reliability
+      includeAssets: ['**/*.{js,css,html,ico,png,svg,webp,woff2,json}'],
       manifest: {
         name: 'Yenege',
         short_name: 'Yenege',
         description: 'Future is now',
         start_url: '/',
         display: 'standalone',
-        background_color: '#ffffff',
+        background_color: '#000000',
         theme_color: '#4A90E2',
         orientation: 'portrait',
-        categories: ['productivity', 'social', 'utilities'],
         icons: [
           {
             src: '/icons/icon-192x192.png',
@@ -70,42 +45,88 @@ export default defineConfig({
             type: 'image/png',
             purpose: 'any maskable'
           }
-        ],
-        shortcuts: [
+        ]
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2,json}'],
+        navigateFallback: '/index.html',
+        runtimeCaching: [
           {
-            name: 'Login',
-            short_name: 'Login',
-            description: 'Access your account',
-            url: '/login?source=pwa',
-            icons: [{ src: '/icons/login-192.png', sizes: '192x192' }]
+            urlPattern: /^https:\/\/api\.example\.com\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-cache',
+              cacheableResponse: { statuses: [0, 200] },
+              expiration: { maxEntries: 50, maxAgeSeconds: 86400 }
+            }
+          },
+          {
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'image-cache',
+              expiration: { maxEntries: 200, maxAgeSeconds: 30 * 24 * 60 * 60 }
+            }
           }
         ]
       },
       devOptions: {
-        enabled: false,
+        enabled: false, // Disabled in dev to prevent service worker conflicts
         type: 'module',
-        navigateFallback: 'index.html'
+        navigateFallbackAllowlist: [/^\/$/]
       }
     })
   ],
   server: {
+    hmr: {
+      protocol: 'ws',
+      host: 'localhost',
+      port: 5173,
+      clientPort: 5173
+    },
     headers: {
       'Content-Security-Policy': `
         default-src 'self';
-        script-src 'self' https://cdnjs.cloudflare.com 'unsafe-inline' 'unsafe-eval' http://localhost:*; 
-        style-src 'self' 'unsafe-inline' http://localhost:*; 
-        connect-src 'self' https://*.supabase.co ws://localhost:*; 
-        img-src 'self' data: https://*.supabase.co;
+        script-src 'self' 'unsafe-inline' 'unsafe-eval';
+        style-src 'self' 'unsafe-inline';
+        connect-src 'self' https://*.supabase.co ws://localhost:5173;
+        img-src 'self' data: blob: https://*.supabase.co;
         media-src 'self' blob:;
         worker-src 'self' blob:;
-        font-src 'self';
-        frame-src 'none';
-        object-src 'none';
-      `.replace(/\n/g, ' ').trim()
-    }
+        font-src 'self' data:;
+      `.replace(/\s+/g, ' ').trim()
+    },
+    port: 5173,
+    strictPort: true,
+    open: true
   },
   build: {
     target: 'esnext',
-    sourcemap: process.env.NODE_ENV !== 'production'
+    sourcemap: process.env.NODE_ENV !== 'production',
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: process.env.NODE_ENV === 'production'
+      }
+    },
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ['react', 'react-dom'],
+          vendor: ['html5-qrcode', 'zustand'],
+          supabase: ['@supabase/supabase-js']
+        }
+      }
+    }
+  },
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'html5-qrcode',
+      '@supabase/supabase-js',
+      'zustand'
+    ],
+    exclude: ['js-big-decimal']
   }
 });
