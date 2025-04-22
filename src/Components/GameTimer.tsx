@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ThankYou from './ThankYou';
 import { TimeContext } from '../App.jsx';
-import type { TimeContextType } from try '../@types/app.jsx';
+import type { TimeContextType } from '../@types/app.jsx';
 
 const registerServiceWorker = async () => {
   if ('serviceWorker' in navigator) {

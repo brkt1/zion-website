@@ -4,9 +4,6 @@ import { Html5Qrcode } from 'html5-qrcode';
 import { supabase } from '../supabaseClient';
 import { FaCamera, FaQrcode, FaKeyboard, FaRedo } from 'react-icons/fa';
 import { useCardStore, useTimerStore, useGameStore } from '../app/store';
-
-import { FaCamera, FaQrcode, FaKeyboard, FaRedo } from 'react-icons/fa';
-import { useCardStore, useTimerStore, useGameStore } from '../app/store';
 import { TimeService } from '../services/TimeService';
 import SafeStorage from '../utils/safeStorage';
 
@@ -28,7 +25,6 @@ const QRScanMode = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [cameras, setCameras] = useState([]);
   const [selectedCamera, setSelectedCamera] = useState(null);
-  const [scanResult, setScanResult] = useState(null);
   const [hasCameraAccess, setHasCameraAccess] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   
@@ -115,23 +111,10 @@ const QRScanMode = () => {
     }
   }, [location.state]);
   
-  // Update your return statement to show this message
-  {error && (
-    <div className="p-4 mb-4 bg-red-900/20 rounded-lg border-l-4 border-red-500">
-      <div className="text-red-300">
-        <p className="font-medium">{error}</p>
-        {error.includes('Camera access') && (
-          <button
-            onClick={getCameras}
-            className="w-full mt-3 bg-gold-primary text-black-primary py-2 rounded-lg hover:bg-gold-secondary transition-colors flex items-center justify-center gap-2"
-          >
-            <FaRedo /> Retry Camera Access
-          </button>
-        )}
-      </div>
-    </div>
-  )}
-  
+  if (shouldRedirect) {
+    return <Navigate to="/qr-scan" replace state={{ fromGame: true }} />;
+  }
+
   const stopScanner = useCallback(async () => {
     try {
       if (html5QrCode.current?.isScanning) {
@@ -144,52 +127,51 @@ const QRScanMode = () => {
     }
   }, []);
 
-  // Update the handleScan function in QRScanMode.jsx
-const handleScan = useCallback(async (scannedData) => {
-  if (isLoading) return;
-  setIsLoading(true);
-  setError(null);
+  const handleScan = useCallback(async (scannedData) => {
+    if (isLoading) return;
+    setIsLoading(true);
+    setError(null);
 
-  try {
-    const cleanedData = scannedData.replace(/\D/g, '');
-    if (!/^\d{13}$/.test(cleanedData)) {
-      throw new Error(`Invalid 13-digit card number: ${scannedData}`);
+    try {
+      const cleanedData = scannedData.replace(/\D/g, '');
+      if (!/^\d{13}$/.test(cleanedData)) {
+        throw new Error(`Invalid 13-digit card number: ${scannedData}`);
+      }
+
+      const { data, error } = await supabase
+        .from('cards')
+        .select('*, game_types(name)')
+        .eq('card_number', cleanedData)
+        .single();
+
+      if (error) throw error;
+      if (data.used) throw new Error('Card already redeemed');
+
+      // Initialize timer with card's duration
+      TimeService.initializeTimer(data.duration);
+      
+      setCurrentCard(data);
+      startTimer(data.duration * 60);
+      setGameState({ isPlaying: true, score: 0, winner: '' });
+      await markCardAsUsed(data.id);
+      
+      const gameRoute = GAME_ROUTES[data.game_type];
+      if (gameRoute) {
+        navigate(gameRoute, {
+          state: {
+            cardDetails: data,
+            remainingTime: data.duration * 60,
+            fromGame: true
+          },
+        });
+      }
+    } catch (err) {
+      setError(err.message);
+      setTimeout(() => setError(null), 5000);
+    } finally {
+      setIsLoading(false);
     }
-
-    const { data, error } = await supabase
-      .from('cards')
-      .select('*, game_types(name)')
-      .eq('card_number', cleanedData)
-      .single();
-
-    if (error) throw error;
-    if (data.used) throw new Error('Card already redeemed');
-
-    // Initialize timer with card's duration
-    TimeService.initializeTimer(data.duration);
-    
-    setCurrentCard(data);
-    startTimer(data.duration * 60); // Keep your existing store if needed
-    setGameState({ isPlaying: true, score: 0, winner: '' });
-    await markCardAsUsed(data.id);
-    
-    const gameRoute = GAME_ROUTES[data.game_type];
-    if (gameRoute) {
-      navigate(gameRoute, {
-        state: {
-          cardDetails: data,
-          remainingTime: data.duration * 60,
-          fromGame: true
-        },
-      });
-    }
-  } catch (err) {
-    setError(err.message);
-    setTimeout(() => setError(null), 5000);
-  } finally {
-    setIsLoading(false);
-  }
-}, [isLoading, navigate, setCurrentCard, startTimer, markCardAsUsed, setGameState]);
+  }, [isLoading, navigate, setCurrentCard, startTimer, markCardAsUsed, setGameState]);
 
   useEffect(() => {
     getCameras();
@@ -228,13 +210,10 @@ const handleScan = useCallback(async (scannedData) => {
       if (/^\d{13}$/.test(cleanedInput)) {
         handleScan(cleanedInput);
       } else {
-        setError('Invalid card');      }
+        setError('Invalid card');
+      }
     }
   };
-
-  if (shouldRedirect) {
-    return <Navigate to="/qr-scan" replace state={{ fromGame: true }} />;
-  }
 
   return (
     <div className="min-h-screen bg-black-primary text-cream flex items-center justify-center p-4">
