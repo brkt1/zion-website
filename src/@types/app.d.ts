@@ -7,7 +7,11 @@ export interface TimeContextType {
   resetTimer: (options?: { time?: number; expire?: boolean }) => void;
   isExpired: boolean;
   formatTime: (seconds: number) => string;
+  isTimerActive: boolean;
+  updateTimer: (remainingTime: number, isExpired: boolean) => void;
 }
+
+
 
 export const TimeContext: React.Context<TimeContextType>;
 

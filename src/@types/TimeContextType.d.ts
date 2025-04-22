@@ -7,4 +7,5 @@ export interface TimeContextType {
   resetTimer: (initialTime: number) => void;
   formatTime: (seconds: number) => string;
   isExpired: boolean;
+  isTimerActive: boolean;
 }
