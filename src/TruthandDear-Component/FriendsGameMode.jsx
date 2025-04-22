@@ -9,6 +9,7 @@ import {
   FaArrowLeft // Import the back arrow icon
 } from "react-icons/fa";
 import {supabase} from "../supabaseClient";
+import { GameSessionGuard } from '../Components/GameSessionGuard';
 
 const FriendsGameMode = () => {
  const location = useLocation();
@@ -41,7 +42,6 @@ const FriendsGameMode = () => {
     Truth: [],
     Dare: []
   });
-
   // Fetch Questions from Supabase
   useEffect(() => {
     const fetchAllQuestions = async () => {
@@ -342,11 +342,13 @@ const FriendsGameMode = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] flex items-center justify-center p-4">
-      <AnimatePresence>
-        {currentStep === "player-input" ? renderPlayerInput() : renderGameStart()}
-      </AnimatePresence>
-    </div>
+    <GameSessionGuard>
+      <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] flex items-center justify-center p-4">
+        <AnimatePresence>
+          {currentStep === "player-input" ? renderPlayerInput() : renderGameStart()}
+        </AnimatePresence>
+      </div>
+    </GameSessionGuard>
   );
 };
 

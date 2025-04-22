@@ -1,11 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import QRCode from 'qrcode';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = 'https://rpaxjodkgxfgneflavnj.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwYXhqb2RrZ3hmZ25lZmxhdm5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzE4NDQyMzcsImV4cCI6MjA0NzQyMDIzN30.GSzz1RA75KCX3NiGfz2LOIAuXMPFYQy-fjXYH1S93cc'; // Replace with your actual Supabase anon key
-const supabase = createClient(supabaseUrl, supabaseKey);
-
+import { supabase } from '../supabaseClient';
 
 interface CertificateProps {
   playerName: string;
@@ -26,6 +21,8 @@ const CertificateGenerator: React.FC<CertificateProps> = ({
   gameType,
   onError
 }) => {
+  const [isGenerating, setIsGenerating] = useState(false);
+
   const saveCertificateProps = async (certificateProps: {
     playerName: string;
     playerId: string;
@@ -33,36 +30,45 @@ const CertificateGenerator: React.FC<CertificateProps> = ({
     hasWonCoffee: boolean;
     hasWonPrize: boolean;
     gameType: 'trivia' | 'emoji';
+    timestamp: string;
   }) => {
     try {
       const { data, error } = await supabase
         .from('certificates')
-        .insert([certificateProps]);
-      if (error) throw error;
-      console.log('Certificate saved:', data);
+        .insert([certificateProps])
+        .select();
+
+      if (error) {
+        throw new Error(error.message);
+      }
+      return data;
     } catch (error) {
       console.error('Error saving certificate:', error);
-      onError?.(error as Error);
+      onError?.(error instanceof Error ? error : new Error('Saving failed'));
+      throw error;
     }
   };
 
   const generateCertificate = async () => {
-    const certificateProps = {
-      playerName,
-      playerId,
-      score,
-      hasWonCoffee,
-      hasWonPrize,
-      gameType,
-      timestamp: new Date().toISOString()
-    };
-
-    await saveCertificateProps(certificateProps);
+    if (isGenerating) return;
+    setIsGenerating(true);
 
     try {
       if (!playerName || !playerId) {
         throw new Error('Missing player information');
       }
+
+      const certificateProps = {
+        playerName,
+        playerId,
+        score,
+        hasWonCoffee,
+        hasWonPrize,
+        gameType,
+        timestamp: new Date().toISOString()
+      };
+
+      await saveCertificateProps(certificateProps);
 
       const canvas = document.createElement('canvas');
       const pixelRatio = window.devicePixelRatio || 1;
@@ -78,41 +84,50 @@ const CertificateGenerator: React.FC<CertificateProps> = ({
       ctx.scale(pixelRatio, pixelRatio);
 
       const theme = {
-        background: {
-          start: '#1E3A8A',
-          end: '#0F172A'
-        },
-        primary: '#3B82F6',
-        secondary: '#10B981',
-        accent: '#6366F1',
+        background: '#000000',
+        primary: '#FFD700',
+        secondary: '#FFF3B1',
+        accent: '#CCAC00',
         text: {
-          light: '#F9FAFB',
-          muted: '#D1D5DB'
+          light: '#FFFFFF',
+          muted: '#AAAAAA'
         }
       };
 
-      // Background
-      const gradient = ctx.createLinearGradient(0, 0, 0, canvasHeight);
-      gradient.addColorStop(0, theme.background.start);
-      gradient.addColorStop(1, theme.background.end);
-      ctx.fillStyle = gradient;
+      // Draw background
+      ctx.fillStyle = theme.background;
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-      // Text rendering utility
-      const renderText = (text: string, y: number, options: {
-        size?: number;
-        color?: string;
-        weight?: string;
-        align?: CanvasTextAlign
-      } = {}) => {
-        const {
-          size = 24,
-          color = theme.text.light,
-          weight = '400',
-          align = 'center'
-        } = options;
+      // Load and draw logo
+      const loadImage = (src: string): Promise<HTMLImageElement> => {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.src = src;
+          img.onload = () => resolve(img);
+          img.onerror = reject;
+        });
+      };
 
-        ctx.font = `${weight} ${size}px 'Inter', 'Helvetica Neue', sans-serif`;
+      try {
+        const logo = await loadImage('/zionlogo.png');
+        ctx.drawImage(logo, canvasWidth/2 - 50, 30, 100, 100);
+      } catch (error) {
+        console.error('Error loading logo:', error);
+      }
+
+      // Text rendering function
+      const renderText = (
+        text: string, 
+        y: number, 
+        options: { 
+          size: number; 
+          color: string; 
+          weight?: string;
+          align?: CanvasTextAlign 
+        }
+      ) => {
+        const { size, color, weight = '400', align = 'center' } = options;
+        ctx.font = `${weight} ${size}px Arial`;
         ctx.fillStyle = color;
         ctx.textAlign = align;
         ctx.fillText(text, canvasWidth / 2, y);
@@ -126,105 +141,108 @@ const CertificateGenerator: React.FC<CertificateProps> = ({
         ctx.lineTo(canvasWidth - 75, 75);
         ctx.lineTo(75, 75);
         ctx.closePath();
-        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+        ctx.strokeStyle = 'rgba(255, 215, 0, 0.3)';
         ctx.lineWidth = 2;
         ctx.stroke();
 
         ctx.beginPath();
         ctx.arc(50, 50, 20, 0, Math.PI * 2);
         ctx.arc(canvasWidth - 50, 50, 20, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255,255,255,0.05)';
+        ctx.fillStyle = 'rgba(255, 215, 0, 0.1)';
         ctx.fill();
       };
 
       drawDecorativeShapes();
 
       // Certificate content
-      const title = gameType === 'trivia' ? '🏆 Trivia Champion' : '🎮 Emoji Game Champion';
-      renderText(title, 120, {
+      const title = gameType === 'trivia' 
+        ? '🏆 Trivia Champion' 
+        : '🎮 Emoji Game Champion';
+      
+      renderText(title, 180, {
         size: 42,
         color: theme.primary,
         weight: '700'
       });
 
-      renderText(`Congratulations, ${playerName}!`, 180, {
+      renderText(`Congratulations, ${playerName}!`, 230, {
         size: 32,
         color: theme.text.light,
         weight: '500'
       });
 
-      renderText(`Player ID: ${playerId}`, 230, {
+      renderText(`Player ID: ${playerId}`, 280, {
         size: 24,
         color: theme.secondary
       });
 
       const prizeText = `Score: ${score} points ${hasWonCoffee ? '☕ Free Coffee' : ''} ${hasWonPrize ? '💰 1k Prize' : ''}`;
-      renderText(prizeText.trim(), 280, {
+      renderText(prizeText.trim(), 330, {
         size: 36,
         weight: '600',
         color: theme.accent
       });
 
-      // QR Code
-      const qrCanvas = document.createElement('canvas');
-      const qrData = {
-        playerName,
-        playerId,
-        score,
-        hasWonCoffee,
-        hasWonPrize,
-        gameType,
-        timestamp: new Date().toISOString()
-      };
+      // QR Code Generation
+      try {
+        const qrCanvas = document.createElement('canvas');
+        const qrData = JSON.stringify(certificateProps);
+        
+        await QRCode.toCanvas(qrCanvas, qrData, {
+          width: 200,
+          errorCorrectionLevel: 'H',
+          margin: 1
+        });
 
-      await QRCode.toCanvas(qrCanvas, JSON.stringify(qrData), {
-        width: 250,
-        errorCorrectionLevel: 'M',
-        margin: 1
-      });
+        ctx.drawImage(
+          qrCanvas,
+          (canvasWidth - 200) / 2,
+          400,
+          200,
+          200
+        );
+      } catch (qrError) {
+        console.error('QR Code generation failed:', qrError);
+        throw new Error('Failed to generate QR code');
+      }
 
-      ctx.shadowColor = 'rgba(0,0,0,0.3)';
-      ctx.shadowBlur = 20;
-      ctx.drawImage(
-        qrCanvas,
-        (canvasWidth - 250) / 2,
-        350,
-        250,
-        250
-      );
-      ctx.shadowBlur = 0;
-
-      // Footer
+      // Footer text
       renderText('Official Digital Certificate', 650, {
         size: 20,
-        color: theme.text.muted
+        color: theme.primary
       });
 
-      renderText('Verified by Zione', 690, {
+      renderText('Verified by Yenege', 690, {
         size: 16,
-        color: 'rgba(255,255,255,0.5)'
+        color: 'rgba(255, 215, 0, 0.7)'
       });
 
-      // Download
+      // Create download link
       const filename = `${gameType}_champion_${playerName.replace(/\s+/g, '_')}.png`;
-
       const link = document.createElement('a');
       link.href = canvas.toDataURL('image/png');
       link.download = filename;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
 
     } catch (error) {
-      console.error("Error generating certificate:", error);
-      onError?.(error as Error);
+      console.error("Certificate generation failed:", error);
+      onError?.(error instanceof Error ? error : new Error('Generation failed'));
+    } finally {
+      setIsGenerating(false);
     }
   };
 
   return (
     <button
       onClick={generateCertificate}
-      className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105"
+      disabled={isGenerating}
+      className={`bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-all duration-300 ease-in-out transform ${
+        isGenerating ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'
+      }`}
     >
-      Download Certificate
+      {isGenerating ? 'Generating...' : 'Download Certificate'}
     </button>
   );
 };

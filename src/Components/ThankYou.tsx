@@ -6,14 +6,13 @@ import { FiClock, FiHome, FiRepeat } from 'react-icons/fi';
 const ThankYou: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const currentPath = location.pathname;
 
   const handleTryAgain = () => {
-    window.location.reload();
+    window.location.reload(); // Reload the page to restart the game
   };
 
   const handleGoHome = () => {
-    navigate('/');
+    navigate('/'); // Navigate to the home page
   };
 
   // Particle animation variants
@@ -28,7 +27,7 @@ const ThankYou: React.FC = () => {
         delay: i * 0.02,
         duration: 2,
         repeat: Infinity,
-        repeatType: 'loop'
+        repeatType: 'loop' as const
       }
     })
   };

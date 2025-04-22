@@ -10,6 +10,7 @@ import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import CertificateGenerator from '../Components/CertificateGenerator';
+import { GameSessionGuard } from '../Components/GameSessionGuard';
 
 // Utility function to shuffle array
 const shuffleArray = (array) => {
@@ -105,30 +106,34 @@ const EmojiMastermind = () => {
 
           // Save winner automatically when they win something
           const { error: saveError } = await supabase
-            .from("winners")
+            .from("certificates")
             .insert({
-              player_name: playerName,
-              game_type: "emoji",
+              playerName: playerName,
+              playerId: uuidv4(),
               score: score + 1,
-              won_coffee: true,
-              won_prize: false,
-              // Only include user_id if we have a session
-              ...(session?.user?.id ? { user_id: session.user.id } : {})
+              hasWonCoffee: true,
+              hasWonPrize: false,
+              gameType: "emoji",
+              timestamp: new Date().toISOString()
             });
+
 
           if (saveError) {
             if (saveError.code === '42501') {
               console.log('Permission denied, saving without auth');
               // Try again without user_id
               const { error: retryError } = await supabase
-                .from("winners")
+                .from("certificates")
                 .insert({
-                  player_name: playerName,
-                  game_type: "emoji",
+                  playerName: playerName,
+                  playerId: uuidv4(),
                   score: score + 1,
-                  won_coffee: true,
-                  won_prize: false
+                  hasWonCoffee: true,
+                  hasWonPrize: false,
+                  gameType: "emoji",
+                  timestamp: new Date().toISOString()
                 });
+
               if (retryError) throw retryError;
             } else {
               throw saveError;
@@ -209,6 +214,9 @@ const EmojiMastermind = () => {
     }
   }, [timer, gameOver]);
 return (
+
+  <GameSessionGuard>
+
   <div className="min-h-screen bg-gradient-to-br from-purple-900 via-yellow-800 to-indigo-900 flex flex-col items-center justify-center p-4 text-white overflow-hidden relative">
     {/* Animated background bubbles */}
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -324,7 +332,7 @@ return (
             {/* Emoji Display */}
             <motion.div 
               className="bg-white/5 p-6 rounded-xl border border-white/10 flex items-center justify-center"
-              // ... keep motion props
+              
             >
               <span className="text-6xl sm:text-8xl">{currentEmoji?.emoji || '🎲'}</span>
             </motion.div>
@@ -385,6 +393,8 @@ return (
       </motion.div>
     </div>
   </div>
+  </GameSessionGuard>
+
 );
 };
 

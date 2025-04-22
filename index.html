@@ -1,50 +1,66 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
+  <head>  
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/zionlogo.png" />
-    <link rel="apple-touch-icon" href="/zionlogo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="icon" href="/zionlogo.png" type="image/png" sizes="192x192" />
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#4A90E2" />
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Zion is a professional web application that offers a variety of features and services." />
-    <meta name="keywords" content="Zion, web application, features, services" />
-    <meta property="og:title" content="Zion - Professional Web Application" />
-    <meta property="og:description" content="Zion is a professional web application that offers a variety of features and services." />
-    <meta property="og:image" content="/zionlogo.png" />
-    <meta property="og:url" content="https://yourwebsite.com" />
+
     
-    <!-- PWA specific meta tags -->
+<meta http-equiv="Content-Security-Policy" 
+      content="script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net 'unsafe-inline' 'unsafe-eval' http://localhost:*">
+
+    
+    <!-- Primary Meta Tags -->
+    <title>Yenege</title>
+    <meta name="title" content="Yenege - premium connection" />
+    <meta name="description" content="Yenege is a premium connection that offers a variety of features and services." />
+   
+    <meta http-equiv="Content-Security-Policy" 
+      content="connect-src 'self' https://*.supabase.co ws://localhost:* https://*.ingest.sentry.io">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://yenege.com/" />
+    <meta property="og:title" content="Yenege - premium connection" />
+    <meta property="og:description" content="Yenege is a premium connection that offers a variety of features and services." />
+    <meta property="og:image" content="/social-preview.png" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://yenege.com/" />
+    <meta property="twitter:title" content="Yenege - premium connection" />
+    <meta property="twitter:description" content="Yenege is a premium connection that offers a variety of features and services." />
+    <meta property="twitter:image" content="/social-preview.png" />
+
+    <!-- PWA Configuration -->
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Yenege">
-    <link rel="apple-touch-startup-image" href="/splash.png">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Yenege" />
+    <link rel="apple-touch-startup-image" href="/splash.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)" />
     
-    <!-- Splash screen meta tags -->
-    <meta name="msapplication-TileColor" content="#4A90E2">
-    <meta name="msapplication-TileImage" content="/icons/icon-144x144.png">
-    <meta name="msapplication-config" content="/browserconfig.xml">
+    <!-- Preconnect and Preload -->
+
     
-    <title>Yenege - Professional Web Application</title>
+    <meta http-equiv="Permissions-Policy" 
+          content="camera=(self), storage-access=(self)">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   </head>
   <body>
+    <noscript>
+      <strong>We're sorry but Yenege doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+    </noscript>
     <div id="root"></div>
-    <script type="module" src="/src/main-v3.jsx"></script>
-    
-    <!-- Service Worker Registration -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/service-worker.js')
-            .then(registration => {
-              console.log('ServiceWorker registration successful');
-            })
-            .catch(err => {
-              console.log('ServiceWorker registration failed: ', err);
-            });
-        });
-      }
-    </script>
+    <!-- Async Script Loading -->
+    <script type="module" src="/src/main-v3.jsx" async></script>
+
+    <!-- Service Worker Registration with Version Control -->
+    <script src="/src/service-worker-registration.js"></script>
+
   </body>
 </html>

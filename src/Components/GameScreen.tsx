@@ -2,13 +2,15 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
 import { FaUserPlus, FaUsers, FaArrowLeft } from "react-icons/fa";
+import { GameSessionGuard } from './GameSessionGuard';
 
 const Friends = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { gameMode } = location.state || {};
 
-  const [players, setPlayers] = useState([]);
+  const [players, setPlayers] = useState<string[]>([]);
+
   const [currentPlayerInput, setCurrentPlayerInput] = useState("");
 
   // Fetch game mode validation
@@ -22,7 +24,8 @@ const Friends = () => {
   const addPlayer = () => {
     if (currentPlayerInput.trim() && !players.includes(currentPlayerInput.trim())) {
       const newPlayers = [...players, currentPlayerInput.trim()];
-      setPlayers(newPlayers);
+      setPlayers(newPlayers as string[]);
+
       setCurrentPlayerInput("");
 
       // Navigate to game mode if conditions are met
@@ -74,11 +77,13 @@ const Friends = () => {
   );
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0f0f1c] to-[#0d1323]">
-      <AnimatePresence exitBeforeEnter>
-        {renderPlayerInput()}
-      </AnimatePresence>
-    </div>
+    <GameSessionGuard>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0f0f1c] to-[#0d1323]">
+        <AnimatePresence mode="wait">
+          {renderPlayerInput()}
+        </AnimatePresence>
+      </div>
+    </GameSessionGuard>
   );
 };
 

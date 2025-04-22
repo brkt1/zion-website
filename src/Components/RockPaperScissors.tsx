@@ -2,11 +2,19 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
+type Choice = {
+    name: string;
+    emoji: string;
+    color: string;
+};
+
 const RockPaperScissors = () => {
+    const [userChoice, setUserChoice] = useState<Choice | null>(null);
+    const [computerChoice, setComputerChoice] = useState<Choice | null>(null);
+
     const [showRules, setShowRules] = useState(true);
     const [gameStarted, setGameStarted] = useState(false);
-    const [userChoice, setUserChoice] = useState(null);
-    const [computerChoice, setComputerChoice] = useState(null);
+
     const [result, setResult] = useState('');
     const [score, setScore] = useState({ user: 0, computer: 0 });
 
@@ -38,10 +46,12 @@ const RockPaperScissors = () => {
         }
     ], []);
 
-    const determineWinner = useCallback((user, computer) => {
+    const determineWinner = useCallback((user: Choice, computer: Choice) => {
+        if (!user || !computer) return 'Invalid choice';
+
         if (user === computer) return 'Tie';
 
-        const winningCombos = {
+        const winningCombos: Record<string, string[]> = {
             Rock: ['Scissors', 'Lizard'],
             Paper: ['Rock', 'Spock'],
             Scissors: ['Paper', 'Lizard'],
@@ -52,7 +62,7 @@ const RockPaperScissors = () => {
         return winningCombos[user.name].includes(computer.name) ? 'User' : 'Computer';
     }, []);
 
-    const playGame = useCallback((userSelection) => {
+    const playGame = useCallback((userSelection: Choice) => {
         const computerSelection = choices[Math.floor(Math.random() * choices.length)];
         
         setUserChoice(userSelection);
@@ -182,8 +192,8 @@ const RockPaperScissors = () => {
                                     <span className="text-sm text-white">{userChoice.name}</span>
                                 </div>
                                 <div className="flex flex-col items-center">
-                                    <span className="text-4xl">{computerChoice.emoji}</span>
-                                    <span className="text-sm text-white">{computerChoice.name}</span>
+                                    <span className="text-4xl">{computerChoice?.emoji}</span>
+                                    <span className="text-sm text-white">{computerChoice?.name}</span>
                                 </div>
                             </div>
                         </motion.div>

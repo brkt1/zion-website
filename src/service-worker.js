@@ -1,109 +1,178 @@
-import { clientsClaim } from 'workbox-core'
-import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL } from 'workbox-precaching'
-import { registerRoute, NavigationRoute } from 'workbox-routing'
-import { CacheFirst, NetworkFirst, NetworkOnly } from 'workbox-strategies'
-import { CacheableResponsePlugin } from 'workbox-cacheable-response'
-import { ExpirationPlugin } from 'workbox-expiration'
-import { BackgroundSyncPlugin } from 'workbox-background-sync'
+const CACHE_VERSION = 'v2'; // Incremented version
+const STATIC_CACHE = `static-${CACHE_VERSION}`;
+const DYNAMIC_CACHE = `dynamic-${CACHE_VERSION}`;
+const IMMUTABLE_CACHE = `immutable-${CACHE_VERSION}`;
 
-// Use with precache injection
-self.skipWaiting()
-clientsClaim()
+// Pre-cache core assets
+const PRECACHE_ASSETS = [
+  '/',
+  '/offline.html',
+  '/public/manifest.json', // Updated path
+  'offline.png' // Updated path
+];
 
-// Background Sync setup
-const bgSyncPlugin = new BackgroundSyncPlugin('apiQueue', {
-  maxRetentionTime: 24 * 60 // Retry for max of 24 hours
-})
+// Immutable assets (cache forever)
+const IMMUTABLE_ASSETS = [
+  '/Dare 1.png',
+  '/image 1.png',
+  '/image 2.png',
+  '/social-preview.png',
+  '/zionlogo.png'
+];
 
-// Clean up old caches
-cleanupOutdatedCaches()
-
-// Precache all assets
-precacheAndRoute(self.__WB_MANIFEST)
-
-// Cache static assets
-registerRoute(
-  ({ request }) => 
-    request.destination === 'style' ||
-    request.destination === 'script' ||
-    request.destination === 'image',
-  new CacheFirst({
-    cacheName: 'static-resources',
-    plugins: [
-      new CacheableResponsePlugin({
-        statuses: [0, 200]
-      }),
-      new ExpirationPlugin({
-        maxAgeSeconds: 30 * 24 * 60 * 60 // 30 days
-      })
-    ]
-  })
-)
-
-// Network first for HTML navigation with offline fallback
-registerRoute(
-  new NavigationRoute(
-    createHandlerBoundToURL('/offline.html'),
-    {
-      allowlist: [/^\/$/],
-    }
-  )
-)
-
-// Network first for API requests with background sync
-registerRoute(
-  ({ url }) => url.pathname.startsWith('/api/'),
-  new NetworkFirst({
-    cacheName: 'api-cache',
-    plugins: [
-      new CacheableResponsePlugin({
-        statuses: [0, 200]
-      }),
-      new ExpirationPlugin({
-        maxEntries: 50,
-        maxAgeSeconds: 5 * 60 // 5 minutes
-      }),
-      bgSyncPlugin
-    ]
-  })
-)
-
-// Push notification event listeners
-self.addEventListener('push', (event) => {
-  const data = event.data.json()
-  const options = {
-    body: data.body,
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/badge-72x72.png',
-    data: {
-      url: data.url
-    }
-  }
-  
+// Install event - cache core assets
+self.addEventListener('install', (event) => {
   event.waitUntil(
-    self.registration.showNotification(data.title, options)
-  )
-})
+    Promise.all([
+      caches.open(STATIC_CACHE).then(cache => cache.addAll(PRECACHE_ASSETS)),
+      caches.open(IMMUTABLE_CACHE).then(cache => cache.addAll(IMMUTABLE_ASSETS))
+    ])
+    .then(() => {
+      console.log('Caching complete');
+      return self.skipWaiting();
+    })
+    .catch(err => {
+      console.error('Pre-caching failed:', err);
+    })
+  );
+});
 
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close()
+// Activate event - clean up old caches
+self.addEventListener('activate', (event) => {
   event.waitUntil(
-    clients.openWindow(event.notification.data.url)
-  )
-})
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (![STATIC_CACHE, DYNAMIC_CACHE, IMMUTABLE_CACHE].includes(cacheName)) {
+            console.log('Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+    .then(() => self.clients.claim())
+    .then(() => {
+      console.log('Service Worker activated');
+    })
+  );
+});
 
-// Offline fallback
-const FALLBACK_HTML_URL = '/offline.html'
-const FALLBACK_IMAGE_URL = '/images/offline.png'
-
+// Enhanced fetch handler with better bypass rules
 self.addEventListener('fetch', (event) => {
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request).catch(() => caches.match(FALLBACK_HTML_URL))
-    )
-  } else if (event.request.destination === 'image') {
-    event.respondWith(
-      fetch(event.request).catch(() => caches.match(FALLBACK_IMAGE_URL))
-    )
+  const { request } = event;
+  const requestUrl = new URL(request.url);
+
+  // Bypass conditions
+  const shouldBypass = 
+    // External resources
+    requestUrl.hostname !== self.location.hostname ||
+    // Development tools
+    requestUrl.pathname.includes('@vite') ||
+    requestUrl.pathname.includes('__webpack') ||
+    // API requests
+    requestUrl.pathname.startsWith('/graphql/') ||
+    // Non-GET requests
+    request.method !== 'GET' ||
+    // WebSockets
+    requestUrl.protocol === 'ws:' || 
+    requestUrl.protocol === 'wss:' ||
+    // Source maps
+    requestUrl.pathname.endsWith('.map');
+
+  if (shouldBypass) {
+    return fetch(request);
   }
-})
+
+  // Handle navigation requests
+  if (request.mode === 'navigate') {
+    return event.respondWith(
+      handleNavigationRequest(request)
+    );
+  }
+
+  // Handle asset requests
+  return event.respondWith(
+    handleAssetRequest(request)
+  );
+});
+
+// Network-first strategy for HTML
+async function handleNavigationRequest(request) {
+  try {
+    const networkResponse = await fetch(request);
+    const cache = await caches.open(DYNAMIC_CACHE);
+    await cache.put(request, networkResponse.clone());
+    return networkResponse;
+  } catch (error) {
+    const cachedResponse = await caches.match(request);
+    return cachedResponse || caches.match('/offline.html');
+  }
+}
+
+// Cache-first strategy for assets
+async function handleAssetRequest(request) {
+  try {
+    // Check immutable cache first
+    if (IMMUTABLE_ASSETS.some(asset => request.url.endsWith(asset))) {
+      const immutableResponse = await caches.match(request, { cacheName: IMMUTABLE_CACHE });
+      if (immutableResponse) return immutableResponse;
+    }
+
+    // Check dynamic cache
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) return cachedResponse;
+
+    // Fetch from network
+    const networkResponse = await fetch(request);
+    
+    // Cache successful responses
+    if (networkResponse.ok) {
+      const cache = await caches.open(DYNAMIC_CACHE);
+      await cache.put(request, networkResponse.clone());
+    }
+
+    return networkResponse;
+  } catch (error) {
+    console.error('Fetch failed:', error);
+    return serveFallbackResponse(request);
+  }
+}
+
+// Fallback responses
+async function serveFallbackResponse(request) {
+  // Image fallback
+  if (request.headers.get('accept').includes('image')) {
+    return caches.match('/images/offline.png') || 
+           new Response(null, { status: 404 });
+  }
+
+  // CSS fallback
+  if (request.headers.get('accept').includes('text/css')) {
+    return new Response('', { headers: { 'Content-Type': 'text/css' }});
+  }
+
+  // JS fallback
+  if (request.headers.get('accept').includes('javascript')) {
+    return new Response('', { headers: { 'Content-Type': 'application/javascript' }});
+  }
+
+  return new Response(null, { status: 404 });
+}
+
+// Background sync handler
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-data') {
+    event.waitUntil(
+      handleBackgroundSync()
+      .catch(err => {
+        console.error('Background sync failed:', err);
+        throw err; // Triggers retry
+      })
+    );
+  }
+});
+
+async function handleBackgroundSync() {
+  // Implement your sync logic here
+  console.log('Processing background sync');
+}

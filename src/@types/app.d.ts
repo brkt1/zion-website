@@ -1,15 +1,14 @@
-import { Context } from 'react';
+import React from 'react';
 
-interface TimeContextType {
+export interface TimeContextType {
   remainingTime: number;
+  startTimer: (duration: number) => void;
+  pauseTimer: () => void;
+  resetTimer: (options?: { time?: number; expire?: boolean }) => void;
   isExpired: boolean;
   formatTime: (seconds: number) => string;
-  setRemainingTime: (time: number) => void;
-  startTimer: (initialTime: number) => void;
-  pauseTimer: () => void;
-  resetTimer: (initialTime: number) => void;
 }
 
-declare module '../App' {
-  export const TimeContext: Context<TimeContextType>;
-}
+export const TimeContext: React.Context<TimeContextType>;
+
+export default function App(): JSX.Element;

@@ -19,6 +19,8 @@ import { useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import CertificateGenerator from '../Components/CertificateGenerator';
 
+import { GameSessionGuard } from '../Components/GameSessionGuard';
+
 const shuffleArray = (array: any[]) => {
   return array.sort(() => Math.random() );
 };
@@ -135,30 +137,32 @@ const TriviaGame = () => {
 
           // Save winner automatically when they win something
           const { error: saveError } = await supabase
-            .from("winners")
+            .from("certificates")
             .insert({
-              player_name: playerName,
-              game_type: "trivia",
+              playerName: playerName,
+              gameType: "trivia",
               score: score,
-              won_coffee: hasWonCoffee,
-              won_prize: hasWonPrize,
-              // Only include user_id if we have a session
-              ...(session?.user?.id ? { user_id: session.user.id } : {})
+              hasWonCoffee: hasWonCoffee,
+              hasWonPrize: hasWonPrize,
+              timestamp: new Date().toISOString()
             });
+
 
           if (saveError) {
             if (saveError.code === '42501') {
               console.log('Permission denied, saving without auth');
               // Try again without user_id
               const { error: retryError } = await supabase
-                .from("winners")
+                .from("certificates")
                 .insert({
-                  player_name: playerName,
-                  game_type: "trivia",
+                  playerName: playerName,
+                  gameType: "trivia",
                   score: score,
-                  won_coffee: hasWonCoffee,
-                  won_prize: hasWonPrize
+                  hasWonCoffee: hasWonCoffee,
+                  hasWonPrize: hasWonPrize,
+                  timestamp: new Date().toISOString()
                 });
+
               if (retryError) throw retryError;
             } else {
               throw saveError;
@@ -461,9 +465,8 @@ const handleCertificateError = (error: Error) => {
             {score}
           </motion.div>
         </motion.div>
-  
-        {/* Achievements Section with Enhanced Animations */}
-        <AnimatePresence mode="wait">
+         {/* Achievements Section with Enhanced Animations */}
+         <AnimatePresence mode="wait">
           {(hasWonCoffee || hasWonPrize) && (
             <motion.div
               key="achievements"
@@ -538,9 +541,11 @@ const handleCertificateError = (error: Error) => {
   );
   // Main Render
   return (
-    <>
-      {isGameOver ? renderEndScreen() : gameStarted ? renderQuestionScreen() : renderStartScreen()}
-    </>
+    <GameSessionGuard>
+      <>
+        {isGameOver ? renderEndScreen() : gameStarted ? renderQuestionScreen() : renderStartScreen()}
+      </>
+    </GameSessionGuard>
   );
 };
 
