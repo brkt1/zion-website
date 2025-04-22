@@ -26,8 +26,8 @@ const ErrorBoundary = ({ children }) => {
 
   if (hasError) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-100">
-        <div className="p-6 bg-white rounded-lg shadow-md">
+      <div className="flex items-center justify-center h-screen bg-black ">
+        <div className="p-6 bg-bl rounded-lg shadow-md">
           <h2 className="text-xl font-bold text-red-600 mb-4">
             Something went wrong
           </h2>

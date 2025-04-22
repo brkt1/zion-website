@@ -9,7 +9,28 @@ const QRScanner = ({ onScan }) => {
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState(null);
   const [showPermissionPrompt, setShowPermissionPrompt] = useState(false);
+useEffect(() => {
+  if (location.state?.sessionExpired) {
+    setError('Your game session has expired. Please scan a new card to continue playing.');
+  }
+}, [location.state]);
 
+// Update your return statement to show this message
+{error && (
+  <div className="p-4 mb-4 bg-red-900/20 rounded-lg border-l-4 border-red-500">
+    <div className="text-red-300">
+      <p className="font-medium">{error}</p>
+      {error.includes('Camera access') && (
+        <button
+          onClick={getCameras}
+          className="w-full mt-3 bg-gold-primary text-black-primary py-2 rounded-lg hover:bg-gold-secondary transition-colors flex items-center justify-center gap-2"
+        >
+          <FaRedo /> Retry Camera Access
+        </button>
+      )}
+    </div>
+  </div>
+)}
 
   useEffect(() => {
     const initializeScanner = async () => {

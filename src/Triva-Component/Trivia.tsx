@@ -19,6 +19,8 @@ import { useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import CertificateGenerator from '../Components/CertificateGenerator';
 
+import { GameSessionGuard } from '../Components/GameSessionGuard';
+
 const shuffleArray = (array: any[]) => {
   return array.sort(() => Math.random() );
 };
@@ -463,9 +465,8 @@ const handleCertificateError = (error: Error) => {
             {score}
           </motion.div>
         </motion.div>
-  
-        {/* Achievements Section with Enhanced Animations */}
-        <AnimatePresence mode="wait">
+         {/* Achievements Section with Enhanced Animations */}
+         <AnimatePresence mode="wait">
           {(hasWonCoffee || hasWonPrize) && (
             <motion.div
               key="achievements"
@@ -540,9 +541,11 @@ const handleCertificateError = (error: Error) => {
   );
   // Main Render
   return (
-    <>
-      {isGameOver ? renderEndScreen() : gameStarted ? renderQuestionScreen() : renderStartScreen()}
-    </>
+    <GameSessionGuard>
+      <>
+        {isGameOver ? renderEndScreen() : gameStarted ? renderQuestionScreen() : renderStartScreen()}
+      </>
+    </GameSessionGuard>
   );
 };
 

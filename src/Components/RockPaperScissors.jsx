@@ -1,11 +1,14 @@
 import React from 'react';
+import { GameSessionGuard } from '../Components/GameSessionGuard';
 
 const RockPaperScissors = () => {
   return (
-    <div>
-      <h1>Rock Paper Scissors Game</h1>
-      {/* Game logic goes here */}
-    </div>
+    <GameSessionGuard>
+      <div>
+        <h1>Rock Paper Scissors Game</h1>
+        {/* Game logic goes here */}
+      </div>
+    </GameSessionGuard>
   );
 };
 

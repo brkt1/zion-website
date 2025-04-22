@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
 import { FaUserPlus, FaUsers, FaArrowLeft } from "react-icons/fa";
+import { GameSessionGuard } from './GameSessionGuard';
 
 const Friends = () => {
   const location = useLocation();
@@ -76,11 +77,13 @@ const Friends = () => {
   );
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0f0f1c] to-[#0d1323]">
-      <AnimatePresence mode="wait">
-        {renderPlayerInput()}
-      </AnimatePresence>
-    </div>
+    <GameSessionGuard>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0f0f1c] to-[#0d1323]">
+        <AnimatePresence mode="wait">
+          {renderPlayerInput()}
+        </AnimatePresence>
+      </div>
+    </GameSessionGuard>
   );
 };
 
