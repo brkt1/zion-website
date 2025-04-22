@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -15,20 +15,26 @@ import {
 const Landing = () => {
   const [showDownloadButton, setShowDownloadButton] = useState(false);
 
-  useEffect(() => {
-    const isAppInstalled = () => {
-      try {
-        window.location.href = 'zionapp://';
-        return true;
-      } catch (e) {
-        return false;
-      }
-    };
-
-    if (!isAppInstalled()) {
+  const handleLaunchApp = () => {
+    // Attempt to launch the app via custom URL scheme on user gesture
+    const timeout = setTimeout(() => {
+      // If app is not installed, show download button after delay
       setShowDownloadButton(true);
-    }
-  }, []);
+    }, 1500);
+
+    window.location.href = 'zionapp://';
+
+    // Clear timeout if app is installed and launched
+    window.addEventListener('blur', () => {
+      clearTimeout(timeout);
+    });
+
+    return () => {
+      window.removeEventListener('blur', () => {
+        clearTimeout(timeout);
+      });
+    };
+  };
 
   const handleDownloadClick = () => {
     window.location.href = 'https://yenege.com';
@@ -66,6 +72,8 @@ const Landing = () => {
   ];
 
   const GameButton = ({ game, index }) => {
+    const IconComponent = game.icon;
+    
     return (
       <motion.div
         whileHover={{ y: -5 }}
@@ -80,16 +88,14 @@ const Landing = () => {
         }}
       >
         <Link to={game.to} className="block h-full group">
-          <div className={`
-            h-full flex flex-col p-6 rounded-xl
+          <div className={`h-full flex flex-col p-6 rounded-xl
             bg-black-secondary
             relative overflow-hidden
             border border-gray-dark hover:border-gold-primary
             transition-all duration-300
-            group-hover:shadow-lg group-hover:shadow-gold-primary/10
-          `}>
+            group-hover:shadow-lg group-hover:shadow-gold-primary/10`}>
             <div className={`absolute top-4 right-4 p-3 rounded-lg ${game.accentColor} bg-opacity-20 text-gold-primary`}>
-              <game.icon className="text-xl" />
+              <IconComponent className="text-xl" />
             </div>
             
             <div className="flex-grow flex flex-col justify-between">
@@ -187,7 +193,7 @@ const Landing = () => {
             ))}
           </motion.div>
 
-          {showDownloadButton && (
+          {showDownloadButton ? (
             <motion.div
               className="flex justify-center mb-16"
               initial={{ opacity: 0, y: 20 }}
@@ -210,6 +216,22 @@ const Landing = () => {
                     <FaChevronRight className="ml-2" />
                   </span>
                 </span>
+              </motion.button>
+            </motion.div>
+          ) : (
+            <motion.div
+              className="flex justify-center mb-16"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 }}
+            >
+              <motion.button
+                onClick={handleLaunchApp}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+                className="px-8  rounded-lg bg-gradient-to-r from-gold-primary to-gold-secondary text-black-primary font-medium flex items-center shadow-lg hover:shadow-xl transition-all group"
+              >
+                <span>Launch App</span>
               </motion.button>
             </motion.div>
           )}
