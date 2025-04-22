@@ -5,6 +5,13 @@ import { supabase } from '../supabaseClient';
 import { FaCamera, FaQrcode, FaKeyboard, FaRedo } from 'react-icons/fa';
 import { useCardStore, useTimerStore, useGameStore } from '../app/store';
 
+import { FaCamera, FaQrcode, FaKeyboard, FaRedo } from 'react-icons/fa';
+import { useCardStore, useTimerStore, useGameStore } from '../app/store';
+import { TimeService } from '../services/TimeService';
+import SafeStorage from '../utils/safeStorage';
+
+const safeStorage = new SafeStorage();
+
 const GAME_ROUTES = {
   1: '/trivia-game',
   2: '/truth-or-dare',
