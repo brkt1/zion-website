@@ -38,7 +38,10 @@ const FriendsGameMode = () => {
     Truth: [],
     Dare: []
   });
-
+  const [sessionDisplayedQuestions, setSessionDisplayedQuestions] = useState({
+    Truth: [],
+    Dare: []
+  });
   // Fetch Questions from Supabase
   useEffect(() => {
     const fetchAllQuestions = async () => {
