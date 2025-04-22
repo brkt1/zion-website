@@ -10,6 +10,7 @@ import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import CertificateGenerator from '../Components/CertificateGenerator';
+import { GameSessionGuard } from '../Components/GameSessionGuard';
 
 // Utility function to shuffle array
 const shuffleArray = (array) => {
@@ -213,6 +214,9 @@ const EmojiMastermind = () => {
     }
   }, [timer, gameOver]);
 return (
+
+  <GameSessionGuard>
+
   <div className="min-h-screen bg-gradient-to-br from-purple-900 via-yellow-800 to-indigo-900 flex flex-col items-center justify-center p-4 text-white overflow-hidden relative">
     {/* Animated background bubbles */}
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -389,6 +393,8 @@ return (
       </motion.div>
     </div>
   </div>
+  </GameSessionGuard>
+
 );
 };
 
