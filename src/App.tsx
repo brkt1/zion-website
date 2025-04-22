@@ -2,9 +2,12 @@ import React, { createContext, useEffect, useMemo, lazy, Suspense } from "react"
 import * as Sentry from "@sentry/react";
 import './App.css';
 import ErrorBoundary from "./Components/ErrorBoundary";
-import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, Router } from "react-router-dom";
+import { createBrowserHistory } from 'history';
+
 import { motion } from 'framer-motion';
 import { useGameStore, useTimerStore } from './app/store';
+
 
 // Lazy-loaded components
 const Lovers = lazy(() => import("./TruthandDear-Component/Lovers"));
@@ -139,11 +142,11 @@ const App: React.FC = () => {
       });
     }
   }, []);
-
+  const history = createBrowserHistory();
   return (
     <ErrorBoundary>
       <TimeContext.Provider value={contextValue}>
-        <BrowserRouter>
+        <Router future={{ v7_relativeSplatPath: true }} location={""} navigator={history}>
           {isTimerActive && <TimeDisplay />}
           <Suspense fallback={<div className="loading-spinner" />}>
             <Routes>
@@ -164,7 +167,8 @@ const App: React.FC = () => {
               <Route path="/cafe-owner/check-winner" element={<CafeOwnerCheckWinner />} />
             </Routes>
           </Suspense>
-        </BrowserRouter>
+        </Router>
+
       </TimeContext.Provider>
     </ErrorBoundary>
   );
