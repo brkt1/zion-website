@@ -1,14 +1,18 @@
+import SafeStorage from '../utils/safeStorage';
+
+const safeStorage = new SafeStorage();
+
 // utils/timeService.js
 export const TimeService = {
     initializeTimer: (durationInMinutes) => {
       const durationMs = durationInMinutes * 60 * 1000;
       const expiryTime = Date.now() + durationMs;
-      safeStorage.set('game_timer_expiry', expiryTime.toString());
+      safeStorage.setItem('game_timer_expiry', expiryTime.toString());
       return durationMs;
     },
   
     getRemainingTime: () => {
-      const expiryTime = parseInt(safeStorage.get('game_timer_expiry'));
+      const expiryTime = parseInt(safeStorage.getItem('game_timer_expiry'));
       if (!expiryTime) return 0;
       return Math.max(0, expiryTime - Date.now());
     },
@@ -18,7 +22,7 @@ export const TimeService = {
     },
   
     clearTimer: () => {
-      safeStorage.remove('game_timer_expiry');
+      safeStorage.removeItem('game_timer_expiry');
     },
   
     formatRemainingTime: () => {
