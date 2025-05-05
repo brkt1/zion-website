@@ -18,6 +18,10 @@ const ThankYou = () => {
   const [isAnimating, setIsAnimating] = useState(true);
   const resetGame = useGameStore(state => state.resetGame);
 
+  React.useEffect(() => {
+    resetGame();
+  }, [resetGame]);
+
   const trophies = [
     { 
       type: 'gold', 
@@ -216,8 +220,10 @@ const ThankYou = () => {
               <motion.button
                 whileHover={{ y: -3, scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => navigate('/qr-scan')}
-
+                onClick={() => {
+                  resetGame();
+                  navigate('/qr-scan');
+                }}
                 className={`flex-1 flex items-center justify-center gap-3 ${currentTrophy?.bg} text-gray-900 px-6 py-4 rounded-lg font-semibold hover:shadow-lg hover:shadow-amber-500/30 transition-all`}
               >
                 <FaRedo className="w-5 h-5" />
