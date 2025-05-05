@@ -212,8 +212,10 @@ const generateSixCards = async () => {
                 backgroundColor: null
             });
     
-            // Remove the temporary container
-            document.body.removeChild(container);
+            // Remove the temporary container if it is still attached
+            if (document.body.contains(container)) {
+                document.body.removeChild(container);
+            }
     
             // Create PDF
             const imgData = canvas.toDataURL('image/png');

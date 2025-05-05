@@ -455,7 +455,6 @@ const handleCertificateError = (error: Error) => {
             animate={{ 
               scale: [0.8, 1.1, 1],
               transition: { 
-                type: "spring",
                 stiffness: 300
               }
             }}

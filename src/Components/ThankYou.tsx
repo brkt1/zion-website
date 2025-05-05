@@ -10,11 +10,13 @@ import {
   FaRedo,
   FaChevronRight
 } from 'react-icons/fa';
+import { useGameStore } from '../app/store';
 
 const ThankYou = () => {
   const navigate = useNavigate();
   const [trophy, setTrophy] = useState('gold');
   const [isAnimating, setIsAnimating] = useState(true);
+  const resetGame = useGameStore(state => state.resetGame);
 
   const trophies = [
     { 
@@ -97,19 +99,20 @@ const ThankYou = () => {
             
             {/* Trophy reveal */}
             <div className="relative flex justify-center">
-              <motion.div
-                initial={{ scale: 0, y: 50 }}
-                animate={{ 
-                  scale: [1, 1.1, 1],
-                  y: 0,
-                  rotate: [0, 15, -15, 0]
-                }}
-                transition={{
-                  duration: 2,
-                  ease: "easeInOut"
-                }}
-                className={`relative mx-auto w-48 h-48 flex items-center justify-center rounded-full bg-black-secondary border-2 ${currentTrophy?.border}/30 shadow-lg`}
-              >
+                <motion.div
+                  initial={{ scale: 0, y: 50 }}
+                  animate={{ 
+                    scale: [1, 1.1, 1],
+                    y: 0,
+                    rotate: [0, 15, -15, 0]
+                  }}
+                  transition={{
+                    duration: 2,
+                    ease: "easeInOut",
+                    type: "tween"
+                  }}
+                  className={`relative mx-auto w-48 h-48 flex items-center justify-center rounded-full bg-black-secondary border-2 ${currentTrophy?.border}/30 shadow-lg`}
+                >
                 <div className={`absolute inset-0 rounded-full ${currentTrophy?.bg} opacity-10`}></div>
                 <motion.div
                   animate={{
@@ -120,7 +123,8 @@ const ThankYou = () => {
                     delay: 0.5,
                     duration: 3,
                     repeat: Infinity,
-                    repeatType: 'mirror'
+                    repeatType: 'mirror',
+                    type: "tween"
                   }}
                   className={`${currentTrophy?.color} drop-shadow-lg`}
                 >
@@ -224,7 +228,10 @@ const ThankYou = () => {
               <motion.button
                 whileHover={{ y: -3, scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => navigate('/')}
+                onClick={() => {
+                  resetGame();
+                  navigate('/');
+                }}
                 className="flex-1 flex items-center justify-center gap-3 bg-black-secondary hover:bg-black text-amber-400 px-6 py-4 rounded-lg font-semibold hover:shadow-lg hover:shadow-amber-500/10 transition-all border border-gray-700"
               >
                 <FaHome className="w-5 h-5" />

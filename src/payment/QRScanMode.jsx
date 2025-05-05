@@ -129,21 +129,33 @@ const QRScanMode = () => {
     }
   }, []);
 
-  const handleScan = useCallback(async (scannedData) => {
+const handleScan = useCallback(async (scannedData) => {
     if (isLoading) return;
     setIsLoading(true);
     setError(null);
 
     try {
-      const cleanedData = scannedData.replace(/\D/g, '');
-      if (!/^\d{13}$/.test(cleanedData)) {
+      let cardNumber = '';
+      try {
+        const parsedData = JSON.parse(scannedData);
+        if (parsedData && parsedData.card_number) {
+          cardNumber = String(parsedData.card_number);
+        } else {
+          throw new Error('Card number not found in scanned data');
+        }
+      } catch {
+        // If not JSON, fallback to extracting digits
+        cardNumber = scannedData.replace(/\D/g, '');
+      }
+
+      if (!/^\d{13}$/.test(cardNumber)) {
         throw new Error(`Invalid 13-digit card number: ${scannedData}`);
       }
 
       const { data, error } = await supabase
         .from('cards')
         .select('*, game_types(name)')
-        .eq('card_number', cleanedData)
+        .eq('card_number', cardNumber)
         .single();
 
       if (error) throw error;
