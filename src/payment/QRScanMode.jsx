@@ -4,7 +4,7 @@ import { Html5Qrcode } from 'html5-qrcode';
 import { supabase } from '../supabaseClient';
 import { FaCamera, FaQrcode, FaKeyboard, FaRedo } from 'react-icons/fa';
 import { useCardStore, useTimerStore, useGameStore } from '../app/store';
-import { TimeService } from '../services/TimeService';
+import { TimeService } from '../services/timeService';
 import SafeStorage from '../utils/safeStorage';
 
 const safeStorage = new SafeStorage();
@@ -117,9 +117,11 @@ const QRScanMode = () => {
 
   const stopScanner = useCallback(async () => {
     try {
-      if (html5QrCode.current?.isScanning) {
+      if (html5QrCode.current?.isScanning && !html5QrCode.current._isStopping) {
+        html5QrCode.current._isStopping = true;
         await html5QrCode.current.stop();
         html5QrCode.current.clear();
+        html5QrCode.current._isStopping = false;
       }
       setIsScanning(false);
     } catch (err) {
@@ -145,7 +147,7 @@ const QRScanMode = () => {
         .single();
 
       if (error) throw error;
-      if (data.used) throw new Error('Card already redeemed');
+      if (data.used !== false) throw new Error('Card already redeemed');
 
       // Initialize timer with card's duration
       TimeService.initializeTimer(data.duration);

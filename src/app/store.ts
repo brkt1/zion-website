@@ -73,7 +73,7 @@ interface TimerState {
   isExpired: boolean;
   startTimer: (duration: number) => void;
   pauseTimer: () => void;
-  resetTimer: (options?: { time?: number; expire?: boolean }) => void;
+  resetTimer: (options?: { time?: number; expire?: boolean; keepActive?: boolean }) => void;
   formatTime: (seconds: number) => string;
 }
 
@@ -87,9 +87,9 @@ export const useTimerStore = create<TimerState>((set) => ({
     isExpired: false 
   }),
   pauseTimer: () => set({ isTimerActive: false }),
-  resetTimer: ({ time = 0, expire = false } = {}) => set({ 
+  resetTimer: ({ time = 0, expire = false, keepActive = false } = {}) => set({ 
     remainingTime: time,
-    isTimerActive: false,
+    isTimerActive: keepActive ? true : false,
     isExpired: expire 
   }),
   formatTime: (seconds) => {

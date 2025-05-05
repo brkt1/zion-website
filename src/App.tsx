@@ -41,15 +41,17 @@ const TimeDisplay: React.FC = () => {
   const navigate = useNavigate();
   const remainingTime = useTimerStore(state => state.remainingTime);
   const formatTime = useTimerStore(state => state.formatTime);
+  const resetGame = useGameStore(state => state.resetGame);
 
   useEffect(() => {
     if (remainingTime <= 30 && 'vibrate' in navigator) {
       navigator.vibrate([200, 100, 200]);
     }
     if (remainingTime <= 0) {
+      resetGame();
       navigate('/thank-you');
     }
-  }, [remainingTime, navigate]);
+  }, [remainingTime, navigate, resetGame]);
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 p-4">
@@ -99,8 +101,9 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const location = useLocation();
   const isPlaying = useGameStore(state => state.isPlaying);
+  const isTimerActive = useTimerStore(state => state.isTimerActive);
 
-  if (!isPlaying) {
+  if (!isPlaying || !isTimerActive) {
     return <Navigate to="/qr-scan" replace state={{ fromGame: true }} />;
   }
 
@@ -113,6 +116,21 @@ const history = createBrowserHistory();
 
 const App: React.FC = () => {
   const { remainingTime, isTimerActive, startTimer, pauseTimer, resetTimer, isExpired, formatTime } = useTimerStore();
+
+  console.log("Timer active:", isTimerActive);
+  console.log("Remaining time:", remainingTime);
+
+  React.useEffect(() => {
+    if (!isTimerActive) return;
+
+    const interval = setInterval(() => {
+      if (remainingTime > 0) {
+        resetTimer({ time: remainingTime - 1, keepActive: true });
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isTimerActive, remainingTime, resetTimer]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -139,7 +157,7 @@ const App: React.FC = () => {
   useEffect(() => {
     if (process.env.NODE_ENV === 'production') {
       Sentry.init({
-        dsn: "https://3fde7eac728bdae0b3212527b40231de@o4509093151899648.ingest.de.sentry.io/4509093158912080",
+        dsn: "https://3fde7eac728bdae0b3212527b40231de@o4509093158912080.ingest.de.sentry.io/4509093158912080",
         tracesSampleRate: 1.0
       });
     }
@@ -152,14 +170,14 @@ const App: React.FC = () => {
           {isTimerActive && <TimeDisplay />}
           <Suspense fallback={<div className="loading-spinner" />}>
             <Routes>
-              <Route path="/login" element={<Login />} />
+              <Route path="/login" element={<ProtectedRoute><Login /></ProtectedRoute>} />
               <Route path="/" element={<Landing />} />
               <Route path="/thank-you" element={<ThankYou />} />
-              <Route path="/lovers" element={<Lovers />} />
-              <Route path="/friends" element={<Friends />} />
-              <Route path="/game-mode" element={<LoveGameMode />} />
-              <Route path="/friends-game-mode" element={<FriendsGameMode />} />
-              <Route path="/game-screen" element={<GameScreen />} />
+              <Route path="/lovers" element={<ProtectedRoute><Lovers /></ProtectedRoute>} />
+              <Route path="/friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
+              <Route path="/game-mode" element={<ProtectedRoute><LoveGameMode /></ProtectedRoute>} />
+              <Route path="/friends-game-mode" element={<ProtectedRoute><FriendsGameMode /></ProtectedRoute>} />
+              <Route path="/game-screen" element={<ProtectedRoute><GameScreen /></ProtectedRoute>} />
               <Route path="/qr-scan" element={<QRScanMode />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/trivia-game" element={<ProtectedRoute><TriviaGame /></ProtectedRoute>} />

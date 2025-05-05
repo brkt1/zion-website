@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../supabaseClient';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import Error from '../../components/Error';
+import LoadingSpinner from '../../Components/LoadingSpinner';
+import Error from '../../Components/Error';
 
 const CertificatesTable = () => {
   const [certificates, setCertificates] = useState([]);

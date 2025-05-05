@@ -8,11 +8,13 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "jest"
+    "test": "jest",
+    "start": "vite"
   },
   "dependencies": {
     "@chakra-ui/icons": "^2.1.1",
     "@chakra-ui/react": "^3.2.5",
+    "@heroicons/react": "^2.2.0",
     "@sentry/browser": "^9.11.0",
     "@sentry/react": "^9.11.0",
     "@sentry/tracing": "^7.120.3",

@@ -7,7 +7,7 @@ import AddCafeOwner from './AddCafeOwner';
 import CardGenerator from '../../payment/CardGenerator';
 import WinnerList from './WinnerList';
 import Sidebar from './Sidebar';
-import LoadingSpinner from '../../components/LoadingSpinner';
+import LoadingSpinner from '../../Components/LoadingSpinner';
 
 const AdminPanel = () => {
   const [activeTab, setActiveTab] = useState('certificates');
