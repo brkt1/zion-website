@@ -9,7 +9,7 @@ import { BrowserTracing } from '@sentry/tracing';
 // Initialize Sentry only in production
 if (import.meta.env.PROD) {
   Sentry.init({
-    dsn: 'your-dsn-here',
+    dsn: import.meta.env.VITE_SENTRY_DSN,
     integrations: [new BrowserTracing()],
     tracesSampleRate: 0.2,
     beforeSend(event) {

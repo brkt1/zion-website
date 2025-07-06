@@ -36,7 +36,7 @@ const WinnerScanner = ({ onWinnerFound }) => {
   return (
     <div>
       <h2 className="text-xl font-semibold mb-2">Scan Winner's QR Code</h2>
-      <QRScanner onScan={handleScan} />
+      <EnhancedQRScanner onScan={handleScan} />
       {loading && <p>Loading...</p>}
       {error && <p className="text-red-500">{error}</p>}
     </div>

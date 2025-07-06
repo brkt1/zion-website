@@ -90,7 +90,7 @@ const AdminPanel = () => {
           <div className="bg-gray-800 rounded-xl shadow-xl p-4 sm:p-6 border border-gray-700">
             {activeTab === 'certificates' && <CertificatesTable />}
             {activeTab === 'cafeOwners' && <AddCafeOwner />}
-            {activeTab === 'cardGenerator' && <CardGenerator />}
+            {activeTab === 'cardGenerator' && <EnhancedCardGenerator />}
             {activeTab === 'winners' && <WinnerList />}
           </div>
         </div>

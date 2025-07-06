@@ -363,6 +363,7 @@ app.post('/api/admin/cafe-owners', authenticateUser, requireAdmin, async (req, r
       }
     });
     
+    console.log('POST /api/admin/cafe-owners response:', { user, cafeOwner });
     res.status(201).json({ user, cafeOwner });
   } catch (error) {
     res.status(500).json({ error: 'Failed to create cafe owner' });
@@ -419,9 +420,4 @@ process.on('SIGTERM', async () => {
   process.exit(0);
 });
 
-app.listen(port, () => {
-  console.log(`🚀 Server running on port ${port}`);
-  console.log(`📊 Health check: http://localhost:${port}/health`);
-});
-
-module.exports = app;
+module.exports = { app, prisma, supabase };

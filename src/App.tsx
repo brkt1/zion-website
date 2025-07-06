@@ -13,6 +13,7 @@ import { useAuthStore } from './stores/authStore';
 import LoadingSpinner from "./Components/LoadingSpinner";
 import ErrorPage from "./Components/ErrorPage";
 import { GameSessionGuard } from "./Components/GameSessionGuard";
+import GameTimer from "./Components/GameTimer";
 
 // Lazy-loaded components
 const Lovers = lazy(() => import("./TruthandDear-Component/Lovers"));
@@ -97,15 +98,7 @@ const App: React.FC = () => {
     formatTime
   }), [remainingTime, startTimer, pauseTimer, resetTimer, isExpired, formatTime]);
 
-  // Initialize Sentry in production
-  useEffect(() => {
-    if (import.meta.env.MODE === 'production') {
-      Sentry.init({
-        dsn: "https://3fde7eac728bdae0b3212527b40231de@o4509093158912080.ingest.de.sentry.io/4509093158912080",
-        tracesSampleRate: 1.0
-      });
-    }
-  }, []);
+  
 
   return (
     <ErrorBoundary>
@@ -113,7 +106,7 @@ const App: React.FC = () => {
         <HistoryRouter history={history as any} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           {isTimerActive && <GameTimer />}
           <Suspense fallback={<LoadingSpinner />}>
-            <Routes errorElement={<ErrorPage />}>
+            <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/" element={<Landing />} />
               <Route path="/game-select" element={<QRScanMode />} />

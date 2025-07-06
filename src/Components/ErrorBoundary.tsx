@@ -44,6 +44,6 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     
     return this.props.children;
 }
-
+}
 
 export default ErrorBoundary;
