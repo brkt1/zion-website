@@ -1,4 +1,4 @@
-// components/admin/Sidebar.jsx
+// components/admin/Sidebar.tsx
 import React from 'react';
 
 const Sidebar = ({ 

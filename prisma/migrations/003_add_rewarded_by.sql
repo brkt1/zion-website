@@ -1,0 +1,1 @@
+ALTER TABLE "certificates" ADD COLUMN "rewarded_by" uuid REFERENCES "cafe_owners"(id);

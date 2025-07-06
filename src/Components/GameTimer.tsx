@@ -2,8 +2,8 @@ import React, { useContext, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ThankYou from './ThankYou';
-import { TimeContext } from '../App.jsx';
-import type { TimeContextType } from '../@types/app.jsx';
+import { TimeContext } from '../App.tsx';
+import type { TimeContextType } from '../@types/app.tsx';
 
 const registerServiceWorker = async () => {
   if ('serviceWorker' in navigator) {

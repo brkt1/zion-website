@@ -445,14 +445,7 @@ const EmojiMastermind = () => {
                   )}
 
                   <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-                    <CertificateGenerator
-                      playerName={playerName}
-                      score={score}
-                      hasWonCoffee={currentReward === 'coffee'}
-                      hasWonPrize={currentReward === 'cash_prize'}
-                      gameType="emoji"
-                      className="w-full"
-                    />
+                    {/* CertificateGenerator will be rendered by ThankYou component */}
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">

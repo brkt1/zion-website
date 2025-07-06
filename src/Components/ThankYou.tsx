@@ -211,6 +211,27 @@ const ThankYou = () => {
               </motion.p>
             </div>
 
+            {playerName && playerId && score !== undefined && (
+              <div className="mt-8 space-y-4">
+                <RewardingCard 
+                  playerName={playerName}
+                  playerId={playerId}
+                  score={score}
+                  hasWonCoffee={hasWonCoffee || false}
+                  hasWonPrize={hasWonPrize || false}
+                  workerId="admin"
+                />
+                <CertificateGenerator
+                  playerName={playerName}
+                  playerId={playerId}
+                  score={score}
+                  hasWonCoffee={hasWonCoffee || false}
+                  hasWonPrize={hasWonPrize || false}
+                  gameType={gameType || 'trivia'}
+                />
+              </div>
+            )}
+
             <motion.div 
               className="flex flex-col sm:flex-row justify-center gap-4 pt-6"
               initial={{ opacity: 0 }}

@@ -52,6 +52,17 @@ const AddCafeOwner = () => {
         setSuccess(null);
         
         const password = generateRandomPassword(12);
+
+        const { data: existingOwner, error: existingOwnerError } = await supabase
+            .from('cafe_owners')
+            .select('email')
+            .eq('email', email)
+            .single();
+
+        if (existingOwner) {
+            setError('An account with this email already exists.');
+            return;
+        }
         try {
             const { data, error } = await supabase
                 .from('cafe_owners')

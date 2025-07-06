@@ -108,7 +108,7 @@ const TriviaGame = () => {
 
   // Timer logic with dynamic timing based on stage
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: number;
     const timeLimit = Math.max(10, 15 - (currentStage - 1) * 2); // Decreases with stage
     
     if (gameStarted && timer > 0 && !isGameOver) {
@@ -755,19 +755,6 @@ const TriviaGame = () => {
             </div>
           </motion.div>
         )}
-
-        {/* Certificate Generator */}
-        <div className="mb-6">
-          <CertificateGenerator
-            playerName={playerName}
-            playerId={playerId}
-            score={score}
-            hasWonCoffee={currentReward === 'coffee'}
-            hasWonPrize={currentReward === 'cash_prize'}
-            gameType="trivia"
-            onError={handleCertificateError}
-          />
-        </div>
 
         {/* Action Buttons */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

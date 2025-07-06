@@ -1,4 +1,4 @@
-declare module '../App.jsx' {
+declare module '../App.tsx' {
   import { Context } from 'react';
   
   interface TimeContextType {

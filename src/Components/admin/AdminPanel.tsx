@@ -1,4 +1,4 @@
-// components/admin/AdminPanel.jsx
+// components/admin/AdminPanel.tsx
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../supabaseClient';
 import { useNavigate } from 'react-router-dom';
@@ -67,12 +67,19 @@ const AdminPanel = () => {
       </button>
 
       <Sidebar 
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        handleLogout={handleLogout}
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-      />
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          handleLogout={handleLogout}
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+          tabs={[
+            { id: 'certificates', name: 'Certificates' },
+            { id: 'cafeOwners', name: 'Cafe Owners' },
+            { id: 'cardGenerator', name: 'Card Generator' },
+            { id: 'winners', name: 'Winners' },
+            { id: 'playerIdGenerator', name: 'Player ID Generator' }
+          ]}
+        />
       
       <main className="flex-1 p-4 sm:p-8 lg:ml-64 transition-all duration-300">
         <div className="max-w-6xl mx-auto">

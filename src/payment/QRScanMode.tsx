@@ -14,22 +14,25 @@ const GAME_ROUTES = {
 };
 
 const QRScanMode = () => {
+  const location = useLocation();
+  // This logic must be at the very top to ensure hooks are not called conditionally
+  if (!location.state?.fromGame) {
+    return <Navigate to="/qr-scan" replace state={{ fromGame: true }} />;
+  }
+
   const { startSession } = useSessionStore();
   const { initialize } = useAuthStore();
 
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [cameras, setCameras] = useState([]);
-  const [selectedCamera, setSelectedCamera] = useState(null);
+  const [cameras, setCameras] = useState<any[]>([]);
+  const [selectedCamera, setSelectedCamera] = useState<string | null>(null);
   const [hasCameraAccess, setHasCameraAccess] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   
-  const scannerRef = useRef(null);
-  const html5QrCode = useRef(null);
+  const scannerRef = useRef<HTMLDivElement>(null);
+  const html5QrCode = useRef<Html5Qrcode | null>(null);
   const navigate = useNavigate();
-  const location = useLocation();
-
-  const shouldRedirect = !location.state?.fromGame;
 
   const requestCameraAccess = useCallback(async () => {
     try {
@@ -38,12 +41,12 @@ const QRScanMode = () => {
       // Release camera stream immediately after getting access
       stream.getTracks().forEach(track => track.stop());
       return true;
-    } catch (err) {
+    } catch (err: any) {
       setError('Camera access required - Please enable in browser settings');
       setHasCameraAccess(false);
       return false;
     }
-  }, []);
+  }, [setError, setHasCameraAccess]);
 
   const getCameras = useCallback(async () => {
     try {
@@ -55,77 +58,26 @@ const QRScanMode = () => {
         setCameras(devices);
         setSelectedCamera(devices[0].id);
       }
-    } catch (err) {
+    } catch (err: any) {
       setError('Failed to get camera devices');
     }
-  }, [requestCameraAccess]);
-
-  const initScanner = useCallback(async () => {
-    if (!selectedCamera || !scannerRef.current || !hasCameraAccess) return;
-
-    try {
-      if (html5QrCode.current?.isScanning) {
-        await html5QrCode.current.stop();
-      }
-
-      const container = scannerRef.current;
-      const qrboxSize = Math.min(
-        container.offsetWidth - 40,
-        container.offsetHeight - 40,
-        300
-      );
-
-      html5QrCode.current = new Html5Qrcode(container.id);
-      setIsScanning(true);
-      
-      await html5QrCode.current.start(
-        selectedCamera,
-        {
-          fps: 10,
-          qrbox: { width: qrboxSize, height: qrboxSize },
-          aspectRatio: 1.0,
-          disableFlip: false,
-        },
-        (decodedText) => handleScan(decodedText),
-        (errorMessage) => {
-          if (!errorMessage.includes('NotFoundException')) {
-            setError(errorMessage);
-          }
-        }
-      );
-    } catch (err) {
-      setError(err.message.includes('permission') 
-        ? 'Camera access denied - check browser settings'
-        : 'Failed to initialize scanner');
-      setIsScanning(false);
-    }
-  }, [selectedCamera, hasCameraAccess]);
-
-  useEffect(() => {
-    if (location.state?.sessionExpired) {
-      setError('Your game session has expired. Please scan a new card to continue playing.');
-    }
-  }, [location.state]);
-  
-  if (shouldRedirect) {
-    return <Navigate to="/qr-scan" replace state={{ fromGame: true }} />;
-  }
+  }, [requestCameraAccess, setCameras, setSelectedCamera, setError]);
 
   const stopScanner = useCallback(async () => {
     try {
-      if (html5QrCode.current?.isScanning && !html5QrCode.current._isStopping) {
-        html5QrCode.current._isStopping = true;
+      if (html5QrCode.current?.isScanning && !(html5QrCode.current as any)._isStopping) {
+        (html5QrCode.current as any)._isStopping = true;
         await html5QrCode.current.stop();
         html5QrCode.current.clear();
-        html5QrCode.current._isStopping = false;
+        (html5QrCode.current as any)._isStopping = false;
       }
       setIsScanning(false);
     } catch (err) {
       console.error('Error stopping scanner:', err);
     }
-  }, []);
+  }, [setIsScanning]);
 
-const handleScan = useCallback(async (scannedData) => {
+  const handleScan = useCallback(async (scannedData: string) => {
     if (isLoading) return;
     setIsLoading(true);
     setError(null);
@@ -153,17 +105,17 @@ const handleScan = useCallback(async (scannedData) => {
       if (!response.ok) {
         throw new Error('Failed to fetch cards from server');
       }
-      
+
       const cards = await response.json();
-      const card = cards.find(c => c.cardNumber === cardNumber && !c.used);
-      
+      const card = cards.find((c: any) => c.cardNumber === cardNumber && !c.used);
+
       if (!card) {
         throw new Error('Card not found or already used');
       }
 
       // Start session with card details
       await startSession(card.gameTypeId, 'Player', card.duration * 60);
-      
+
       // Mark card as used via backend
       const markUsedResponse = await fetch(`http://localhost:3001/api/cards/${card.id}/use`, {
         method: 'PATCH',
@@ -175,11 +127,11 @@ const handleScan = useCallback(async (scannedData) => {
       if (!markUsedResponse.ok) {
         console.warn('Failed to mark card as used on server');
       }
-      
+
       // Navigate to appropriate game based on game type name
       const gameTypeName = card.gameType?.name?.toLowerCase() || '';
       let gameRoute = '/game-screen'; // default fallback
-      
+
       if (gameTypeName.includes('trivia')) {
         gameRoute = '/trivia-game';
       } else if (gameTypeName.includes('truth') || gameTypeName.includes('dare')) {
@@ -196,20 +148,67 @@ const handleScan = useCallback(async (scannedData) => {
           fromGame: true
         },
       });
-      
-    } catch (err) {
+
+    } catch (err: any) {
       setError(err.message);
       setTimeout(() => setError(null), 5000);
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading, navigate, startSession]);
+  }, [isLoading, navigate, startSession, setError, setIsLoading]);
+
+  const initScanner = useCallback(async () => {
+    if (!selectedCamera || !scannerRef.current || !hasCameraAccess) return;
+
+    try {
+      if (html5QrCode.current?.isScanning) {
+        await html5QrCode.current.stop();
+      }
+
+      const container = scannerRef.current;
+      const qrboxSize = Math.min(
+        container.offsetWidth - 40,
+        container.offsetHeight - 40,
+        300
+      );
+
+      html5QrCode.current = new Html5Qrcode(container.id);
+      setIsScanning(true);
+
+      await html5QrCode.current.start(
+        selectedCamera,
+        {
+          fps: 10,
+          qrbox: { width: qrboxSize, height: qrboxSize },
+          aspectRatio: 1.0,
+          disableFlip: false,
+        },
+        (decodedText) => handleScan(decodedText),
+        (errorMessage) => {
+          if (!errorMessage.includes('NotFoundException')) {
+            setError(errorMessage);
+          }
+        }
+      );
+    } catch (err: any) {
+      setError(err.message.includes('permission')
+        ? 'Camera access denied - check browser settings'
+        : 'Failed to initialize scanner');
+      setIsScanning(false);
+    }
+  }, [selectedCamera, hasCameraAccess, handleScan, setError, setIsScanning]);
+
+  useEffect(() => {
+    if (location.state?.sessionExpired) {
+      setError('Your game session has expired. Please scan a new card to continue playing.');
+    }
+  }, [location.state, setError]);
 
   useEffect(() => {
     getCameras();
     return () => {
       stopScanner();
-      window.stream?.getTracks().forEach(track => track.stop());
+      (window as any).stream?.getTracks().forEach((track: MediaStreamTrack) => track.stop());
     };
   }, [getCameras, stopScanner]);
 

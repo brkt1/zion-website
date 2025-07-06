@@ -57,7 +57,9 @@ const CertificatesTable = () => {
               <th className="px-4 py-3 sm:px-6 sm:py-4 text-left text-xs sm:text-sm font-medium text-amber-400 uppercase tracking-wider">
                 Game Type
               </th>
-            
+              <th className="px-4 py-3 sm:px-6 sm:py-4 text-left text-xs sm:text-sm font-medium text-amber-400 uppercase tracking-wider">
+                Rewarded By
+              </th>
               <th className="px-4 py-3 sm:px-6 sm:py-4 text-left text-xs sm:text-sm font-medium text-amber-400 uppercase tracking-wider">
                 Actions
               </th>
@@ -75,8 +77,9 @@ const CertificatesTable = () => {
                 <td className="px-4 py-3 sm:px-6 sm:py-4 text-sm text-gray-400">
                   {cert.gameType}
                 </td>
-              
-           
+                <td className="px-4 py-3 sm:px-6 sm:py-4 text-sm text-gray-400">
+                  Cafe Owner Name
+                </td>
                 <td className="px-4 py-3 sm:px-6 sm:py-4 whitespace-nowrap">
                   <button 
                     onClick={() => togglePaidStatus(cert.id, cert.paid)}
@@ -93,7 +96,7 @@ const CertificatesTable = () => {
             ))}
             {certificates.length === 0 && (
               <tr>
-                <td colSpan="5" className="px-4 py-6 text-center text-gray-500">
+                <td colSpan="6" className="px-4 py-6 text-center text-gray-500">
                   No certificates found
                 </td>
               </tr>
