@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TimeService } from '../services/timeService';
+import { TimeService } from '../../services/timeService';
 import { ReactNode } from 'react';
 
 export const GameSessionGuard = ({ children }: { children: ReactNode }) => {

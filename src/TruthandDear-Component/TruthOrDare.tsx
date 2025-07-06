@@ -131,7 +131,7 @@ const Landing = () => {
             animate={{ opacity: 1 }}
           >
             <p className="text-sm italic text-amber-400/80">
-              "Ready for an unforgettable experience?"
+              &quot;Ready for an unforgettable experience?&quot;
             </p>
           </motion.div>
         </motion.div>

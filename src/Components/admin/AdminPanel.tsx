@@ -4,10 +4,10 @@ import { supabase } from '../../supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import CertificatesTable from './CertificatesTable';
 import AddCafeOwner from './AddCafeOwner';
-import CardGenerator from '../../payment/CardGenerator';
+import EnhancedCardGenerator from '../cards/EnhancedCardGenerator';
 import WinnerList from './WinnerList';
 import Sidebar from './Sidebar';
-import LoadingSpinner from '../../Components/LoadingSpinner';
+import LoadingSpinner from '../utility/LoadingSpinner';
 
 const AdminPanel = () => {
   const [activeTab, setActiveTab] = useState('certificates');

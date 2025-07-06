@@ -11,8 +11,8 @@ import {
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
-import CertificateGenerator from '../Components/CertificateGenerator';
-import { GameSessionGuard } from '../Components/GameSessionGuard';
+import CertificateGenerator from '../Components/utility/CertificateGenerator';
+import { GameSessionGuard } from '../Components/game/GameSessionGuard';
 
 // Reward thresholds
 const REWARD_THRESHOLDS = {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import QRCode from 'qrcode';
-import { supabase } from '../supabaseClient';
+import { supabase } from '../../supabaseClient';
 
 interface CertificateProps {
   playerName: string;

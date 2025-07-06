@@ -1,5 +1,7 @@
 const request = require('supertest');
-const { app, prisma, supabase } = require('./index');
+const initializeApp = require('./index');
+const { PrismaClient } = require('../node_modules/@prisma/client');
+const { createClient } = require('@supabase/supabase-js');
 
 // Mock Supabase for testing
 jest.mock('@supabase/supabase-js', () => ({
@@ -55,13 +57,10 @@ jest.mock('../node_modules/@prisma/client', () => ({
       findMany: jest.fn(() => Promise.resolve([
         { id: 'card-1', content: 'Card 1', used: false, gameTypeId: 'game-type-1', gameType: { name: 'Trivia' } },
       ])),
-      create: jest.fn((data) => Promise.resolve({
-        content: data.content,
-        duration: data.duration,
-        gameTypeId: data.gameTypeId,
-        cardNumber: data.cardNumber,
+      create: jest.fn(({ data, include }) => Promise.resolve({
+        ...data,
         id: 'new-card-id',
-        gameType: { name: 'Trivia' }
+        gameType: include && include.gameType ? { name: 'Trivia' } : undefined
       })),
       update: jest.fn((data) => Promise.resolve({
         id: data.where.id,
@@ -73,32 +72,19 @@ jest.mock('../node_modules/@prisma/client', () => ({
       findMany: jest.fn(() => Promise.resolve([
         { id: 'cert-1', playerName: 'Player 1', gameType: { name: 'Trivia' } },
       ])),
-      create: jest.fn((data) => Promise.resolve({
-        playerName: data.playerName,
-        playerId: data.playerId,
-        score: data.score,
-        gameTypeId: data.gameTypeId,
-        sessionId: data.sessionId,
-        hasWonCoffee: data.hasWonCoffee,
-        hasWonPrize: data.hasWonPrize,
-        rewardType: data.rewardType,
-        timestamp: new Date().toISOString(),
+      create: jest.fn(({ data, include }) => Promise.resolve({
+        ...data,
         id: 'new-cert-id',
-        gameType: { name: 'Trivia' }
+        gameType: include && include.gameType ? { name: 'Trivia' } : undefined,
+        timestamp: new Date().toISOString(),
       })),
     },
     score: {
-      create: jest.fn((data) => Promise.resolve({
-        playerName: data.playerName,
-        playerId: data.playerId,
-        score: data.score,
-        stage: data.stage,
-        sessionId: data.sessionId,
-        streak: data.streak,
-        gameTypeId: data.gameTypeId,
-        timestamp: new Date().toISOString(),
+      create: jest.fn(({ data, include }) => Promise.resolve({
+        ...data,
         id: 'new-score-id',
-        gameType: { name: 'Trivia' }
+        gameType: include && include.gameType ? { name: 'Trivia' } : undefined,
+        timestamp: new Date().toISOString(),
       })),
     },
     question: {
@@ -107,15 +93,17 @@ jest.mock('../node_modules/@prisma/client', () => ({
       ])),
     },
     cafeOwner: {
-      create: jest.fn((data) => Promise.resolve({
-        name: data.name,
-        email: data.email,
-        password: 'managed_by_supabase',
+      create: jest.fn(({ data }) => Promise.resolve({
+        ...data,
         id: 'new-cafe-owner-id'
       })),
     },
   })),
 }));
+
+const prisma = new PrismaClient();
+const supabase = createClient('mock-url', 'mock-key');
+const app = initializeApp(prisma, supabase);
 
 describe('API Routes', () => {
   afterAll(async () => {

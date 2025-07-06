@@ -1,5 +1,5 @@
 import React from 'react';
-import { GameSessionGuard } from '../Components/GameSessionGuard';
+import { GameSessionGuard } from './GameSessionGuard';
 
 const RockPaperScissors = () => {
   return (

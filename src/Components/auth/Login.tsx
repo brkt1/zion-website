@@ -1,82 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../../supabaseClient';
+import { useAuthStore } from '../../stores/authStore';
 
 import { motion } from 'framer-motion';
 import { FaEnvelope, FaLock, FaSignInAlt, FaSpinner } from 'react-icons/fa';
 
-
-
 const Login = () => {
   const navigate = useNavigate();
+  const { signIn, error, loading, user, profile, clearError } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError(null);
-    setIsLoading(true);
+  useEffect(() => {
+    // Clear any previous errors when component mounts
+    clearError();
+  }, [clearError]);
 
-    try {
-      // Log in the user
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (authError) {
-        throw authError;
-      }
-
-      const user = authData?.user;
-      if (!user) {
-        throw new Error('Authentication failed - no user returned');
-      }
-
-      // Check if profile exists
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-
-      if (profileError && profileError.code !== '406') {
-        throw profileError;
-      }
-
-      // Handle profile creation if needed
-      if (!profileData) {
-        const { error: upsertError } = await supabase
-          .from('profiles')
-          .upsert({
-            id: user.id,
-            role: 'user' // default role
-          });
-
-        if (upsertError) {
-          console.warn('Failed to create profile:', upsertError);
-        }
-      }
-
-      // Redirect based on role
-      const role = profileData?.role || 'user';
-      if (role === 'admin') {
+  useEffect(() => {
+    if (user && profile) {
+      // Redirect based on role after successful login and profile fetch
+      if (profile.role === 'ADMIN') {
         navigate('/admin');
+      } else if (profile.role === 'CAFE_OWNER') {
+        navigate('/cafe-owner/dashboard');
       } else {
-        navigate('/dashboard');
+        navigate('/'); // Default redirect for regular users
       }
+    }
+  }, [user, profile, navigate]);
 
-    } catch (error) {
-      console.error('Login error:', error);
-      setError(error.message || 'Login failed. Please try again.');
-      
-      if (error.code === '406') {
-        setError('Profile system not properly configured. Contact support.');
-      }
-    } finally {
-      setIsLoading(false);
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await signIn(email, password);
+    } catch (err) {
+      // Error is already set in the store, no need to set local state
+      console.error('Login failed:', err);
     }
   };
 
@@ -124,14 +83,14 @@ const Login = () => {
 
           <button 
             type="submit" 
-            disabled={isLoading}
+            disabled={loading}
             className={`w-full py-3 rounded-lg transition-all duration-200 flex items-center justify-center
-              ${isLoading 
+              ${loading 
                 ? 'bg-gold-secondary/70 cursor-not-allowed' 
                 : 'bg-gradient-to-r from-gold-primary to-gold-secondary hover:from-gold-primary/90 hover:to-gold-secondary/90'}
             `}
           >
-            {isLoading ? (
+            {loading ? (
               <>
                 <FaSpinner className="animate-spin mr-2" />
                 Signing in...
@@ -156,7 +115,7 @@ const Login = () => {
         )}
 
         <div className="mt-6 text-center text-sm text-gray-light">
-          Don't have an account? please connect to the admin
+          Don&apos;t have an account? please connect to the admin
         </div>
       </motion.div>
     </div>

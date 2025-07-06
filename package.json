@@ -10,7 +10,9 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "jest",
+    "test": "jest --config jest.config.js",
+    "test:server": "prisma generate && jest --config server/jest.server.config.js",
+    "test:all": "npm test && npm run test:server",
     "start": "vite",
     "server": "cd server && node index.js"
   },

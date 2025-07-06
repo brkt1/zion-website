@@ -1,9 +1,9 @@
-import React, { useContext, useEffect, useCallback } from 'react';
+import React, { useContext, useEffect, useCallback, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import ThankYou from './ThankYou';
-import { TimeContext } from '../App.tsx';
-import type { TimeContextType } from '../@types/app.tsx';
+const ThankYou = React.lazy(() => import('../utility/ThankYou'));
+import { TimeContext } from '../../App.tsx';
+import type { TimeContextType } from '../../@types/app';
 
 const registerServiceWorker = async () => {
   if ('serviceWorker' in navigator) {
@@ -100,7 +100,9 @@ const GameTimer = () => {
   if (isExpired) {
     return (
       <div className="fixed inset-0 z-50">
-        <ThankYou />
+        <Suspense fallback={<div>Loading...</div>}>
+          <ThankYou />
+        </Suspense>
       </div>
     );
   }

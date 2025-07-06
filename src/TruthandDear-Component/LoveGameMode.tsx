@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaHeart, FaFire, FaArrowLeft, FaDice } from "react-icons/fa";
 import { supabase } from "../supabaseClient";
+import { GameSessionGuard } from '../Components/game/GameSessionGuard';
 
 const LoverGameMode = () => {
   const navigate = useNavigate();

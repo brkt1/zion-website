@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { supabase } from '../supabaseClient'; // Ensure you have Supabase client initialized
+import { supabase } from '../../supabaseClient'; // Ensure you have Supabase client initialized
 import QRCode from 'qrcode';
 
 const downloadQRCode = async (playerName: string, playerId: string, score: number) => {
@@ -173,8 +173,8 @@ const RewardingCard: React.FC<RewardingCardProps> = ({ playerName, playerId, sco
       </h2>
       <p className="text-xl mb-2">Player: {playerName}</p>
       <p className="text-xl mb-2">Score: {score}</p>
-      {hasWonCoffee && <p className="text-lg text-green-400">☕ You've earned a Coffee Reward!</p>}
-      {hasWonPrize && <p className="text-lg text-yellow-400">🏆 You've won the Grand Prize!</p>}
+      {hasWonCoffee && <p className="text-lg text-green-400">☕ You&apos;ve earned a Coffee Reward!</p>}
+      {hasWonPrize && <p className="text-lg text-yellow-400">🏆 You&apos;ve won the Grand Prize!</p>}
       <button
         onClick={checkAndSaveReward}
         className="mt-4 px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full text-white font-bold shadow-lg hover:shadow-xl transition-all"

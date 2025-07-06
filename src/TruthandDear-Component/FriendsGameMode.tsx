@@ -9,7 +9,7 @@ import {
   FaArrowLeft // Import the back arrow icon
 } from "react-icons/fa";
 import {supabase} from "../supabaseClient";
-import { GameSessionGuard } from '../Components/GameSessionGuard';
+import { GameSessionGuard } from '../Components/game/GameSessionGuard';
 
 const FriendsGameMode = () => {
  const location = useLocation();
@@ -308,7 +308,7 @@ const FriendsGameMode = () => {
       `}
     >
       <h2 className={`text-3xl font-bold ${designTokens.textColor} text-center mb-4`}>
-        It's Your Turn, {players[currentPlayerIndex]}!
+        It&apos;s Your Turn, {players[currentPlayerIndex]}!
       </h2>
       <div className="flex justify-center mb-4">
         <button 

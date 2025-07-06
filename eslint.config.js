@@ -8,7 +8,7 @@ import typescriptEslintPlugin from '@typescript-eslint/eslint-plugin'
 
 export default [
   {
-    ignores: ['dist', 'dev-dist'],
+    ignores: ['dist', 'dev-dist', 'jest.config.js', 'public/quagga.worker.js'],
   },
   {
     files: ['**/*.{js,jsx}'],

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { supabase } from '../supabaseClient';
+import { supabase } from '../../supabaseClient';
 import { FaCamera, FaQrcode, FaKeyboard, FaRedo, FaTrophy, FaCheck, FaTimes } from 'react-icons/fa';
 
 interface WinnerCardData {

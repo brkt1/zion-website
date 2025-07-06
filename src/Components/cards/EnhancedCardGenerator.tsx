@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../supabaseClient';
+import { supabase } from '../../supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -345,7 +345,7 @@ const EnhancedCardGenerator: React.FC = () => {
         <div className="max-w-md bg-gray-800 rounded-2xl shadow-xl p-8 text-center border border-amber-500/20">
           <h2 className="text-2xl font-bold text-amber-400 mb-4">Access Denied</h2>
           <p className="text-gray-300 mb-6">
-            You don't have permission to access this page. Please contact an administrator.
+            You don&apos;t have permission to access this page. Please contact an administrator.
           </p>
           <button
             onClick={() => navigate('/')}
@@ -362,7 +362,7 @@ const EnhancedCardGenerator: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-4 sm:p-8">
       <div className="max-w-4xl mx-auto bg-gray-800 rounded-2xl shadow-xl p-6 sm:p-8 border border-amber-500/20">
         <h1 className="text-2xl sm:text-3xl font-bold text-center mb-6 text-amber-400">
-          Enhanced Game Card Generator
+          Card Generator
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

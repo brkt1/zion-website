@@ -10,9 +10,20 @@ import {
   FaRedo,
   FaChevronRight
 } from 'react-icons/fa';
-import { useGameStore } from '../app/store';
+import { useGameStore } from '../../app/store';
+import RewardingCard from '../cards/RewardingCard';
+import CertificateGenerator from './CertificateGenerator';
 
-const ThankYou = () => {
+interface ThankYouProps {
+  playerName?: string;
+  playerId?: string;
+  score?: number;
+  hasWonCoffee?: boolean;
+  hasWonPrize?: boolean;
+  gameType?: string;
+}
+
+const ThankYou: React.FC<ThankYouProps> = ({ playerName, playerId, score, hasWonCoffee, hasWonPrize, gameType }) => {
   const navigate = useNavigate();
   const [trophy, setTrophy] = useState('gold');
   const [isAnimating, setIsAnimating] = useState(true);
@@ -184,7 +195,7 @@ const ThankYou = () => {
                 transition={{ delay: 0.4 }}
                 className="text-xl text-gray-300"
               >
-                You've earned the prestigious
+                You&apos;ve earned the prestigious
               </motion.p>
               
               <motion.div
@@ -227,7 +238,11 @@ const ThankYou = () => {
                   score={score}
                   hasWonCoffee={hasWonCoffee || false}
                   hasWonPrize={hasWonPrize || false}
-                  gameType={gameType || 'trivia'}
+                  gameType={
+                    gameType === 'trivia' || gameType === 'emoji'
+                      ? gameType
+                      : 'trivia'
+                  }
                 />
               </div>
             )}

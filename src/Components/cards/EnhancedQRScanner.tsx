@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Html5Qrcode } from 'html5-qrcode';
-import { supabase } from '../supabaseClient';
+import { supabase } from '../../supabaseClient';
 import { FaCamera, FaQrcode, FaKeyboard, FaRedo, FaGamepad } from 'react-icons/fa';
-import { useSessionStore } from '../stores/sessionStore';
-import { useAuthStore } from '../stores/authStore';
+import { useSessionStore } from '../../stores/sessionStore';
+import { useAuthStore } from '../../stores/authStore';
 
 interface ScannedCardData {
   cardNumber: string;
@@ -104,7 +104,7 @@ const EnhancedQRScanner: React.FC = () => {
         selectedCamera,
         {
           fps: 10,
-          qrbox: { width: qrboxSize, height: qrboxSize },
+          qrbox: null, // Set qrbox to null to disable default rendering
           aspectRatio: 1.0,
           disableFlip: false,
         },
@@ -176,7 +176,7 @@ const EnhancedQRScanner: React.FC = () => {
         
         // Fetch card from database
         const { data: cardRecord, error } = await supabase
-          .from('enhanced_cards')
+          .from('cards')
           .select(`
             *,
             game_types (
@@ -204,7 +204,7 @@ const EnhancedQRScanner: React.FC = () => {
 
       // Validate card hasn't been used
       const { data: existingCard, error: checkError } = await supabase
-        .from('enhanced_cards')
+        .from('cards')
         .select('used, player_id')
         .eq('card_number', cardData.cardNumber)
         .single();
@@ -252,7 +252,7 @@ const EnhancedQRScanner: React.FC = () => {
     try {
       // Mark card as used and assign player ID
       const { error: updateError } = await supabase
-        .from('enhanced_cards')
+        .from('cards')
         .update({ 
           used: true, 
           player_id: scannedCard.playerId,
@@ -337,14 +337,14 @@ const EnhancedQRScanner: React.FC = () => {
   }, [stopScanner, initScanner, hasCameraAccess, scannedCard]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-black-primary to-black-secondary text-cream flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
-        <div className="bg-gray-800 rounded-2xl shadow-2xl overflow-hidden border border-amber-500/20">
-          <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-6 text-center">
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center justify-center gap-3">
-              <FaQrcode className="text-xl" /> ENHANCED CARD SCANNER
+        <div className="bg-black-secondary rounded-2xl shadow-2xl overflow-hidden border border-gold-primary/20">
+          <div className="bg-gradient-to-r from-gold-primary to-gold-secondary p-6 text-center">
+            <h1 className="text-2xl font-bold text-black-primary flex items-center justify-center gap-3">
+              <FaQrcode className="text-xl" /> CARD SCANNER
             </h1>
-            <p className="text-sm text-gray-800 mt-1 opacity-90">
+            <p className="text-sm text-black-secondary mt-1 opacity-90">
               Scan your Yenege game card to access available games
             </p>
           </div>
@@ -355,13 +355,13 @@ const EnhancedQRScanner: React.FC = () => {
                 {/* Camera Selection */}
                 {cameras.length > 0 && (
                   <div className="mb-4">
-                    <label className="block text-amber-400 text-sm font-medium mb-2">
+                    <label className="block text-gold-light text-sm font-medium mb-2">
                       Camera Selection
                     </label>
                     <select
                       value={selectedCamera || ''}
                       onChange={(e) => setSelectedCamera(e.target.value)}
-                      className="w-full p-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                      className="w-full p-3 bg-gray-dark text-cream rounded-lg border border-gray-medium focus:border-gold-primary focus:ring-1 focus:ring-gold-primary"
                     >
                       {cameras.map(camera => (
                         <option key={camera.id} value={camera.id}>
@@ -373,7 +373,7 @@ const EnhancedQRScanner: React.FC = () => {
                 )}
 
                 {/* Scanner Area */}
-                <div className="relative mb-6 border-2 border-amber-500 rounded-lg overflow-hidden bg-gray-900">
+                <div className="relative mb-6 border-2 border-gold-primary rounded-lg overflow-hidden bg-black-primary">
                   <div 
                     id="scanner-container" 
                     ref={scannerRef}
@@ -381,25 +381,33 @@ const EnhancedQRScanner: React.FC = () => {
                   >
                     {!hasCameraAccess ? (
                       <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-4">
-                        <FaCamera className="text-4xl text-amber-500" />
+                        <FaCamera className="text-4xl text-gold-primary" />
                         <button
                           onClick={getCameras}
-                          className="bg-amber-500 text-gray-900 py-2 px-6 rounded-lg hover:bg-amber-600 transition-colors flex items-center gap-2"
+                          className="bg-gold-primary text-black-primary py-2 px-6 rounded-lg hover:bg-gold-secondary transition-colors flex items-center gap-2"
                         >
                           <FaRedo /> Enable Camera
                         </button>
-                        <p className="text-center text-amber-400 text-sm">
+                        <p className="text-center text-gold-light text-sm">
                           Camera access is required to scan QR codes
                         </p>
                       </div>
                     ) : isScanning ? (
-                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                        <div className="border-2 border-amber-500 rounded-lg animate-pulse"
-                          style={{
-                            width: 'min(300px, 80vw)',
-                            height: 'min(300px, 80vw)'
-                          }}
-                        />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        {/* Custom Overlay */}
+                        <div className="absolute inset-0 bg-black-pure opacity-70" />
+
+                        {/* QR Box Visuals */}
+                        <div className="relative z-10 w-[min(300px,80vw)] h-[min(300px,80vw)]">
+                          {/* Corner borders */}
+                          <div className="absolute top-0 left-0 w-1/4 h-1/4 border-t-4 border-l-4 border-gold-primary rounded-tl-lg" />
+                          <div className="absolute top-0 right-0 w-1/4 h-1/4 border-t-4 border-r-4 border-gold-primary rounded-tr-lg" />
+                          <div className="absolute bottom-0 left-0 w-1/4 h-1/4 border-b-4 border-l-4 border-gold-primary rounded-bl-lg" />
+                          <div className="absolute bottom-0 right-0 w-1/4 h-1/4 border-b-4 border-r-4 border-gold-primary rounded-br-lg" />
+
+                          {/* Scanning line */}
+                          <div className="absolute top-0 left-0 w-full h-1 bg-gold-secondary animate-scan-line" />
+                        </div>
                       </div>
                     ) : null}
                   </div>
@@ -409,7 +417,7 @@ const EnhancedQRScanner: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <button
                     onClick={handleManualEntry}
-                    className="flex items-center justify-center gap-2 bg-gray-700 hover:bg-gray-600 text-amber-400 py-3 px-4 rounded-lg border border-amber-500/30 transition-colors"
+                    className="flex items-center justify-center gap-2 bg-gray-dark hover:bg-gray-medium text-gold-light py-3 px-4 rounded-lg border border-gold-primary/30 transition-colors"
                   >
                     <FaKeyboard /> Manual Entry
                   </button>
@@ -417,7 +425,7 @@ const EnhancedQRScanner: React.FC = () => {
                   <button
                     onClick={initScanner}
                     disabled={!hasCameraAccess}
-                    className="flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-gray-900 py-3 px-4 rounded-lg font-medium transition-colors disabled:opacity-50"
+                    className="flex items-center justify-center gap-2 bg-gold-primary hover:bg-gold-secondary text-black-primary py-3 px-4 rounded-lg font-medium transition-colors disabled:opacity-50"
                   >
                     <FaCamera /> {isScanning ? 'Scanning...' : 'Start Scan'}
                   </button>
@@ -430,18 +438,18 @@ const EnhancedQRScanner: React.FC = () => {
                   <h3 className="text-green-400 font-bold text-lg mb-3">✅ Card Scanned Successfully!</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                     <div>
-                      <p><span className="text-amber-400 font-semibold">Card Number:</span> {scannedCard.cardNumber}</p>
-                      <p><span className="text-amber-400 font-semibold">Player ID:</span> {scannedCard.playerId}</p>
+                      <p><span className="text-gold-light font-semibold">Card Number:</span> {scannedCard.cardNumber}</p>
+                      <p><span className="text-gold-light font-semibold">Player ID:</span> {scannedCard.playerId}</p>
                     </div>
                     <div>
-                      <p><span className="text-amber-400 font-semibold">Duration:</span> {scannedCard.duration} minutes</p>
-                      <p><span className="text-amber-400 font-semibold">Routes:</span> {availableRoutes.length}</p>
+                      <p><span className="text-gold-light font-semibold">Duration:</span> {scannedCard.duration} minutes</p>
+                      <p><span className="text-gold-light font-semibold">Routes:</span> {availableRoutes.length}</p>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-amber-400 font-semibold mb-3">
+                  <label className="block text-gold-light font-semibold mb-3">
                     <FaGamepad className="inline mr-2" />
                     Select Game to Play:
                   </label>
@@ -452,8 +460,8 @@ const EnhancedQRScanner: React.FC = () => {
                         onClick={() => setSelectedRoute(route.id)}
                         className={`p-4 rounded-lg border-2 transition-all text-left ${
                           selectedRoute === route.id
-                            ? 'border-amber-500 bg-amber-500/10 text-amber-400'
-                            : 'border-gray-600 bg-gray-700 text-gray-300 hover:border-amber-500/50'
+                            ? 'border-gold-primary bg-gold-primary/10 text-gold-light'
+                            : 'border-gray-medium bg-gray-dark text-gray-light hover:border-gold-primary/50'
                         }`}
                       >
                         <div className="font-semibold">{route.name}</div>
@@ -466,7 +474,7 @@ const EnhancedQRScanner: React.FC = () => {
                 <div className="flex gap-4">
                   <button
                     onClick={resetScanner}
-                    className="flex-1 py-3 px-4 bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-colors"
+                    className="flex-1 py-3 px-4 bg-gray-medium hover:bg-gray-dark text-cream rounded-lg transition-colors"
                   >
                     Scan Another Card
                   </button>
@@ -475,8 +483,8 @@ const EnhancedQRScanner: React.FC = () => {
                     disabled={!selectedRoute || isLoading}
                     className={`flex-1 py-3 px-4 rounded-lg font-bold transition-colors ${
                       selectedRoute && !isLoading
-                        ? 'bg-green-600 hover:bg-green-700 text-white'
-                        : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                        ? 'bg-gold-primary hover:bg-gold-secondary text-black-primary'
+                        : 'bg-gray-medium text-gray-light cursor-not-allowed'
                     }`}
                   >
                     {isLoading ? 'Starting...' : 'Start Game'}
@@ -493,7 +501,7 @@ const EnhancedQRScanner: React.FC = () => {
                   {error.includes('Camera access') && (
                     <button
                       onClick={getCameras}
-                      className="w-full mt-3 bg-amber-500 text-gray-900 py-2 rounded-lg hover:bg-amber-600 transition-colors flex items-center justify-center gap-2"
+                      className="w-full mt-3 bg-gold-primary text-black-primary py-2 rounded-lg hover:bg-gold-secondary transition-colors flex items-center justify-center gap-2"
                     >
                       <FaRedo /> Retry Camera Access
                     </button>
@@ -504,7 +512,7 @@ const EnhancedQRScanner: React.FC = () => {
 
             {/* Loading Display */}
             {isLoading && (
-              <div className="p-4 text-center text-amber-400">
+              <div className="p-4 text-center text-gold-light">
                 <div className="inline-flex items-center gap-2 animate-pulse">
                   <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
                     <circle cx="12" cy="12" r="10" fill="none" strokeWidth="4" className="opacity-25 stroke-current"/>
