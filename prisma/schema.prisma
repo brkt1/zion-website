@@ -1,39 +1,4 @@
-model Certificate {
-  id          String   @id @default(uuid())
-  player_name String
-  player_id   String
-  score       Int
-  has_won_coffee Boolean @default(false)
-  has_won_prize   Boolean @default(false)
-  gameType    String   // "trivia" or "emoji"
-  game_type_id String
-  game_type   GameType @relation(fields: [game_type_id], references: [id])
-  created_at  DateTime @default(now())
-
-  @@map("certificates")
-}
-
-model GameType {
-  id          String   @id @default(uuid())
-  name        String
-  description String?
-  created_at  DateTime @default(now())
-  cards       Card[]
-  certificates Certificate[]
-
-  @@map("game_types")
-}
-
-model Card {
-  id          String   @id @default(uuid())
-  content     String
-  game_type_id String
-  game_type   GameType @relation(fields: [game_type_id], references: [id])
-  created_at  DateTime @default(now())
-
-  @@map("cards")
-}
-
+// schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -41,4 +6,233 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL") // Required for migrations in Supabase
+}
+
+model GameType {
+  id          String      @id @default(uuid()) @db.Uuid
+  name        String      @unique
+  description String?
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  cards       Card[]
+  certificates Certificate[]
+  emojiCertificates EmojiCertificate[]
+  questions   Question[]
+  emojiScores EmojiScore[]
+  scores      Score[]
+
+  @@map("game_types")
+}
+
+model Card {
+  id         String     @id @default(uuid()) @db.Uuid
+  content    String
+  duration   Int
+  used       Boolean    @default(false)
+  gameType   GameType   @relation(fields: [gameTypeId], references: [id])
+  gameTypeId String     @db.Uuid
+  cardNumber String
+  createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("cards")
+  @@index([gameTypeId], name: "cards_game_type_idx")
+}
+
+model Certificate {
+  id              String     @id @default(uuid()) @db.Uuid
+  playerName      String     @map("player_name")
+  playerId        String     @map("player_id")
+  score           Int
+  hasWonCoffee    Boolean    @default(false) @map("has_won_coffee")
+  hasWonPrize     Boolean    @default(false) @map("has_won_prize")
+  rewardType      String?    @map("reward_type")
+  timestamp       DateTime   @db.Timestamptz(6)
+  sessionId       String     @map("session_id")
+  prizeDelivered  Boolean?   @default(false) @map("prize_delivered")
+  prizeAmount     Float?     @map("prize_amount")
+  createdAt       DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  gameType        GameType   @relation(fields: [gameTypeId], references: [id])
+  gameTypeId      String     @db.Uuid
+
+  @@map("certificates")
+  @@index([playerId], name: "certificates_player_idx")
+  @@index([sessionId], name: "certificates_session_idx")
+  @@index([gameTypeId], name: "certificates_game_type_idx")
+}
+
+model EmojiCertificate {
+  id              String     @id @default(uuid()) @db.Uuid
+  playerName      String     @map("player_name")
+  playerId        String     @map("player_id")
+  score           Int
+  hasWonCoffee    Boolean    @default(false) @map("has_won_coffee")
+  hasWonPrize     Boolean    @default(false) @map("has_won_prize")
+  rewardType      String?    @map("reward_type")
+  timestamp       DateTime   @db.Timestamptz(6)
+  sessionId       String     @map("session_id")
+  prizeDelivered  Boolean?   @default(false) @map("prize_delivered")
+  prizeAmount     Float?     @map("prize_amount")
+  createdAt       DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  gameType        GameType   @relation(fields: [gameTypeId], references: [id])
+  gameTypeId      String     @db.Uuid
+
+  @@map("emoji_certificates")
+  @@index([playerId], name: "emoji_certificates_player_idx")
+  @@index([gameTypeId], name: "emoji_certificates_game_type_idx")
+}
+
+model EmojiPlayerProgress {
+  playerId        String     @id @map("player_id")
+  currentStage    Int        @default(1) @map("current_stage")
+  totalWins       Int        @default(0) @map("total_wins")
+  lastWin         DateTime?  @map("last_win") @db.Timestamptz(6)
+  rewardsClaimed  String[]   @default([]) @map("rewards_claimed")
+  sessionsPlayed  Int        @default(0) @map("sessions_played")
+
+  @@map("emoji_player_progress")
+}
+
+model EmojiScore {
+  id         String     @id @default(uuid()) @db.Uuid
+  playerName String     @map("player_name")
+  playerId   String     @map("player_id")
+  score      Int
+  stage      Int
+  sessionId  String     @map("session_id")
+  streak     Int
+  timestamp  DateTime   @db.Timestamptz(6)
+  gameType   GameType   @relation(fields: [gameTypeId], references: [id])
+  gameTypeId String     @db.Uuid
+
+  @@map("emoji_scores")
+  @@index([playerId], name: "emoji_scores_player_idx")
+  @@index([sessionId], name: "emoji_scores_session_idx")
+  @@index([gameTypeId], name: "emoji_scores_game_type_idx")
+}
+
+model Emoji {
+  id         String     @id @default(uuid()) @db.Uuid
+  emoji      String
+  title      String
+  difficulty Int
+
+  @@map("emojis")
+}
+
+model Question {
+  id            String     @id @default(uuid()) @db.Uuid
+  question      String
+  options       String[]
+  correctOption Int        @map("correct_option")
+  difficulty    Int
+  gameType      GameType   @relation(fields: [gameTypeId], references: [id])
+  gameTypeId    String     @db.Uuid
+
+  @@map("questions")
+  @@index([gameTypeId], name: "questions_game_type_idx")
+}
+
+model PlayerProgress {
+  playerId       String     @id @map("player_id")
+  currentStage   Int        @default(1) @map("current_stage")
+  totalWins      Int        @default(0) @map("total_wins")
+  lastWin        DateTime?  @map("last_win") @db.Timestamptz(6)
+  rewardsClaimed String[]   @default([]) @map("rewards_claimed")
+  sessionsPlayed Int        @default(0) @map("sessions_played")
+
+  @@map("player_progress")
+}
+
+model Score {
+  id         String     @id @default(uuid()) @db.Uuid
+  playerName String     @map("player_name")
+  playerId   String     @map("player_id")
+  score      Int
+  stage      Int
+  sessionId  String     @map("session_id")
+  streak     Int
+  timestamp  DateTime   @db.Timestamptz(6)
+  gameType   GameType   @relation(fields: [gameTypeId], references: [id])
+  gameTypeId String     @db.Uuid
+
+  @@map("scores")
+  @@index([playerId], name: "scores_player_idx")
+  @@index([sessionId], name: "scores_session_idx")
+  @@index([gameTypeId], name: "scores_game_type_idx")
+}
+
+enum RewardStatus {
+  UNCLAIMED
+  CLAIMED
+  EXPIRED
+}
+
+model Reward {
+  id            String       @id @default(uuid()) @db.Uuid
+  playerId      String       @map("player_id")
+  rewardCode    String       @map("reward_code") @unique
+  rewardDetails String       @map("reward_details")
+  status        RewardStatus @default(UNCLAIMED)
+  issuedBy      String       @map("issued_by")
+  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  
+  @@map("rewards")
+  @@index([playerId], name: "rewards_player_idx")
+}
+
+model Payment {
+  id        String     @id @default(uuid()) @db.Uuid
+  playerId  String     @map("player_id")
+  amount    Float
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("payments")
+  @@index([playerId], name: "payments_player_idx")
+}
+
+model CafeOwner {
+  id        String     @id @default(uuid()) @db.Uuid
+  name      String
+  email     String     @unique
+  password  String
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("cafe_owners")
+}
+
+// Supabase Auth integration (Recommended)
+model User {
+  id          String    @id @default(uuid()) @db.Uuid
+  email       String    @unique
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  
+  // Link to auth.users table
+  authUserId  String    @unique @map("auth_user_id") @db.Uuid
+  
+  // Relation to profile
+  profile     Profile?
+  
+  @@map("users")
+  @@index([authUserId], name: "users_auth_user_idx")
+}
+
+// User profiles with roles
+model Profile {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @unique @map("user_id") @db.Uuid
+  role      UserRole @default(USER)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("profiles")
+  @@index([userId], name: "profiles_user_idx")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  CAFE_OWNER
 }

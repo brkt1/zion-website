@@ -1,0 +1,26 @@
+{
+  "name": "yenege-server",
+  "version": "1.0.0",
+  "description": "Yenege GameHub Backend Server",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "postinstall": "prisma generate --schema=../prisma/schema.prisma"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.11.1",
+    "@supabase/supabase-js": "^2.49.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "prisma": "^6.11.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "prisma": {
+    "schema": "../prisma/schema.prisma"
+  }
+}

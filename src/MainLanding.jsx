@@ -51,7 +51,7 @@ const Landing = () => {
     { 
       to: "/truth-or-dare", 
       label: "Truth or Dare", 
-      description: "Classic party game with friends",
+      description: "Choose lovers or friends mode",
       icon: FaGamepad,
       accentColor: "bg-gold-secondary"
     },

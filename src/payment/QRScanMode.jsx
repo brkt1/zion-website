@@ -3,11 +3,8 @@ import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { Html5Qrcode } from 'html5-qrcode';
 import { supabase } from '../supabaseClient';
 import { FaCamera, FaQrcode, FaKeyboard, FaRedo } from 'react-icons/fa';
-import { useCardStore, useTimerStore, useGameStore } from '../app/store';
-import { TimeService } from '../services/timeService';
-import SafeStorage from '../utils/safeStorage';
-
-const safeStorage = new SafeStorage();
+import { useSessionStore } from '../stores/sessionStore';
+import { useAuthStore } from '../stores/authStore';
 
 const GAME_ROUTES = {
   1: '/trivia-game',
@@ -17,9 +14,8 @@ const GAME_ROUTES = {
 };
 
 const QRScanMode = () => {
-  const { setCurrentCard, markCardAsUsed } = useCardStore();
-  const { startTimer } = useTimerStore();
-  const { setGameState } = useGameStore();
+  const { startSession } = useSessionStore();
+  const { initialize } = useAuthStore();
 
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -152,40 +148,62 @@ const handleScan = useCallback(async (scannedData) => {
         throw new Error(`Invalid 13-digit card number: ${scannedData}`);
       }
 
-      const { data, error } = await supabase
-        .from('cards')
-        .select('*, game_types(name)')
-        .eq('card_number', cardNumber)
-        .single();
-
-      if (error) throw error;
-      if (data.used !== false) throw new Error('Card already redeemed');
-
-      // Initialize timer with card's duration
-      TimeService.initializeTimer(data.duration);
-      
-      setCurrentCard(data);
-      startTimer(data.duration * 60);
-      setGameState({ isPlaying: true, score: 0, winner: '' });
-      await markCardAsUsed(data.id);
-      
-      const gameRoute = GAME_ROUTES[data.game_type];
-      if (gameRoute) {
-        navigate(gameRoute, {
-          state: {
-            cardDetails: data,
-            remainingTime: data.duration * 60,
-            fromGame: true
-          },
-        });
+      // Fetch card details from backend API
+      const response = await fetch(`http://localhost:3001/api/cards`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch cards from server');
       }
+      
+      const cards = await response.json();
+      const card = cards.find(c => c.cardNumber === cardNumber && !c.used);
+      
+      if (!card) {
+        throw new Error('Card not found or already used');
+      }
+
+      // Start session with card details
+      await startSession(card.gameTypeId, 'Player', card.duration * 60);
+      
+      // Mark card as used via backend
+      const markUsedResponse = await fetch(`http://localhost:3001/api/cards/${card.id}/use`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!markUsedResponse.ok) {
+        console.warn('Failed to mark card as used on server');
+      }
+      
+      // Navigate to appropriate game based on game type name
+      const gameTypeName = card.gameType?.name?.toLowerCase() || '';
+      let gameRoute = '/game-screen'; // default fallback
+      
+      if (gameTypeName.includes('trivia')) {
+        gameRoute = '/trivia-game';
+      } else if (gameTypeName.includes('truth') || gameTypeName.includes('dare')) {
+        gameRoute = '/truth-or-dare';
+      } else if (gameTypeName.includes('rock') || gameTypeName.includes('paper') || gameTypeName.includes('scissors')) {
+        gameRoute = '/rock-paper-scissors';
+      } else if (gameTypeName.includes('emoji')) {
+        gameRoute = '/emoji-game';
+      }
+
+      navigate(gameRoute, {
+        state: {
+          cardDetails: card,
+          fromGame: true
+        },
+      });
+      
     } catch (err) {
       setError(err.message);
       setTimeout(() => setError(null), 5000);
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading, navigate, setCurrentCard, startTimer, markCardAsUsed, setGameState]);
+  }, [isLoading, navigate, startSession]);
 
   useEffect(() => {
     getCameras();

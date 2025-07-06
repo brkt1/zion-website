@@ -77,21 +77,28 @@ interface TimerState {
   formatTime: (seconds: number) => string;
 }
 
-export const useTimerStore = create<TimerState>((set) => ({
+export const useTimerStore = create<TimerState>((set, get) => ({
   remainingTime: 0,
   isTimerActive: false,
   isExpired: false,
-  startTimer: (duration) => set({ 
-    remainingTime: duration, 
-    isTimerActive: true,
-    isExpired: false 
-  }),
-  pauseTimer: () => set({ isTimerActive: false }),
-  resetTimer: ({ time = 0, expire = false, keepActive = false } = {}) => set({ 
-    remainingTime: time,
-    isTimerActive: keepActive ? true : false,
-    isExpired: expire 
-  }),
+  startTimer: (duration) => {
+    set({ 
+      remainingTime: duration, 
+      isTimerActive: true,
+      isExpired: false 
+    });
+  },
+  pauseTimer: () => {
+    set({ isTimerActive: false });
+  },
+  resetTimer: (options = {}) => {
+    const { time = 0, expire = false, keepActive = false } = options;
+    set({ 
+      remainingTime: time,
+      isTimerActive: keepActive,
+      isExpired: expire 
+    });
+  },
   formatTime: (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;

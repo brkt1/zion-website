@@ -6,8 +6,8 @@ import { unstable_HistoryRouter as HistoryRouter, Routes, Route, Navigate, useLo
 import { createBrowserHistory } from 'history';
 
 import { motion } from 'framer-motion';
-import { useGameStore, useTimerStore } from './app/store';
-
+import { useSessionStore } from './stores/sessionStore';
+import { useAuthStore } from './stores/authStore';
 
 // Lazy-loaded components
 const Lovers = lazy(() => import("./TruthandDear-Component/Lovers"));
@@ -25,6 +25,13 @@ const TriviaGame = lazy(() => import("./Triva-Component/Trivia"));
 const CafeOwnerCheckWinner = lazy(() => import("./Components/CafeOwnerCheckWinner"));
 const Admin = lazy(() => import("./Components/admin/AdminPanel"));
 const Login = lazy(() => import("./Components/auth/Login"));
+const GameModeSelector = lazy(() => import("./Components/GameModeSelector"));
+
+// Enhanced Card System Components
+const EnhancedCardGenerator = lazy(() => import("./Components/EnhancedCardGenerator"));
+const EnhancedQRScanner = lazy(() => import("./Components/EnhancedQRScanner"));
+const WinnerCardGenerator = lazy(() => import("./Components/WinnerCardGenerator"));
+const WinnerCardScanner = lazy(() => import("./Components/WinnerCardScanner"));
 
 interface TimeContextType {
   remainingTime: number;
@@ -39,19 +46,17 @@ export const TimeContext = createContext<TimeContextType | null>(null);
 
 const TimeDisplay: React.FC = () => {
   const navigate = useNavigate();
-  const remainingTime = useTimerStore(state => state.remainingTime);
-  const formatTime = useTimerStore(state => state.formatTime);
-  const resetGame = useGameStore(state => state.resetGame);
+  const { remainingTime, formatTime, endSession } = useSessionStore();
 
   useEffect(() => {
     if (remainingTime <= 30 && 'vibrate' in navigator) {
       navigator.vibrate([200, 100, 200]);
     }
     if (remainingTime <= 0) {
-      resetGame();
+      endSession();
       navigate('/thank-you');
     }
-  }, [remainingTime, navigate, resetGame]);
+  }, [remainingTime, navigate, endSession]);
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 p-4">
@@ -100,11 +105,10 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const location = useLocation();
-  const isPlaying = useGameStore(state => state.isPlaying);
-  const isTimerActive = useTimerStore(state => state.isTimerActive);
+  const { currentSession, isTimerActive } = useSessionStore();
 
-  if (!isPlaying || !isTimerActive) {
-    return <Navigate to="/qr-scan" replace state={{ fromGame: true }} />;
+  if (!currentSession?.isActive || !isTimerActive) {
+    return <Navigate to="/game-select" replace state={{ fromGame: true }} />;
   }
 
   return React.cloneElement(children, {
@@ -115,34 +119,16 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 const history = createBrowserHistory();
 
 const App: React.FC = () => {
-  const { remainingTime, isTimerActive, startTimer, pauseTimer, resetTimer, isExpired, formatTime } = useTimerStore();
+  const { remainingTime, isTimerActive, startTimer, pauseTimer, resetTimer, isExpired, formatTime } = useSessionStore();
+  const { initialize } = useAuthStore();
 
   console.log("Timer active:", isTimerActive);
   console.log("Remaining time:", remainingTime);
 
-  React.useEffect(() => {
-    if (!isTimerActive) return;
-
-    const interval = setInterval(() => {
-      if (remainingTime > 0) {
-        resetTimer({ time: remainingTime - 1, keepActive: true });
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [isTimerActive, remainingTime, resetTimer]);
-
+  // Initialize auth on app start
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      localStorage.setItem('timerState', JSON.stringify({ 
-        remainingTime, 
-        isTimerActive: document.hidden ? false : isTimerActive 
-      }));
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [remainingTime, isTimerActive]);
+    initialize();
+  }, [initialize]);
 
   const contextValue = useMemo(() => ({
     remainingTime,
@@ -170,8 +156,9 @@ const App: React.FC = () => {
           {isTimerActive && <TimeDisplay />}
           <Suspense fallback={<div className="loading-spinner" />}>
             <Routes>
-              <Route path="/login" element={<ProtectedRoute><Login /></ProtectedRoute>} />
+              <Route path="/login" element={<Login />} />
               <Route path="/" element={<Landing />} />
+              <Route path="/game-select" element={<QRScanMode />} />
               <Route path="/thank-you" element={<ThankYou />} />
               <Route path="/lovers" element={<ProtectedRoute><Lovers /></ProtectedRoute>} />
               <Route path="/friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
@@ -185,6 +172,11 @@ const App: React.FC = () => {
               <Route path="/rock-paper-scissors" element={<ProtectedRoute><RockPaperScissors /></ProtectedRoute>} />
               <Route path="/emoji-game" element={<ProtectedRoute><EmojiGame /></ProtectedRoute>} />
               <Route path="/cafe-owner/check-winner" element={<CafeOwnerCheckWinner />} />
+              
+              {/* Enhanced Card System Routes */}
+              <Route path="/enhanced-card-generator" element={<EnhancedCardGenerator />} />
+              <Route path="/enhanced-scanner" element={<EnhancedQRScanner />} />
+              <Route path="/winner-card-scanner" element={<WinnerCardScanner />} />
             </Routes>
           </Suspense>
         </HistoryRouter>
