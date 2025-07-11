@@ -2,7 +2,7 @@
 
 ## 🚀 Project Overview
 
-The Yenege GameHub is a modern web application designed to provide an engaging and secure gaming experience. It features a dynamic frontend built with React, a robust backend powered by Node.js and Prisma, and leverages Supabase for authentication and real-time capabilities. The platform supports various game types, manages user sessions, tracks scores, and includes an administrative panel for content and user management, as well as a dedicated dashboard for cafe owners.
+The Yenege GameHub is a modern web application designed to provide an engaging and secure gaming experience. It features a dynamic frontend built with React, a robust backend powered by Node.js, and leverages Supabase for authentication, database, and real-time capabilities. The platform supports various game types, manages user sessions, tracks scores, and includes an administrative panel for content and user management, as well as a dedicated dashboard for cafe owners.
 
 ## ✨ Key Features
 
@@ -18,8 +18,8 @@ The Yenege GameHub is a modern web application designed to provide an engaging a
 ## 💻 Technical Stack
 
 *   **Frontend**: React (with TypeScript), React Router DOM, Zustand (State Management), Tailwind CSS (Styling), Framer Motion (Animations).
-*   **Backend**: Node.js, Express.js, Prisma ORM, PostgreSQL.
-*   **Authentication & Realtime**: Supabase.
+*   **Backend**: Node.js, Express.js, PostgreSQL.
+*   **Authentication, Database & Realtime**: Supabase.
 
 ## 🌐 Architecture
 
@@ -44,7 +44,7 @@ The React application serves as the user interface, handling all interactions an
 
 The Node.js/Express.js backend provides the API endpoints for the frontend, manages data persistence, and enforces business logic and security.
 
-*   **Database**: PostgreSQL, managed via Prisma ORM.
+*   **Database**: PostgreSQL, managed via Supabase.
 *   **Authentication**: Handled by Supabase, which provides user authentication, JWT management, and row-level security.
 *   **API Endpoints**: Organized by domain (e.g., `server/routes/authRoutes.js`, `server/routes/cardRoutes.js`, `server/routes/adminRoutes.js`).
 *   **Middleware**: Includes authentication and authorization middleware to protect sensitive routes and ensure role-based access control.
@@ -74,7 +74,7 @@ The Node.js/Express.js backend provides the API endpoints for the frontend, mana
     *   `ProtectedRoute` ensures an active session and redirects if not present.
     *   The system verifies if the `gameTypeId` of the active session matches the requested game route. If not, the user is redirected to a "Wrong Game Type" page.
     *   The `GameTimer` component displays the remaining time, which persists even if the user navigates away or restarts the browser.
-6.  **Game Completion**: When the timer expires or the game concludes, the session ends, and the score is saved via the backend API.
+6.  **Game Completion**: When the timer expires or the game concludes, the score is saved via the backend API.
 7.  **Role-Based Access**: 
     *   **Admin**: Can access `/admin` (protected by `RoleProtectedRoute` for `ADMIN` role).
     *   **Cafe Owner**: Can access `/cafe-owner/dashboard` (protected by `RoleProtectedRoute` for `CAFE_OWNER` or `ADMIN` roles).
@@ -86,7 +86,6 @@ The Node.js/Express.js backend provides the API endpoints for the frontend, mana
 
 *   Node.js (LTS recommended)
 *   npm or Yarn
-*   PostgreSQL database
 *   Supabase project (with configured authentication and database tables)
 
 ### Installation
@@ -120,15 +119,6 @@ The Node.js/Express.js backend provides the API endpoints for the frontend, mana
         SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
         JWT_SECRET=a_strong_random_secret_key
         ```
-5.  **Database Setup (Backend)**:
-    *   Ensure your PostgreSQL database is running.
-    *   Run Prisma migrations to set up the database schema:
-        ```bash
-        cd server
-        npx prisma migrate dev --name init
-        cd ..
-        ```
-    *   (Optional) Seed your database with initial data if you have a seeding script.
 
 ### Running the Application
 
@@ -273,52 +263,122 @@ Contributions are welcome! Please follow the existing code style and submit pull
 
 #### 3. Card Management
 
-**3.1. Get Card Details**
-*   **Endpoint**: `GET /cards/{cardNumber}`
-*   **Description**: Retrieves details for a specific game card, used as a fallback for manual entry.
-*   **Request**: None (card number in path)
+**3.1. Get All Unused Cards 🔒**
+*   **Endpoint**: `GET /cards`
+*   **Description**: Retrieves all cards that have not been used yet.
+*   **Request**:
+    *   **Headers**: `Authorization: Bearer <token>`
 *   **Response**:
     *   **Success (200 OK)**:
         ```json
-        {
-          "cardNumber": "string",
-          "gameTypeId": "string",
-          "duration": "number",
-          "routeAccess": ["string"],
-          "used": "boolean",
-          "playerId": "string | null",
-          "usedAt": "string | null"
-        }
+        [
+          {
+            "id": "string",
+            "content": "string",
+            "duration": "number",
+            "used": false,
+            "game_type_id": "string",
+            "card_number": "string",
+            "created_at": "string",
+            "game_types": {
+              "name": "string"
+            }
+          }
+        ]
         ```
-    *   **Error (404 Not Found)**: Card not found.
 
-**3.2. Mark Card as Used 🔒**
-*   **Endpoint**: `PUT /cards/{cardNumber}/use`
-*   **Description**: Marks a specific card as used and assigns a player ID.
+**3.2. Create a New Card 🔒 (Admin Only)**
+*   **Endpoint**: `POST /cards`
+*   **Description**: Creates a new game card.
 *   **Request**:
     *   **Headers**: `Authorization: Bearer <token>`, `Content-Type: application/json`
     *   **Body**:
         ```json
         {
-          "playerId": "string"
+          "content": "string",
+          "duration": "number",
+          "gameTypeId": "string",
+          "cardNumber": "string"
         }
         ```
-*   **Response**: 
+*   **Response**:
+    *   **Success (201 Created)**:
+        ```json
+        {
+          "id": "string",
+          "content": "string",
+          "duration": "number",
+          "used": false,
+          "game_type_id": "string",
+          "card_number": "string",
+          "created_at": "string",
+          "game_types": {
+            "name": "string"
+          }
+        }
+        ```
+
+**3.3. Mark Card as Used 🔒**
+*   **Endpoint**: `PATCH /cards/{id}/use`
+*   **Description**: Marks a specific card as used.
+*   **Request**:
+    *   **Headers**: `Authorization: Bearer <token>`
+*   **Response**:
     *   **Success (200 OK)**:
         ```json
         {
-          "message": "Card marked as used successfully"
+          "id": "string",
+          "content": "string",
+          "duration": "number",
+          "used": true,
+          "game_type_id": "string",
+          "card_number": "string",
+          "created_at": "string",
+          "game_types": {
+            "name": "string"
+          }
         }
         ```
-    *   **Error (400 Bad Request)**: Card already used or invalid player ID.
-    *   **Error (401 Unauthorized)**: Invalid or missing token.
-    *   **Error (404 Not Found)**: Card not found.
 
 ---
 
-#### 4. Admin & Cafe Owner Functionality
+#### 4. Winner Management
 
-**4.1. Admin Dashboard Data 🔒**
+**4.1. Get All Winners 🔒**
+*   **Endpoint**: `GET /winners`
+*   **Description**: Retrieves all winning certificates.
+*   **Request**:
+    *   **Headers**: `Authorization: Bearer <token>`
+*   **Response**:
+    *   **Success (200 OK)**:
+        ```json
+        [
+          {
+            "id": "string",
+            "player_name": "string",
+            "player_id": "string",
+            "score": "number",
+            "has_won_coffee": true,
+            "has_won_prize": false,
+            "reward_type": "string",
+            "timestamp": "string",
+            "session_id": "string",
+            "prize_delivered": false,
+            "prize_amount": null,
+            "created_at": "string",
+            "game_type_id": "string",
+            "game_types": {
+              "name": "string"
+            }
+          }
+        ]
+        ```
+
+---
+
+#### 5. Admin & Cafe Owner Functionality
+
+**5.1. Admin Dashboard Data 🔒**
 *   **Endpoint**: `GET /admin/dashboard`
 *   **Description**: Retrieves data necessary for the admin dashboard. (Specific data points to be defined based on dashboard content).
 *   **Request**:
@@ -350,7 +410,7 @@ Contributions are welcome! Please follow the existing code style and submit pull
     *   **Error (401 Unauthorized)**: Invalid or missing token.
     *   **Error (403 Forbidden)**: User does not have ADMIN role.
 
-**4.2. Cafe Owner Dashboard Data 🔒**
+**5.2. Cafe Owner Dashboard Data 🔒**
 *   **Endpoint**: `GET /cafe-owner/dashboard`
 *   **Description**: Retrieves data specific to the cafe owner dashboard. (Specific data points to be defined based on dashboard content).
 *   **Request**:

@@ -1,27 +1,27 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const pool = require('../db');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // Questions
-router.get('/questions/:gameTypeId', async (req, res) => {
+router.get('/:gameTypeId', async (req, res) => {
   try {
     const { gameTypeId } = req.params;
     const { difficulty, limit = 10 } = req.query;
     
-    const where = { gameTypeId };
+    let query = 'SELECT * FROM questions WHERE game_type_id = $1';
+    const params = [gameTypeId];
+
     if (difficulty) {
-      where.difficulty = parseInt(difficulty);
+      query += ' AND difficulty = $2';
+      params.push(parseInt(difficulty));
     }
+
+    query += ` LIMIT ${parseInt(limit)}`;
+
+    const { rows } = await pool.query(query, params);
     
-    const questions = await prisma.question.findMany({
-      where,
-      take: parseInt(limit),
-      orderBy: { id: 'asc' }
-    });
-    
-    res.json(questions);
+    res.json(rows);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch questions' });
   }

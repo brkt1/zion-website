@@ -1,77 +1,90 @@
 const express = require('express');
-const { PrismaClient } = require('../../node_modules/@prisma/client');
-const { createClient } = require('@supabase/supabase-js');
+const pool = require('../db');
 const { authenticateUser, requireAdmin } = require('../middleware/authMiddleware');
-require('dotenv').config({ path: '../.env' });
 
 const router = express.Router();
-const prisma = new PrismaClient();
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL,
-  process.env.VITE_SUPABASE_ANON_KEY
-);
 
 // Admin Routes
-router.get('/admin/users', authenticateUser, requireAdmin, async (req, res) => {
+router.get('/users', authenticateUser, requireAdmin, async (req, res) => {
   try {
-    const users = await prisma.user.findMany({
-      include: {
-        profile: {
-          select: { role: true }
-        }
-      },
-      orderBy: { createdAt: 'desc' }
-    });
-    res.json(users);
+    const { rows } = await pool.query(`
+      SELECT u.*, p.role
+      FROM users u
+      LEFT JOIN profiles p ON u.id = p.user_id
+      ORDER BY u.created_at DESC
+    `);
+    res.json(rows);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch users' });
   }
 });
 
-router.post('/admin/cafe-owners', authenticateUser, requireAdmin, async (req, res) => {
+router.post('/cafe-owners', authenticateUser, requireAdmin, async (req, res) => {
   try {
     const { name, email, password } = req.body;
     
-    // Create user in Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true
-    });
+    // This is a placeholder for creating a user in your auth system.
+    // You will need to replace this with your actual user creation logic.
+    const newUser = { id: 'new-user-id', email };
+
+    const { rows: userRows } = await pool.query(`
+      INSERT INTO users (email, auth_user_id)
+      VALUES ($1, $2)
+      RETURNING *;
+    `, [email, newUser.id]);
+
+    const user = userRows[0];
+
+    const { rows: profileRows } = await pool.query(`
+      INSERT INTO profiles (user_id, role)
+      VALUES ($1, $2)
+      RETURNING *;
+    `, [user.id, 'CAFE_OWNER']);
+
+    const profile = profileRows[0];
+
+    const { rows: cafeOwnerRows } = await pool.query(`
+      INSERT INTO cafe_owners (name, email, user_id)
+      VALUES ($1, $2, $3)
+      RETURNING *;
+    `, [name, email, user.id]);
+
+    const cafeOwner = cafeOwnerRows[0];
     
-    if (authError) {
-      return res.status(400).json({ error: authError.message });
-    }
-    
-    // Create user and profile in database
-    const user = await prisma.user.create({
-      data: {
-        email,
-        authUserId: authData.user.id,
-        profile: {
-          create: {
-            role: 'CAFE_OWNER'
-          }
-        }
-      },
-      include: {
-        profile: true
-      }
-    });
-    
-    // Create cafe owner record
-    const cafeOwner = await prisma.cafeOwner.create({
-      data: {
-        name,
-        email,
-        password: 'managed_by_supabase' // Password is managed by Supabase
-      }
-    });
-    
-    console.log('POST /api/admin/cafe-owners response:', { user, cafeOwner });
-    res.status(201).json({ user, cafeOwner });
+    res.status(201).json({ user: { ...user, profile }, cafeOwner });
   } catch (error) {
     res.status(500).json({ error: 'Failed to create cafe owner' });
+  }
+});
+
+router.get('/dashboard', authenticateUser, requireAdmin, async (req, res) => {
+  try {
+    // Fetch total users
+    const { rowCount: totalUsers } = await pool.query('SELECT id FROM auth.users');
+
+    // Fetch user roles
+    const { rows: userRoles } = await pool.query(`
+      SELECT u.email, p.role, u.id as userId
+      FROM auth.users u
+      LEFT JOIN public.profiles p ON u.id = p.id
+    `);
+
+    // Construct dashboard data
+    const dashboardData = {
+      totalUsers: totalUsers,
+      activeSessions: 0, // Placeholder for now
+      recentActivities: [], // Placeholder for now
+      userRoles: userRoles.map(user => ({
+        userId: user.userId,
+        email: user.email,
+        role: user.role || 'USER' // Default to USER if role is null
+      })),
+    };
+
+    res.json(dashboardData);
+  } catch (error) {
+    console.error('Admin dashboard error:', error);
+    res.status(500).json({ error: 'Failed to load admin dashboard' });
   }
 });
 

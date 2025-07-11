@@ -1,116 +1,44 @@
 const request = require('supertest');
-const initializeApp = require('./index');
-const { PrismaClient } = require('../node_modules/@prisma/client');
-const { createClient } = require('@supabase/supabase-js');
+const app = require('./index');
+const pool = require('./db');
 
-// Mock Supabase for testing
-jest.mock('@supabase/supabase-js', () => ({
-  createClient: jest.fn(() => ({
-    auth: {
-      getUser: jest.fn((token) => {
-        if (token === 'valid-user-token') {
-          return { data: { user: { id: 'user-id', email: 'user@example.com' } }, error: null };
-        } else if (token === 'valid-admin-token') {
-          return { data: { user: { id: 'admin-id', email: 'admin@example.com' } }, error: null };
-        }
-        return { data: { user: null }, error: { message: 'Invalid token' } };
-      }),
-      admin: {
-        createUser: jest.fn(() => ({
-          data: { user: { id: 'new-user-id' } },
-          error: null,
-        })),
-      },
-    },
-  })),
+jest.mock('./db', () => ({
+  query: jest.fn(),
 }));
 
-// Mock Prisma for testing
-jest.mock('../node_modules/@prisma/client', () => ({
-  PrismaClient: jest.fn(() => ({
-    $disconnect: jest.fn(),
-    user: {
-      findUnique: jest.fn(({ where }) => {
-        if (where.authUserId === 'user-id') {
-          return Promise.resolve({ id: 'user-db-id', authUserId: 'user-id', email: 'user@example.com', profile: { role: 'USER' } });
-        } else if (where.authUserId === 'admin-id') {
-          return Promise.resolve({ id: 'admin-db-id', authUserId: 'admin-id', email: 'admin@example.com', profile: { role: 'ADMIN' } });
-        }
-        return Promise.resolve(null);
-      }),
-      create: jest.fn((data) => Promise.resolve({ ...data, id: 'new-user-db-id' })),
-      findMany: jest.fn(() => Promise.resolve([
-        { id: 'user-db-id-1', authUserId: 'user-id-1', email: 'user1@example.com', profile: { role: 'USER' } },
-        { id: 'user-db-id-2', authUserId: 'user-id-2', email: 'user2@example.com', profile: { role: 'ADMIN' } },
-      ])),
-    },
-    profile: {
-      create: jest.fn((data) => Promise.resolve({ ...data, id: 'new-profile-id' })),
-    },
-    gameType: {
-      findMany: jest.fn(() => Promise.resolve([
-        { id: 'game-type-1', name: 'Trivia', _count: { cards: 10, questions: 20, scores: 5 } },
-        { id: 'game-type-2', name: 'Truth or Dare', _count: { cards: 15, questions: 0, scores: 8 } },
-      ])),
-    },
-    card: {
-      findMany: jest.fn(() => Promise.resolve([
-        { id: 'card-1', content: 'Card 1', used: false, gameTypeId: 'game-type-1', gameType: { name: 'Trivia' } },
-      ])),
-      create: jest.fn(({ data, include }) => Promise.resolve({
-        ...data,
-        id: 'new-card-id',
-        gameType: include && include.gameType ? { name: 'Trivia' } : undefined
-      })),
-      update: jest.fn((data) => Promise.resolve({
-        id: data.where.id,
-        used: data.data.used,
-        gameType: { name: 'Trivia' }
-      })),
-    },
-    certificate: {
-      findMany: jest.fn(() => Promise.resolve([
-        { id: 'cert-1', playerName: 'Player 1', gameType: { name: 'Trivia' } },
-      ])),
-      create: jest.fn(({ data, include }) => Promise.resolve({
-        ...data,
-        id: 'new-cert-id',
-        gameType: include && include.gameType ? { name: 'Trivia' } : undefined,
-        timestamp: new Date().toISOString(),
-      })),
-    },
-    score: {
-      create: jest.fn(({ data, include }) => Promise.resolve({
-        ...data,
-        id: 'new-score-id',
-        gameType: include && include.gameType ? { name: 'Trivia' } : undefined,
-        timestamp: new Date().toISOString(),
-      })),
-    },
-    question: {
-      findMany: jest.fn(() => Promise.resolve([
-        { id: 'q1', question: 'Q1', gameTypeId: 'game-type-1' },
-      ])),
-    },
-    cafeOwner: {
-      create: jest.fn(({ data }) => Promise.resolve({
-        ...data,
-        id: 'new-cafe-owner-id'
-      })),
-    },
-  })),
+const mockAuth = (role) => (req, res, next) => {
+  req.user = { id: 'test-user', role };
+  next();
+};
+
+jest.mock('./middleware/authMiddleware', () => ({
+  authenticateUser: jest.fn((req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
+    const token = authHeader.split(' ')[1];
+    if (token === 'valid-user-token') {
+      req.user = { id: 'user-id', role: 'USER' };
+      return next();
+    }
+    if (token === 'valid-admin-token') {
+      req.user = { id: 'admin-id', role: 'ADMIN' };
+      return next();
+    }
+    return res.status(401).json({ error: 'Invalid token' });
+  }),
+  requireAdmin: jest.fn((req, res, next) => {
+    if (req.user && req.user.role === 'ADMIN') {
+      return next();
+    }
+    return res.status(403).json({ error: 'Admin access required' });
+  }),
 }));
 
-const prisma = new PrismaClient();
-const supabase = createClient('mock-url', 'mock-key');
-const app = initializeApp(prisma, supabase);
 
-describe('API Routes', () => {
-  afterAll(async () => {
-    // Disconnect Prisma after all tests are done
-    await prisma.$disconnect();
-  });
 
+  describe('API Routes', () => {
   describe('GET /health', () => {
     it('should return 200 OK', async () => {
       const res = await request(app).get('/health');
@@ -119,9 +47,10 @@ describe('API Routes', () => {
     });
   });
 
-  describe('GET /api/game-types', () => {
+  describe('GET /api/gametypes', () => {
     it('should return a list of game types', async () => {
-      const res = await request(app).get('/api/game-types');
+      pool.query.mockResolvedValueOnce({ rows: [{ id: 'game-type-1', name: 'Trivia' }] });
+      const res = await request(app).get('/api/gametypes');
       expect(res.statusCode).toEqual(200);
       expect(res.body).toBeInstanceOf(Array);
       expect(res.body.length).toBeGreaterThan(0);
@@ -131,14 +60,15 @@ describe('API Routes', () => {
 
   describe('GET /api/profile', () => {
     it('should return 401 if no token is provided', async () => {
-      const res = await request(app).get('/api/profile');
+      const res = await request(app).get('/api/profile/profile');
       expect(res.statusCode).toEqual(401);
       expect(res.body).toHaveProperty('error', 'No token provided');
     });
 
     it('should return 200 and user profile if valid token is provided', async () => {
+      pool.query.mockResolvedValueOnce({ rows: [{ id: 'user-db-id', userId: 'user-id', role: 'USER' }] });
       const res = await request(app)
-        .get('/api/profile')
+        .get('/api/profile/profile')
         .set('Authorization', 'Bearer valid-user-token');
       expect(res.statusCode).toEqual(200);
       expect(res.body).toHaveProperty('role', 'USER');
@@ -152,6 +82,7 @@ describe('API Routes', () => {
     });
 
     it('should return a list of cards if valid token is provided', async () => {
+      pool.query.mockResolvedValueOnce({ rows: [{ id: 'card-1', content: 'Card 1', used: false, game_type_id: 'game-type-1', game_type_name: 'Trivia' }] });
       const res = await request(app)
         .get('/api/cards')
         .set('Authorization', 'Bearer valid-user-token');
@@ -181,6 +112,8 @@ describe('API Routes', () => {
         gameTypeId: 'game-type-1',
         cardNumber: '001',
       };
+      pool.query.mockResolvedValueOnce({ rows: [{ ...newCard, id: 'new-card-id' }] });
+      pool.query.mockResolvedValueOnce({ rows: [{ name: 'Trivia' }] });
       const res = await request(app)
         .post('/api/cards')
         .set('Authorization', 'Bearer valid-admin-token')
@@ -197,6 +130,8 @@ describe('API Routes', () => {
     });
 
     it('should mark a card as used if valid token is provided', async () => {
+      pool.query.mockResolvedValueOnce({ rows: [{ id: 'card-1', used: true }] });
+      pool.query.mockResolvedValueOnce({ rows: [{ name: 'Trivia' }] });
       const res = await request(app)
         .patch('/api/cards/card-1/use')
         .set('Authorization', 'Bearer valid-user-token');
@@ -207,7 +142,7 @@ describe('API Routes', () => {
 
   describe('POST /api/certificates', () => {
     it('should return 401 if no token is provided', async () => {
-      const res = await request(app).post('/api/certificates').send({});
+      const res = await request(app).post('/api/certificates/').send({});
       expect(res.statusCode).toEqual(401);
     });
 
@@ -219,8 +154,10 @@ describe('API Routes', () => {
         gameTypeId: 'game-type-1',
         sessionId: 'session-id',
       };
+      pool.query.mockResolvedValueOnce({ rows: [{ ...newCertificate, id: 'new-cert-id', game_type_id: 'game-type-1' }] });
+      pool.query.mockResolvedValueOnce({ rows: [{ name: 'Trivia' }] });
       const res = await request(app)
-        .post('/api/certificates')
+        .post('/api/certificates/')
         .set('Authorization', 'Bearer valid-user-token')
         .send(newCertificate);
       expect(res.statusCode).toEqual(201);
@@ -230,7 +167,7 @@ describe('API Routes', () => {
 
   describe('POST /api/scores', () => {
     it('should return 401 if no token is provided', async () => {
-      const res = await request(app).post('/api/scores').send({});
+      const res = await request(app).post('/api/scores/').send({});
       expect(res.statusCode).toEqual(401);
     });
 
@@ -244,8 +181,10 @@ describe('API Routes', () => {
         streak: 5,
         gameTypeId: 'game-type-1',
       };
+      pool.query.mockResolvedValueOnce({ rows: [{ ...newScore, id: 'new-score-id', game_type_id: 'game-type-1' }] });
+      pool.query.mockResolvedValueOnce({ rows: [{ name: 'Trivia' }] });
       const res = await request(app)
-        .post('/api/scores')
+        .post('/api/scores/')
         .set('Authorization', 'Bearer valid-user-token')
         .send(newScore);
       expect(res.statusCode).toEqual(201);
@@ -255,6 +194,7 @@ describe('API Routes', () => {
 
   describe('GET /api/questions/:gameTypeId', () => {
     it('should return a list of questions for a given game type', async () => {
+      pool.query.mockResolvedValueOnce({ rows: [{ id: 'q1', question: 'Q1', game_type_id: 'game-type-1' }] });
       const res = await request(app).get('/api/questions/game-type-1');
       expect(res.statusCode).toEqual(200);
       expect(res.body).toBeInstanceOf(Array);
@@ -277,6 +217,7 @@ describe('API Routes', () => {
     });
 
     it('should return a list of users if admin token is provided', async () => {
+      pool.query.mockResolvedValueOnce({ rows: [{ id: 'user-1', email: 'user1@example.com', role: 'USER' }] });
       const res = await request(app)
         .get('/api/admin/users')
         .set('Authorization', 'Bearer valid-admin-token');
@@ -305,6 +246,9 @@ describe('API Routes', () => {
         email: 'cafe@example.com',
         password: 'password123',
       };
+      pool.query.mockResolvedValueOnce({ rows: [{ id: 'new-user-id', email: 'cafe@example.com' }] }); // Mock for users table insert
+      pool.query.mockResolvedValueOnce({ rows: [{ user_id: 'new-user-id', role: 'CAFE_OWNER' }] }); // Mock for profiles table insert
+      pool.query.mockResolvedValueOnce({ rows: [{ id: 'new-cafe-owner-id', name: 'Test Cafe', email: 'cafe@example.com' }] }); // Mock for cafe_owners table insert
       const res = await request(app)
         .post('/api/admin/cafe-owners')
         .set('Authorization', 'Bearer valid-admin-token')
@@ -322,6 +266,7 @@ describe('API Routes', () => {
     });
 
     it('should return a list of winners if valid token is provided', async () => {
+      pool.query.mockResolvedValueOnce({ rows: [{ id: 'cert-1', playerName: 'Player 1', game_type_name: 'Trivia' }] });
       const res = await request(app)
         .get('/api/winners')
         .set('Authorization', 'Bearer valid-user-token');

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { supabase } from '../../supabaseClient';
+
 
 const RewardWinner = ({ winner, onRewardGiven }) => {
   const [loading, setLoading] = useState(false);
@@ -10,12 +10,25 @@ const RewardWinner = ({ winner, onRewardGiven }) => {
     setLoading(true);
     setError(null);
     try {
-      const { error: updateError } = await supabase
-        .from('certificates')
-        .update({ prize_delivered: true })
-        .eq('id', winner.id);
+      const token = useAuthStore.getState().session?.access_token;
+      if (!token) {
+        setError('Authentication required to reward winner.');
+        return;
+      }
 
-      if (updateError) throw updateError;
+      const response = await fetch(`/api/winners/${winner.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prize_delivered: true }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to reward winner via backend.');
+      }
 
       onRewardGiven();
     } catch (err) {

@@ -1,31 +1,23 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const router = express.Router();
 const { authenticateUser } = require('../middleware/authMiddleware');
 
-const router = express.Router();
-const prisma = new PrismaClient();
+module.exports = function(pool) {
+  // Get all winners
+  router.get('/', authenticateUser, async (req, res) => {
+    try {
+      const { rows } = await pool.query(`
+        SELECT c.*, gt.name as game_type_name
+        FROM certificates c
+        LEFT JOIN game_types gt ON c.game_type_id = gt.id
+        WHERE c.has_won_coffee = true OR c.has_won_prize = true
+        ORDER BY c.timestamp DESC
+      `);
+      res.json(rows);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch winners' });
+    }
+  });
 
-// Winners/Rewards
-router.get('/winners', authenticateUser, async (req, res) => {
-  try {
-    const winners = await prisma.certificate.findMany({
-      where: {
-        OR: [
-          { hasWonCoffee: true },
-          { hasWonPrize: true }
-        ]
-      },
-      include: {
-        gameType: {
-          select: { name: true }
-        }
-      },
-      orderBy: { timestamp: 'desc' }
-    });
-    res.json(winners);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch winners' });
-  }
-});
-
-module.exports = router;
+  return router;
+};

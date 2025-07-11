@@ -90,7 +90,6 @@ const RoleProtectedRoute: React.FC<RoleProtectedRouteProps> = ({ children, allow
   }
 
   if (!profile || !allowedRoles.includes(profile.role)) {
-    // Redirect to a forbidden page or home page
     return <Navigate to="/access-denied" replace />;
   }
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Html5Qrcode } from 'html5-qrcode';
-import { supabase } from '../../supabaseClient';
+
 import { FaCamera, FaQrcode, FaKeyboard, FaRedo, FaGamepad } from 'react-icons/fa';
 import { useSessionStore } from '../../stores/sessionStore';
 import { useAuthStore } from '../../stores/authStore';
@@ -174,48 +174,41 @@ const EnhancedQRScanner: React.FC = () => {
           throw new Error(`Invalid card format: ${scannedData}`);
         }
         
-        // Fetch card from database
-        const { data: cardRecord, error } = await supabase
-          .from('cards')
-          .select(`
-            *,
-            game_types (
-              id,
-              name
-            )
-          `)
-          .eq('card_number', cardNumber)
-          .eq('used', false)
-          .single();
+        // Fetch card from backend API
+        const token = useAuthStore.getState().session?.access_token;
+        if (!token) {
+          throw new Error('Authentication required to scan cards.');
+        }
 
-        if (error || !cardRecord) {
-          throw new Error('Card not found or already used');
+        const response = await fetch(`/api/cards?cardNumber=${cardNumber}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to fetch card from backend.');
+        }
+
+        const cardRecord = await response.json();
+        if (!cardRecord || cardRecord.used) {
+          throw new Error('Card not found or already used.');
         }
 
         cardData = {
           cardNumber: cardRecord.card_number,
           gameTypeId: cardRecord.game_type_id,
           duration: cardRecord.duration,
-          routeAccess: cardRecord.route_access,
+          routeAccess: cardRecord.route_access, // Assuming backend returns this
           playerId: generatePlayerId(),
           timestamp: new Date().toISOString()
         };
       }
 
-      // Validate card hasn't been used
-      const { data: existingCard, error: checkError } = await supabase
-        .from('cards')
-        .select('used, player_id')
-        .eq('card_number', cardData.cardNumber)
-        .single();
-
-      if (checkError && checkError.code !== 'PGRST116') {
-        throw new Error('Error validating card');
-      }
-
-      if (existingCard?.used) {
-        throw new Error('This card has already been used');
-      }
+      // No need for separate 'used' check here, backend handles it
+      // The API call above already checks if the card is used.
 
       // Set available routes based on card
       const cardRoutes = cardData.routeAccess.map(routeId => 
@@ -250,18 +243,23 @@ const EnhancedQRScanner: React.FC = () => {
     setIsLoading(true);
     
     try {
-      // Mark card as used and assign player ID
-      const { error: updateError } = await supabase
-        .from('cards')
-        .update({ 
-          used: true, 
-          player_id: scannedCard.playerId,
-          used_at: new Date().toISOString()
-        })
-        .eq('card_number', scannedCard.cardNumber);
+      const token = useAuthStore.getState().session?.access_token;
+      if (!token) {
+        throw new Error('Authentication required to start game.');
+      }
 
-      if (updateError) {
-        console.warn('Failed to mark card as used:', updateError);
+      // Mark card as used via backend API
+      const response = await fetch(`/api/cards/${scannedCard.id}/use`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to mark card as used via backend.');
       }
 
       // Start game session

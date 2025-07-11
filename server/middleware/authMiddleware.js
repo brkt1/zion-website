@@ -1,12 +1,5 @@
-const { createClient } = require('@supabase/supabase-js');
-const { PrismaClient } = require('../../node_modules/@prisma/client');
-require('dotenv').config({ path: '../.env' });
-
-const prisma = new PrismaClient();
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL,
-  process.env.VITE_SUPABASE_ANON_KEY
-);
+const pool = require('../db');
+const jwt = require('jsonwebtoken');
 
 const authenticateUser = async (req, res, next) => {
   try {
@@ -15,31 +8,47 @@ const authenticateUser = async (req, res, next) => {
       return res.status(401).json({ error: 'No token provided' });
     }
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return res.status(401).json({ error: 'Invalid token' });
+    const SUPABASE_JWT_SECRET = 'BGub9TfYwmTYBP3zZRUHJfdQLXGTY2BbyAPPUSKTuUDyiFx9UMXnMNh3Y+nY9W5BNyfsE9WoCczJWAWnaTyxjw==';
+
+    if (!SUPABASE_JWT_SECRET) {
+      console.error('SUPABASE_JWT_SECRET is not defined');
+      return res.status(500).json({ error: 'Server configuration error' });
     }
 
-    req.user = user;
+    console.log('Token received:', token);
+    console.log('Using secret (first 5 chars):', SUPABASE_JWT_SECRET.substring(0, 5));
+    const decoded = jwt.verify(token, SUPABASE_JWT_SECRET);
+    console.log('Decoded JWT:', decoded);
+    req.user = { id: decoded.sub };
     next();
   } catch (authError) {
+    console.error('Authentication error:', authError);
     res.status(401).json({ error: 'Authentication failed' });
   }
 };
 
 const requireAdmin = async (req, res, next) => {
   try {
-    const user = await prisma.user.findUnique({
-      where: { authUserId: req.user.id },
-      include: { profile: true }
-    });
+    if (!req.user) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
 
-    if (!user || !user.profile || user.profile.role !== 'ADMIN') {
+    console.log('User ID for admin check:', req.user.id);
+    const { rows } = await pool.query('SELECT role FROM profiles WHERE id = $1', [req.user.id]);
+    console.log('Profile query result (rows):', rows);
+    const profile = rows[0];
+
+    if (!profile) {
+      return res.status(500).json({ error: 'Error fetching user profile' });
+    }
+
+    if (profile.role !== 'ADMIN') {
       return res.status(403).json({ error: 'Admin access required' });
     }
 
     next();
   } catch (adminError) {
+    console.error('Authorization check failed:', adminError);
     res.status(500).json({ error: 'Authorization check failed' });
   }
 };

@@ -1,6 +1,21 @@
 if ('serviceWorker' in navigator) {
   const swVersion = 'v3'; // Update this when making changes
-  window.addEventListener('load', function() {
+  window.addEventListener('load', async function() {
+    // Unregister old service workers
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    for (const registration of registrations) {
+      await registration.unregister();
+    }
+
+    // Clear caches
+    const cacheNames = await caches.keys();
+    for (const cacheName of cacheNames) {
+      if (cacheName !== swVersion) {
+        await caches.delete(cacheName);
+      }
+    }
+
+    // Register new service worker
     navigator.serviceWorker.register('/service-worker.js', { scope: './', type: 'module' })
       .then(registration => {
         console.log('ServiceWorker registration successful with scope: ', registration.scope);
@@ -15,14 +30,5 @@ if ('serviceWorker' in navigator) {
       .catch(err => {
         console.error('ServiceWorker registration failed: ', err);
       });
-  });
-
-  // Clear old service workers
-  caches.keys().then(cacheNames => {
-    cacheNames.forEach(cacheName => {
-      if (cacheName !== swVersion) {
-        caches.delete(cacheName);
-      }
-    });
   });
 }

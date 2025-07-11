@@ -115,6 +115,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (!session?.access_token) return;
 
       const response = await fetch(`${API_BASE_URL}/profile`, {
+        mode: 'cors',
+        credentials: 'include',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
@@ -124,6 +126,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (response.ok) {
         const profile = await response.json();
         set({ profile });
+      } else {
+        console.error('Failed to fetch profile with status:', response.status);
       }
     } catch (error) {
       console.error('Failed to fetch profile:', error);
@@ -146,13 +150,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ 
         session,
         user: session?.user || null,
-        loading: false 
       });
 
       // Fetch profile if user is authenticated
       if (session?.user) {
         await get().fetchProfile();
       }
+      set({ loading: false });
 
       // Listen for auth changes
       supabase.auth.onAuthStateChange(async (event, session) => {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { supabase } from '../../supabaseClient';
+
 import { FaCamera, FaQrcode, FaKeyboard, FaRedo, FaTrophy, FaCheck, FaTimes } from 'react-icons/fa';
 
 interface WinnerCardData {
@@ -149,26 +149,38 @@ const WinnerCardScanner: React.FC = () => {
         return;
       }
 
-      // Fetch winner record from database
-      const { data: winnerRecord, error: fetchError } = await supabase
-        .from('winner_cards')
-        .select('*')
-        .eq('winnerCardId', winnerCardData.winnerCardId)
-        .single();
+      // Fetch winner record from backend API
+      const token = useAuthStore.getState().session?.access_token;
+      if (!token) {
+        throw new Error('Authentication required to verify winner card.');
+      }
 
-      if (fetchError || !winnerRecord) {
-        throw new Error('Winner card not found in database');
+      const response = await fetch(`/api/winners?winnerCardId=${winnerCardData.winnerCardId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch winner from backend.');
+      }
+
+      const winnerRecord = await response.json();
+      if (!winnerRecord) {
+        throw new Error('Winner card not found in database.');
       }
 
       // Verify the card data matches
-      if (winnerRecord.playerId !== winnerCardData.playerId || 
+      if (winnerRecord.player_id !== winnerCardData.playerId || 
           winnerRecord.prize !== winnerCardData.prize) {
         throw new Error('Winner card verification failed - data mismatch');
       }
 
       setScannedWinner(winnerRecord);
       setIsVerified(true);
-      setRewardClaimed(winnerRecord.status === 'claimed');
+      setRewardClaimed(winnerRecord.prize_delivered); // Assuming prize_delivered indicates claimed
       
       // Stop scanning
       await stopScanner();
@@ -187,40 +199,24 @@ const WinnerCardScanner: React.FC = () => {
     setIsLoading(true);
     
     try {
-      // Get current user (cafe owner or admin)
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (!user || userError) {
-        throw new Error('Authentication required');
+      const token = useAuthStore.getState().session?.access_token;
+      if (!token) {
+        throw new Error('Authentication required to claim reward.');
       }
 
-      // Update winner card status to claimed
-      const { error: updateError } = await supabase
-        .from('winner_cards')
-        .update({ 
-          status: 'claimed',
-          claimedAt: new Date().toISOString(),
-          claimedBy: user.id
-        })
-        .eq('winnerCardId', scannedWinner.winnerCardId);
+      // Update winner card status to claimed via backend API
+      const response = await fetch(`/api/winners/${scannedWinner.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prize_delivered: true }),
+      });
 
-      if (updateError) {
-        throw new Error('Failed to update winner card status');
-      }
-
-      // Log the reward claim
-      const { error: logError } = await supabase
-        .from('reward_claims')
-        .insert([{
-          winnerCardId: scannedWinner.winnerCardId,
-          playerId: scannedWinner.playerId,
-          playerName: scannedWinner.playerName,
-          prize: scannedWinner.prize,
-          claimedBy: user.id,
-          claimedAt: new Date().toISOString()
-        }]);
-
-      if (logError) {
-        console.warn('Failed to log reward claim:', logError);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update winner status via backend.');
       }
 
       setRewardClaimed(true);

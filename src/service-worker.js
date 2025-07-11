@@ -71,6 +71,7 @@ self.addEventListener('fetch', (event) => {
     requestUrl.pathname.includes('__webpack') ||
     // API requests
     requestUrl.pathname.startsWith('/graphql/') ||
+    requestUrl.pathname.startsWith('/api/') ||
     // Non-GET requests
     request.method !== 'GET' ||
     // WebSockets

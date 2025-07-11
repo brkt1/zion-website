@@ -1,54 +1,38 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
 const { authenticateUser } = require('../middleware/authMiddleware');
 
-module.exports = (prisma) => {
+module.exports = (pool) => {
   const router = express.Router();
 
-// Profile endpoint
-router.get('/profile', authenticateUser, async (req, res) => {
-  try {
-    // First, find or create user in our database
-    let user = await prisma.user.findUnique({
-      where: { authUserId: req.user.id },
-      include: { profile: true }
-    });
+  // Profile endpoint
+  router.get('/', authenticateUser, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      console.log('Profile Route: User ID from token:', userId);
 
-    if (!user) {
-      // Create user and profile if they don't exist
-      user = await prisma.user.create({
-        data: {
-          email: req.user.email,
-          authUserId: req.user.id,
-          profile: {
-            create: {
-              role: 'USER'
-            }
-          }
-        },
-        include: { profile: true }
-      });
-    } else if (!user.profile) {
-      // Create profile if user exists but profile doesn't
-      await prisma.profile.create({
-        data: {
-          userId: user.id,
-          role: 'USER'
-        }
-      });
-      
-      // Refetch user with profile
-      user = await prisma.user.findUnique({
-        where: { authUserId: req.user.id },
-        include: { profile: true }
-      });
+      // Query profile by userId
+      const { rows } = await pool.query('SELECT * FROM profiles WHERE id = $1', [userId]);
+      let profile = rows[0];
+
+      console.log('Profile Route: Profile found after SELECT query:', profile);
+      console.log('Profile Route: Condition !profile (should trigger INSERT if true): ', !profile);
+
+      // If profile not found, create it with default role USER
+      if (!profile) {
+        console.log('Profile Route: Attempting to insert new profile for userId:', userId);
+        const { rows: newRows } = await pool.query(
+          'INSERT INTO profiles (id, role) VALUES ($1::uuid, $2) RETURNING *',
+          [userId, 'USER']
+        );
+        profile = newRows[0];
+      }
+
+      res.json(profile);
+    } catch (error) {
+      console.error('Profile fetch error:', error.message, error.stack);
+      res.status(500).json({ error: 'Failed to fetch profile', details: error.message });
     }
+  });
 
-    res.json(user.profile);
-  } catch (error) {
-    console.error('Profile fetch error:', error);
-    res.status(500).json({ error: 'Failed to fetch profile' });
-  }
-});
-
-module.exports = router;
+  return router;
+};

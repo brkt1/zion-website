@@ -1,24 +1,13 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const pool = require('../db');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // Game Types
-router.get('/game-types', async (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const gameTypes = await prisma.gameType.findMany({
-      include: {
-        _count: {
-          select: {
-            cards: true,
-            questions: true,
-            scores: true
-          }
-        }
-      }
-    });
-    res.json(gameTypes);
+    const { rows } = await pool.query('SELECT * FROM game_types');
+    res.json(rows);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch game types' });
   }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../../supabaseClient';
+
 import { useNavigate } from 'react-router-dom';
 
 const WinnerList = () => {
@@ -22,12 +22,25 @@ const WinnerList = () => {
 
     const fetchCertificates = async () => {
         try {
-            const { data, error } = await supabase
-                .from('certificates')
-                .select('*')
-                .order('created_at', { ascending: false });
+            const token = useAuthStore.getState().session?.access_token;
+            if (!token) {
+                setError('Authentication required to fetch winners.');
+                return;
+            }
 
-            if (error) throw error;
+            const response = await fetch('/api/winners', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to fetch winners from backend.');
+            }
+
+            const data = await response.json();
             setCertificates(data);
         } catch (error) {
             setError('Error fetching certificates: ' + error.message);
