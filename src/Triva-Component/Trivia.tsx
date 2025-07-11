@@ -265,7 +265,7 @@ const TriviaGame = () => {
         player_name: playerName,
         player_id: playerId,
         score: score,
-        game_type: "trivia",
+        game_type_id: "trivia", // Use game_type_id instead of game_type
         stage: currentStage,
         session_id: sessionId,
         streak: maxStreak
@@ -276,7 +276,7 @@ const TriviaGame = () => {
         await supabase.from("certificates").insert({
           player_name: playerName,
           player_id: playerId,
-          game_type: "trivia",
+          game_type_id: "trivia", // Use game_type_id instead of game_type
           score: score,
           reward_type: rewardEarned,
           timestamp: new Date().toISOString(),
@@ -284,18 +284,18 @@ const TriviaGame = () => {
         });
       }
 
-      // Show appropriate feedback
-      if (rewardEarned) {
-        const rewardMessage = {
-          'free_game': 'You earned a free game!',
-          'coffee': 'You won a free coffee!',
-          'cash_prize': 'You won a $1000 prize!'
-        }[rewardEarned];
-        
-        showFeedback(rewardMessage || 'Reward earned!', 'success');
-      } else {
-        showFeedback(`Complete stage ${currentStage} to earn rewards!`, 'info');
-      }
+      // Navigate to game result page
+      navigate('/game-result', {
+        state: {
+          sessionId: sessionId,
+          playerId: playerId,
+          playerName: playerName, // Pass player name for display
+          gameType: 'Trivia', // Pass game type name
+          score: score,
+          timestamp: new Date().toISOString()
+        }
+      });
+
     } catch (error) {
       console.error("Game end error:", error);
       showFeedback("Failed to save game results. Please try again.", 'error');

@@ -1,6 +1,8 @@
 const express = require('express');
 const pool = require('../db');
 const { authenticateUser, requireAdmin } = require('../middleware/authMiddleware');
+const { logAdminActivity } = require('../middleware/activityLogger');
+const { requirePermission } = require('../middleware/permissionMiddleware');
 
 const router = express.Router();
 
@@ -19,7 +21,7 @@ router.get('/users', authenticateUser, requireAdmin, async (req, res) => {
   }
 });
 
-router.post('/cafe-owners', authenticateUser, requireAdmin, async (req, res) => {
+router.post('/cafe-owners', authenticateUser, requireAdmin, logAdminActivity('CREATED_CAFE_OWNER', null, (req) => ({ email: req.body.email })), async (req, res) => {
   try {
     const { name, email, password } = req.body;
     
@@ -57,7 +59,7 @@ router.post('/cafe-owners', authenticateUser, requireAdmin, async (req, res) => 
   }
 });
 
-router.get('/dashboard', authenticateUser, requireAdmin, async (req, res) => {
+router.get('/dashboard', authenticateUser, requirePermission('can_view_dashboard'), async (req, res) => {
   try {
     // Fetch total users
     const { rowCount: totalUsers } = await pool.query('SELECT id FROM auth.users');
@@ -85,6 +87,28 @@ router.get('/dashboard', authenticateUser, requireAdmin, async (req, res) => {
   } catch (error) {
     console.error('Admin dashboard error:', error);
     res.status(500).json({ error: 'Failed to load admin dashboard' });
+  }
+});
+
+// Log admin login activity
+router.post('/log-login', authenticateUser, async (req, res) => {
+  try {
+    const adminId = req.user.id;
+    const { rows } = await pool.query('SELECT role FROM profiles WHERE id = $1', [adminId]);
+    const profile = rows[0];
+
+    if (profile && (profile.role === 'ADMIN' || profile.role === 'SUPER_ADMIN')) {
+      await pool.query(
+        'INSERT INTO admin_activity_log (admin_id, action, details) VALUES ($1, $2, $3)',
+        [adminId, 'ADMIN_LOGIN', { ipAddress: req.ip, userAgent: req.headers['user-agent'] }]
+      );
+      res.status(200).json({ message: 'Login activity logged' });
+    } else {
+      res.status(403).json({ error: 'Not an admin' });
+    }
+  } catch (error) {
+    console.error('Error logging admin login:', error);
+    res.status(500).json({ error: 'Failed to log login activity' });
   }
 });
 

@@ -28,7 +28,7 @@ const App: React.FC = () => {
   const { initialize, loading: authLoading } = useAuthStore();
 
   console.log("Timer active:", isTimerActive);
-  console.log("Remaining time:", remainingTime);
+  
 
   // Initialize auth on app start
   useEffect(() => {

@@ -23,7 +23,7 @@ if ('serviceWorker' in navigator) {
         // Check for updates every hour
         setInterval(() => {
           registration.update().then(() => {
-            console.log('Service Worker update check completed');
+            
           });
         }, 60 * 60 * 1000);
       })

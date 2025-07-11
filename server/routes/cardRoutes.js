@@ -1,10 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const { authenticateUser, requireAdmin } = require('../middleware/authMiddleware');
+const { logAdminActivity, requestPermission } = require('../middleware/activityLogger');
+const { requirePermission } = require('../middleware/permissionMiddleware');
 
 module.exports = function(pool) {
   // Get all unused cards
-  router.get('/', authenticateUser, async (req, res) => {
+  router.get('/', authenticateUser, requireAdmin, async (req, res) => {
     try {
       const { rows } = await pool.query(`
         SELECT c.*, gt.name as game_type_name
@@ -20,7 +22,7 @@ module.exports = function(pool) {
   });
 
   // Create a new card
-  router.post('/', authenticateUser, requireAdmin, async (req, res) => {
+  router.post('/', authenticateUser, requirePermission('can_manage_cards'), logAdminActivity('CREATED_CARD', null, (req) => ({ cardNumber: req.body.cardNumber, gameTypeId: req.body.gameTypeId })), async (req, res) => {
     try {
       const { content, duration, gameTypeId, cardNumber } = req.body;
       const { rows } = await pool.query(`
@@ -42,7 +44,7 @@ module.exports = function(pool) {
   });
 
   // Mark a card as used
-  router.patch('/:id/use', authenticateUser, async (req, res) => {
+  router.patch('/:id/use', authenticateUser, requireAdmin, logAdminActivity('USED_CARD', (req) => req.params.id), async (req, res) => {
     try {
       const { id } = req.params;
       const { rows } = await pool.query(`
@@ -61,6 +63,22 @@ module.exports = function(pool) {
       res.json(updatedCard);
     } catch (error) {
       res.status(500).json({ error: 'Failed to mark card as used' });
+    }
+  });
+
+  // Request to delete a card
+  router.delete('/:id', authenticateUser, requirePermission('can_manage_cards'), requestPermission('DELETE_CARD', 'cards', (req) => req.params.id, (req) => ({ cardId: req.params.id })), async (req, res) => {
+    // This block will only be reached if the requestPermission middleware calls next()
+    // Which means the super admin has approved the request.
+    try {
+      const { id } = req.params;
+      const { rowCount } = await pool.query('DELETE FROM cards WHERE id = $1;', [id]);
+      if (rowCount === 0) {
+        return res.status(404).json({ error: 'Card not found' });
+      }
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to delete card' });
     }
   });
 

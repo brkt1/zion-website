@@ -78,7 +78,7 @@ const registerServiceWorker = () => {
       toast.querySelector('button:last-child').onclick = () => toast.remove();
     },
     onOfflineReady: () => {
-      console.log('App is ready for offline use');
+      
     },
   });
 };

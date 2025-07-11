@@ -58,7 +58,7 @@ const EnhancedCardGenerator: React.FC = () => {
       .eq('id', user.id)
       .single();
 
-    if (roleError || !userData || userData.role !== 'admin') {
+    if (roleError || !userData || (userData.role !== 'ADMIN' && userData.role !== 'SUPER_ADMIN')) {
       navigate('/login');
       return;
     }

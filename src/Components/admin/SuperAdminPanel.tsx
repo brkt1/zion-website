@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import LoadingSpinner from '../utility/LoadingSpinner';
 import Error from '../utility/Error';
+import SuperAdminActivityLog from './SuperAdminActivityLog';
+import SuperAdminPermissionRequests from './SuperAdminPermissionRequests';
+import SuperAdminManageAdmins from './SuperAdminManageAdmins';
 
 interface SuperAdminDashboardData {
   message: string;
@@ -24,6 +27,7 @@ const SuperAdminPanel = () => {
   const [dashboardData, setDashboardData] = useState<SuperAdminDashboardData | null>(null);
   const [loadingData, setLoadingData] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'activity', 'requests'
   const navigate = useNavigate();
 
   const fetchSuperAdminDashboardData = async () => {
@@ -76,10 +80,39 @@ const SuperAdminPanel = () => {
       <main className="flex-1 p-4 sm:p-8 lg:ml-64 transition-all duration-300">
         <div className="max-w-6xl mx-auto">
           <h1 className="text-2xl sm:text-3xl font-bold text-gold-primary mb-6 capitalize border-b-2 border-gold-primary pb-2">
-            Super Admin Dashboard
+            Super Admin Panel
           </h1>
           
-          {dashboardData && (
+          <div className="mb-8">
+            <div className="flex border-b border-gray-dark">
+              <button
+                className={`py-2 px-4 text-sm font-medium ${activeTab === 'dashboard' ? 'border-b-2 border-gold-primary text-gold-primary' : 'text-gray-400 hover:text-gold-light'}`}
+                onClick={() => setActiveTab('dashboard')}
+              >
+                Dashboard
+              </button>
+              <button
+                className={`py-2 px-4 text-sm font-medium ${activeTab === 'activity' ? 'border-b-2 border-gold-primary text-gold-primary' : 'text-gray-400 hover:text-gold-light'}`}
+                onClick={() => setActiveTab('activity')}
+              >
+                Activity Log
+              </button>
+              <button
+                className={`py-2 px-4 text-sm font-medium ${activeTab === 'requests' ? 'border-b-2 border-gold-primary text-gold-primary' : 'text-gray-400 hover:text-gold-light'}`}
+                onClick={() => setActiveTab('requests')}
+              >
+                Permission Requests
+              </button>
+              <button
+                className={`py-2 px-4 text-sm font-medium ${activeTab === 'manage-admins' ? 'border-b-2 border-gold-primary text-gold-primary' : 'text-gray-400 hover:text-gold-light'}`}
+                onClick={() => setActiveTab('manage-admins')}
+              >
+                Manage Admins
+              </button>
+            </div>
+          </div>
+
+          {activeTab === 'dashboard' && dashboardData && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="bg-black-primary p-4 rounded-lg border border-gray-medium">
@@ -123,6 +156,10 @@ const SuperAdminPanel = () => {
               )}
             </div>
           )}
+
+          {activeTab === 'activity' && <SuperAdminActivityLog />}
+          {activeTab === 'requests' && <SuperAdminPermissionRequests />}
+          {activeTab === 'manage-admins' && <SuperAdminManageAdmins />}
         </div>
       </main>
     </div>

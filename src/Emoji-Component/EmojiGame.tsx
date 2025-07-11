@@ -204,7 +204,17 @@ const EmojiMastermind = () => {
 
       if (newTries <= 0) {
         setGameOver(true);
-        await saveScore();
+      await saveScore();
+      navigate('/game-result', {
+        state: {
+          sessionId: sessionId,
+          playerId: playerId,
+          playerName: playerName,
+          gameType: 'Emoji Game',
+          score: score,
+          timestamp: new Date().toISOString()
+        }
+      });
       }
     }
 

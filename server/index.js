@@ -2,12 +2,10 @@ const express = require('express');
 const cors = require('cors');
 const pool = require('./db');
 
-
 require('dotenv').config({ path: '/media/becky/fbb95933-6bf3-476c-ad04-81ce8356b618/yenege/zion-website/.env' });
 
 console.log('NODE_ENV:', process.env.NODE_ENV);
 console.log('PORT:', process.env.PORT);
-
 
 const app = express();
 
@@ -57,6 +55,30 @@ app.use((error, req, res, next) => {
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
+
+// Global unhandled promise rejection handler
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  // Application specific logging, cleanup, or exit
+});
+
+// Global uncaught exception handler
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  // Application specific logging, cleanup, or exit
+  process.exit(1); // Exit the process to avoid undefined state
+});
+
+// Database connection check
+pool.connect()
+  .then(client => {
+    
+    client.release();
+  })
+  .catch(err => {
+    console.error('Database connection error:', err.message);
+    // Consider exiting or handling this more gracefully in production
+  });
 
 module.exports = app;
 

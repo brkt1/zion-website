@@ -175,5 +175,5 @@ self.addEventListener('sync', (event) => {
 
 async function handleBackgroundSync() {
   // Implement your sync logic here
-  console.log('Processing background sync');
+  
 }

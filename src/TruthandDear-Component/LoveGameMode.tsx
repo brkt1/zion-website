@@ -199,7 +199,7 @@ const LoverGameMode = () => {
         </AnimatePresence>
 
         {type && (
-          <div className="flex justify-center">
+          <div className="flex justify-center gap-4">
             <motion.button
               whileHover={{ scale: 1.1, rotate: 2 }}
               whileTap={{ scale: 0.95 }}
@@ -212,6 +212,16 @@ const LoverGameMode = () => {
             >
               <FaDice className="text-2xl text-amber-100" />
               <span>Next Challenge</span>
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate('/game-result', { state: { sessionId: 'love-game', playerId: 'guest', playerName: 'Guest', gameType: 'Truth or Dare (Love)', score: 0, timestamp: new Date().toISOString() } })}
+              className="bg-gray-600 hover:bg-gray-700 text-white px-10 py-4 rounded-2xl text-lg font-bold 
+                hover:shadow-2xl transition-all duration-300 
+                flex items-center gap-3"
+            >
+              End Game
             </motion.button>
           </div>
         )}

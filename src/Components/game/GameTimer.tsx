@@ -19,7 +19,7 @@ const registerServiceWorker = async () => {
       } else if (registration.waiting) {
         console.log('Service worker installed');
       } else if (registration.active) {
-        console.log('Service worker active');
+        
       }
     } catch (error) {
       console.error('Service Worker registration failed:', error);

@@ -35,7 +35,7 @@ const requireAdmin = async (req, res, next) => {
 
     console.log('User ID for admin check:', req.user.id);
     const { rows } = await pool.query('SELECT role FROM profiles WHERE id = $1', [req.user.id]);
-    console.log('Profile query result (rows):', rows);
+    
     const profile = rows[0];
 
     if (!profile) {

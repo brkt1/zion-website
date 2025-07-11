@@ -54,6 +54,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       // Fetch user profile
       await get().fetchProfile();
+
+      // Log admin login if applicable
+      const { profile } = get();
+      if (profile && (profile.role === 'ADMIN' || profile.role === 'SUPER_ADMIN')) {
+        try {
+          await fetch(`${API_BASE_URL}/admin/log-login`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${data.session.access_token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+        } catch (logError) {
+          console.error('Failed to log admin login activity:', logError);
+        }
+      }
     } catch (error: any) {
       set({ 
         error: error.message || 'Sign in failed',
@@ -112,8 +128,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   fetchProfile: async () => {
     try {
       const { session } = get();
-      if (!session?.access_token) return;
+      console.log('fetchProfile: Session in store:', session);
+      if (!session?.access_token) {
+        console.log('fetchProfile: No session or access token found.');
+        return;
+      }
 
+      console.log('fetchProfile: Attempting to fetch profile from:', `${API_BASE_URL}/profile`);
       const response = await fetch(`${API_BASE_URL}/profile`, {
         mode: 'cors',
         credentials: 'include',
@@ -125,12 +146,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       if (response.ok) {
         const profile = await response.json();
+        
         set({ profile });
       } else {
-        console.error('Failed to fetch profile with status:', response.status);
+        console.error('fetchProfile: Failed to fetch profile with status:', response.status, response.statusText);
+        const errorText = await response.text();
+        console.error('fetchProfile: Response error text:', errorText);
       }
     } catch (error) {
-      console.error('Failed to fetch profile:', error);
+      console.error('fetchProfile: Error during profile fetch:', error);
     }
   },
 

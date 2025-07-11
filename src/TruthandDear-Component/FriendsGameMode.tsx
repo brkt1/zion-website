@@ -337,6 +337,12 @@ const FriendsGameMode = () => {
         >
           Next Player
         </button>
+        <button 
+          onClick={() => navigate('/game-result', { state: { sessionId: 'friends-game', playerId: players.join('-'), playerName: players.join(', '), gameType: 'Truth or Dare (Friends)', score: players.length, timestamp: new Date().toISOString() } })} 
+          className={`${designTokens.secondaryButton} p-3 rounded-lg ml-4`}
+        >
+          End Game
+        </button>
       </div>
     </motion.div>
   );

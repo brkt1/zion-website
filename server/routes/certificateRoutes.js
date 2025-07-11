@@ -1,11 +1,13 @@
 const express = require('express');
 const pool = require('../db');
-const { authenticateUser } = require('../middleware/authMiddleware');
+const { authenticateUser, requireAdmin } = require('../middleware/authMiddleware');
+const { logAdminActivity, requestPermission } = require('../middleware/activityLogger');
+const { requirePermission } = require('../middleware/permissionMiddleware');
 
 const router = express.Router();
 
 // Certificates
-router.get('/', authenticateUser, async (req, res) => {
+router.get('/', authenticateUser, requireAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query(`
       SELECT c.*, gt.name as game_type_name
@@ -19,7 +21,7 @@ router.get('/', authenticateUser, async (req, res) => {
   }
 });
 
-router.post('/', authenticateUser, async (req, res) => {
+router.post('/', authenticateUser, requireAdmin, logAdminActivity('CREATED_CERTIFICATE', null, (req) => ({ playerId: req.body.playerId, gameTypeId: req.body.gameTypeId })), async (req, res) => {
   try {
     const { 
       playerName, 
@@ -47,6 +49,19 @@ router.post('/', authenticateUser, async (req, res) => {
     res.status(201).json(newCertificate);
   } catch (error) {
     res.status(500).json({ error: 'Failed to create certificate' });
+  }
+});
+
+router.delete('/:id', authenticateUser, requirePermission('can_manage_certificates'), requestPermission('DELETE_CERTIFICATE', 'certificates', (req) => req.params.id, (req) => ({ certificateId: req.params.id })), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rowCount } = await pool.query('DELETE FROM certificates WHERE id = $1;', [id]);
+    if (rowCount === 0) {
+      return res.status(404).json({ error: 'Certificate not found' });
+    }
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete certificate' });
   }
 });
 

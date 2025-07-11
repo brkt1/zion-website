@@ -30,6 +30,7 @@ const EnhancedCardGenerator = lazy(() => import("../Components/cards/EnhancedCar
 const EnhancedQRScanner = lazy(() => import("../Components/cards/EnhancedQRScanner"));
 const WinnerCardGenerator = lazy(() => import("../Components/cards/WinnerCardGenerator"));
 const WinnerCardScanner = lazy(() => import("../Components/cards/WinnerCardScanner"));
+const GameResult = lazy(() => import("../Components/game/GameResult"));
 
 interface ProtectedRouteProps {
   children: React.ReactElement;
@@ -52,10 +53,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { currentSession, isTimerActive } = useSessionStore();
   const { session } = useAuthStore();
 
-  if (!session) {
-    return <Navigate to="/login" replace state={{ from: location }} />;
-  }
-
   // If it's a game-related route, check for active session and game type
   if (gameTypeRoutes[location.pathname]) {
     if (!currentSession?.isActive || !isTimerActive) {
@@ -66,6 +63,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     if (currentSession.gameTypeId !== gameTypeRoutes[location.pathname]) {
       return <Navigate to="/wrong-game-type" replace state={{ expectedGameType: gameTypeRoutes[location.pathname] }} />;
     }
+  } else if (!session) { // For non-game routes, require a session
+    return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
   return React.cloneElement(children, {
@@ -90,42 +89,12 @@ const RoleProtectedRoute: React.FC<RoleProtectedRouteProps> = ({ children, allow
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  // Explicitly log the raw values
-  console.log('RoleProtectedRoute: Raw Profile Role:', profile?.role);
-  console.log('RoleProtectedRoute: Raw Allowed Roles:', allowedRoles);
-
-  // Ensure both are strings and then trim and compare
   const profileRoleString = String(profile?.role || '').trim();
   const allowedRolesStrings = allowedRoles.map(role => String(role).trim());
 
-  console.log('RoleProtectedRoute: Trimmed Profile Role (stringified):', profileRoleString);
-  console.log('RoleProtectedRoute: Trimmed Allowed Roles (stringified):', allowedRolesStrings);
-  console.log('RoleProtectedRoute: Includes check (stringified):', allowedRolesStrings.includes(profileRoleString));
-  console.log('RoleProtectedRoute: Direct Equality Check (stringified):', profileRoleString === allowedRolesStrings[0]);
-
-
-  const RoleProtectedRoute: React.FC<RoleProtectedRouteProps> = ({ children, allowedRoles }) => {
-  const { session, profile, loading } = useAuthStore();
-  const location = useLocation();
-
-  if (loading) {
-    return <LoadingSpinner />; // Or some other loading indicator
-  }
-
-  if (!session) {
-    return <Navigate to="/login" replace state={{ from: location }} />;
-  }
-
-  console.log('RoleProtectedRoute: Is allowedRoles an array?', Array.isArray(allowedRoles));
-  console.log('RoleProtectedRoute: Profile Role (raw):', profile?.role);
-  console.log('RoleProtectedRoute: Allowed Roles (raw):', allowedRoles);
-
-  if (!profile || !profile.role || !allowedRoles.includes(profile.role)) {
+  if (!profile || !profile.role || !allowedRolesStrings.includes(profileRoleString)) {
     return <Navigate to="/access-denied" replace />;
   }
-
-  return children;
-};
 
   return children;
 };
@@ -139,6 +108,7 @@ const AppRoutes: React.FC = () => (
       <Route path="/thank-you" element={<ThankYou />} />
       <Route path="/access-denied" element={<AccessDenied />} />
       <Route path="/wrong-game-type" element={<WrongGameType />} />
+      <Route path="/game-result" element={<GameResult />} />
       <Route path="/lovers" element={<ProtectedRoute><Lovers /></ProtectedRoute>} />
       <Route path="/friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
       <Route path="/game-mode" element={<ProtectedRoute><LoveGameMode /></ProtectedRoute>} />
@@ -154,9 +124,9 @@ const AppRoutes: React.FC = () => (
       <Route path="/cafe-owner/dashboard" element={<RoleProtectedRoute allowedRoles={['CAFE_OWNER', 'ADMIN']}><CafeOwnerDashboard /></RoleProtectedRoute>} />
       
       {/* Enhanced Card System Routes */}
-      <Route path="/enhanced-card-generator" element={<ProtectedRoute><EnhancedCardGenerator /></ProtectedRoute>} />
-      <Route path="/enhanced-scanner" element={<ProtectedRoute><EnhancedQRScanner /></ProtectedRoute>} />
-      <Route path="/winner-card-scanner" element={<ProtectedRoute><WinnerCardScanner /></ProtectedRoute>} />
+      <Route path="/enhanced-card-generator" element={<RoleProtectedRoute allowedRoles={['ADMIN', 'SUPER_ADMIN']}><EnhancedCardGenerator /></RoleProtectedRoute>} />
+      <Route path="/enhanced-scanner" element={<EnhancedQRScanner />} />
+      <Route path="/winner-card-scanner" element={<RoleProtectedRoute allowedRoles={['ADMIN', 'SUPER_ADMIN']}><WinnerCardScanner /></RoleProtectedRoute>} />
     </Routes>
   </Suspense>
 );

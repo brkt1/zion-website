@@ -35,6 +35,7 @@ const AdminPanel = () => {
   const [loadingData, setLoadingData] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [userPermissions, setUserPermissions] = useState<string[]>([]);
   const navigate = useNavigate();
 
   const fetchDashboardData = async () => {
@@ -67,12 +68,32 @@ const AdminPanel = () => {
     }
   };
 
+  const fetchUserPermissions = async () => {
+    if (!session?.access_token) return;
+    try {
+      const response = await fetch(`${API_BASE_URL}/profile/permissions`, {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data: string[] = await response.json();
+      setUserPermissions(data);
+    } catch (err: any) {
+      console.error('Failed to fetch user permissions:', err);
+      setError('Failed to load permissions.');
+    }
+  };
+
   useEffect(() => {
     if (!authLoading) {
       if (!session || (profile?.role !== 'ADMIN' && profile?.role !== 'SUPER_ADMIN')) {
         navigate('/access-denied'); // Redirect if not authenticated or not admin/super_admin
       } else {
         fetchDashboardData();
+        fetchUserPermissions();
       }
     }
   }, [authLoading, session, profile, navigate]);
@@ -84,9 +105,23 @@ const AdminPanel = () => {
     navigate('/login');
   };
 
+  const hasPermission = (permission: string) => {
+    return profile?.role === 'SUPER_ADMIN' || userPermissions.includes(permission);
+  };
+
   if (authLoading || loadingData) return <LoadingSpinner />;
 
   if (error) return <Error message={error} />;
+
+  const filteredTabs = [
+    { id: 'dashboard', name: 'Dashboard', permission: 'can_view_dashboard' },
+    { id: 'certificates', name: 'Certificates', permission: 'can_manage_certificates' },
+    { id: 'cafeOwners', name: 'Cafe Owners', permission: 'can_create_cafe_owners' },
+    { id: 'cardGenerator', name: 'Card Generator', permission: 'can_manage_cards' },
+    { id: 'winners', name: 'Winners', permission: 'can_manage_certificates' }, // Assuming winners are managed via certificates
+    { id: 'playerIdGenerator', name: 'Player ID Generator', permission: 'can_create_player_ids' }, // New permission
+    ...(profile?.role === 'SUPER_ADMIN' ? [{ id: 'superAdmin', name: 'Super Admin' }] : [])
+  ].filter(tab => !tab.permission || hasPermission(tab.permission));
 
   return (
     <div className="flex min-h-screen bg-black-primary text-cream">
@@ -106,15 +141,7 @@ const AdminPanel = () => {
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
           profile={profile} // Pass the profile here
-          tabs={[
-            { id: 'dashboard', name: 'Dashboard' },
-            { id: 'certificates', name: 'Certificates' },
-            { id: 'cafeOwners', name: 'Cafe Owners' },
-            { id: 'cardGenerator', name: 'Card Generator' },
-            { id: 'winners', name: 'Winners' },
-            { id: 'playerIdGenerator', name: 'Player ID Generator' },
-            ...(profile?.role === 'SUPER_ADMIN' ? [{ id: 'superAdmin', name: 'Super Admin' }] : [])
-          ]}
+          tabs={filteredTabs}
         />
       
       <main className="flex-1 p-4 sm:p-8 lg:ml-64 transition-all duration-300">
@@ -124,7 +151,7 @@ const AdminPanel = () => {
           </h1>
           
           <div className="bg-black-secondary rounded-xl shadow-xl p-4 sm:p-6 border border-gray-dark">
-            {activeTab === 'dashboard' && dashboardData && (
+            {activeTab === 'dashboard' && dashboardData && hasPermission('can_view_dashboard') && (
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div className="bg-black-primary p-4 rounded-lg border border-gray-medium">
@@ -172,10 +199,11 @@ const AdminPanel = () => {
                 )}
               </div>
             )}
-            {activeTab === 'certificates' && <CertificatesTable />}
-            {activeTab === 'cafeOwners' && <AddCafeOwner />}
-            {activeTab === 'cardGenerator' && <EnhancedCardGenerator />}
-            {activeTab === 'winners' && <WinnerList />}
+            {activeTab === 'certificates' && hasPermission('can_manage_certificates') && <CertificatesTable />}
+            {activeTab === 'cafeOwners' && hasPermission('can_create_cafe_owners') && <AddCafeOwner />}
+            {activeTab === 'cardGenerator' && hasPermission('can_manage_cards') && <EnhancedCardGenerator />}
+            {activeTab === 'winners' && hasPermission('can_manage_certificates') && <WinnerList />}
+            {activeTab === 'playerIdGenerator' && hasPermission('can_create_player_ids') && <PlayerIdGenerator />}
           </div>
         </div>
       </main>

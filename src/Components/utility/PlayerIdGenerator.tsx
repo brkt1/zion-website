@@ -44,7 +44,7 @@ const PlayerIdGenerator: React.FC<PlayerIdGeneratorProps> = ({ onGenerate }) => 
 
       if (saveError) throw saveError;
 
-      console.log('Winner saved successfully'); // Log success message
+      
       onGenerate(playerId); // Pass the generated ID to the parent component
     } catch (err) {
       console.error('Error saving winner:', err); // Log error details
