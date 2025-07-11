@@ -22,6 +22,7 @@ const Landing = lazy(() => import("../MainLanding"));
 const TriviaGame = lazy(() => import("../Triva-Component/Trivia"));
 const CafeOwnerDashboard = lazy(() => import("../Components/admin/CafeOwnerDashboard"));
 const Admin = lazy(() => import("../Components/admin/AdminPanel"));
+const SuperAdminPanel = lazy(() => import("../Components/admin/SuperAdminPanel"));
 const Login = lazy(() => import("../Components/auth/Login"));
 
 // Enhanced Card System Components
@@ -74,7 +75,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
 interface RoleProtectedRouteProps {
   children: React.ReactElement;
-  allowedRoles: Array<'ADMIN' | 'CAFE_OWNER' | 'USER'>;
+  allowedRoles: Array<'ADMIN' | 'CAFE_OWNER' | 'USER' | 'SUPER_ADMIN'>;
 }
 
 const RoleProtectedRoute: React.FC<RoleProtectedRouteProps> = ({ children, allowedRoles }) => {
@@ -89,9 +90,42 @@ const RoleProtectedRoute: React.FC<RoleProtectedRouteProps> = ({ children, allow
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  if (!profile || !allowedRoles.includes(profile.role)) {
+  // Explicitly log the raw values
+  console.log('RoleProtectedRoute: Raw Profile Role:', profile?.role);
+  console.log('RoleProtectedRoute: Raw Allowed Roles:', allowedRoles);
+
+  // Ensure both are strings and then trim and compare
+  const profileRoleString = String(profile?.role || '').trim();
+  const allowedRolesStrings = allowedRoles.map(role => String(role).trim());
+
+  console.log('RoleProtectedRoute: Trimmed Profile Role (stringified):', profileRoleString);
+  console.log('RoleProtectedRoute: Trimmed Allowed Roles (stringified):', allowedRolesStrings);
+  console.log('RoleProtectedRoute: Includes check (stringified):', allowedRolesStrings.includes(profileRoleString));
+  console.log('RoleProtectedRoute: Direct Equality Check (stringified):', profileRoleString === allowedRolesStrings[0]);
+
+
+  const RoleProtectedRoute: React.FC<RoleProtectedRouteProps> = ({ children, allowedRoles }) => {
+  const { session, profile, loading } = useAuthStore();
+  const location = useLocation();
+
+  if (loading) {
+    return <LoadingSpinner />; // Or some other loading indicator
+  }
+
+  if (!session) {
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+
+  console.log('RoleProtectedRoute: Is allowedRoles an array?', Array.isArray(allowedRoles));
+  console.log('RoleProtectedRoute: Profile Role (raw):', profile?.role);
+  console.log('RoleProtectedRoute: Allowed Roles (raw):', allowedRoles);
+
+  if (!profile || !profile.role || !allowedRoles.includes(profile.role)) {
     return <Navigate to="/access-denied" replace />;
   }
+
+  return children;
+};
 
   return children;
 };
@@ -112,6 +146,7 @@ const AppRoutes: React.FC = () => (
       <Route path="/game-screen" element={<ProtectedRoute><GameScreen /></ProtectedRoute>} />
       <Route path="/qr-scan" element={<ProtectedRoute><EnhancedQRScanner /></ProtectedRoute>} />
       <Route path="/admin" element={<RoleProtectedRoute allowedRoles={['ADMIN']}><Admin /></RoleProtectedRoute>} />
+      <Route path="/super-admin" element={<RoleProtectedRoute allowedRoles={['SUPER_ADMIN']}><SuperAdminPanel /></RoleProtectedRoute>} />
       <Route path="/trivia-game" element={<ProtectedRoute><TriviaGame /></ProtectedRoute>} />
       <Route path="/truth-or-dare" element={<ProtectedRoute><TruthOrDare /></ProtectedRoute>} />
       <Route path="/rock-paper-scissors" element={<ProtectedRoute><RockPaperScissors /></ProtectedRoute>} />
@@ -127,5 +162,3 @@ const AppRoutes: React.FC = () => (
 );
 
 export default AppRoutes;
-
-

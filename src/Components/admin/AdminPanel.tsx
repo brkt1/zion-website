@@ -69,8 +69,8 @@ const AdminPanel = () => {
 
   useEffect(() => {
     if (!authLoading) {
-      if (!session || profile?.role !== 'ADMIN') {
-        navigate('/access-denied'); // Redirect if not authenticated or not admin
+      if (!session || (profile?.role !== 'ADMIN' && profile?.role !== 'SUPER_ADMIN')) {
+        navigate('/access-denied'); // Redirect if not authenticated or not admin/super_admin
       } else {
         fetchDashboardData();
       }
@@ -105,13 +105,15 @@ const AdminPanel = () => {
           handleLogout={handleLogout}
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
+          profile={profile} // Pass the profile here
           tabs={[
             { id: 'dashboard', name: 'Dashboard' },
             { id: 'certificates', name: 'Certificates' },
             { id: 'cafeOwners', name: 'Cafe Owners' },
             { id: 'cardGenerator', name: 'Card Generator' },
             { id: 'winners', name: 'Winners' },
-            { id: 'playerIdGenerator', name: 'Player ID Generator' }
+            { id: 'playerIdGenerator', name: 'Player ID Generator' },
+            ...(profile?.role === 'SUPER_ADMIN' ? [{ id: 'superAdmin', name: 'Super Admin' }] : [])
           ]}
         />
       

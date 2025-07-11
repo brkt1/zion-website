@@ -5,7 +5,7 @@ import type { User, Session } from '@supabase/supabase-js';
 interface Profile {
   id: string;
   userId: string;
-  role: 'USER' | 'ADMIN' | 'CAFE_OWNER';
+  role: 'USER' | 'ADMIN' | 'CAFE_OWNER' | 'SUPER_ADMIN';
   createdAt: string;
   updatedAt: string;
 }

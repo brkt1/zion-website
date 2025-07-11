@@ -42,8 +42,8 @@ const requireAdmin = async (req, res, next) => {
       return res.status(500).json({ error: 'Error fetching user profile' });
     }
 
-    if (profile.role !== 'ADMIN') {
-      return res.status(403).json({ error: 'Admin access required' });
+    if (profile.role !== 'ADMIN' && profile.role !== 'SUPER_ADMIN') {
+      return res.status(403).json({ error: 'Admin or Super Admin access required' });
     }
 
     next();
@@ -53,4 +53,24 @@ const requireAdmin = async (req, res, next) => {
   }
 };
 
-module.exports = { authenticateUser, requireAdmin };
+const requireSuperAdmin = async (req, res, next) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const { rows } = await pool.query('SELECT role FROM profiles WHERE id = $1', [req.user.id]);
+    const profile = rows[0];
+
+    if (!profile || profile.role !== 'SUPER_ADMIN') {
+      return res.status(403).json({ error: 'Super Admin access required' });
+    }
+
+    next();
+  } catch (superAdminError) {
+    console.error('Super Admin authorization check failed:', superAdminError);
+    res.status(500).json({ error: 'Super Admin authorization check failed' });
+  }
+};
+
+module.exports = { authenticateUser, requireAdmin, requireSuperAdmin };

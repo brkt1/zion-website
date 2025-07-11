@@ -26,6 +26,7 @@ const certificateRoutes = require('./routes/certificateRoutes');
 const scoreRoutes = require('./routes/scoreRoutes');
 const questionRoutes = require('./routes/questionRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const superAdminRoutes = require('./routes/superAdminRoutes');
 const winnerRoutes = require('./routes/winnerRoutes')(pool);
 
 app.use('/api/profile', profileRoutes);
@@ -35,6 +36,7 @@ app.use('/api/certificates', certificateRoutes);
 app.use('/api/scores', scoreRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/super-admin', superAdminRoutes);
 app.use('/api/winners', winnerRoutes);
 
 // Health check

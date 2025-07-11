@@ -23,6 +23,8 @@ const Login = () => {
         navigate('/admin');
       } else if (profile.role === 'CAFE_OWNER') {
         navigate('/cafe-owner/dashboard');
+      } else if (profile.role === 'SUPER_ADMIN') {
+        navigate('/super-admin');
       } else {
         navigate('/'); // Default redirect for regular users
       }
