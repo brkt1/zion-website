@@ -18,7 +18,7 @@ if ('serviceWorker' in navigator) {
     // Register new service worker
     navigator.serviceWorker.register('/service-worker.js', { scope: './', type: 'module' })
       .then(registration => {
-        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+        
         
         // Check for updates every hour
         setInterval(() => {

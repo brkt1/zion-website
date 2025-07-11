@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../supabaseClient';
-import { useNavigate } from 'react-router-dom';
 
 const generateRandomPassword = (length) => {
     const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()";
@@ -12,25 +11,16 @@ const generateRandomPassword = (length) => {
     return password;
 };
 
-const AddCafeOwner = () => {
+const CafeOwnerManagement = () => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(null);
     const [existingOwners, setExistingOwners] = useState([]);
-    const navigate = useNavigate();
 
     useEffect(() => {
-        const checkUser = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
-                navigate('/login');
-            } else {
-                fetchCafeOwners();
-            }
-        };
-        checkUser();
-    }, [navigate]);
+        fetchCafeOwners();
+    }, []);
 
     const fetchCafeOwners = async () => {
         try {
@@ -174,4 +164,4 @@ const AddCafeOwner = () => {
     );
 };
 
-export default AddCafeOwner;
+export default CafeOwnerManagement;

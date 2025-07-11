@@ -3,19 +3,28 @@ import { supabase } from '../../supabaseClient';
 import LoadingSpinner from '../utility/LoadingSpinner';
 import Error from '../utility/Error';
 
+const ITEMS_PER_PAGE = 10;
+
 const CertificatesTable = () => {
   const [certificates, setCertificates] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
     const fetchCertificates = async () => {
       setIsLoading(true);
       try {
-        const { data, error } = await supabase.from('certificates').select('*');
+        const { data, error, count } = await supabase
+          .from('certificates')
+          .select('*', { count: 'exact' })
+          .range(page * ITEMS_PER_PAGE, (page + 1) * ITEMS_PER_PAGE - 1);
+
         if (error) throw error;
+
         setCertificates(data);
+        setTotalPages(Math.ceil(count / ITEMS_PER_PAGE));
       } catch (err) {
         setError(err.message);
       } finally {
@@ -23,7 +32,7 @@ const CertificatesTable = () => {
       }
     };
     fetchCertificates();
-  }, []);
+  }, [page]);
 
   const togglePaidStatus = async (id, currentStatus) => {
     const { error } = await supabase
@@ -42,6 +51,7 @@ const CertificatesTable = () => {
 
   if (isLoading) return <LoadingSpinner />;
   if (error) return <Error message={error} />;
+
   return (
     <div className="bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-700">
       <div className="overflow-x-auto">
@@ -103,6 +113,55 @@ const CertificatesTable = () => {
             )}
           </tbody>
         </table>
+      </div>
+      <div className="bg-gray-900 px-4 py-3 flex items-center justify-between border-t border-gray-700 sm:px-6">
+        <div className="flex-1 flex justify-between sm:hidden">
+          <button
+            onClick={() => setPage(page - 1)}
+            disabled={page === 0}
+            className="relative inline-flex items-center px-4 py-2 border border-gray-700 text-sm font-medium rounded-md text-gray-300 bg-gray-800 hover:bg-gray-700"
+          >
+            Previous
+          </button>
+          <button
+            onClick={() => setPage(page + 1)}
+            disabled={page >= totalPages - 1}
+            className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-700 text-sm font-medium rounded-md text-gray-300 bg-gray-800 hover:bg-gray-700"
+          >
+            Next
+          </button>
+        </div>
+        <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm text-gray-400">
+              Showing <span className="font-medium">{page * ITEMS_PER_PAGE + 1}</span> to <span className="font-medium">{Math.min((page + 1) * ITEMS_PER_PAGE, totalPages * ITEMS_PER_PAGE)}</span> of <span className="font-medium">{totalPages * ITEMS_PER_PAGE}</span> results
+            </p>
+          </div>
+          <div>
+            <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+              <button
+                onClick={() => setPage(page - 1)}
+                disabled={page === 0}
+                className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-700 bg-gray-800 text-sm font-medium text-gray-400 hover:bg-gray-700"
+              >
+                <span className="sr-only">Previous</span>
+                <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              </button>
+              <button
+                onClick={() => setPage(page + 1)}
+                disabled={page >= totalPages - 1}
+                className="-ml-px relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-700 bg-gray-800 text-sm font-medium text-gray-400 hover:bg-gray-700"
+              >
+                <span className="sr-only">Next</span>
+                <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </nav>
+          </div>
+        </div>
       </div>
     </div>
   );

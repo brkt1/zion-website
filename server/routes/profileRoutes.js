@@ -10,14 +10,14 @@ module.exports = (pool) => {
   router.get('/', authenticateUser, async (req, res) => {
     try {
       const userId = req.user.id;
-      console.log('Profile Route: User ID from token:', userId);
+      
 
       // Query profile by userId
       const { rows } = await pool.query('SELECT * FROM profiles WHERE id = $1', [userId]);
       let profile = rows[0];
 
-      console.log('Profile Route: Profile found after SELECT query:', profile);
-      console.log('Profile Route: Condition !profile (should trigger INSERT if true): ', !profile);
+      
+      
 
       // If profile not found, create it with default role USER
       if (!profile) {

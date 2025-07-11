@@ -27,7 +27,7 @@ const App: React.FC = () => {
   const { remainingTime, isTimerActive, startTimer, pauseTimer, resetTimer, isExpired, formatTime } = useSessionStore();
   const { initialize, loading: authLoading } = useAuthStore();
 
-  console.log("Timer active:", isTimerActive);
+  
   
 
   // Initialize auth on app start

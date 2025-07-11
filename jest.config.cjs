@@ -1,10 +1,12 @@
-export default {
+module.exports = {
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   transform: {
     '^.+\.(ts|tsx|js|jsx)$': ['babel-jest', { configFile: './.babelrc' }],
   },
   testEnvironment: 'jsdom',
   moduleNameMapper: {
     '\.(css|less|sass|scss)$': 'identity-obj-proxy',
+    '\.(jpg|jpeg|png|gif|webp|svg)$': '<rootDir>/__mocks__/fileMock.js',
   },
   testMatch: ['<rootDir>/src/**/*.test.{js,jsx,ts,tsx}', '!**/server/**/*.test.js'],
   transformIgnorePatterns: [

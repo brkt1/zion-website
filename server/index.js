@@ -4,8 +4,8 @@ const pool = require('./db');
 
 require('dotenv').config({ path: '/media/becky/fbb95933-6bf3-476c-ad04-81ce8356b618/yenege/zion-website/.env' });
 
-console.log('NODE_ENV:', process.env.NODE_ENV);
-console.log('PORT:', process.env.PORT);
+
+
 
 const app = express();
 
@@ -84,5 +84,5 @@ module.exports = app;
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  
 });

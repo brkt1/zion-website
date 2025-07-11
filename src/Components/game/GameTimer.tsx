@@ -12,12 +12,12 @@ const registerServiceWorker = async () => {
         scope: './', 
         type: 'module' 
       });
-      console.log('Service Worker registered:', registration);
+      
       
       if (registration.installing) {
-        console.log('Service worker installing');
+        
       } else if (registration.waiting) {
-        console.log('Service worker installed');
+        
       } else if (registration.active) {
         
       }

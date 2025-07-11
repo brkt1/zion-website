@@ -1,10 +1,11 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import WinnerScanner from './WinnerScanner';
 import RewardWinner from './RewardWinner';
 import { useAuthStore } from '../../stores/authStore';
 import LoadingSpinner from '../utility/LoadingSpinner';
 import Error from '../utility/Error';
+import useSWR from 'swr';
+import { API_BASE_URL } from '../../services/api';
 
 interface CafeOwnerDashboardData {
   cafeName: string;
@@ -23,48 +24,29 @@ interface CafeOwnerDashboardData {
   };
 }
 
-const API_BASE_URL = 'http://localhost:3001/api';
+const fetcher = async (url: string, token: string) => {
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Failed to fetch data');
+  }
+
+  return response.json();
+};
 
 const CafeOwnerDashboard = () => {
   const { session } = useAuthStore();
   const [winner, setWinner] = useState(null);
-  const [dashboardData, setDashboardData] = useState<CafeOwnerDashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  const fetchDashboardData = async () => {
-    if (!session?.access_token) {
-      setError('Authentication required.');
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetch(`${API_BASE_URL}/cafe-owner/dashboard`, {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to fetch dashboard data');
-      }
-
-      const data: CafeOwnerDashboardData = await response.json();
-      setDashboardData(data);
-    } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, [session]); // Re-fetch if session changes
+  const { data: dashboardData, error: dashboardError, isLoading: isLoadingDashboard, mutate } = useSWR(
+    session?.access_token ? [`${API_BASE_URL}/cafe-owner/dashboard`, session.access_token] : null,
+    ([url, token]) => fetcher(url, token)
+  );
 
   const handleWinnerFound = (winnerData: any) => {
     setWinner(winnerData);
@@ -72,10 +54,10 @@ const CafeOwnerDashboard = () => {
 
   const handleRewardGiven = () => {
     setWinner(null);
-    fetchDashboardData(); // Refresh dashboard data after rewarding a winner
+    mutate(); // Revalidate dashboard data after rewarding a winner
   };
 
-  if (loading) {
+  if (isLoadingDashboard) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black-primary">
         <LoadingSpinner />
@@ -83,10 +65,10 @@ const CafeOwnerDashboard = () => {
     );
   }
 
-  if (error) {
+  if (dashboardError) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black-primary">
-        <Error message={error} />
+        <Error message={dashboardError.message || 'An unexpected error occurred.'} />
       </div>
     );
   }

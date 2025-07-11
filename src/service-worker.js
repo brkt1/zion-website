@@ -28,7 +28,7 @@ self.addEventListener('install', (event) => {
       caches.open(IMMUTABLE_CACHE).then(cache => cache.addAll(IMMUTABLE_ASSETS))
     ])
     .then(() => {
-      console.log('Caching complete');
+      
       return self.skipWaiting();
     })
     .catch(err => {
@@ -44,7 +44,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (![STATIC_CACHE, DYNAMIC_CACHE, IMMUTABLE_CACHE].includes(cacheName)) {
-            console.log('Deleting old cache:', cacheName);
+            
             return caches.delete(cacheName);
           }
         })
@@ -52,7 +52,7 @@ self.addEventListener('activate', (event) => {
     })
     .then(() => self.clients.claim())
     .then(() => {
-      console.log('Service Worker activated');
+      
     })
   );
 });

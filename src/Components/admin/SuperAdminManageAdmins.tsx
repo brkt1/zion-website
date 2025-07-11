@@ -2,6 +2,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useAuthStore } from '../../stores/authStore';
 import { useNavigate } from 'react-router-dom';
 import LoadingSpinner from '../utility/LoadingSpinner';
+import { API_BASE_URL } from '../../services/api';
+import useSWR from 'swr';
 
 interface AdminUser {
   id: string;
@@ -15,72 +17,57 @@ interface Permission {
   description: string;
 }
 
+const fetcher = async (url: string, token: string) => {
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Failed to fetch data');
+  }
+
+  return response.json();
+};
+
 const SuperAdminManageAdmins: React.FC = () => {
-  const { session, profile, loading } = useAuthStore();
+  const { session, profile, loading: authLoading } = useAuthStore();
   const navigate = useNavigate();
-  const [admins, setAdmins] = useState<AdminUser[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [newAdminEmail, setNewAdminEmail] = useState('');
   const [newAdminPassword, setNewAdminPassword] = useState('');
   const [newAdminRole, setNewAdminRole] = useState<'ADMIN' | 'CAFE_OWNER'>('ADMIN');
-  const [availablePermissions, setAvailablePermissions] = useState<Permission[]>([]);
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
   const [isCreating, setIsCreating] = useState(false);
 
-  const fetchAdmins = useCallback(async () => {
-    if (loading) return; // Wait for auth store to load
-
-    if (!session || profile?.role !== 'SUPER_ADMIN') {
-      navigate('/access-denied');
-      return;
+  const { data: admins, error: adminsError, isLoading: isLoadingAdmins, mutate: mutateAdmins } = useSWR(
+    session?.access_token && profile?.role === 'SUPER_ADMIN' ? [`${API_BASE_URL}/profile/all`, session.access_token] : null,
+    ([url, token]) => fetcher(url, token),
+    { 
+      revalidateOnFocus: false, // Disable revalidation on focus for this list
+      revalidateOnMount: true, // Revalidate on mount
+      compare: (a, b) => JSON.stringify(a) === JSON.stringify(b) // Deep comparison for array data
     }
+  );
 
-    try {
-      const response = await fetch('http://localhost:3001/api/profile/all', {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data: AdminUser[] = await response.json();
-      // Filter to show only ADMIN and CAFE_OWNER roles
-      setAdmins(data.filter(user => user.role === 'ADMIN' || user.role === 'CAFE_OWNER'));
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch admin users');
-    } finally {
-      setIsLoading(false);
+  const { data: availablePermissions, error: permissionsError, isLoading: isLoadingPermissions } = useSWR(
+    session?.access_token && profile?.role === 'SUPER_ADMIN' ? [`${API_BASE_URL}/super-admin/permissions`, session.access_token] : null,
+    ([url, token]) => fetcher(url, token),
+    { 
+      revalidateOnFocus: false, // Disable revalidation on focus for this list
+      revalidateOnMount: true, // Revalidate on mount
+      compare: (a, b) => JSON.stringify(a) === JSON.stringify(b) // Deep comparison for array data
     }
-  }, [session, profile, loading, navigate]);
-
-  const fetchPermissions = useCallback(async () => {
-    if (loading) return;
-    if (!session || profile?.role !== 'SUPER_ADMIN') return;
-
-    try {
-      const response = await fetch('http://localhost:3001/api/super-admin/permissions', {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data: Permission[] = await response.json();
-      setAvailablePermissions(data);
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch permissions');
-    }
-  }, [session, profile, loading]);
+  );
 
   useEffect(() => {
-    fetchAdmins();
-    fetchPermissions();
-  }, [fetchAdmins, fetchPermissions]);
+    if (!authLoading) {
+      if (!session || profile?.role !== 'SUPER_ADMIN') {
+        navigate('/access-denied');
+      }
+    }
+  }, [authLoading, session, profile, navigate]);
 
   const handlePermissionToggle = (permissionName: string) => {
     setSelectedPermissions(prev => 
@@ -95,9 +82,8 @@ const SuperAdminManageAdmins: React.FC = () => {
     if (!session) return;
 
     setIsCreating(true);
-    setError(null);
     try {
-      const response = await fetch('http://localhost:3001/api/super-admin/create-admin', {
+      const response = await fetch(`${API_BASE_URL}/super-admin/create-admin`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -107,7 +93,7 @@ const SuperAdminManageAdmins: React.FC = () => {
           email: newAdminEmail,
           password: newAdminPassword,
           role: newAdminRole,
-          permissions: selectedPermissions, // Send selected permissions
+          permissions: selectedPermissions,
         }),
       });
 
@@ -120,22 +106,24 @@ const SuperAdminManageAdmins: React.FC = () => {
       setNewAdminEmail('');
       setNewAdminPassword('');
       setNewAdminRole('ADMIN');
-      setSelectedPermissions([]); // Clear selected permissions
-      fetchAdmins(); // Refresh the list
+      setSelectedPermissions([]);
+      mutateAdmins(); // Revalidate the admins list
     } catch (err: any) {
-      setError(err.message || 'Failed to create admin user');
+      alert(`Error: ${err.message || 'Failed to create admin user'}`);
     } finally {
       setIsCreating(false);
     }
   };
 
-  if (isLoading) {
+  if (authLoading || isLoadingAdmins || isLoadingPermissions) {
     return <LoadingSpinner />;
   }
 
-  if (error) {
-    return <div className="text-red-500 text-center mt-8">Error: {error}</div>;
+  if (adminsError || permissionsError) {
+    return <div className="text-red-500 text-center mt-8">Error: {adminsError?.message || permissionsError?.message || 'An unexpected error occurred.'}</div>;
   }
+
+  const filteredAdmins = admins?.filter(user => user.role === 'ADMIN' || user.role === 'CAFE_OWNER') || [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-4 sm:p-8 text-white">
@@ -184,7 +172,7 @@ const SuperAdminManageAdmins: React.FC = () => {
             </div>
             
             {/* Permissions Selection */}
-            {newAdminRole === 'ADMIN' && availablePermissions.length > 0 && (
+            {newAdminRole === 'ADMIN' && availablePermissions && availablePermissions.length > 0 && (
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">Assign Permissions</label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2 bg-gray-800 p-3 rounded-md border border-gray-600">
@@ -219,7 +207,7 @@ const SuperAdminManageAdmins: React.FC = () => {
         {/* List Existing Admins */}
         <div className="p-6 bg-gray-700 rounded-lg border border-gray-600">
           <h2 className="text-xl font-bold text-purple-300 mb-4">Existing Admin Users</h2>
-          {admins.length === 0 ? (
+          {filteredAdmins.length === 0 ? (
             <p className="text-center text-gray-400">No admin users to display.</p>
           ) : (
             <div className="overflow-x-auto">
@@ -232,7 +220,7 @@ const SuperAdminManageAdmins: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {admins.map((admin) => (
+                  {filteredAdmins.map((admin) => (
                     <tr key={admin.id} className="border-b border-gray-600 last:border-b-0">
                       <td className="py-3 px-4 text-sm text-gray-300">{admin.email}</td>
                       <td className="py-3 px-4 text-sm text-gray-300">{admin.role}</td>

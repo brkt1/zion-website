@@ -128,13 +128,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   fetchProfile: async () => {
     try {
       const { session } = get();
-      console.log('fetchProfile: Session in store:', session);
+      
       if (!session?.access_token) {
-        console.log('fetchProfile: No session or access token found.');
+        
         return;
       }
 
-      console.log('fetchProfile: Attempting to fetch profile from:', `${API_BASE_URL}/profile`);
+      
       const response = await fetch(`${API_BASE_URL}/profile`, {
         mode: 'cors',
         credentials: 'include',

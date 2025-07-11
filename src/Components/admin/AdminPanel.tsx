@@ -2,13 +2,15 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CertificatesTable from './CertificatesTable';
-import AddCafeOwner from './AddCafeOwner';
+import CafeOwnerManagement from './CafeOwnerManagement';
 import EnhancedCardGenerator from '../cards/EnhancedCardGenerator';
 import WinnerList from './WinnerList';
 import Sidebar from './Sidebar';
 import LoadingSpinner from '../utility/LoadingSpinner';
 import Error from '../utility/Error';
+import PlayerIdGenerator from '../utility/PlayerIdGenerator';
 import { useAuthStore } from '../../stores/authStore';
+import useSWR from 'swr';
 
 interface AdminDashboardData {
   totalUsers: number;
@@ -26,92 +28,59 @@ interface AdminDashboardData {
   }>;
 }
 
-const API_BASE_URL = 'http://localhost:3001/api';
+import { API_BASE_URL } from '../../services/api';
+
+const fetcher = async (url: string, token: string) => {
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Failed to fetch data');
+  }
+
+  return response.json();
+};
 
 const AdminPanel = () => {
   const { session, profile, loading: authLoading } = useAuthStore();
   const [activeTab, setActiveTab] = useState('dashboard'); // Default to dashboard
-  const [dashboardData, setDashboardData] = useState<AdminDashboardData | null>(null);
-  const [loadingData, setLoadingData] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [userPermissions, setUserPermissions] = useState<string[]>([]);
   const navigate = useNavigate();
 
-  const fetchDashboardData = async () => {
-    if (!session?.access_token) {
-      setError('Authentication required.');
-      setLoadingData(false);
-      return;
-    }
+  const { data: dashboardData, error: dashboardError, isLoading: isLoadingDashboard } = useSWR(
+    session?.access_token ? [`${API_BASE_URL}/admin/dashboard`, session.access_token] : null,
+    ([url, token]) => fetcher(url, token)
+  );
 
-    setLoadingData(true);
-    setError(null);
-    try {
-      const response = await fetch(`${API_BASE_URL}/admin/dashboard`, {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to fetch dashboard data');
-      }
-
-      const data: AdminDashboardData = await response.json();
-      setDashboardData(data);
-    } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred.');
-    } finally {
-      setLoadingData(false);
-    }
-  };
-
-  const fetchUserPermissions = async () => {
-    if (!session?.access_token) return;
-    try {
-      const response = await fetch(`${API_BASE_URL}/profile/permissions`, {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data: string[] = await response.json();
-      setUserPermissions(data);
-    } catch (err: any) {
-      console.error('Failed to fetch user permissions:', err);
-      setError('Failed to load permissions.');
-    }
-  };
+  const { data: userPermissions, error: permissionsError, isLoading: isLoadingPermissions } = useSWR(
+    session?.access_token ? [`${API_BASE_URL}/profile/permissions`, session.access_token] : null,
+    ([url, token]) => fetcher(url, token)
+  );
 
   useEffect(() => {
     if (!authLoading) {
       if (!session || (profile?.role !== 'ADMIN' && profile?.role !== 'SUPER_ADMIN')) {
         navigate('/access-denied'); // Redirect if not authenticated or not admin/super_admin
-      } else {
-        fetchDashboardData();
-        fetchUserPermissions();
       }
     }
   }, [authLoading, session, profile, navigate]);
 
   const handleLogout = async () => {
-    // Assuming useAuthStore has a signOut method
-    // await supabase.auth.signOut(); // This was directly calling supabase, should use store
     useAuthStore.getState().signOut();
     navigate('/login');
   };
 
   const hasPermission = (permission: string) => {
-    return profile?.role === 'SUPER_ADMIN' || userPermissions.includes(permission);
+    return profile?.role === 'SUPER_ADMIN' || (userPermissions && userPermissions.includes(permission));
   };
 
-  if (authLoading || loadingData) return <LoadingSpinner />;
+  if (authLoading || isLoadingDashboard || isLoadingPermissions) return <LoadingSpinner />;
 
-  if (error) return <Error message={error} />;
+  if (dashboardError || permissionsError) return <Error message={dashboardError?.message || permissionsError?.message || 'An unexpected error occurred.'} />;
 
   const filteredTabs = [
     { id: 'dashboard', name: 'Dashboard', permission: 'can_view_dashboard' },
@@ -200,7 +169,7 @@ const AdminPanel = () => {
               </div>
             )}
             {activeTab === 'certificates' && hasPermission('can_manage_certificates') && <CertificatesTable />}
-            {activeTab === 'cafeOwners' && hasPermission('can_create_cafe_owners') && <AddCafeOwner />}
+            {activeTab === 'cafeOwners' && hasPermission('can_create_cafe_owners') && <CafeOwnerManagement />}
             {activeTab === 'cardGenerator' && hasPermission('can_manage_cards') && <EnhancedCardGenerator />}
             {activeTab === 'winners' && hasPermission('can_manage_certificates') && <WinnerList />}
             {activeTab === 'playerIdGenerator' && hasPermission('can_create_player_ids') && <PlayerIdGenerator />}

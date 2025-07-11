@@ -15,10 +15,10 @@ const authenticateUser = async (req, res, next) => {
       return res.status(500).json({ error: 'Server configuration error' });
     }
 
-    console.log('Token received:', token);
-    console.log('Using secret (first 5 chars):', SUPABASE_JWT_SECRET.substring(0, 5));
+    
+    
     const decoded = jwt.verify(token, SUPABASE_JWT_SECRET);
-    console.log('Decoded JWT:', decoded);
+    
     req.user = { id: decoded.sub };
     next();
   } catch (authError) {
@@ -33,7 +33,7 @@ const requireAdmin = async (req, res, next) => {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
-    console.log('User ID for admin check:', req.user.id);
+    
     const { rows } = await pool.query('SELECT role FROM profiles WHERE id = $1', [req.user.id]);
     
     const profile = rows[0];

@@ -6,6 +6,7 @@ import Error from '../utility/Error';
 import SuperAdminActivityLog from './SuperAdminActivityLog';
 import SuperAdminPermissionRequests from './SuperAdminPermissionRequests';
 import SuperAdminManageAdmins from './SuperAdminManageAdmins';
+import useSWR from 'swr';
 
 interface SuperAdminDashboardData {
   message: string;
@@ -20,60 +21,45 @@ interface SuperAdminDashboardData {
   }>;
 }
 
-const API_BASE_URL = 'http://localhost:3001/api';
+import { API_BASE_URL } from '../../services/api';
+
+const fetcher = async (url: string, token: string) => {
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Failed to fetch data');
+  }
+
+  return response.json();
+};
 
 const SuperAdminPanel = () => {
   const { session, profile, loading: authLoading } = useAuthStore();
-  const [dashboardData, setDashboardData] = useState<SuperAdminDashboardData | null>(null);
-  const [loadingData, setLoadingData] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'activity', 'requests'
   const navigate = useNavigate();
 
-  const fetchSuperAdminDashboardData = async () => {
-    if (!session?.access_token) {
-      setError('Authentication required.');
-      setLoadingData(false);
-      return;
-    }
-
-    setLoadingData(true);
-    setError(null);
-    try {
-      const response = await fetch(`${API_BASE_URL}/super-admin/dashboard`, {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to fetch Super Admin dashboard data');
-      }
-
-      const data: SuperAdminDashboardData = await response.json();
-      setDashboardData(data);
-    } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred.');
-    } finally {
-      setLoadingData(false);
-    }
-  };
+  const { data: dashboardData, error: dashboardError, isLoading: isLoadingDashboard } = useSWR(
+    session?.access_token ? [`${API_BASE_URL}/super-admin/dashboard`, session.access_token] : null,
+    ([url, token]) => fetcher(url, token)
+  );
 
   useEffect(() => {
     if (!authLoading) {
       // Ensure only SUPER_ADMIN can access this page
       if (!session || profile?.role !== 'SUPER_ADMIN') {
         navigate('/access-denied'); 
-      } else {
-        fetchSuperAdminDashboardData();
       }
     }
   }, [authLoading, session, profile, navigate]);
 
-  if (authLoading || loadingData) return <LoadingSpinner />;
+  if (authLoading || isLoadingDashboard) return <LoadingSpinner />;
 
-  if (error) return <Error message={error} />;
+  if (dashboardError) return <Error message={dashboardError.message || 'An unexpected error occurred.'} />;
 
   return (
     <div className="flex min-h-screen bg-black-primary text-cream">

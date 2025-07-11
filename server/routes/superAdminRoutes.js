@@ -144,7 +144,7 @@ router.post('/permission-requests/:id/approve', authenticateUser, requireSuperAd
 
     if (success) {
       await pool.query(
-        'UPDATE permission_requests SET status = 'APPROVED', responded_by_super_admin_id = $1, responded_at = NOW() WHERE id = $2',
+        `UPDATE permission_requests SET status = 'APPROVED', responded_by_super_admin_id = $1, responded_at = NOW() WHERE id = $2`,
         [superAdminId, id]
       );
       logAdminActivity('APPROVED_PERMISSION_REQUEST', id, { actionType: request.action_type, targetId: request.target_id })(req, res, () => {});
@@ -167,7 +167,7 @@ router.post('/permission-requests/:id/reject', authenticateUser, requireSuperAdm
 
   try {
     const { rows } = await pool.query(
-      'UPDATE permission_requests SET status = 'REJECTED', responded_by_super_admin_id = $1, responded_at = NOW(), response_reason = $2 WHERE id = $3 AND status = 'PENDING' RETURNING *;',
+      `UPDATE permission_requests SET status = 'REJECTED', responded_by_super_admin_id = $1, responded_at = NOW(), response_reason = $2 WHERE id = $3 AND status = 'PENDING' RETURNING *;`,
       [superAdminId, reason, id]
     );
 
