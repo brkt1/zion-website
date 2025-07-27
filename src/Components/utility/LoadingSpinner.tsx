@@ -57,7 +57,7 @@ const LoadingSpinner = () => (
       animate={{ opacity: 1 }}
       transition={{ delay: 0.8 }}
     >
-      <p className="text-sm text-gray-400 font-light tracking-wider">
+      <p className="text-sm flex text-gray-400 font-light tracking-wider">
         PREMIUM <span className="text-amber-500 mx-2">●</span> GAMING <span className="text-amber-500 mx-2">●</span> EXPERIENCE
       </p>
     </motion.div>

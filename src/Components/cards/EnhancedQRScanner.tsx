@@ -318,26 +318,60 @@ const EnhancedQRScanner: React.FC = () => {
   }, [stopScanner, initScanner, hasCameraAccess, scannedCard]);
 
   // If not authenticated, show Google login prompt
-  const { session } = useAuthStore();
-  if (!session) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-black-primary text-cream p-6">
-        <div className="bg-black-secondary rounded-xl shadow-lg p-8 max-w-sm w-full flex flex-col items-center">
-          <h2 className="text-xl font-bold mb-4">Sign in to Scan Card</h2>
+const { session } = useAuthStore();
+if (!session) {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-black-primary">
+      <div className="bg-black rounded-xl p-8 max-w-md w-full border border-amber-500/30 shadow-lg shadow-amber-500/10">
+        <div className="flex flex-col items-center space-y-6">
+          {/* Logo/Icon */}
+          <div className="p-3 bg-gradient-to-br from-amber-400 to-amber-600 rounded-lg shadow-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" />
+            </svg>
+          </div>
+          
+          {/* Heading */}
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-amber-400 mb-1 font-serif">Log in</h2>
+            <p className="text-gray-400 text-sm tracking-wider">ACCESS YOUR ACCOUNT</p>
+          </div>
+          
+          {/* Google Button */}
           <button
             onClick={handleGoogleSignIn}
-            className="flex items-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-2 px-4 rounded-lg transition-colors mb-2"
+            className="flex items-center justify-center gap-3 w-full bg-transparent hover:bg-amber-500/10 text-amber-400 font-medium py-3 px-4 rounded-lg transition-all duration-200 border border-amber-500/50 hover:border-amber-400 group"
             disabled={isLoading}
           >
-            <svg width="20" height="20" viewBox="0 0 48 48" className="inline-block"><g><path fill="#4285F4" d="M43.611 20.083H42V20H24v8h11.303C33.962 32.083 29.418 35 24 35c-6.065 0-11-4.935-11-11s4.935-11 11-11c2.507 0 4.805.857 6.646 2.278l6.364-6.364C33.527 6.527 28.977 4 24 4 12.954 4 4 12.954 4 24s8.954 20 20 20c9.798 0 18.799-7.065 19.799-16.065c.134-1.144.201-2.312.201-3.435c0-1.364-.122-2.695-.389-3.917z"/><path fill="#34A853" d="M6.306 14.691l6.571 4.819C14.655 16.108 19.004 13 24 13c2.507 0 4.805.857 6.646 2.278l6.364-6.364C33.527 6.527 28.977 4 24 4c-7.732 0-14.41 4.41-17.694 10.691z"/><path fill="#FBBC05" d="M24 44c5.318 0 10.13-1.824 13.885-4.965l-6.415-5.263C29.418 35 24 35 24 35c-5.418 0-9.962-2.917-11.303-7.083l-6.571 5.081C9.59 39.59 16.268 44 24 44z"/><path fill="#EA4335" d="M43.611 20.083H42V20H24v8h11.303c-1.23 3.31-4.418 7.083-11.303 7.083c-4.003 0-7.573-1.318-10.303-3.581l-6.571 5.081C9.59 39.59 16.268 44 24 44c9.798 0 18.799-7.065 19.799-16.065c.134-1.144.201-2.312.201-3.435c0-1.364-.122-2.695-.389-3.917z"/></g></svg>
-            Continue with Google
+            {isLoading ? (
+              <svg className="animate-spin h-5 w-5 text-amber-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            ) : (
+              <>
+                <svg width="20" height="20" viewBox="0 0 48 48" className="group-hover:brightness-125">
+                  <path fill="#4285F4" d="M43.611 20.083H42V20H24v8h11.303C33.962 32.083 29.418 35 24 35c-6.065 0-11-4.935-11-11s4.935-11 11-11c2.507 0 4.805.857 6.646 2.278l6.364-6.364C33.527 6.527 28.977 4 24 4 12.954 4 4 12.954 4 24s8.954 20 20 20c9.798 0 18.799-7.065 19.799-16.065c.134-1.144.201-2.312.201-3.435c0-1.364-.122-2.695-.389-3.917z"/>
+                  <path fill="#34A853" d="M6.306 14.691l6.571 4.819C14.655 16.108 19.004 13 24 13c2.507 0 4.805.857 6.646 2.278l6.364-6.364C33.527 6.527 28.977 4 24 4c-7.732 0-14.41 4.41-17.694 10.691z"/>
+                  <path fill="#FBBC05" d="M24 44c5.318 0 10.13-1.824 13.885-4.965l-6.415-5.263C29.418 35 24 35 24 35c-5.418 0-9.962-2.917-11.303-7.083l-6.571 5.081C9.59 39.59 16.268 44 24 44z"/>
+                  <path fill="#EA4335" d="M43.611 20.083H42V20H24v8h11.303c-1.23 3.31-4.418 7.083-11.303 7.083c-4.003 0-7.573-1.318-10.303-3.581l-6.571 5.081C9.59 39.59 16.268 44 24 44c9.798 0 18.799-7.065 19.799-16.065c.134-1.144.201-2.312.201-3.435c0-1.364-.122-2.695-.389-3.917z"/>
+                </svg>
+                <span className="group-hover:text-amber-300">Continue with Google</span>
+              </>
+            )}
           </button>
-          {error && <div className="text-red-400 mt-2 text-sm">{error}</div>}
+          
+          {/* Error message */}
+          {error && (
+            <div className="w-full p-3 bg-amber-900/10 text-amber-300 rounded-lg text-sm text-center border border-amber-500/30 animate-pulse">
+              {error}
+            </div>
+          )}
         </div>
       </div>
-    );
-  }
-
+    </div>
+  );
+}
   return (
     <div className="min-h-screen bg-gradient-to-br from-black-primary to-black-secondary text-cream flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">

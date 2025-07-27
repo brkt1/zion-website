@@ -11,13 +11,15 @@ import {
   FaCoffee,
   FaHome,
   FaRedo,
-  FaMoneyBillWave
+  FaMoneyBillWave,
+  FaUser
 } from "react-icons/fa";
 import { supabase } from "../supabaseClient";
 import { useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import CertificateGenerator from '../Components/utility/CertificateGenerator';
 import { GameSessionGuard } from '../Components/game/GameSessionGuard';
+import { useAuthStore } from '../stores/authStore';
 
 // Reward thresholds
 const REWARD_THRESHOLDS = {
@@ -35,6 +37,7 @@ const STAGE_REQUIREMENTS = {
 
 const TriviaGame = () => {
   const navigate = useNavigate();
+  const { user, session } = useAuthStore();
 
   // State Management
   const [questions, setQuestions] = useState<any[]>([]);
@@ -53,6 +56,10 @@ const TriviaGame = () => {
   const [feedback, setFeedback] = useState<{message: string, type: 'success' | 'error' | 'info'} | null>(null);
   const [streak, setStreak] = useState(0);
   const [maxStreak, setMaxStreak] = useState(0);
+
+  // If user is authenticated, use their name and id
+  const googleName = session?.user?.user_metadata?.full_name || session?.user?.user_metadata?.name || user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0];
+  const googleId = user?.id;
 
   // Fetch questions with difficulty scaling
   useEffect(() => {
@@ -143,22 +150,31 @@ const TriviaGame = () => {
   }, [questions, usedQuestionIndices]);
 
   const startGame = async () => {
-    if (playerName.trim().length < 3) {
-      showFeedback("Please enter a name with at least 3 characters", 'error');
-      return;
-    }
-
-    try {
+    let nameToUse = playerName;
+    let idToUse = playerId;
+    if (user && googleName && googleId) {
+      nameToUse = googleName;
+      idToUse = googleId;
+      setPlayerName(googleName);
+      setPlayerId(googleId);
+    } else {
+      if (playerName.trim().length < 3) {
+        showFeedback("Please enter a name with at least 3 characters", 'error');
+        return;
+      }
       const newPlayerId = uuidv4();
-      const newSessionId = uuidv4();
       setPlayerId(newPlayerId);
+      idToUse = newPlayerId;
+    }
+    try {
+      const newSessionId = uuidv4();
       setSessionId(newSessionId);
       
       // Check player progress
       const { data: progress } = await supabase
         .from("player_progress")
         .select("*")
-        .eq("player_id", newPlayerId)
+        .eq("player_id", idToUse)
         .single();
 
       if (progress) {
@@ -168,7 +184,7 @@ const TriviaGame = () => {
         await supabase
           .from("player_progress")
           .insert({
-            player_id: newPlayerId,
+            player_id: idToUse,
             current_stage: 1,
             sessions_played: 0
           });
@@ -408,19 +424,27 @@ const TriviaGame = () => {
           transition={{ delay: 0.3 }}
           className="space-y-6"
         >
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Enter your name"
-              value={playerName}
-              onChange={(e) => setPlayerName(e.target.value)}
-              className="w-full p-4 pl-12 rounded-xl bg-white/20 backdrop-blur-sm 
-              text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-yellow-300
-              border border-white/20 transition-all duration-300"
-              maxLength={20}
-            />
-            <FaQuestionCircle className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/70 text-xl" />
-          </div>
+          {/* Only show name input if not authenticated */}
+          {!user ? (
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Enter your name"
+                value={playerName}
+                onChange={(e) => setPlayerName(e.target.value)}
+                className="w-full p-4 pl-12 rounded-xl bg-white/20 backdrop-blur-sm 
+                text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-yellow-300
+                border border-white/20 transition-all duration-300"
+                maxLength={20}
+              />
+              <FaQuestionCircle className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/70 text-xl" />
+            </div>
+          ) : (
+            <div className="text-white text-lg font-semibold flex items-center justify-center gap-2">
+              <FaUser className="text-yellow-400" />
+              {googleName}
+            </div>
+          )}
           
           {/* Stage indicator */}
           <div className="bg-black/30 rounded-xl p-3">
