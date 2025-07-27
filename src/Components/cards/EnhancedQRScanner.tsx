@@ -5,6 +5,7 @@ import { Html5Qrcode } from 'html5-qrcode';
 import { FaCamera, FaQrcode, FaKeyboard, FaRedo, FaGamepad } from 'react-icons/fa';
 import { useSessionStore } from '../../stores/sessionStore';
 import { useAuthStore } from '../../stores/authStore';
+import { supabase } from '../../supabaseClient';
 
 interface ScannedCardData {
   cardNumber: string;
@@ -34,6 +35,7 @@ const EnhancedQRScanner: React.FC = () => {
   const [scannedCard, setScannedCard] = useState<ScannedCardData | null>(null);
   const [availableRoutes, setAvailableRoutes] = useState<GameRoute[]>([]);
   const [selectedRoute, setSelectedRoute] = useState<string>('');
+  const [showAuth, setShowAuth] = useState(false);
 
   const scannerRef = useRef<HTMLDivElement>(null);
   const html5QrCode = useRef<Html5Qrcode | null>(null);
@@ -104,7 +106,7 @@ const EnhancedQRScanner: React.FC = () => {
         selectedCamera,
         {
           fps: 10,
-          qrbox: null, // Set qrbox to null to disable default rendering
+          qrbox: qrboxSize, // Use calculated qrbox size instead of null
           aspectRatio: 1.0,
           disableFlip: false,
         },
@@ -265,6 +267,21 @@ const EnhancedQRScanner: React.FC = () => {
     }
   };
 
+  // Google Auth handler
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+      if (error) throw error;
+      // Supabase will redirect, so no further action needed here
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Google sign-in failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (location.state?.sessionExpired) {
       setError('Your game session has expired. Please scan a new card to continue playing.');
@@ -299,6 +316,27 @@ const EnhancedQRScanner: React.FC = () => {
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [stopScanner, initScanner, hasCameraAccess, scannedCard]);
+
+  // If not authenticated, show Google login prompt
+  const { session } = useAuthStore();
+  if (!session) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-black-primary text-cream p-6">
+        <div className="bg-black-secondary rounded-xl shadow-lg p-8 max-w-sm w-full flex flex-col items-center">
+          <h2 className="text-xl font-bold mb-4">Sign in to Scan Card</h2>
+          <button
+            onClick={handleGoogleSignIn}
+            className="flex items-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-2 px-4 rounded-lg transition-colors mb-2"
+            disabled={isLoading}
+          >
+            <svg width="20" height="20" viewBox="0 0 48 48" className="inline-block"><g><path fill="#4285F4" d="M43.611 20.083H42V20H24v8h11.303C33.962 32.083 29.418 35 24 35c-6.065 0-11-4.935-11-11s4.935-11 11-11c2.507 0 4.805.857 6.646 2.278l6.364-6.364C33.527 6.527 28.977 4 24 4 12.954 4 4 12.954 4 24s8.954 20 20 20c9.798 0 18.799-7.065 19.799-16.065c.134-1.144.201-2.312.201-3.435c0-1.364-.122-2.695-.389-3.917z"/><path fill="#34A853" d="M6.306 14.691l6.571 4.819C14.655 16.108 19.004 13 24 13c2.507 0 4.805.857 6.646 2.278l6.364-6.364C33.527 6.527 28.977 4 24 4c-7.732 0-14.41 4.41-17.694 10.691z"/><path fill="#FBBC05" d="M24 44c5.318 0 10.13-1.824 13.885-4.965l-6.415-5.263C29.418 35 24 35 24 35c-5.418 0-9.962-2.917-11.303-7.083l-6.571 5.081C9.59 39.59 16.268 44 24 44z"/><path fill="#EA4335" d="M43.611 20.083H42V20H24v8h11.303c-1.23 3.31-4.418 7.083-11.303 7.083c-4.003 0-7.573-1.318-10.303-3.581l-6.571 5.081C9.59 39.59 16.268 44 24 44c9.798 0 18.799-7.065 19.799-16.065c.134-1.144.201-2.312.201-3.435c0-1.364-.122-2.695-.389-3.917z"/></g></svg>
+            Continue with Google
+          </button>
+          {error && <div className="text-red-400 mt-2 text-sm">{error}</div>}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black-primary to-black-secondary text-cream flex items-center justify-center p-4">

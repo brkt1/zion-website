@@ -9,6 +9,7 @@ import { useAuthStore } from './stores/authStore';
 import GameTimer from "./Components/game/GameTimer";
 import AppRoutes from "./routes/AppRoutes";
 import LoadingSpinner from "./Components/utility/LoadingSpinner";
+import UserNav from "./Components/utility/UserNav";
 
 interface TimeContextType {
   remainingTime: number;
@@ -26,9 +27,6 @@ const history = createBrowserHistory();
 const App: React.FC = () => {
   const { remainingTime, isTimerActive, startTimer, pauseTimer, resetTimer, isExpired, formatTime } = useSessionStore();
   const { initialize, loading: authLoading } = useAuthStore();
-
-  
-  
 
   // Initialize auth on app start
   useEffect(() => {
@@ -54,6 +52,7 @@ const App: React.FC = () => {
             </div>
           ) : (
             <>
+              <UserNav />
               {isTimerActive && <GameTimer />}
               <AppRoutes />
             </>
