@@ -16,27 +16,8 @@ const LoadingSpinner = () => (
         alt="Loading..." 
         className="h-28 w-28 object-contain filter brightness-90"
       />
-      {/* Dual ring animation with dark-appropriate colors */}
-      <motion.div
-        className="absolute inset-0 rounded-full border-4 border-transparent border-t-amber-500 border-r-amber-500"
-        animate={{ rotate: 360 }}
-        transition={{ 
-          duration: 1.8,
-          repeat: Infinity,
-          ease: "linear"
-        }}
-      />
-      <motion.div
-        className="absolute inset-0 rounded-full border-4 border-transparent border-b-amber-600 border-l-amber-600"
-        animate={{ rotate: -360 }}
-        transition={{ 
-          duration: 2.2,
-          repeat: Infinity,
-          ease: "linear"
-        }}
-      />
     </motion.div>
-
+  
     {/* Loading text with dark mode contrast */}
     <div className="text-center space-y-4">
       <motion.h2 
