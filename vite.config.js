@@ -89,8 +89,8 @@ export default defineConfig({
         default-src 'self';
         script-src 'self' 'unsafe-inline' 'unsafe-eval';
         style-src 'self' 'unsafe-inline';
-        connect-src 'self' http://localhost:* https://*.supabase.co ws://localhost:5173;
-        img-src 'self' data: blob: https://*.supabase.co;
+        connect-src 'self' http://localhost:* https://*.supabase.co ws://localhost:5173 https://lh3.googleusercontent.com;
+        img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com;
         media-src 'self' blob:;
         worker-src 'self' blob:;
         font-src 'self' data:;

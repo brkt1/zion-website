@@ -20,6 +20,8 @@ import { v4 as uuidv4 } from "uuid";
 import CertificateGenerator from '../Components/utility/CertificateGenerator';
 import { GameSessionGuard } from '../Components/game/GameSessionGuard';
 import { useAuthStore } from '../stores/authStore';
+import GlobalLeaderboard from '../Components/utility/GlobalLeaderboard';
+import { Dialog } from '@headlessui/react';
 
 // Reward thresholds
 const REWARD_THRESHOLDS = {
@@ -56,6 +58,9 @@ const TriviaGame = () => {
   const [feedback, setFeedback] = useState<{message: string, type: 'success' | 'error' | 'info'} | null>(null);
   const [streak, setStreak] = useState(0);
   const [maxStreak, setMaxStreak] = useState(0);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [topRank, setTopRank] = useState<number | null>(null);
+  const [bonusGiven, setBonusGiven] = useState(false);
 
   // If user is authenticated, use their name and id
   const googleName = session?.user?.user_metadata?.full_name || session?.user?.user_metadata?.name || user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0];
@@ -115,7 +120,7 @@ const TriviaGame = () => {
 
   // Timer logic with dynamic timing based on stage
   useEffect(() => {
-    let interval: number;
+    let interval: ReturnType<typeof setInterval>;
     const timeLimit = Math.max(10, 15 - (currentStage - 1) * 2); // Decreases with stage
     
     if (gameStarted && timer > 0 && !isGameOver) {
@@ -305,8 +310,8 @@ const TriviaGame = () => {
         state: {
           sessionId: sessionId,
           playerId: playerId,
-          playerName: playerName, // Pass player name for display
-          gameType: 'Trivia', // Pass game type name
+          playerName: playerName,
+          gameType: 'Trivia',
           score: score,
           timestamp: new Date().toISOString()
         }
@@ -826,6 +831,37 @@ const TriviaGame = () => {
     </motion.div>
   );
 
+  // Grant leaderboard bonus at the start of a new game session if in top 3
+  useEffect(() => {
+    const grantBonusIfNeeded = async () => {
+      if (gameStarted && topRank && topRank > 0 && topRank <= 3 && !bonusGiven && playerId && sessionId) {
+        try {
+          const token = session?.access_token;
+          const response = await fetch('/api/leaderboard/bonus', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': token ? `Bearer ${token}` : '',
+            },
+            body: JSON.stringify({ playerId, sessionId, gameType: 'trivia' })
+          });
+          if (response.ok) {
+            setScore((prev) => prev + 10);
+            setBonusGiven(true);
+          } else {
+            setBonusGiven(true);
+          }
+        } catch (e) {
+          setBonusGiven(true);
+        }
+      }
+      if (!gameStarted) {
+        setBonusGiven(false); // Reset for next session
+      }
+    };
+    grantBonusIfNeeded();
+  }, [gameStarted, topRank, bonusGiven, playerId, playerName, sessionId, currentStage, session]);
+
   return (
     <GameSessionGuard>
       <AnimatePresence mode="wait">
@@ -851,6 +887,28 @@ const TriviaGame = () => {
           renderStartScreen()
         )}
       </AnimatePresence>
+
+      {/* Show badge and leaderboard modal button */}
+      {topRank && topRank > 0 && topRank <= 3 && bonusGiven && gameStarted && (
+        <div className="fixed top-20 right-4 z-40 bg-yellow-500/90 text-indigo-900 px-4 py-2 rounded-full shadow-lg text-lg font-bold border-2 border-yellow-300 animate-bounce">
+          +10 Bonus Points for Top 3 Leaderboard!
+        </div>
+      )}
+      <button
+        onClick={() => setShowLeaderboard(true)}
+        className="fixed top-4 right-4 z-40 bg-yellow-500 hover:bg-yellow-400 text-indigo-900 font-bold px-4 py-2 rounded-full shadow-lg transition-all"
+      >
+        View Global Leaderboard
+      </button>
+      <Dialog open={showLeaderboard} onClose={() => setShowLeaderboard(false)} className="fixed z-50 inset-0 overflow-y-auto">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="fixed inset-0 bg-black/60" aria-hidden="true" />
+          <div className="relative bg-gray-900 rounded-xl shadow-xl p-6 w-full max-w-lg z-10">
+            <button onClick={() => setShowLeaderboard(false)} className="absolute top-2 right-2 text-yellow-400 hover:text-yellow-200 text-xl">&times;</button>
+            <GlobalLeaderboard onTopRank={(rank) => setTopRank(rank > 0 && rank <= 3 ? rank : null)} />
+          </div>
+        </div>
+      </Dialog>
     </GameSessionGuard>
   );
 };

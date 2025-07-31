@@ -11,8 +11,10 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Bypass service worker for API requests
-  if (event.request.url.includes('/api/')) {
+  // Parse URL for origin and path checks
+  const requestURL = new URL(event.request.url);
+  // Bypass service worker for cross-origin and API requests
+  if (requestURL.origin !== self.location.origin || requestURL.pathname.startsWith('/api/')) {
     return;
   }
 

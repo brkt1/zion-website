@@ -13,6 +13,10 @@ import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import CertificateGenerator from '../Components/utility/CertificateGenerator';
 import { GameSessionGuard } from '../Components/game/GameSessionGuard';
+import { useAuthStore } from '../stores/authStore';
+import { User } from '@supabase/supabase-js';
+import GlobalLeaderboard from '../Components/utility/GlobalLeaderboard';
+import { Dialog } from '@headlessui/react';
 
 // Reward thresholds
 const REWARD_THRESHOLDS = {
@@ -28,31 +32,51 @@ const STAGE_REQUIREMENTS = {
   3: { score: 15, reward: 'cash_prize' }
 };
 
+type Emoji = {
+  id: string;
+  emoji: string;
+  title: string;
+  difficulty: number;
+};
+
+type RewardType = 'free_game' | 'coffee' | 'cash_prize';
+
 const EmojiMastermind = () => {
   const navigate = useNavigate();
+  const { user, session } = useAuthStore();
 
   // State Management
-  const [currentEmoji, setCurrentEmoji] = useState(null);
-  const [guess, setGuess] = useState('');
-  const [score, setScore] = useState(0);
-  const [remainingTries, setRemainingTries] = useState(3);
-  const [feedback, setFeedback] = useState(null);
-  const [showHint, setShowHint] = useState(false);
-  const [emojis, setEmojis] = useState([]);
-  const [nextStageEmojis, setNextStageEmojis] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [showIntro, setShowIntro] = useState(true);
-  const [hintCount, setHintCount] = useState(3);
-  const [currentReward, setCurrentReward] = useState(null);
-  const [currentStage, setCurrentStage] = useState(1);
-  const [hintString, setHintString] = useState('');
-  const [timer, setTimer] = useState(30);
-  const [playerName, setPlayerName] = useState('');
-  const [gameOver, setGameOver] = useState(false);
-  const [playerId, setPlayerId] = useState('');
-  const [sessionId, setSessionId] = useState('');
-  const [streak, setStreak] = useState(0);
-  const [maxStreak, setMaxStreak] = useState(0);
+  const [currentEmoji, setCurrentEmoji] = useState<Emoji | null>(null);
+  const [guess, setGuess] = useState<string>('');
+  const [score, setScore] = useState<number>(0);
+  const [remainingTries, setRemainingTries] = useState<number>(3);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [showHint, setShowHint] = useState<boolean>(false);
+  const [emojis, setEmojis] = useState<Emoji[]>([]);
+  const [nextStageEmojis, setNextStageEmojis] = useState<Emoji[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [showIntro, setShowIntro] = useState<boolean>(true);
+  const [hintCount, setHintCount] = useState<number>(3);
+  const [currentReward, setCurrentReward] = useState<RewardType | null>(null);
+  const [currentStage, setCurrentStage] = useState<1 | 2 | 3>(1);
+  const [hintString, setHintString] = useState<string>('');
+  const [timer, setTimer] = useState<number>(30);
+  const [playerName, setPlayerName] = useState<string>('');
+  const [gameOver, setGameOver] = useState<boolean>(false);
+  const [playerId, setPlayerId] = useState<string>('');
+  const [sessionId, setSessionId] = useState<string>('');
+  const [streak, setStreak] = useState<number>(0);
+  const [maxStreak, setMaxStreak] = useState<number>(0);
+  // Leaderboard state
+  const [leaderboard, setLeaderboard] = useState<{ player_name: string; score: number }[]>([]);
+  const [userTotalPoints, setUserTotalPoints] = useState<number>(0);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [topRank, setTopRank] = useState<number | null>(null);
+  const [bonusGiven, setBonusGiven] = useState(false);
+
+  // If user is authenticated, use their name and id
+  const googleName = session?.user?.user_metadata?.full_name || session?.user?.user_metadata?.name || user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0];
+  const googleId = user?.id;
 
   // Fetch emojis with difficulty scaling
   const fetchEmojis = useCallback(async () => {
@@ -66,59 +90,51 @@ const EmojiMastermind = () => {
           Math.max(1, currentStage - 1),
           Math.min(3, currentStage + 1)
         ];
-        
         const { data, error } = await supabase
           .from('emojis')
           .select('*')
           .gte('difficulty', difficultyRange[0])
           .lte('difficulty', difficultyRange[1])
           .order('difficulty', { ascending: currentStage < 2 });
-
         if (error) throw error;
-        
         if (data && data.length > 0) {
-          setEmojis(data);
-          selectRandomEmoji(data);
+          setEmojis(data as Emoji[]);
+          selectRandomEmoji(data as Emoji[]);
           // Pre-load next stage emojis
-          preloadNextStageEmojis(currentStage + 1);
+          preloadNextStageEmojis(currentStage + 1 as 1 | 2 | 3);
         } else {
-          console.error('No emojis found');
+          setFeedback('Failed to load emojis. Please try again.');
         }
       }
     } catch (error) {
-      console.error('Error fetching emojis:', error);
       setFeedback('Failed to load emojis. Please try again.');
     } finally {
       setIsLoading(false);
     }
   }, [currentStage, nextStageEmojis]);
 
-  const preloadNextStageEmojis = async (nextStage) => {
+  const preloadNextStageEmojis = async (nextStage: 1 | 2 | 3) => {
     if (nextStage > 3) return;
-    
     const difficultyRange = [
       Math.max(1, nextStage - 1),
       Math.min(3, nextStage + 1)
     ];
-    
     const { data } = await supabase
       .from('emojis')
       .select('*')
       .gte('difficulty', difficultyRange[0])
       .lte('difficulty', difficultyRange[1])
       .limit(20);
-    setNextStageEmojis(data || []);
+    setNextStageEmojis((data || []) as Emoji[]);
   };
 
-  const selectRandomEmoji = (emojiList) => {
+  const selectRandomEmoji = (emojiList: Emoji[]) => {
     if (emojiList.length === 0) {
       setGameOver(true);
       return;
     }
-
     const randomIndex = Math.floor(Math.random() * emojiList.length);
     const randomEmoji = emojiList[randomIndex];
-    
     setCurrentEmoji(randomEmoji);
     setGuess('');
     setShowHint(false);
@@ -129,11 +145,9 @@ const EmojiMastermind = () => {
 
   const handleGuess = async () => {
     if (!currentEmoji || !guess.trim()) return;
-
     const userGuess = guess.toLowerCase().trim();
     const correctAnswer = currentEmoji.title.toLowerCase().trim();
     const isCorrect = userGuess === correctAnswer;
-
     if (isCorrect) {
       const newScore = score + 1;
       setScore(newScore);
@@ -143,12 +157,10 @@ const EmojiMastermind = () => {
         return newStreak;
       });
       setFeedback(`Correct! 🎉 The answer is "${currentEmoji.title}".`);
-
       // Check for stage completion and rewards
       const stageRequirement = STAGE_REQUIREMENTS[currentStage];
       if (newScore >= stageRequirement.score) {
-        setCurrentReward(stageRequirement.reward);
-        
+        setCurrentReward(stageRequirement.reward as RewardType);
         // Update player progress
         try {
           const { data: progress } = await supabase
@@ -156,9 +168,8 @@ const EmojiMastermind = () => {
             .select('*')
             .eq('player_id', playerId)
             .single();
-
           if (progress) {
-            const newStage = Math.min(3, progress.current_stage + 1);
+            const newStage = Math.min(3, progress.current_stage + 1) as 1 | 2 | 3;
             await supabase
               .from('emoji_player_progress')
               .update({
@@ -169,11 +180,9 @@ const EmojiMastermind = () => {
                 sessions_played: progress.sessions_played + 1
               })
               .eq('player_id', playerId);
-            
             setCurrentStage(newStage);
             fetchEmojis();
           }
-
           // Save certificate
           await supabase.from('emoji_certificates').insert({
             player_name: playerName,
@@ -188,10 +197,8 @@ const EmojiMastermind = () => {
           console.error('Error updating progress:', error);
         }
       }
-
       const updatedEmojis = emojis.filter(emoji => emoji.id !== currentEmoji.id);
       setEmojis(updatedEmojis);
-
       setTimeout(() => {
         selectRandomEmoji(updatedEmojis);
         setHintCount(3);
@@ -200,24 +207,22 @@ const EmojiMastermind = () => {
       const newTries = remainingTries - 1;
       setRemainingTries(newTries);
       setStreak(0);
-      setFeedback(`Incorrect! 😢 Try again.`);
-
+      setFeedback('Incorrect! 😢 Try again.');
       if (newTries <= 0) {
         setGameOver(true);
-      await saveScore();
-      navigate('/game-result', {
-        state: {
-          sessionId: sessionId,
-          playerId: playerId,
-          playerName: playerName,
-          gameType: 'Emoji Game',
-          score: score,
-          timestamp: new Date().toISOString()
-        }
-      });
+        await saveScore();
+        navigate('/game-result', {
+          state: {
+            sessionId: sessionId,
+            playerId: playerId,
+            playerName: playerName,
+            gameType: 'Emoji Game',
+            score: score,
+            timestamp: new Date().toISOString()
+          }
+        });
       }
     }
-
     setGuess('');
   };
 
@@ -261,24 +266,31 @@ const EmojiMastermind = () => {
   };
 
   const handleStartGame = () => {
-    if (playerName.trim().length < 3) {
-      setFeedback('Please enter a name with at least 3 characters');
-      return;
+    let nameToUse = playerName;
+    let idToUse = playerId;
+    if (user && googleName && googleId) {
+      nameToUse = googleName;
+      idToUse = googleId;
+      setPlayerName(googleName);
+      setPlayerId(googleId);
+    } else {
+      if (playerName.trim().length < 3) {
+        setFeedback('Please enter a name with at least 3 characters');
+        return;
+      }
+      const newPlayerId = uuidv4();
+      setPlayerId(newPlayerId);
+      idToUse = newPlayerId;
     }
-
-    const newPlayerId = uuidv4();
     const newSessionId = uuidv4();
-    setPlayerId(newPlayerId);
     setSessionId(newSessionId);
-    
     // Initialize player progress
     supabase.from('emoji_player_progress')
       .upsert({
-        player_id: newPlayerId,
+        player_id: idToUse,
         current_stage: 1,
         sessions_played: 0
       }, { onConflict: 'player_id' });
-    
     setShowIntro(false);
     fetchEmojis();
   };
@@ -299,7 +311,7 @@ const EmojiMastermind = () => {
 
   // Timer effect
   useEffect(() => {
-    let interval;
+    let interval: ReturnType<typeof setInterval>;
     if (!showIntro && !gameOver && timer > 0) {
       interval = setInterval(() => {
         setTimer(prev => prev - 1);
@@ -319,8 +331,68 @@ const EmojiMastermind = () => {
     }
   }, [showIntro, fetchEmojis]);
 
+  // Fetch leaderboard and user total points after game over
+  useEffect(() => {
+    if (gameOver) {
+      // Fetch top 10 scores
+      supabase
+        .from('emoji_scores')
+        .select('player_name, score')
+        .order('score', { ascending: false })
+        .limit(10)
+        .then(({ data }) => {
+          if (data) setLeaderboard(data);
+        });
+      // Fetch user's total points
+      if (playerId) {
+        supabase
+          .from('emoji_scores')
+          .select('score')
+          .eq('player_id', playerId)
+          .then(({ data }) => {
+            if (data) {
+              const total = data.reduce((sum, row) => sum + (row.score || 0), 0);
+              setUserTotalPoints(total);
+            }
+          });
+      }
+    }
+  }, [gameOver, playerId]);
+
+  // Grant bonus points at the start of a new game session if in top 3
+  useEffect(() => {
+    const grantBonusIfNeeded = async () => {
+      if (!showIntro && topRank && topRank > 0 && topRank <= 3 && !bonusGiven && playerId && sessionId) {
+        try {
+          const token = session?.access_token;
+          const response = await fetch('/api/leaderboard/bonus', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': token ? `Bearer ${token}` : '',
+            },
+            body: JSON.stringify({ playerId, sessionId, gameType: 'emoji' })
+          });
+          if (response.ok) {
+            setScore((prev) => prev + 10);
+            setBonusGiven(true);
+          } else {
+            // If already granted or not eligible, just set as given to avoid spamming
+            setBonusGiven(true);
+          }
+        } catch (e) {
+          setBonusGiven(true);
+        }
+      }
+      if (showIntro) {
+        setBonusGiven(false); // Reset for next session
+      }
+    };
+    grantBonusIfNeeded();
+  }, [showIntro, topRank, bonusGiven, playerId, playerName, sessionId, currentStage, session]);
+
   // Reward icon component
-  const RewardIcon = ({ rewardType }) => {
+  const RewardIcon = ({ rewardType }: { rewardType: RewardType }) => {
     switch (rewardType) {
       case 'free_game':
         return <GiftIcon className="w-6 h-6 text-blue-400 animate-pulse" />;
@@ -336,6 +408,17 @@ const EmojiMastermind = () => {
   return (
     <GameSessionGuard>
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-yellow-800 to-indigo-900 flex flex-col items-center justify-center p-4 text-white overflow-hidden relative">
+        {/* Leaderboard Modal */}
+        <Dialog open={showLeaderboard} onClose={() => setShowLeaderboard(false)} className="fixed z-50 inset-0 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen">
+            <Dialog.Overlay className="fixed inset-0 bg-black/60" />
+            <div className="relative bg-gray-900 rounded-xl shadow-xl p-6 w-full max-w-lg z-10">
+              <button onClick={() => setShowLeaderboard(false)} className="absolute top-2 right-2 text-yellow-400 hover:text-yellow-200 text-xl">&times;</button>
+              <GlobalLeaderboard onTopRank={(rank) => setTopRank(rank > 0 && rank <= 3 ? rank : null)} />
+            </div>
+          </div>
+        </Dialog>
+
         {/* Animated background bubbles */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           {[...Array(10)].map((_, i) => (
@@ -395,13 +478,20 @@ const EmojiMastermind = () => {
 
                   <div className="space-y-3">
                     <h3 className="text-lg font-semibold text-amber-400">Enter Your Name</h3>
-                    <input
-                      value={playerName}
-                      onChange={(e) => setPlayerName(e.target.value)}
-                      placeholder="Enter your name..."
-                      required
-                      className="w-full px-4 py-3 bg-white/5 rounded-xl text-center text-base focus:outline-none focus:ring-2 focus:ring-amber-500 placeholder-white/40"
-                    />
+                    {!user ? (
+                      <input
+                        value={playerName}
+                        onChange={(e) => setPlayerName(e.target.value)}
+                        placeholder="Enter your name..."
+                        required
+                        className="w-full px-4 py-3 bg-white/5 rounded-xl text-center text-base focus:outline-none focus:ring-2 focus:ring-amber-500 placeholder-white/40"
+                      />
+                    ) : (
+                      <div className="text-white text-lg font-semibold flex items-center justify-center gap-2">
+                        <SparklesIcon className="w-5 h-5 text-amber-400" />
+                        {googleName}
+                      </div>
+                    )}
                     <p className="text-xs text-white/60">Your name will be used for the leaderboard</p>
                   </div>
                 </div>
@@ -471,6 +561,25 @@ const EmojiMastermind = () => {
                   >
                     Return to Menu
                   </button>
+                </div>
+
+                {/* Leaderboard and user points display */}
+                <div className="bg-white/5 p-4 rounded-xl border border-white/10 mt-4">
+                  <h3 className="text-lg font-bold text-amber-400 mb-2">🏆 Leaderboard</h3>
+                  <ol className="text-left space-y-1">
+                    {leaderboard.map((entry, idx) => (
+                      <li key={idx} className="flex justify-between">
+                        <span className={entry.player_name === playerName ? 'font-bold text-yellow-300' : ''}>
+                          {idx + 1}. {entry.player_name}
+                        </span>
+                        <span className="text-amber-300">{entry.score}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+                <div className="bg-white/5 p-3 rounded-xl border border-white/10 mt-2">
+                  <span className="text-white/80">Your total points: </span>
+                  <span className="text-amber-400 font-bold">{userTotalPoints}</span>
                 </div>
               </motion.div>
             ) : (
@@ -587,6 +696,30 @@ const EmojiMastermind = () => {
             )}
           </motion.div>
         </div>
+
+        {/* View Global Leaderboard button */}
+        <button
+          onClick={() => setShowLeaderboard(true)}
+          className="fixed top-4 right-4 z-40 bg-yellow-500 hover:bg-yellow-400 text-indigo-900 font-bold px-4 py-2 rounded-full shadow-lg transition-all"
+        >
+          View Global Leaderboard
+        </button>
+
+        {/* Top 3 Badge */}
+        {topRank && topRank > 0 && topRank <= 3 && (
+          <div className="fixed top-20 right-4 z-40 bg-green-500/90 text-white px-4 py-2 rounded-full shadow-lg text-lg font-bold border-2 border-green-300 animate-bounce">
+            {topRank === 1 && '🥇 You are #1 on the Global Leaderboard!'}
+            {topRank === 2 && '🥈 You are #2 on the Global Leaderboard!'}
+            {topRank === 3 && '🥉 You are #3 on the Global Leaderboard!'}
+          </div>
+        )}
+
+        {/* Bonus Points Message */}
+        {topRank && topRank > 0 && topRank <= 3 && bonusGiven && !showIntro && (
+          <div className="fixed top-36 right-4 z-40 bg-yellow-500/90 text-indigo-900 px-4 py-2 rounded-full shadow-lg text-lg font-bold border-2 border-yellow-300 animate-bounce">
+            +10 Bonus Points for Top 3 Leaderboard!
+          </div>
+        )}
       </div>
     </GameSessionGuard>
   );

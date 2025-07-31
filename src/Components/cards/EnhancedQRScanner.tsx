@@ -398,6 +398,7 @@ if (!session) {
                       value={selectedCamera || ''}
                       onChange={(e) => setSelectedCamera(e.target.value)}
                       className="w-full p-3 bg-gray-dark text-cream rounded-lg border border-gray-medium focus:border-gold-primary focus:ring-1 focus:ring-gold-primary"
+                      aria-label="Camera Selection"
                     >
                       {cameras.map(camera => (
                         <option key={camera.id} value={camera.id}>
