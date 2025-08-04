@@ -1,13 +1,14 @@
 -- Enable the uuid-ossp extension for generating UUIDs
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Create the 'game_types' table
 CREATE TABLE public.game_types (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name TEXT UNIQUE NOT NULL,
-    description TEXT,
-    created_at TIMESTAMPTZ DEFAULT now()
-);
+  id uuid NOT NULL DEFAULT extensions.uuid_generate_v4 (),
+  name text NOT NULL,
+  description text NULL,
+  created_at timestamp with time zone NULL DEFAULT now(),
+  CONSTRAINT game_types_pkey PRIMARY KEY (id),
+  CONSTRAINT game_types_name_key UNIQUE (name)
+) TABLESPACE pg_default;
 
 -- Create the 'cards' table
 CREATE TABLE public.cards (

@@ -30,27 +30,36 @@ const EnhancedCardGenerator: React.FC = () => {
   const [generatedCards, setGeneratedCards] = useState<CardData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showDownloadMessage, setShowDownloadMessage] = useState(false);
-  const [selectedRoutes, setSelectedRoutes] = useState<string[]>([]);
 
   const navigate = useNavigate();
 
-  // available routes
-  const availableRoutes = [
-    { id: "trivia", name: "Trivia Game", path: "/trivia-game" },
-    { id: "puzzle", name: "Puzzle Game", path: "/puzzle-game" },
-    { id: "arcade", name: "Arcade Game", path: "/arcade-game" },
-    { id: "adventure", name: "Adventure Game", path: "/adventure-game" },
-  ];
+  // available game routes - dynamically from gameTypes fetched from database
+  const availableRoutes = gameTypes.map((gt) => ({
+    id: gt.id,
+    name: gt.name,
+    path: `/game/${gt.id}`, // adjust path as per your routing
+  }));
 
   // Fetch game types
   useEffect(() => {
     const fetchGameTypes = async () => {
-      const { data, error } = await supabase.from("game_types").select("*");
-      if (data) {
-        setGameTypes(data);
-        setSelectedGameType(data[0]?.id || "");
+      try {
+        const { data: types, error } = await supabase
+          .from("game_types")
+          .select("*")
+          .order("name", { ascending: true });
+        if (error) throw error;
+        console.log("Game types fetched:", types);
+        if (types && types.length > 0) {
+          setGameTypes(types);
+          setSelectedGameType(types[0].id);
+        } else {
+          setGameTypes([]);
+          setSelectedGameType("");
+        }
+      } catch (err) {
+        console.error("Failed to fetch game types:", err);
       }
-      if (error) console.error("Error fetching game types:", error);
     };
     fetchGameTypes();
   }, []);
@@ -71,19 +80,11 @@ const EnhancedCardGenerator: React.FC = () => {
     ).join("");
   };
 
-  // Handle route selection
-  const handleRouteToggle = (routeId: string) => {
-    setSelectedRoutes((prev) =>
-      prev.includes(routeId)
-        ? prev.filter((id) => id !== routeId)
-        : [...prev, routeId]
-    );
-  };
-
   // Generate cards with enhanced features
   const generateEnhancedCards = async () => {
-    if (selectedRoutes.length === 0) {
-      alert("Please select at least one game route for the cards.");
+    // ensure a game type is selected
+    if (!selectedGameType) {
+      alert("Please select a game type for the cards.");
       return;
     }
 
@@ -95,7 +96,7 @@ const EnhancedCardGenerator: React.FC = () => {
         card_number: generateCardNumber(),
         duration,
         game_type_id: selectedGameType,
-        route_access: selectedRoutes,
+        route_access: [],
         used: false,
         player_id: null, // Will be assigned when card is scanned
         created_at: new Date().toISOString(),
@@ -104,14 +105,8 @@ const EnhancedCardGenerator: React.FC = () => {
       // Insert cards into database
       const { data, error } = await supabase
         .from("enhanced_cards")
-        .insert(cardsToGenerate).select(`
-          *,
-          game_types (
-            id,
-            name,
-            description
-          )
-        `);
+        .insert(cardsToGenerate)
+        .select("*");
 
       if (error) throw error;
 
@@ -200,8 +195,6 @@ const EnhancedCardGenerator: React.FC = () => {
           cardNumber: card.card_number,
           gameTypeId: card.game_type_id,
           duration: card.duration,
-          routeAccess: card.route_access,
-          playerId: generatePlayerId(), // Generate unique player ID
           timestamp: new Date().toISOString(),
         };
 
@@ -243,7 +236,7 @@ const EnhancedCardGenerator: React.FC = () => {
         detailsDiv.innerHTML = `
           <p style="margin: 5px 0;"><strong>Game Type:</strong> ${gameTypeName}</p>
           <p style="margin: 5px 0;"><strong>Duration:</strong> ${card.duration} minutes</p>
-          <p style="margin: 5px 0;"><strong>Access Routes:</strong></p>
+          <p style="margin: 5px 0;"><strong>Game Types:</strong></p>
           <p style="margin: 5px 0; font-size: 10px; opacity: 0.9;">${routeNames}</p>
         `;
 
@@ -333,6 +326,9 @@ const EnhancedCardGenerator: React.FC = () => {
                 value={selectedGameType}
                 onChange={(e) => setSelectedGameType(e.target.value)}
               >
+                <option value="" disabled className="bg-gray-800 text-gray-500">
+                  -- Select Game Type --
+                </option>
                 {gameTypes.map((type) => (
                   <option key={type.id} value={type.id} className="bg-gray-800">
                     {type.name}
@@ -383,57 +379,15 @@ const EnhancedCardGenerator: React.FC = () => {
               />
             </div>
           </div>
-
-          {/* Route Selection Panel */}
-          <div>
-            <label className="block text-amber-400 font-semibold mb-4">
-              Available Game Routes
-            </label>
-            <div className="space-y-3">
-              {availableRoutes.map((route) => (
-                <div key={route.id} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id={route.id}
-                    checked={selectedRoutes.includes(route.id)}
-                    onChange={() => handleRouteToggle(route.id)}
-                    className="mr-3 h-4 w-4 text-amber-500 focus:ring-amber-500 border-gray-300 rounded"
-                  />
-                  <label
-                    htmlFor={route.id}
-                    className="text-gray-300 cursor-pointer"
-                  >
-                    {route.name}
-                  </label>
-                </div>
-              ))}
-            </div>
-
-            {selectedRoutes.length > 0 && (
-              <div className="mt-4 p-3 bg-gray-700 rounded-lg">
-                <p className="text-amber-400 text-sm font-semibold mb-2">
-                  Selected Routes:
-                </p>
-                <p className="text-gray-300 text-sm">
-                  {selectedRoutes
-                    .map(
-                      (routeId) =>
-                        availableRoutes.find((r) => r.id === routeId)?.name
-                    )
-                    .join(", ")}
-                </p>
-              </div>
-            )}
-          </div>
         </div>
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 mt-8">
           <button
             onClick={generateEnhancedCards}
-            disabled={isLoading || selectedRoutes.length === 0}
+            disabled={isLoading}
             className={`flex-1 p-3 font-semibold rounded-lg transition-colors ${
-              isLoading || selectedRoutes.length === 0
+              isLoading
                 ? "bg-gray-600 text-gray-400 cursor-not-allowed"
                 : "bg-amber-500 text-gray-900 hover:bg-amber-600"
             }`}
