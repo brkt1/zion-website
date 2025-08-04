@@ -10,7 +10,15 @@ require('dotenv').config({ path: '/media/becky/fbb95933-6bf3-476c-ad04-81ce8356b
 const app = express();
 
 // Middleware
+// Enable CORS for API, include credentials, allowed methods and headers
 app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true,
+  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization']
+}));
+// Handle CORS preflight for all routes
+app.options('*', cors({
   origin: 'http://localhost:5173',
   credentials: true
 }));

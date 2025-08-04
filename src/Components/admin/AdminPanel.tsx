@@ -39,7 +39,7 @@ const fetcher = async (url: string, token: string) => {
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.message || 'Failed to fetch data');
+    throw new (Error as new (message?: string) => Error)(errorData.message || response.statusText || 'Failed to fetch data');
   }
 
   return response.json();

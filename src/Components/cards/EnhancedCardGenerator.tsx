@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../../supabaseClient';
-import { useNavigate } from 'react-router-dom';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-import QRCode from 'qrcode';
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+import QRCode from "qrcode";
+import React, { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../../supabaseClient";
 
 interface GameType {
   id: string;
@@ -24,9 +24,10 @@ interface CardData {
 
 const EnhancedCardGenerator: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [gameTypes, setGameTypes] = useState<GameType[]>([]);
-  const [selectedGameType, setSelectedGameType] = useState<string>('');
+  const [selectedGameType, setSelectedGameType] = useState<string>("");
   const [duration, setDuration] = useState(30);
   const [cardQuantity, setCardQuantity] = useState(6);
   const [generatedCards, setGeneratedCards] = useState<CardData[]>([]);
@@ -38,28 +39,40 @@ const EnhancedCardGenerator: React.FC = () => {
 
   // Available game routes
   const availableRoutes = [
-    { id: 'trivia', name: 'Trivia Game', path: '/trivia-game' },
-    { id: 'truth-dare', name: 'Truth or Dare', path: '/truth-or-dare' },
-    { id: 'rock-paper-scissors', name: 'Rock Paper Scissors', path: '/rock-paper-scissors' },
-    { id: 'emoji', name: 'Emoji Game', path: '/emoji-game' }
+    { id: "trivia", name: "Trivia Game", path: "/trivia-game" },
+    { id: "truth-dare", name: "Truth or Dare", path: "/truth-or-dare" },
+    {
+      id: "rock-paper-scissors",
+      name: "Rock Paper Scissors",
+      path: "/rock-paper-scissors",
+    },
+    { id: "emoji", name: "Emoji Game", path: "/emoji-game" },
   ];
 
   // Authentication check
   const checkAuth = useCallback(async () => {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
     if (!user || userError) {
-      navigate('/login');
+      navigate("/login");
       return;
     }
 
+    // Fetch user role without causing 406 by using maybeSingle()
     const { data: userData, error: roleError } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
 
-    if (roleError || !userData || (userData.role !== 'ADMIN' && userData.role !== 'SUPER_ADMIN')) {
-      navigate('/login');
+    if (
+      roleError ||
+      !userData ||
+      (userData.role !== "ADMIN" && userData.role !== "SUPER_ADMIN")
+    ) {
+      navigate("/login");
       return;
     }
 
@@ -70,10 +83,12 @@ const EnhancedCardGenerator: React.FC = () => {
   useEffect(() => {
     checkAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
-      if (event === 'SIGNED_OUT') {
-        navigate('/login');
-      } else if (event === 'SIGNED_IN') {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event) => {
+      if (event === "SIGNED_OUT") {
+        navigate("/login");
+      } else if (event === "SIGNED_IN") {
         await checkAuth();
       }
     });
@@ -84,32 +99,37 @@ const EnhancedCardGenerator: React.FC = () => {
   // Fetch game types
   useEffect(() => {
     const fetchGameTypes = async () => {
-      const { data, error } = await supabase.from('game_types').select('*');
+      const { data, error } = await supabase.from("game_types").select("*");
       if (data) {
         setGameTypes(data);
-        setSelectedGameType(data[0]?.id || '');
+        setSelectedGameType(data[0]?.id || "");
       }
-      if (error) console.error('Error fetching game types:', error);
+      if (error) console.error("Error fetching game types:", error);
     };
     fetchGameTypes();
   }, []);
 
   // Generate unique 13-digit card number
   const generateCardNumber = (): string => {
-    return Array.from({ length: 13 }, () => Math.floor(Math.random() * 10)).join('');
+    return Array.from({ length: 13 }, () =>
+      Math.floor(Math.random() * 10)
+    ).join("");
   };
 
   // Generate unique player ID (8 characters)
   const generatePlayerId = (): string => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    return Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    return Array.from(
+      { length: 8 },
+      () => chars[Math.floor(Math.random() * chars.length)]
+    ).join("");
   };
 
   // Handle route selection
   const handleRouteToggle = (routeId: string) => {
-    setSelectedRoutes(prev => 
-      prev.includes(routeId) 
-        ? prev.filter(id => id !== routeId)
+    setSelectedRoutes((prev) =>
+      prev.includes(routeId)
+        ? prev.filter((id) => id !== routeId)
         : [...prev, routeId]
     );
   };
@@ -117,13 +137,13 @@ const EnhancedCardGenerator: React.FC = () => {
   // Generate cards with enhanced features
   const generateEnhancedCards = async () => {
     if (selectedRoutes.length === 0) {
-      alert('Please select at least one game route for the cards.');
+      alert("Please select at least one game route for the cards.");
       return;
     }
 
     setIsLoading(true);
     setShowDownloadMessage(false);
-    
+
     try {
       const cardsToGenerate = Array.from({ length: cardQuantity }, () => ({
         card_number: generateCardNumber(),
@@ -132,14 +152,13 @@ const EnhancedCardGenerator: React.FC = () => {
         route_access: selectedRoutes,
         used: false,
         player_id: null, // Will be assigned when card is scanned
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
       }));
 
       // Insert cards into database
       const { data, error } = await supabase
-        .from('enhanced_cards')
-        .insert(cardsToGenerate)
-        .select(`
+        .from("enhanced_cards")
+        .insert(cardsToGenerate).select(`
           *,
           game_types (
             id,
@@ -155,8 +174,8 @@ const EnhancedCardGenerator: React.FC = () => {
         setShowDownloadMessage(true);
       }
     } catch (error) {
-      console.error('Error generating cards:', error);
-      alert('Failed to generate cards: ' + (error as Error).message);
+      console.error("Error generating cards:", error);
+      alert("Failed to generate cards: " + (error as Error).message);
     } finally {
       setIsLoading(false);
     }
@@ -165,18 +184,18 @@ const EnhancedCardGenerator: React.FC = () => {
   // Create PDF with enhanced card design
   const createEnhancedPDF = async () => {
     if (generatedCards.length === 0) {
-      alert('No cards to generate PDF for.');
+      alert("No cards to generate PDF for.");
       return;
     }
 
     const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4'
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
     });
 
     // Create container for cards
-    const container = document.createElement('div');
+    const container = document.createElement("div");
     container.style.cssText = `
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -189,7 +208,7 @@ const EnhancedCardGenerator: React.FC = () => {
     // Generate card promises
     const cardPromises = generatedCards.map(async (card) => {
       return new Promise<void>((resolve) => {
-        const cardDiv = document.createElement('div');
+        const cardDiv = document.createElement("div");
         cardDiv.style.cssText = `
           width: 300px;
           height: 400px;
@@ -206,7 +225,7 @@ const EnhancedCardGenerator: React.FC = () => {
         `;
 
         // Header
-        const headerDiv = document.createElement('div');
+        const headerDiv = document.createElement("div");
         headerDiv.style.cssText = `
           text-align: center;
           border-bottom: 2px solid rgba(255,255,255,0.3);
@@ -219,7 +238,7 @@ const EnhancedCardGenerator: React.FC = () => {
         `;
 
         // QR Code container
-        const qrContainer = document.createElement('div');
+        const qrContainer = document.createElement("div");
         qrContainer.style.cssText = `
           display: flex;
           justify-content: center;
@@ -227,7 +246,7 @@ const EnhancedCardGenerator: React.FC = () => {
         `;
 
         // Create QR Code
-        const canvas = document.createElement('canvas');
+        const canvas = document.createElement("canvas");
         canvas.width = 150;
         canvas.height = 150;
 
@@ -237,33 +256,43 @@ const EnhancedCardGenerator: React.FC = () => {
           duration: card.duration,
           routeAccess: card.route_access,
           playerId: generatePlayerId(), // Generate unique player ID
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         };
 
-        QRCode.toCanvas(canvas, JSON.stringify(cardData), {
-          width: 150,
-          color: {
-            dark: "#1E293B",
-            light: "#ffffff"
+        QRCode.toCanvas(
+          canvas,
+          JSON.stringify(cardData),
+          {
+            width: 150,
+            color: {
+              dark: "#1E293B",
+              light: "#ffffff",
+            },
+            margin: 1,
           },
-          margin: 1
-        }, (error) => {
-          if (error) console.error('QR Code generation error:', error);
-        });
+          (error) => {
+            if (error) console.error("QR Code generation error:", error);
+          }
+        );
 
         qrContainer.appendChild(canvas);
 
         // Card details
-        const detailsDiv = document.createElement('div');
+        const detailsDiv = document.createElement("div");
         detailsDiv.style.cssText = `
           font-size: 12px;
           line-height: 1.4;
         `;
 
-        const gameTypeName = gameTypes.find(gt => gt.id === card.game_type_id)?.name || 'Unknown';
-        const routeNames = card.route_access.map((routeId: string) => 
-          availableRoutes.find(r => r.id === routeId)?.name || routeId
-        ).join(', ');
+        const gameTypeName =
+          gameTypes.find((gt) => gt.id === card.game_type_id)?.name ||
+          "Unknown";
+        const routeNames = card.route_access
+          .map(
+            (routeId: string) =>
+              availableRoutes.find((r) => r.id === routeId)?.name || routeId
+          )
+          .join(", ");
 
         detailsDiv.innerHTML = `
           <p style="margin: 5px 0;"><strong>Game Type:</strong> ${gameTypeName}</p>
@@ -273,7 +302,7 @@ const EnhancedCardGenerator: React.FC = () => {
         `;
 
         // Footer
-        const footerDiv = document.createElement('div');
+        const footerDiv = document.createElement("div");
         footerDiv.style.cssText = `
           text-align: center;
           border-top: 2px solid rgba(255,255,255,0.3);
@@ -309,22 +338,24 @@ const EnhancedCardGenerator: React.FC = () => {
         scale: 2,
         useCORS: true,
         logging: false,
-        backgroundColor: '#ffffff'
+        backgroundColor: "#ffffff",
       });
 
       // Remove container
       document.body.removeChild(container);
 
       // Add to PDF
-      const imgData = canvas.toDataURL('image/png');
+      const imgData = canvas.toDataURL("image/png");
       const imgProps = pdf.getImageProperties(imgData);
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`yenege_game_cards_${new Date().toISOString().split('T')[0]}.pdf`);
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save(
+        `yenege_game_cards_${new Date().toISOString().split("T")[0]}.pdf`
+      );
     } catch (error) {
-      console.error('Error creating PDF:', error);
+      console.error("Error creating PDF:", error);
       if (document.body.contains(container)) {
         document.body.removeChild(container);
       }
@@ -339,16 +370,19 @@ const EnhancedCardGenerator: React.FC = () => {
     );
   }
 
-  if (!isAdmin) {
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center p-4">
         <div className="max-w-md bg-gray-800 rounded-2xl shadow-xl p-8 text-center border border-amber-500/20">
-          <h2 className="text-2xl font-bold text-amber-400 mb-4">Access Denied</h2>
+          <h2 className="text-2xl font-bold text-amber-400 mb-4">
+            Access Denied
+          </h2>
           <p className="text-gray-300 mb-6">
-            You don&apos;t have permission to access this page. Please contact an administrator.
+            You don&apos;t have permission to access this page. Please contact
+            an administrator.
           </p>
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate("/")}
             className="bg-amber-500 text-gray-900 px-6 py-2 rounded-lg hover:bg-amber-600 transition duration-300 font-semibold"
           >
             Return Home
@@ -369,13 +403,15 @@ const EnhancedCardGenerator: React.FC = () => {
           {/* Configuration Panel */}
           <div className="space-y-6">
             <div>
-              <label className="block text-amber-400 font-semibold mb-2">Game Type</label>
-              <select 
+              <label className="block text-amber-400 font-semibold mb-2">
+                Game Type
+              </label>
+              <select
                 className="w-full p-3 bg-gray-700 border border-amber-500/30 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
                 value={selectedGameType}
                 onChange={(e) => setSelectedGameType(e.target.value)}
               >
-                {gameTypes.map(type => (
+                {gameTypes.map((type) => (
                   <option key={type.id} value={type.id} className="bg-gray-800">
                     {type.name}
                   </option>
@@ -384,9 +420,11 @@ const EnhancedCardGenerator: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-amber-400 font-semibold mb-2">Duration (minutes)</label>
-              <input 
-                type="number" 
+              <label className="block text-amber-400 font-semibold mb-2">
+                Duration (minutes)
+              </label>
+              <input
+                type="number"
                 className="w-full p-3 bg-gray-700 border border-amber-500/30 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
                 value={duration}
                 min={10}
@@ -396,9 +434,11 @@ const EnhancedCardGenerator: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-amber-400 font-semibold mb-2">Number of Cards</label>
-              <input 
-                type="number" 
+              <label className="block text-amber-400 font-semibold mb-2">
+                Number of Cards
+              </label>
+              <input
+                type="number"
                 className="w-full p-3 bg-gray-700 border border-amber-500/30 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
                 value={cardQuantity}
                 min={1}
@@ -410,9 +450,11 @@ const EnhancedCardGenerator: React.FC = () => {
 
           {/* Route Selection Panel */}
           <div>
-            <label className="block text-amber-400 font-semibold mb-4">Available Game Routes</label>
+            <label className="block text-amber-400 font-semibold mb-4">
+              Available Game Routes
+            </label>
             <div className="space-y-3">
-              {availableRoutes.map(route => (
+              {availableRoutes.map((route) => (
                 <div key={route.id} className="flex items-center">
                   <input
                     type="checkbox"
@@ -421,20 +463,28 @@ const EnhancedCardGenerator: React.FC = () => {
                     onChange={() => handleRouteToggle(route.id)}
                     className="mr-3 h-4 w-4 text-amber-500 focus:ring-amber-500 border-gray-300 rounded"
                   />
-                  <label htmlFor={route.id} className="text-gray-300 cursor-pointer">
+                  <label
+                    htmlFor={route.id}
+                    className="text-gray-300 cursor-pointer"
+                  >
                     {route.name}
                   </label>
                 </div>
               ))}
             </div>
-            
+
             {selectedRoutes.length > 0 && (
               <div className="mt-4 p-3 bg-gray-700 rounded-lg">
-                <p className="text-amber-400 text-sm font-semibold mb-2">Selected Routes:</p>
+                <p className="text-amber-400 text-sm font-semibold mb-2">
+                  Selected Routes:
+                </p>
                 <p className="text-gray-300 text-sm">
-                  {selectedRoutes.map(routeId => 
-                    availableRoutes.find(r => r.id === routeId)?.name
-                  ).join(', ')}
+                  {selectedRoutes
+                    .map(
+                      (routeId) =>
+                        availableRoutes.find((r) => r.id === routeId)?.name
+                    )
+                    .join(", ")}
                 </p>
               </div>
             )}
@@ -443,25 +493,25 @@ const EnhancedCardGenerator: React.FC = () => {
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 mt-8">
-          <button 
+          <button
             onClick={generateEnhancedCards}
             disabled={isLoading || selectedRoutes.length === 0}
             className={`flex-1 p-3 font-semibold rounded-lg transition-colors ${
               isLoading || selectedRoutes.length === 0
-                ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
-                : 'bg-amber-500 text-gray-900 hover:bg-amber-600'
+                ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+                : "bg-amber-500 text-gray-900 hover:bg-amber-600"
             }`}
           >
-            {isLoading ? 'Generating...' : `Generate ${cardQuantity} Cards`}
+            {isLoading ? "Generating..." : `Generate ${cardQuantity} Cards`}
           </button>
-          
-          <button 
+
+          <button
             onClick={createEnhancedPDF}
             disabled={generatedCards.length === 0}
             className={`flex-1 p-3 font-semibold rounded-lg transition-colors ${
-              generatedCards.length === 0 
-                ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
-                : 'bg-green-600 text-white hover:bg-green-700'
+              generatedCards.length === 0
+                ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+                : "bg-green-600 text-white hover:bg-green-700"
             }`}
           >
             Download PDF
@@ -472,7 +522,8 @@ const EnhancedCardGenerator: React.FC = () => {
         {showDownloadMessage && (
           <div className="mt-6 p-4 bg-green-900/20 rounded-lg border border-green-500/30">
             <p className="text-center text-green-400 font-semibold">
-              ✅ {generatedCards.length} cards generated successfully! You can now download the PDF.
+              ✅ {generatedCards.length} cards generated successfully! You can
+              now download the PDF.
             </p>
           </div>
         )}
@@ -480,11 +531,15 @@ const EnhancedCardGenerator: React.FC = () => {
         {/* Generated Cards Summary */}
         {generatedCards.length > 0 && (
           <div className="mt-6 p-4 bg-gray-700 rounded-lg">
-            <h3 className="text-amber-400 font-semibold mb-3">Generated Cards Summary</h3>
+            <h3 className="text-amber-400 font-semibold mb-3">
+              Generated Cards Summary
+            </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {generatedCards.slice(0, 6).map((card, index) => (
                 <div key={card.id} className="bg-gray-600 p-3 rounded text-sm">
-                  <p className="text-amber-400 font-semibold">Card #{index + 1}</p>
+                  <p className="text-amber-400 font-semibold">
+                    Card #{index + 1}
+                  </p>
                   <p className="text-gray-300">Number: {card.card_number}</p>
                   <p className="text-gray-300">Duration: {card.duration}min</p>
                 </div>
