@@ -1,7 +1,7 @@
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import QRCode from "qrcode";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../supabaseClient";
 
@@ -23,9 +23,6 @@ interface CardData {
 }
 
 const EnhancedCardGenerator: React.FC = () => {
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
-  const [loadingAuth, setLoadingAuth] = useState(true);
   const [gameTypes, setGameTypes] = useState<GameType[]>([]);
   const [selectedGameType, setSelectedGameType] = useState<string>("");
   const [duration, setDuration] = useState(30);
@@ -37,64 +34,13 @@ const EnhancedCardGenerator: React.FC = () => {
 
   const navigate = useNavigate();
 
-  // Available game routes
+  // available routes
   const availableRoutes = [
     { id: "trivia", name: "Trivia Game", path: "/trivia-game" },
-    { id: "truth-dare", name: "Truth or Dare", path: "/truth-or-dare" },
-    {
-      id: "rock-paper-scissors",
-      name: "Rock Paper Scissors",
-      path: "/rock-paper-scissors",
-    },
-    { id: "emoji", name: "Emoji Game", path: "/emoji-game" },
+    { id: "puzzle", name: "Puzzle Game", path: "/puzzle-game" },
+    { id: "arcade", name: "Arcade Game", path: "/arcade-game" },
+    { id: "adventure", name: "Adventure Game", path: "/adventure-game" },
   ];
-
-  // Authentication check
-  const checkAuth = useCallback(async () => {
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-    if (!user || userError) {
-      navigate("/login");
-      return;
-    }
-
-    // Fetch user role without causing 406 by using maybeSingle()
-    const { data: userData, error: roleError } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .maybeSingle();
-
-    if (
-      roleError ||
-      !userData ||
-      (userData.role !== "ADMIN" && userData.role !== "SUPER_ADMIN")
-    ) {
-      navigate("/login");
-      return;
-    }
-
-    setIsAdmin(true);
-    setLoadingAuth(false);
-  }, [navigate]);
-
-  useEffect(() => {
-    checkAuth();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event) => {
-      if (event === "SIGNED_OUT") {
-        navigate("/login");
-      } else if (event === "SIGNED_IN") {
-        await checkAuth();
-      }
-    });
-
-    return () => subscription?.unsubscribe();
-  }, [checkAuth, navigate]);
 
   // Fetch game types
   useEffect(() => {
@@ -362,36 +308,6 @@ const EnhancedCardGenerator: React.FC = () => {
     }
   };
 
-  if (loadingAuth) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center p-4">
-        <div className="max-w-md bg-gray-800 rounded-2xl shadow-xl p-8 text-center border border-amber-500/20">
-          <h2 className="text-2xl font-bold text-amber-400 mb-4">
-            Access Denied
-          </h2>
-          <p className="text-gray-300 mb-6">
-            You don&apos;t have permission to access this page. Please contact
-            an administrator.
-          </p>
-          <button
-            onClick={() => navigate("/")}
-            className="bg-amber-500 text-gray-900 px-6 py-2 rounded-lg hover:bg-amber-600 transition duration-300 font-semibold"
-          >
-            Return Home
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-4 sm:p-8">
       <div className="max-w-4xl mx-auto bg-gray-800 rounded-2xl shadow-xl p-6 sm:p-8 border border-amber-500/20">
@@ -403,10 +319,16 @@ const EnhancedCardGenerator: React.FC = () => {
           {/* Configuration Panel */}
           <div className="space-y-6">
             <div>
-              <label className="block text-amber-400 font-semibold mb-2">
+              <label
+                htmlFor="gameType"
+                className="block text-amber-400 font-semibold mb-2"
+              >
                 Game Type
               </label>
               <select
+                id="gameType"
+                name="gameType"
+                aria-label="Game Type"
                 className="w-full p-3 bg-gray-700 border border-amber-500/30 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
                 value={selectedGameType}
                 onChange={(e) => setSelectedGameType(e.target.value)}
@@ -420,11 +342,18 @@ const EnhancedCardGenerator: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-amber-400 font-semibold mb-2">
+              <label
+                htmlFor="duration"
+                className="block text-amber-400 font-semibold mb-2"
+              >
                 Duration (minutes)
               </label>
               <input
+                id="duration"
+                name="duration"
                 type="number"
+                placeholder="Enter duration"
+                aria-label="Duration in minutes"
                 className="w-full p-3 bg-gray-700 border border-amber-500/30 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
                 value={duration}
                 min={10}
@@ -434,11 +363,18 @@ const EnhancedCardGenerator: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-amber-400 font-semibold mb-2">
+              <label
+                htmlFor="cardQuantity"
+                className="block text-amber-400 font-semibold mb-2"
+              >
                 Number of Cards
               </label>
               <input
+                id="cardQuantity"
+                name="cardQuantity"
                 type="number"
+                placeholder="Enter number of cards"
+                aria-label="Number of cards to generate"
                 className="w-full p-3 bg-gray-700 border border-amber-500/30 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
                 value={cardQuantity}
                 min={1}

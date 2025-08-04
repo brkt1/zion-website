@@ -257,7 +257,7 @@ const AppRoutes: React.FC = () => (
       <Route
         path="/enhanced-card-generator"
         element={
-          <RoleProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
+          <RoleProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN", ]}>
             <EnhancedCardGenerator />
           </RoleProtectedRoute>
         }

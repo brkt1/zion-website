@@ -14,8 +14,8 @@ router.get("/users", authenticateUser, requireAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query(`
       SELECT u.*, p.role
-      FROM users u
-      LEFT JOIN profiles p ON u.id = p.user_id
+      FROM auth.users u
+      LEFT JOIN public.profiles p ON u.id = p.id
       ORDER BY u.created_at DESC
     `);
     res.json(rows);
@@ -82,17 +82,20 @@ router.post(
 router.get("/dashboard", authenticateUser, requireAdmin, async (req, res) => {
   console.log("[DEBUG] req.user in /dashboard:", req.user);
   try {
-    // Fetch total users
-    const { rowCount: totalUsers } = await pool.query(
-      "SELECT id FROM auth.users"
+    // Fetch total users count from profiles
+    const totalUsersResult = await pool.query(
+      "SELECT COUNT(*) AS total FROM public.profiles"
     );
+    const totalUsers = Number(totalUsersResult.rows[0].total);
 
-    // Fetch user roles
-    const { rows: userRoles } = await pool.query(`
-      SELECT u.email, p.role, u.id as userId
-      FROM auth.users u
-      LEFT JOIN public.profiles p ON u.id = p.user_id
-    `);
+    // Fetch user emails and roles by joining profiles with auth.users
+    const { rows: userRoles } = await pool.query(
+      `
+      SELECT p.id AS userId, u.email, p.role
+      FROM public.profiles p
+      LEFT JOIN auth.users u ON p.id = u.id
+    `
+    );
 
     // Construct dashboard data
     const dashboardData = {
@@ -101,7 +104,7 @@ router.get("/dashboard", authenticateUser, requireAdmin, async (req, res) => {
       recentActivities: [], // Placeholder for now
       userRoles: userRoles.map((user) => ({
         userId: user.userId,
-        email: user.email,
+        email: user.email || "",
         role: user.role || "USER", // Default to USER if role is null
       })),
     };
@@ -109,7 +112,11 @@ router.get("/dashboard", authenticateUser, requireAdmin, async (req, res) => {
     res.json(dashboardData);
   } catch (error) {
     console.error("Admin dashboard error:", error);
-    res.status(500).json({ error: "Failed to load admin dashboard" });
+    res.status(500).json({
+      error: "Failed to load admin dashboard",
+      details: error.message,
+      stack: error.stack,
+    });
   }
 });
 

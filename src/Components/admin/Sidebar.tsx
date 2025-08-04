@@ -38,7 +38,14 @@ const Sidebar: React.FC<SidebarProps> = ({
   const handleTabClick = (tabId: string) => {
     setActiveTab(tabId);
     onClose();
-    if (tabId === "superAdmin") {
+    // Route to specific admin pages
+    if (tabId === "dashboard") {
+      navigate("/admin/dashboard");
+    } else if (tabId === "cafeOwners") {
+      navigate("/cafe-owner/dashboard");
+    } else if (tabId === "cardGenerator") {
+      navigate("/enhanced-card-generator");
+    } else if (tabId === "superAdmin") {
       navigate("/super-admin");
     }
   };

@@ -1,16 +1,16 @@
 // components/admin/AdminPanel.tsx
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import CertificatesTable from './CertificatesTable';
-import CafeOwnerManagement from './CafeOwnerManagement';
-import EnhancedCardGenerator from '../cards/EnhancedCardGenerator';
-import WinnerList from './WinnerList';
-import Sidebar from './Sidebar';
-import LoadingSpinner from '../utility/LoadingSpinner';
-import Error from '../utility/Error';
-import PlayerIdGenerator from '../utility/PlayerIdGenerator';
-import { useAuthStore } from '../../stores/authStore';
-import useSWR from 'swr';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import useSWR from "swr";
+import { useAuthStore } from "../../stores/authStore";
+import EnhancedCardGenerator from "../cards/EnhancedCardGenerator";
+import Error from "../utility/Error";
+import LoadingSpinner from "../utility/LoadingSpinner";
+import PlayerIdGenerator from "../utility/PlayerIdGenerator";
+import CafeOwnerManagement from "./CafeOwnerManagement";
+import CertificatesTable from "./CertificatesTable";
+import Sidebar from "./Sidebar";
+import WinnerList from "./WinnerList";
 
 interface AdminDashboardData {
   totalUsers: number;
@@ -24,22 +24,24 @@ interface AdminDashboardData {
   userRoles: Array<{
     userId: string;
     email: string;
-    role: 'USER' | 'ADMIN' | 'CAFE_OWNER';
+    role: "USER" | "ADMIN" | "CAFE_OWNER";
   }>;
 }
 
-import { API_BASE_URL } from '../../services/api';
+import { API_BASE_URL } from "../../services/api";
 
 const fetcher = async (url: string, token: string) => {
   const response = await fetch(url, {
     headers: {
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     },
   });
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new (Error as new (message?: string) => Error)(errorData.message || response.statusText || 'Failed to fetch data');
+    throw new (Error as new (message?: string) => Error)(
+      errorData.message || response.statusText || "Failed to fetch data"
+    );
   }
 
   return response.json();
@@ -47,50 +49,97 @@ const fetcher = async (url: string, token: string) => {
 
 const AdminPanel = () => {
   const { session, profile, loading: authLoading } = useAuthStore();
-  const [activeTab, setActiveTab] = useState('dashboard'); // Default to dashboard
+  const [activeTab, setActiveTab] = useState("dashboard"); // Default to dashboard
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
-  const { data: dashboardData, error: dashboardError, isLoading: isLoadingDashboard } = useSWR(
-    session?.access_token ? [`${API_BASE_URL}/admin/dashboard`, session.access_token] : null,
+  const {
+    data: dashboardData,
+    error: dashboardError,
+    isLoading: isLoadingDashboard,
+  } = useSWR(
+    session?.access_token
+      ? [`${API_BASE_URL}/admin/dashboard`, session.access_token]
+      : null,
     ([url, token]) => fetcher(url, token)
   );
 
-  const { data: userPermissions, error: permissionsError, isLoading: isLoadingPermissions } = useSWR(
-    session?.access_token ? [`${API_BASE_URL}/profile/permissions`, session.access_token] : null,
+  const {
+    data: userPermissions,
+    error: permissionsError,
+    isLoading: isLoadingPermissions,
+  } = useSWR(
+    session?.access_token
+      ? [`${API_BASE_URL}/profile/permissions`, session.access_token]
+      : null,
     ([url, token]) => fetcher(url, token)
   );
 
   useEffect(() => {
     if (!authLoading) {
-      if (!session || (profile?.role !== 'ADMIN' && profile?.role !== 'SUPER_ADMIN')) {
-        navigate('/access-denied'); // Redirect if not authenticated or not admin/super_admin
+      if (
+        !session ||
+        (profile?.role !== "ADMIN" && profile?.role !== "SUPER_ADMIN")
+      ) {
+        navigate("/access-denied"); // Redirect if not authenticated or not admin/super_admin
       }
     }
   }, [authLoading, session, profile, navigate]);
 
   const handleLogout = async () => {
     useAuthStore.getState().signOut();
-    navigate('/login');
+    navigate("/login");
   };
 
   const hasPermission = (permission: string) => {
-    return profile?.role === 'SUPER_ADMIN' || (userPermissions && userPermissions.includes(permission));
+    // SUPER_ADMIN and ADMIN bypass granular permission checks
+    if (profile?.role === "SUPER_ADMIN" || profile?.role === "ADMIN") {
+      return true;
+    }
+    return userPermissions ? userPermissions.includes(permission) : false;
   };
 
-  if (authLoading || isLoadingDashboard || isLoadingPermissions) return <LoadingSpinner />;
+  if (authLoading || isLoadingDashboard || isLoadingPermissions)
+    return <LoadingSpinner />;
 
-  if (dashboardError || permissionsError) return <Error message={dashboardError?.message || permissionsError?.message || 'An unexpected error occurred.'} />;
+  if (dashboardError || permissionsError)
+    return (
+      <Error
+        message={
+          dashboardError?.message ||
+          permissionsError?.message ||
+          "An unexpected error occurred."
+        }
+      />
+    );
 
   const filteredTabs = [
-    { id: 'dashboard', name: 'Dashboard', permission: 'can_view_dashboard' },
-    { id: 'certificates', name: 'Certificates', permission: 'can_manage_certificates' },
-    { id: 'cafeOwners', name: 'Cafe Owners', permission: 'can_create_cafe_owners' },
-    { id: 'cardGenerator', name: 'Card Generator', permission: 'can_manage_cards' },
-    { id: 'winners', name: 'Winners', permission: 'can_manage_certificates' }, // Assuming winners are managed via certificates
-    { id: 'playerIdGenerator', name: 'Player ID Generator', permission: 'can_create_player_ids' }, // New permission
-    ...(profile?.role === 'SUPER_ADMIN' ? [{ id: 'superAdmin', name: 'Super Admin' }] : [])
-  ].filter(tab => !tab.permission || hasPermission(tab.permission));
+    { id: "dashboard", name: "Dashboard", permission: "can_view_dashboard" },
+    {
+      id: "certificates",
+      name: "Certificates",
+      permission: "can_manage_certificates",
+    },
+    {
+      id: "cafeOwners",
+      name: "Cafe Owners",
+      permission: "can_create_cafe_owners",
+    },
+    {
+      id: "cardGenerator",
+      name: "Card Generator",
+      permission: "can_manage_cards",
+    },
+    { id: "winners", name: "Winners", permission: "can_manage_certificates" }, // Assuming winners are managed via certificates
+    {
+      id: "playerIdGenerator",
+      name: "Player ID Generator",
+      permission: "can_create_player_ids",
+    }, // New permission
+    ...(profile?.role === "SUPER_ADMIN"
+      ? [{ id: "superAdmin", name: "Super Admin" }]
+      : []),
+  ].filter((tab) => !tab.permission || hasPermission(tab.permission));
 
   return (
     <div className="flex min-h-screen bg-black-primary text-cream">
@@ -98,81 +147,131 @@ const AdminPanel = () => {
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         className="lg:hidden fixed top-4 right-4 z-50 p-2 text-gold-light"
       >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+        <svg
+          className="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M4 6h16M4 12h16M4 18h16"
+          />
         </svg>
       </button>
 
-      <Sidebar 
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          handleLogout={handleLogout}
-          isOpen={isSidebarOpen}
-          onClose={() => setIsSidebarOpen(false)}
-          profile={profile} // Pass the profile here
-          tabs={filteredTabs}
-        />
-      
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        handleLogout={handleLogout}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        profile={profile} // Pass the profile here
+        tabs={filteredTabs}
+      />
+
       <main className="flex-1 p-4 sm:p-8 lg:ml-64 transition-all duration-300">
         <div className="max-w-6xl mx-auto">
           <h1 className="text-2xl sm:text-3xl font-bold text-gold-primary mb-6 capitalize border-b-2 border-gold-primary pb-2">
-            {activeTab.replace(/([A-Z])/g, ' $1')}
+            {activeTab.replace(/([A-Z])/g, " $1")}
           </h1>
-          
-          <div className="bg-black-secondary rounded-xl shadow-xl p-4 sm:p-6 border border-gray-dark">
-            {activeTab === 'dashboard' && dashboardData && hasPermission('can_view_dashboard') && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="bg-black-primary p-4 rounded-lg border border-gray-medium">
-                    <h3 className="text-lg font-semibold text-gold-light">Total Users</h3>
-                    <p className="text-3xl font-bold text-cream">{dashboardData.totalUsers}</p>
-                  </div>
-                  <div className="bg-black-primary p-4 rounded-lg border border-gray-medium">
-                    <h3 className="text-lg font-semibold text-gold-light">Active Sessions</h3>
-                    <p className="text-3xl font-bold text-cream">{dashboardData.activeSessions}</p>
-                  </div>
-                  <div className="bg-black-primary p-4 rounded-lg border border-gray-medium">
-                    <h3 className="text-lg font-semibold text-gold-light">User Roles</h3>
-                    <ul className="list-disc list-inside text-cream">
-                      {dashboardData.userRoles.map((user, index) => (
-                        <li key={index}>{user.email} ({user.role})</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
 
-                <h2 className="text-xl font-bold text-gold-primary mt-6 mb-4">Recent Activities</h2>
-                {dashboardData.recentActivities.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full bg-black-primary rounded-lg overflow-hidden border border-gray-medium">
-                      <thead>
-                        <tr className="bg-gray-dark text-gold-light">
-                          <th className="py-2 px-4 text-left">Type</th>
-                          <th className="py-2 px-4 text-left">Description</th>
-                          <th className="py-2 px-4 text-left">Timestamp</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {dashboardData.recentActivities.map((activity, index) => (
-                          <tr key={activity.id} className={index % 2 === 0 ? 'bg-black-secondary' : 'bg-black-primary'}>
-                            <td className="py-2 px-4">{activity.type}</td>
-                            <td className="py-2 px-4">{activity.description}</td>
-                            <td className="py-2 px-4">{new Date(activity.timestamp).toLocaleString()}</td>
-                          </tr>
+          <div className="bg-black-secondary rounded-xl shadow-xl p-4 sm:p-6 border border-gray-dark">
+            {activeTab === "dashboard" &&
+              dashboardData &&
+              hasPermission("can_view_dashboard") && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="bg-black-primary p-4 rounded-lg border border-gray-medium">
+                      <h3 className="text-lg font-semibold text-gold-light">
+                        Total Users
+                      </h3>
+                      <p className="text-3xl font-bold text-cream">
+                        {dashboardData.totalUsers}
+                      </p>
+                    </div>
+                    <div className="bg-black-primary p-4 rounded-lg border border-gray-medium">
+                      <h3 className="text-lg font-semibold text-gold-light">
+                        Active Sessions
+                      </h3>
+                      <p className="text-3xl font-bold text-cream">
+                        {dashboardData.activeSessions}
+                      </p>
+                    </div>
+                    <div className="bg-black-primary p-4 rounded-lg border border-gray-medium">
+                      <h3 className="text-lg font-semibold text-gold-light">
+                        User Roles
+                      </h3>
+                      <ul className="list-disc list-inside text-cream">
+                        {dashboardData.userRoles.map((user, index) => (
+                          <li key={index}>
+                            {user.email} ({user.role})
+                          </li>
                         ))}
-                      </tbody>
-                    </table>
+                      </ul>
+                    </div>
                   </div>
-                ) : (
-                  <p className="text-gray-light">No recent activities to display.</p>
-                )}
-              </div>
-            )}
-            {activeTab === 'certificates' && hasPermission('can_manage_certificates') && <CertificatesTable />}
-            {activeTab === 'cafeOwners' && hasPermission('can_create_cafe_owners') && <CafeOwnerManagement />}
-            {activeTab === 'cardGenerator' && hasPermission('can_manage_cards') && <EnhancedCardGenerator />}
-            {activeTab === 'winners' && hasPermission('can_manage_certificates') && <WinnerList />}
-            {activeTab === 'playerIdGenerator' && hasPermission('can_create_player_ids') && <PlayerIdGenerator />}
+
+                  <h2 className="text-xl font-bold text-gold-primary mt-6 mb-4">
+                    Recent Activities
+                  </h2>
+                  {dashboardData.recentActivities.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full bg-black-primary rounded-lg overflow-hidden border border-gray-medium">
+                        <thead>
+                          <tr className="bg-gray-dark text-gold-light">
+                            <th className="py-2 px-4 text-left">Type</th>
+                            <th className="py-2 px-4 text-left">Description</th>
+                            <th className="py-2 px-4 text-left">Timestamp</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {dashboardData.recentActivities.map(
+                            (activity, index) => (
+                              <tr
+                                key={activity.id}
+                                className={
+                                  index % 2 === 0
+                                    ? "bg-black-secondary"
+                                    : "bg-black-primary"
+                                }
+                              >
+                                <td className="py-2 px-4">{activity.type}</td>
+                                <td className="py-2 px-4">
+                                  {activity.description}
+                                </td>
+                                <td className="py-2 px-4">
+                                  {new Date(
+                                    activity.timestamp
+                                  ).toLocaleString()}
+                                </td>
+                              </tr>
+                            )
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <p className="text-gray-light">
+                      No recent activities to display.
+                    </p>
+                  )}
+                </div>
+              )}
+            {activeTab === "certificates" &&
+              hasPermission("can_manage_certificates") && <CertificatesTable />}
+            {activeTab === "cafeOwners" &&
+              hasPermission("can_create_cafe_owners") && (
+                <CafeOwnerManagement />
+              )}
+            {activeTab === "cardGenerator" &&
+              hasPermission("can_manage_cards") && <EnhancedCardGenerator />}
+            {activeTab === "winners" &&
+              hasPermission("can_manage_certificates") && <WinnerList />}
+            {activeTab === "playerIdGenerator" &&
+              hasPermission("can_create_player_ids") && <PlayerIdGenerator />}
           </div>
         </div>
       </main>
