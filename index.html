@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>  
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -11,44 +11,63 @@
     <!-- Primary Meta Tags -->
     <title>Yenege</title>
     <meta name="title" content="Yenege - premium connection" />
-    <meta name="description" content="Yenege is a premium connection that offers a variety of features and services." />
-   
-    <meta http-equiv="Content-Security-Policy" 
-      content="default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net 'unsafe-inline' 'unsafe-eval' http://localhost:* https://www.gstatic.com https://translate.google.com; connect-src 'self' https://*.supabase.co ws://localhost:5173 http://localhost:3001 https://*.ingest.sentry.io https://www.gstatic.com https://translate.google.com https://fonts.gstatic.com https://lh3.googleusercontent.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.gstatic.com; font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com data:; img-src 'self' data: https: https://www.gstatic.com https://fonts.gstatic.com https://lh3.googleusercontent.com; media-src 'self'">
+    <meta
+      name="description"
+      content="Yenege is a premium connection that offers a variety of features and services."
+    />
+
+    
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://yenege.com/" />
     <meta property="og:title" content="Yenege - premium connection" />
-    <meta property="og:description" content="Yenege is a premium connection that offers a variety of features and services." />
+    <meta
+      property="og:description"
+      content="Yenege is a premium connection that offers a variety of features and services."
+    />
     <meta property="og:image" content="/social-preview.png" />
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content="https://yenege.com/" />
     <meta property="twitter:title" content="Yenege - premium connection" />
-    <meta property="twitter:description" content="Yenege is a premium connection that offers a variety of features and services." />
+    <meta
+      property="twitter:description"
+      content="Yenege is a premium connection that offers a variety of features and services."
+    />
     <meta property="twitter:image" content="/social-preview.png" />
 
     <!-- PWA Configuration -->
     <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
     <meta name="apple-mobile-web-app-title" content="Yenege" />
-    <link rel="apple-touch-startup-image" href="/splash.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)" />
-    
+    <link
+      rel="apple-touch-startup-image"
+      href="/splash.png"
+      media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)"
+    />
+
     <!-- Preconnect and Preload -->
 
-    
-    <meta http-equiv="Permissions-Policy" 
-          content="camera=(self), storage-access=(self)">
+    <meta
+      http-equiv="Permissions-Policy"
+      content="camera=(self), storage-access=(self)"
+    />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   </head>
   <body>
     <noscript>
-      <strong>We're sorry but Yenege doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+      <strong
+        >We're sorry but Yenege doesn't work properly without JavaScript
+        enabled. Please enable it to continue.</strong
+      >
     </noscript>
     <div id="root"></div>
     <!-- Async Script Loading -->
@@ -56,6 +75,5 @@
 
     <!-- Service Worker Registration with Version Control -->
     <script src="/src/service-worker-registration.js"></script>
-
   </body>
 </html>

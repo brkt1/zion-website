@@ -1,11 +1,11 @@
-import { create } from 'zustand';
-import { supabase } from '../supabaseClient';
-import type { User, Session } from '@supabase/supabase-js';
+import type { Session, User } from "@supabase/supabase-js";
+import { create } from "zustand";
+import { supabase } from "../supabaseClient";
 
 interface Profile {
   id: string;
   userId: string;
-  role: 'USER' | 'ADMIN' | 'CAFE_OWNER' | 'SUPER_ADMIN';
+  role: "USER" | "ADMIN" | "CAFE_OWNER" | "SUPER_ADMIN";
   createdAt: string;
   updatedAt: string;
 }
@@ -16,7 +16,7 @@ interface AuthState {
   profile: Profile | null;
   loading: boolean;
   error: string | null;
-  
+
   // Actions
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -25,8 +25,6 @@ interface AuthState {
   fetchProfile: () => Promise<void>;
   clearError: () => void;
 }
-
-const API_BASE_URL = 'http://localhost:3001/api';
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
@@ -38,7 +36,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signIn: async (email: string, password: string) => {
     try {
       set({ loading: true, error: null });
-      
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -46,34 +44,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       if (error) throw error;
 
-      set({ 
+      set({
         user: data.user,
         session: data.session,
-        loading: false 
+        loading: false,
       });
 
-      // Fetch user profile
+      // Fetch user profile from Supabase
       await get().fetchProfile();
-
-      // Log admin login if applicable
-      const { profile } = get();
-      if (profile && (profile.role === 'ADMIN' || profile.role === 'SUPER_ADMIN')) {
-        try {
-          await fetch(`${API_BASE_URL}/admin/log-login`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${data.session.access_token}`,
-              'Content-Type': 'application/json',
-            },
-          });
-        } catch (logError) {
-          console.error('Failed to log admin login activity:', logError);
-        }
-      }
     } catch (error: any) {
-      set({ 
-        error: error.message || 'Sign in failed',
-        loading: false 
+      set({
+        error: error.message || "Sign in failed",
+        loading: false,
       });
       throw error;
     }
@@ -82,20 +64,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signOut: async () => {
     try {
       set({ loading: true, error: null });
-      
+
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
 
-      set({ 
+      set({
         user: null,
         session: null,
         profile: null,
-        loading: false 
+        loading: false,
       });
     } catch (error: any) {
-      set({ 
-        error: error.message || 'Sign out failed',
-        loading: false 
+      set({
+        error: error.message || "Sign out failed",
+        loading: false,
       });
     }
   },
@@ -103,7 +85,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signUp: async (email: string, password: string) => {
     try {
       set({ loading: true, error: null });
-      
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -111,15 +93,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       if (error) throw error;
 
-      set({ 
+      set({
         user: data.user,
         session: data.session,
-        loading: false 
+        loading: false,
       });
     } catch (error: any) {
-      set({ 
-        error: error.message || 'Sign up failed',
-        loading: false 
+      set({
+        error: error.message || "Sign up failed",
+        loading: false,
       });
       throw error;
     }
@@ -128,33 +110,24 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   fetchProfile: async () => {
     try {
       const { session } = get();
-      
-      if (!session?.access_token) {
-        
-        return;
-      }
+      if (!session?.user) return;
 
-      
-      const response = await fetch(`${API_BASE_URL}/profile`, {
-        mode: 'cors',
-        credentials: 'include',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      // If you have a 'profiles' table in Supabase, and the user reference column is 'id'
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", session.user.id)
+        .single();
 
-      if (response.ok) {
-        const profile = await response.json();
-        
-        set({ profile });
+      if (error) {
+        console.error("fetchProfile: Supabase error:", error.message);
+        set({ profile: null });
       } else {
-        console.error('fetchProfile: Failed to fetch profile with status:', response.status, response.statusText);
-        const errorText = await response.text();
-        console.error('fetchProfile: Response error text:', errorText);
+        set({ profile: data });
       }
     } catch (error) {
-      console.error('fetchProfile: Error during profile fetch:', error);
+      console.error("fetchProfile: Error during profile fetch:", error);
+      set({ profile: null });
     }
   },
 
@@ -163,15 +136,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ loading: true });
 
       // Get initial session
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+
       if (error) {
-        console.error('Error getting session:', error);
+        console.error("Error getting session:", error);
         set({ loading: false });
         return;
       }
 
-      set({ 
+      set({
         session,
         user: session?.user || null,
       });
@@ -184,20 +160,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       // Listen for auth changes
       supabase.auth.onAuthStateChange(async (event, session) => {
-        set({ 
+        set({
           session,
-          user: session?.user || null 
+          user: session?.user || null,
         });
 
-        if (event === 'SIGNED_IN' && session?.user) {
+        if (event === "SIGNED_IN" && session?.user) {
           await get().fetchProfile();
-        } else if (event === 'SIGNED_OUT') {
+        } else if (event === "SIGNED_OUT") {
           set({ profile: null });
         }
       });
-
     } catch (error) {
-      console.error('Auth initialization error:', error);
+      console.error("Auth initialization error:", error);
       set({ loading: false });
     }
   },
