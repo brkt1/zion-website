@@ -82,13 +82,11 @@ router.post(
 router.get("/dashboard", authenticateUser, requireAdmin, async (req, res) => {
   console.log("[DEBUG] req.user in /dashboard:", req.user);
   try {
-    // Fetch total users count from profiles
     const totalUsersResult = await pool.query(
       "SELECT COUNT(*) AS total FROM public.profiles"
     );
     const totalUsers = Number(totalUsersResult.rows[0].total);
 
-    // Fetch user emails and roles by joining profiles with auth.users
     const { rows: userRoles } = await pool.query(
       `
       SELECT p.id AS userId, u.email, p.role
@@ -97,25 +95,24 @@ router.get("/dashboard", authenticateUser, requireAdmin, async (req, res) => {
     `
     );
 
-    // Construct dashboard data
     const dashboardData = {
-      totalUsers: totalUsers,
-      activeSessions: 0, // Placeholder for now
-      recentActivities: [], // Placeholder for now
+      totalUsers,
+      activeSessions: 0,
+      recentActivities: [],
       userRoles: userRoles.map((user) => ({
         userId: user.userId,
         email: user.email || "",
-        role: user.role || "USER", // Default to USER if role is null
+        role: user.role || "USER",
       })),
     };
 
+    res.setHeader("Content-Type", "application/json");
     res.json(dashboardData);
   } catch (error) {
     console.error("Admin dashboard error:", error);
     res.status(500).json({
       error: "Failed to load admin dashboard",
       details: error.message,
-      stack: error.stack,
     });
   }
 });

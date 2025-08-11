@@ -1,103 +1,149 @@
-const express = require('express');
-const pool = require('../db');
-const { authenticateUser } = require('../middleware/authMiddleware');
+const express = require("express");
+const supabase = require("../supabaseClient");
+const { authenticateUser } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
 // GET /api/leaderboard/global
 // Aggregates scores from both 'scores' and 'emoji_scores', sums per user, returns top 10
-router.get('/global', authenticateUser, async (req, res) => {
+router.get("/global", authenticateUser, async (req, res) => {
   try {
-    // Aggregate scores from both tables by player_id and player_name
-    const query = `
-      SELECT player_id, player_name, SUM(total_score) AS total_score FROM (
-        SELECT player_id, player_name, SUM(score) AS total_score FROM scores GROUP BY player_id, player_name
-        UNION ALL
-        SELECT player_id, player_name, SUM(score) AS total_score FROM emoji_scores GROUP BY player_id, player_name
-      ) AS combined
-      GROUP BY player_id, player_name
-      ORDER BY total_score DESC
-      LIMIT 10;
-    `;
-    const { rows } = await pool.query(query);
+    // Fetch scores and emoji_scores from Supabase
+    const { data: scores, error: scoresError } = await supabase
+      .from("scores")
+      .select("player_id, player_name, score");
+    const { data: emojiScores, error: emojiScoresError } = await supabase
+      .from("emoji_scores")
+      .select("player_id, player_name, score");
 
-    // Add rank
-    const leaderboard = rows.map((row, idx) => ({
-      rank: idx + 1,
-      playerId: row.player_id,
-      playerName: row.player_name,
-      totalScore: parseInt(row.total_score, 10)
-    }));
+    if (scoresError) {
+      console.error("Error fetching scores:", scoresError.message);
+    }
+    if (emojiScoresError) {
+      console.error("Error fetching emoji_scores:", emojiScoresError.message);
+    }
 
+    const safeScores = scores || [];
+    const safeEmojiScores = emojiScores || [];
+
+    // Aggregate scores
+    const combined = [...safeScores, ...safeEmojiScores];
+    const scoreMap = {};
+    combined.forEach(({ player_id, player_name, score }) => {
+      if (!scoreMap[player_id]) {
+        scoreMap[player_id] = { playerName: player_name, totalScore: 0 };
+      }
+      scoreMap[player_id].totalScore += score;
+    });
+    // Sort and get top 10
+    const leaderboard = Object.entries(scoreMap)
+      .map(([playerId, { playerName, totalScore }]) => ({
+        playerId,
+        playerName,
+        totalScore,
+      }))
+      .sort((a, b) => b.totalScore - a.totalScore)
+      .slice(0, 10)
+      .map((row, idx) => ({ ...row, rank: idx + 1 }));
     res.json(leaderboard);
   } catch (error) {
-    console.error('Failed to fetch global leaderboard:', error);
-    res.status(500).json({ error: 'Failed to fetch global leaderboard' });
+    console.error("Failed to fetch global leaderboard:", error);
+    // Return an empty leaderboard instead of a 500 error
+    res.json([]);
   }
 });
 
 // POST /api/leaderboard/bonus
 // Grants a 10-point bonus to top 3 users, only once per session per user
-router.post('/bonus', authenticateUser, async (req, res) => {
+router.post("/bonus", authenticateUser, async (req, res) => {
   try {
     const { playerId, sessionId, gameType } = req.body;
     if (!playerId || !sessionId) {
-      return res.status(400).json({ error: 'playerId and sessionId are required.' });
+      return res
+        .status(400)
+        .json({ error: "playerId and sessionId are required." });
     }
 
-    // Check if user is in top 3
-    const leaderboardQuery = `
-      SELECT player_id, SUM(total_score) AS total_score FROM (
-        SELECT player_id, SUM(score) AS total_score FROM scores GROUP BY player_id
-        UNION ALL
-        SELECT player_id, SUM(score) AS total_score FROM emoji_scores GROUP BY player_id
-      ) AS combined
-      GROUP BY player_id
-      ORDER BY total_score DESC
-      LIMIT 3;
-    `;
-    const { rows: topRows } = await pool.query(leaderboardQuery);
-    const isTop3 = topRows.some(row => row.player_id === playerId);
+    // Fetch scores and emoji_scores from Supabase
+    const { data: scores, error: scoresError } = await supabase
+      .from("scores")
+      .select("player_id, score");
+    const { data: emojiScores, error: emojiScoresError } = await supabase
+      .from("emoji_scores")
+      .select("player_id, score");
+    if (scoresError || emojiScoresError) {
+      return res.status(500).json({ error: "Failed to fetch scores" });
+    }
+    // Aggregate scores
+    const combined = [...scores, ...emojiScores];
+    const scoreMap = {};
+    combined.forEach(({ player_id, score }) => {
+      if (!scoreMap[player_id]) {
+        scoreMap[player_id] = 0;
+      }
+      scoreMap[player_id] += score;
+    });
+    // Sort and get top 3
+    const top3 = Object.entries(scoreMap)
+      .map(([playerId, totalScore]) => ({ playerId, totalScore }))
+      .sort((a, b) => b.totalScore - a.totalScore)
+      .slice(0, 3);
+    const isTop3 = top3.some((row) => row.playerId === playerId);
     if (!isTop3) {
-      return res.status(403).json({ error: 'User is not in the top 3.' });
+      return res.status(403).json({ error: "User is not in the top 3." });
     }
-
     // Check if bonus already granted for this session
-    const bonusCheck = await pool.query(
-      'SELECT 1 FROM leaderboard_bonus WHERE player_id = $1 AND session_id = $2 AND (game_type = $3 OR $3 IS NULL)',
-      [playerId, sessionId, gameType || null]
-    );
-    if (bonusCheck.rows.length > 0) {
-      return res.status(409).json({ error: 'Bonus already granted for this session.' });
+    const { data: bonusData, error: bonusError } = await supabase
+      .from("leaderboard_bonus")
+      .select("id")
+      .eq("player_id", playerId)
+      .eq("session_id", sessionId)
+      .eq("game_type", gameType || null);
+    if (bonusError) {
+      return res.status(500).json({ error: "Failed to check bonus" });
     }
-
+    if (bonusData && bonusData.length > 0) {
+      return res
+        .status(409)
+        .json({ error: "Bonus already granted for this session." });
+    }
     // Grant bonus: add 10 points to the correct table
     let updateResult;
-    if (gameType === 'emoji') {
-      updateResult = await pool.query(
-        'UPDATE emoji_scores SET score = score + 10 WHERE player_id = $1 AND session_id = $2 RETURNING *',
-        [playerId, sessionId]
-      );
+    if (gameType === "emoji") {
+      updateResult = await supabase
+        .from("emoji_scores")
+        .update({ score: supabase.rpc("increment_score", { inc: 10 }) })
+        .eq("player_id", playerId)
+        .eq("session_id", sessionId)
+        .select();
     } else {
-      updateResult = await pool.query(
-        'UPDATE scores SET score = score + 10 WHERE player_id = $1 AND session_id = $2 RETURNING *',
-        [playerId, sessionId]
-      );
+      updateResult = await supabase
+        .from("scores")
+        .update({ score: supabase.rpc("increment_score", { inc: 10 }) })
+        .eq("player_id", playerId)
+        .eq("session_id", sessionId)
+        .select();
     }
-    if (updateResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Score entry not found for bonus.' });
+    if (!updateResult.data || updateResult.data.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "Score entry not found for bonus." });
     }
-
     // Record the bonus grant
-    await pool.query(
-      'INSERT INTO leaderboard_bonus (player_id, session_id, game_type) VALUES ($1, $2, $3)',
-      [playerId, sessionId, gameType || null]
-    );
-
-    res.json({ message: 'Bonus granted!', bonus: 10 });
+    const { error: recordError } = await supabase
+      .from("leaderboard_bonus")
+      .insert({
+        player_id: playerId,
+        session_id: sessionId,
+        game_type: gameType || null,
+      });
+    if (recordError) {
+      return res.status(500).json({ error: "Failed to record bonus grant" });
+    }
+    res.json({ message: "Bonus granted!", bonus: 10 });
   } catch (error) {
-    console.error('Failed to grant leaderboard bonus:', error);
-    res.status(500).json({ error: 'Failed to grant leaderboard bonus' });
+    console.error("Failed to grant leaderboard bonus:", error);
+    res.status(500).json({ error: "Failed to grant leaderboard bonus" });
   }
 });
 

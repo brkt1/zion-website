@@ -1,12 +1,12 @@
 const express = require("express");
-const pool = require("../db");
+// Removed pool import; using Supabase for all DB operations
 const {
   authenticateUser,
   requireSuperAdmin,
 } = require("../middleware/authMiddleware");
 const { logAdminActivity } = require("../middleware/activityLogger");
 const supabase = require("../supabaseClient");
-const { requirePermission } = require("../middleware/permissionMiddleware");
+const requirePermission = require("../middleware/permissionMiddleware");
 
 const router = express.Router();
 // System Settings routes
@@ -17,10 +17,12 @@ router.get(
   requireSuperAdmin,
   async (req, res) => {
     try {
-      const { rows } = await pool.query(
-        `SELECT key, value, updated_at FROM public.system_settings ORDER BY key`
-      );
-      res.json(rows);
+      const { data, error } = await supabase
+        .from("system_settings")
+        .select("key, value, updated_at")
+        .order("key", { ascending: true });
+      if (error) throw error;
+      res.json(data);
     } catch (error) {
       console.error("Failed to fetch system settings:", error);
       res.status(500).json({ error: "Failed to fetch system settings" });
@@ -37,11 +39,13 @@ router.put(
     const { key } = req.params;
     const { value } = req.body;
     try {
-      const { rowCount } = await pool.query(
-        `UPDATE public.system_settings SET value = $1, updated_at = NOW() WHERE key = $2`,
-        [value, key]
-      );
-      if (rowCount === 0) {
+      const { data, error } = await supabase
+        .from("system_settings")
+        .update({ value, updated_at: new Date().toISOString() })
+        .eq("key", key)
+        .select();
+      if (error) throw error;
+      if (!data || data.length === 0) {
         return res.status(404).json({ error: "Setting not found" });
       }
       res.json({ message: "Setting updated" });
@@ -59,27 +63,19 @@ router.get(
   async (req, res) => {
     try {
       // Fetch all users with creation timestamps and roles
-      const { rows: allUsers } = await pool.query(`
-      SELECT u.id, u.email, p.role, u.created_at
-      FROM auth.users u
-      LEFT JOIN public.profiles p ON p.id = u.id
-      ORDER BY u.created_at DESC
-    `);
+      const { data: users, error: usersError } = await supabase
+        .from("profiles")
+        .select("id, role, created_at, email");
+      if (usersError) throw usersError;
+
       // Count of users by role
-      const { rows: roleCounts } = await pool.query(`
-      SELECT role, COUNT(*) as count
-      FROM public.profiles
-      GROUP BY role
-    `);
-      // Compute dashboard metrics
-      const totalUsers = allUsers.length;
-      // roleCounts.count may be string, parse to integer
-      const cafeOwnersCount = parseInt(
-        roleCounts.find((rc) => rc.role === "CAFE_OWNER")?.count || "0",
-        10
-      );
-      const recentSignups = allUsers.filter((u) => {
-        // u.created_at returned as timestamp string
+      const roleCounts = users.reduce((acc, u) => {
+        acc[u.role] = (acc[u.role] || 0) + 1;
+        return acc;
+      }, {});
+      const totalUsers = users.length;
+      const cafeOwnersCount = roleCounts["CAFE_OWNER"] || 0;
+      const recentSignups = users.filter((u) => {
         const created = new Date(u.created_at);
         return Date.now() - created.getTime() <= 24 * 60 * 60 * 1000;
       }).length;
@@ -88,12 +84,12 @@ router.get(
         const date = new Date();
         date.setDate(date.getDate() - i);
         const dateStr = date.toISOString().split("T")[0];
-        const count = allUsers.filter((u) =>
-          // compare date prefix of created_at timestamp
+        const count = users.filter((u) =>
           new Date(u.created_at).toISOString().startsWith(dateStr)
         ).length;
         newUsersLast7Days.push({ date: dateStr, count });
       }
+      res.setHeader("Content-Type", "application/json");
       res.json({
         totalUsers,
         activeSessions: 0,
@@ -101,6 +97,10 @@ router.get(
         recentSignups,
         systemHealth: "operational",
         newUsersLast7Days,
+        userDistribution: Object.entries(roleCounts).map(([role, count]) => ({
+          role,
+          count,
+        })),
       });
     } catch (error) {
       console.error("Super Admin dashboard error:", error);
@@ -116,19 +116,14 @@ router.get(
   requireSuperAdmin,
   async (req, res) => {
     try {
-      const { rows } = await pool.query(`
-      SELECT
-        al.id,
-        p.role AS admin_role,
-        al.action,
-        al.target_id,
-        al.details,
-        al.timestamp
-      FROM admin_activity_log al
-      JOIN public.profiles p ON p.id = al.admin_id
-      ORDER BY al.timestamp DESC
-    `);
-      res.json(rows);
+      const { data, error } = await supabase
+        .from("admin_activity_log")
+        .select("id, admin_id, action, target_id, details, timestamp")
+        .order("timestamp", { ascending: false });
+      if (error) throw error;
+      // Optionally join with profiles for admin_role
+      // You can fetch roles separately if needed
+      res.json(data);
     } catch (error) {
       console.error("Failed to fetch activity log:", error);
       res.status(500).json({ error: "Failed to fetch activity log" });
@@ -143,22 +138,15 @@ router.get(
   requireSuperAdmin,
   async (req, res) => {
     try {
-      const { rows } = await pool.query(`
-      SELECT
-        pr.id,
-        p.role AS requester_role,
-        pr.action_type,
-        pr.target_table,
-        pr.target_id,
-        pr.request_details,
-        pr.status,
-        pr.requested_at
-      FROM permission_requests pr
-      JOIN profiles p ON pr.requester_admin_id = p.id
-      WHERE pr.status = 'PENDING'
-      ORDER BY pr.requested_at ASC
-    `);
-      res.json(rows);
+      const { data, error } = await supabase
+        .from("permission_requests")
+        .select(
+          "id, requester_admin_id, action_type, target_table, target_id, request_details, status, requested_at"
+        )
+        .eq("status", "PENDING")
+        .order("requested_at", { ascending: true });
+      if (error) throw error;
+      res.json(data);
     } catch (error) {
       console.error("Failed to fetch permission requests:", error);
       res.status(500).json({ error: "Failed to fetch permission requests" });
@@ -176,83 +164,78 @@ router.post(
     const superAdminId = req.user.id;
 
     try {
-      const { rows: requestRows } = await pool.query(
-        `SELECT * FROM permission_requests WHERE id = $1 AND status = 'PENDING'`,
-        [id]
-      );
-      const request = requestRows[0];
-
+      const { data: requestRows, error: requestError } = await supabase
+        .from("permission_requests")
+        .select("*")
+        .eq("id", id)
+        .eq("status", "PENDING");
+      if (requestError) throw requestError;
+      const request = requestRows && requestRows[0];
       if (!request) {
         return res
           .status(404)
           .json({ error: "Permission request not found or already processed" });
       }
-
       // Execute the requested action
       let success = false;
       let message = "";
-
       switch (request.action_type) {
         case "DELETE_CARD":
-          await pool.query("DELETE FROM cards WHERE id = $1", [
-            request.target_id,
-          ]);
+          await supabase.from("cards").delete().eq("id", request.target_id);
           success = true;
           message = "Card deleted successfully";
           break;
         case "DELETE_CERTIFICATE":
-          await pool.query("DELETE FROM certificates WHERE id = $1", [
-            request.target_id,
-          ]);
+          await supabase
+            .from("certificates")
+            .delete()
+            .eq("id", request.target_id);
           success = true;
           message = "Certificate deleted successfully";
           break;
         case "DELETE_GAME_TYPE":
-          await pool.query("DELETE FROM game_types WHERE id = $1", [
-            request.target_id,
-          ]);
+          await supabase
+            .from("game_types")
+            .delete()
+            .eq("id", request.target_id);
           success = true;
           message = "Game type deleted successfully";
           break;
         case "DELETE_PROFILE":
-          await pool.query("DELETE FROM profiles WHERE id = $1", [
-            request.target_id,
-          ]);
-          // Optionally delete from auth.users if desired, but be careful
+          await supabase.from("profiles").delete().eq("id", request.target_id);
           success = true;
           message = "Profile deleted successfully";
           break;
         case "DELETE_QUESTION":
-          await pool.query("DELETE FROM questions WHERE id = $1", [
-            request.target_id,
-          ]);
+          await supabase.from("questions").delete().eq("id", request.target_id);
           success = true;
           message = "Question deleted successfully";
           break;
         case "DELETE_SCORE":
-          await pool.query("DELETE FROM scores WHERE id = $1", [
-            request.target_id,
-          ]);
+          await supabase.from("scores").delete().eq("id", request.target_id);
           success = true;
           message = "Score deleted successfully";
           break;
         case "DELETE_WINNER_ENTRY":
-          await pool.query("DELETE FROM certificates WHERE id = $1", [
-            request.target_id,
-          ]); // Assuming winner entries are certificates
+          await supabase
+            .from("certificates")
+            .delete()
+            .eq("id", request.target_id);
           success = true;
           message = "Winner entry deleted successfully";
           break;
-        // Add other action types as needed
         default:
           return res.status(400).json({ error: "Unknown action type" });
       }
-
       if (success) {
-        await pool.query(
-          `UPDATE permission_requests SET status = 'APPROVED', responded_by_super_admin_id = $1, responded_at = NOW() WHERE id = $2`,
-          [superAdminId, id]
-        );
+        await supabase
+          .from("permission_requests")
+          .update({
+            status: "APPROVED",
+            responded_by_super_admin_id: superAdminId,
+            responded_at: new Date().toISOString(),
+          })
+          .eq("id", id);
         logAdminActivity("APPROVED_PERMISSION_REQUEST", id, {
           actionType: request.action_type,
           targetId: request.target_id,
@@ -279,20 +262,26 @@ router.post(
     const superAdminId = req.user.id;
 
     try {
-      const { rows } = await pool.query(
-        `UPDATE permission_requests SET status = 'REJECTED', responded_by_super_admin_id = $1, responded_at = NOW(), response_reason = $2 WHERE id = $3 AND status = 'PENDING' RETURNING *;`,
-        [superAdminId, reason, id]
-      );
-
-      if (rows.length === 0) {
+      const { data, error } = await supabase
+        .from("permission_requests")
+        .update({
+          status: "REJECTED",
+          responded_by_super_admin_id: superAdminId,
+          responded_at: new Date().toISOString(),
+          response_reason: reason,
+        })
+        .eq("id", id)
+        .eq("status", "PENDING")
+        .select();
+      if (error) throw error;
+      if (!data || data.length === 0) {
         return res
           .status(404)
           .json({ error: "Permission request not found or already processed" });
       }
-
       logAdminActivity("REJECTED_PERMISSION_REQUEST", id, {
-        actionType: rows[0].action_type,
-        targetId: rows[0].target_id,
+        actionType: data[0].action_type,
+        targetId: data[0].target_id,
         reason,
       })(req, res, () => {});
       res.json({ message: "Permission request rejected" });
@@ -318,39 +307,39 @@ router.post(
           password,
           email_confirm: true, // Automatically confirm email
         });
-
       if (signUpError) {
         throw new Error(signUpError.message);
       }
-
       const newUserId = signUpData.user.id;
-
-      // Set role in public.profiles table
-      const { error: profileError } = await pool.query(
-        "INSERT INTO profiles (id, role) VALUES ($1, $2)",
-        [newUserId, role]
-      );
-
+      // Set role in profiles table
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .insert({ id: newUserId, role })
+        .select();
       if (profileError) {
-        // If profile creation fails, consider deleting the user from auth.users
         await supabase.auth.admin.deleteUser(newUserId);
         throw new Error(profileError.message);
       }
-
       // Assign granular permissions
       if (permissions && permissions.length > 0) {
-        const permissionInserts = permissions.map(
-          (permName) =>
-            `(SELECT id FROM permissions WHERE name = '${permName}')`
-        );
-        await pool.query(`
-        INSERT INTO profile_permissions (profile_id, permission_id)
-        VALUES ${permissionInserts
-          .map((p) => `('${newUserId}', ${p})`)
-          .join(",")};
-      `);
+        // Get permission ids
+        const { data: permData, error: permError } = await supabase
+          .from("permissions")
+          .select("id, name")
+          .in("name", permissions);
+        if (permError) throw permError;
+        const permRows = permData || [];
+        const profilePerms = permRows.map((p) => ({
+          profile_id: newUserId,
+          permission_id: p.id,
+        }));
+        if (profilePerms.length > 0) {
+          const { error: ppError } = await supabase
+            .from("profile_permissions")
+            .insert(profilePerms);
+          if (ppError) throw ppError;
+        }
       }
-
       logAdminActivity("CREATED_ADMIN_USER", newUserId, {
         email,
         role,
@@ -376,10 +365,12 @@ router.get(
   requireSuperAdmin,
   async (req, res) => {
     try {
-      const { rows } = await pool.query(
-        "SELECT id, name, description FROM permissions ORDER BY name ASC"
-      );
-      res.json(rows);
+      const { data, error } = await supabase
+        .from("permissions")
+        .select("id, name, description")
+        .order("name", { ascending: true });
+      if (error) throw error;
+      res.json(data);
     } catch (error) {
       console.error("Failed to fetch permissions:", error);
       res.status(500).json({ error: "Failed to fetch permissions" });

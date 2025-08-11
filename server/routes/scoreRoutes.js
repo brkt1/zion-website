@@ -1,95 +1,143 @@
-const express = require('express');
-const pool = require('../db');
-const { authenticateUser, requireAdmin } = require('../middleware/authMiddleware');
-const { logAdminActivity, requestPermission } = require('../middleware/activityLogger');
-const { requirePermission } = require('../middleware/permissionMiddleware');
+const express = require("express");
+const supabase = require("../supabaseClient");
+const {
+  authenticateUser,
+  requireAdmin,
+} = require("../middleware/authMiddleware");
+const {
+  logAdminActivity,
+  requestPermission,
+} = require("../middleware/activityLogger");
+const requirePermission = require("../middleware/permissionMiddleware");
 
 const router = express.Router();
 
 // Scores
-router.post('/', authenticateUser, requireAdmin, logAdminActivity('CREATED_SCORE', null, (req) => ({ playerId: req.body.playerId, gameTypeId: req.body.gameTypeId, score: req.body.score })), async (req, res) => {
-  try {
-    const { 
-      playerName, 
-      playerId, 
-      score, 
-      stage, 
-      sessionId, 
-      streak, 
-      gameTypeId 
-    } = req.body;
-    
-    const { rows } = await pool.query(`
-      INSERT INTO scores (player_name, player_id, score, stage, session_id, streak, game_type_id, timestamp)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      RETURNING *;
-    `, [playerName, playerId, score, stage, sessionId, streak, gameTypeId, new Date()]);
+router.post(
+  "/",
+  authenticateUser,
+  requireAdmin,
+  logAdminActivity("CREATED_SCORE", null, (req) => ({
+    playerId: req.body.playerId,
+    gameTypeId: req.body.gameTypeId,
+    score: req.body.score,
+  })),
+  async (req, res) => {
+    try {
+      const {
+        playerName,
+        playerId,
+        score,
+        stage,
+        sessionId,
+        streak,
+        gameTypeId,
+      } = req.body;
 
-    const newScore = rows[0];
-
-    // Fetch the game_type_name for the response
-    const { rows: gameTypeRows } = await pool.query('SELECT name FROM game_types WHERE id = $1', [newScore.game_type_id]);
-    newScore.game_type_name = gameTypeRows[0].name;
-
-    res.status(201).json(newScore);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to create score' });
-  }
-});
-
-router.get('/', authenticateUser, requireAdmin, async (req, res) => {
-  try {
-    const { rows } = await pool.query('SELECT * FROM scores ORDER BY timestamp DESC');
-    res.json(rows);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch scores' });
-  }
-});
-
-router.delete('/:id', authenticateUser, requirePermission('can_manage_scores'), requestPermission('DELETE_SCORE', 'scores', (req) => req.params.id, (req) => ({ scoreId: req.params.id })), async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { rowCount } = await pool.query('DELETE FROM scores WHERE id = $1;', [id]);
-    if (rowCount === 0) {
-      return res.status(404).json({ error: 'Score not found' });
+      const { data, error } = await supabase
+        .from("scores")
+        .insert({
+          player_name: playerName,
+          player_id: playerId,
+          score,
+          stage,
+          session_id: sessionId,
+          streak,
+          game_type_id: gameTypeId,
+          timestamp: new Date(),
+        })
+        .select();
+      if (error || !data || data.length === 0) {
+        return res.status(500).json({ error: "Failed to create score" });
+      }
+      const newScore = data[0];
+      // Fetch the game_type_name for the response
+      const { data: gameTypeData, error: gameTypeError } = await supabase
+        .from("game_types")
+        .select("name")
+        .eq("id", newScore.game_type_id);
+      newScore.game_type_name =
+        gameTypeData && gameTypeData[0] ? gameTypeData[0].name : null;
+      res.status(201).json(newScore);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create score" });
     }
-    res.status(204).send();
+  }
+);
+
+router.get("/", authenticateUser, requireAdmin, async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("scores")
+      .select("*")
+      .order("timestamp", { ascending: false });
+    if (error) {
+      return res.status(500).json({ error: "Failed to fetch scores" });
+    }
+    res.json(data);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to delete score' });
+    res.status(500).json({ error: "Failed to fetch scores" });
   }
 });
+
+router.delete(
+  "/:id",
+  authenticateUser,
+  requirePermission("can_manage_scores"),
+  requestPermission(
+    "DELETE_SCORE",
+    "scores",
+    (req) => req.params.id,
+    (req) => ({ scoreId: req.params.id })
+  ),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { error } = await supabase.from("scores").delete().eq("id", id);
+      if (error) {
+        return res.status(500).json({ error: "Failed to delete score" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete score" });
+    }
+  }
+);
 
 // Get game result by session and player ID (accessible by anyone)
-router.get('/result', async (req, res) => {
+router.get("/result", async (req, res) => {
   try {
     const { sessionId, playerId } = req.query;
 
     if (!sessionId || !playerId) {
-      return res.status(400).json({ error: 'Session ID and Player ID are required.' });
+      return res
+        .status(400)
+        .json({ error: "Session ID and Player ID are required." });
     }
 
-    const { rows } = await pool.query(`
-      SELECT
-        s.player_name,
-        s.player_id,
-        s.score,
-        gt.name AS game_type,
-        s.timestamp
-      FROM scores s
-      JOIN game_types gt ON s.game_type_id = gt.id
-      WHERE s.session_id = $1 AND s.player_id = $2
-      ORDER BY s.timestamp DESC
-      LIMIT 1;
-    `, [sessionId, playerId]);
-
-    if (rows.length === 0) {
-      return res.status(404).json({ error: 'Game result not found.' });
+    // Fetch scores for session and player
+    const { data: scoresData, error: scoresError } = await supabase
+      .from("scores")
+      .select("*")
+      .eq("session_id", sessionId)
+      .eq("player_id", playerId)
+      .order("timestamp", { ascending: false })
+      .limit(1);
+    if (scoresError || !scoresData || scoresData.length === 0) {
+      return res.status(404).json({ error: "Game result not found." });
     }
-
-    res.json(rows[0]);
+    const scoreResult = scoresData[0];
+    // Fetch game type name
+    const { data: gameTypeData, error: gameTypeError } = await supabase
+      .from("game_types")
+      .select("name")
+      .eq("id", scoreResult.game_type_id);
+    scoreResult.game_type =
+      gameTypeData && gameTypeData[0] ? gameTypeData[0].name : null;
+    res.json(scoreResult);
   } catch (error) {
-    console.error('Failed to fetch game result:', error);
-    res.status(500).json({ error: 'Failed to fetch game result' });
+    console.error("Failed to fetch game result:", error);
+    res.status(500).json({ error: "Failed to fetch game result" });
   }
 });
 

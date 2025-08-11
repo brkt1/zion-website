@@ -1,51 +1,45 @@
-const pool = require("../db");
+const supabase = require("../supabaseClient");
 
-const requirePermission = (permissionName) => {
+// Accepts permissionName and optional resourceType, matching frontend logic
+const requirePermission = (permissionName, resourceType = null) => {
   return async (req, res, next) => {
     if (!req.user || !req.user.id) {
       return res.status(401).json({ error: "Authentication required" });
     }
-
     try {
-      // First, get the user's role from the profiles table
-      const { rows: profileRows } = await pool.query(
-        "SELECT role FROM public.profiles WHERE id = $1",
-        [req.user.id]
-      );
-      const userProfile = profileRows[0];
-
-      if (!userProfile) {
-        return res.status(403).json({ error: "Profile not found" });
+      // Supabase permission check
+      let query = supabase.from("user_permissions").select("permission_name");
+      query = query
+        .eq("user_id", req.user.id)
+        .eq("permission_name", permissionName);
+      if (resourceType) {
+        query = query.eq("resource_type", resourceType);
       }
-
-      // Admins and Super Admins bypass granular permissions
-      if (userProfile.role === "SUPER_ADMIN" || userProfile.role === "ADMIN") {
+      const { data, error } = await query;
+      if (error) {
+        console.error("Supabase error:", error);
+        return res.status(500).json({ error: "Permission check failed" });
+      }
+      if (data && data.length > 0) {
         return next();
-      }
-
-      // Check if the user has the required permission
-      const { rows: permissionRows } = await pool.query(
-        `
-        SELECT p.name
-        FROM permissions p
-        JOIN profile_permissions pp ON p.id = pp.permission_id
-        WHERE pp.profile_id = $1 AND p.name = $2;
-      `,
-        [req.user.id, permissionName]
-      );
-
-      if (permissionRows.length > 0) {
-        next();
       } else {
-        res
-          .status(403)
-          .json({ error: `Permission denied: ${permissionName} required` });
+        console.log(
+          "Permission denied for user:",
+          req.user.id,
+          "permission_name required:",
+          permissionName
+        );
+        return res.status(403).json({
+          error: `Permission denied: ${permissionName}${
+            resourceType ? " on " + resourceType : ""
+          } required`,
+        });
       }
     } catch (error) {
       console.error("Permission check failed:", error);
-      res.status(500).json({ error: "Permission check failed" });
+      return res.status(500).json({ error: "Permission check failed" });
     }
   };
 };
 
-module.exports = { requirePermission };
+module.exports = requirePermission;

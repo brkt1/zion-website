@@ -40,7 +40,7 @@ const superAdminRoutes = require("./routes/superAdminRoutes");
 const winnerRoutes = require("./routes/winnerRoutes")(pool);
 const leaderboardRoutes = require("./routes/leaderboardRoutes");
 
-app.use("/api/profile", profileRoutes);
+app.use("/api/profile_permissions", profileRoutes);
 app.use("/api/gametypes", gameTypeRoutes);
 app.use("/api/cards", cardRoutes);
 app.use("/api/certificates", certificateRoutes);

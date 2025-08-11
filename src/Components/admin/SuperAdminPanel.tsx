@@ -2,9 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
+  Bar,
+  BarChart,
   CartesianGrid,
-  Line,
-  LineChart,
+  Cell,
+  Legend,
+  Pie,
+  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -13,6 +17,14 @@ import {
 import useSWR, { mutate } from "swr";
 import { API_BASE_URL } from "../../services/api";
 import { useAuthStore } from "../../stores/authStore";
+
+interface Profile {
+  email?: string;
+  role: string;
+  name: string;
+  avatar?: string;
+}
+
 import EnhancedCardGenerator from "../cards/EnhancedCardGenerator";
 import ErrorComponent from "../utility/Error";
 import LoadingSpinner from "../utility/LoadingSpinner";
@@ -35,6 +47,7 @@ interface DashboardMetrics {
   recentSignups: number;
   systemHealth: "operational" | "degraded" | "outage";
   newUsersLast7Days: Array<{ date: string; count: number }>;
+  userDistribution: { role: string; count: number }[];
 }
 
 const fetcher = async (url: string, token: string) => {
@@ -52,47 +65,64 @@ const fetcher = async (url: string, token: string) => {
   return response.json();
 };
 
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
+
 const SuperAdminPanel = () => {
+  // Fetch user permissions (array response)
+  const {
+    data: permissions,
+    error: permissionsError,
+    isLoading: isLoadingPermissions,
+  } = session?.access_token
+    ? useSWR<string[], Error, [string, string]>(
+        [`${API_BASE_URL}/profile/permissions`, session.access_token],
+        async ([url, token]) => {
+          const response = await fetch(url, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (!response.ok) return [];
+          const data = await response.json();
+          return Array.isArray(data) ? data : [];
+        }
+      )
+    : { data: [], error: undefined, isLoading: false };
   const { session, profile, loading: authLoading } = useAuthStore();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCreatingUser, setIsCreatingUser] = useState(false);
   const navigate = useNavigate();
 
-  // Updated tabs with new sections
   const adminTabs = [
-    { id: "dashboard", name: "Dashboard" },
-    { id: "users", name: "User Management" },
-    { id: "cafeOwners", name: "Cafe Owners" },
-    { id: "roles", name: "Role & Permissions" },
-    { id: "audit", name: "Audit Logs" },
-    { id: "settings", name: "System Settings" },
-    { id: "certificates", name: "Certificates" },
-    { id: "cardGenerator", name: "Card Generator" },
-    { id: "winners", name: "Winners" },
-    { id: "playerIdGenerator", name: "Player ID Generator" },
-    { id: "requests", name: "Permission Requests" },
-    { id: "manage-admins", name: "Manage Admins" },
+    { id: "dashboard", name: "Dashboard", icon: "📊" },
+    { id: "users", name: "Users", icon: "👥" },
+    { id: "cafeOwners", name: "Cafe Owners", icon: "🏪" },
+    { id: "roles", name: "Roles", icon: "🔑" },
+    { id: "audit", name: "Audit Logs", icon: "📝" },
+    { id: "settings", name: "Settings", icon: "⚙️" },
+    { id: "certificates", name: "Certificates", icon: "🏆" },
+    { id: "cardGenerator", name: "Card Generator", icon: "🎴" },
+    { id: "winners", name: "Winners", icon: "🏅" },
+    { id: "playerIdGenerator", name: "Player IDs", icon: "🆔" },
+    { id: "requests", name: "Requests", icon: "📨" },
+    { id: "manage-admins", name: "Admins", icon: "👑" },
   ];
 
-  // Dashboard metrics
   const {
     data: dashboardData,
     error: dashboardError,
     isLoading: isLoadingDashboard,
-  } = useSWR<DashboardMetrics>(
-    session?.access_token
-      ? [`${API_BASE_URL}/super-admin/dashboard`, session.access_token]
-      : null,
-    ([url, token]) => fetcher(url, token)
-  );
+  } = session?.access_token
+    ? useSWR<DashboardMetrics, Error, [string, string]>(
+        [`${API_BASE_URL}/super-admin/dashboard`, session.access_token],
+        ([url, token]: [string, string]) => fetcher(url, token)
+      )
+    : { data: undefined, error: undefined, isLoading: false };
 
-  // Handle quick actions
   const handleCreateUser = async () => {
     setIsCreatingUser(true);
     try {
-      // API call to create user
-      // await createUserAPI();
+      // API call simulation
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       toast.success("User created successfully");
       mutate([
         `${API_BASE_URL}/super-admin/dashboard`,
@@ -122,30 +152,30 @@ const SuperAdminPanel = () => {
     );
 
   return (
-    <div className="flex min-h-screen bg-black-primary text-cream">
-      {/* Sidebar toggle button */}
-      <button
-        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className="lg:hidden fixed top-4 right-4 z-50 p-2 text-gold-light"
-        title="Open sidebar menu"
-        aria-label="Open sidebar menu"
-      >
-        <svg
-          className="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M4 6h16M4 12h16M4 18h16"
-          />
-        </svg>
-      </button>
-
+    <div className="flex  bg-black-primary text-gray-800 dark:text-gray-200">
+      {/* Permissions Display */}
+      <div className="absolute top-4 right-4 bg-white dark:bg-gray-800 p-4 rounded-xl shadow border border-gray-200 dark:border-gray-700 z-50">
+        <h3 className="font-bold text-lg mb-2">User Permissions</h3>
+        {isLoadingPermissions ? (
+          <LoadingSpinner />
+        ) : permissionsError ? (
+          <ErrorComponent message="Failed to load permissions." />
+        ) : permissions.length === 0 ? (
+          <p className="text-sm text-gray-500">No permissions assigned.</p>
+        ) : (
+          <ul className="list-disc pl-5">
+            {permissions.map((perm) => (
+              <li
+                key={perm}
+                className="text-sm text-gray-700 dark:text-gray-300"
+              >
+                {perm}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      {/* Modern Sidebar */}
       <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -159,179 +189,285 @@ const SuperAdminPanel = () => {
         tabs={adminTabs}
       />
 
-      <main className="flex-1 p-4 sm:p-8 lg:ml-64 transition-all duration-300">
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gold-primary mb-6 capitalize border-b-2 border-gold-primary pb-2">
-            Super Admin Panel
-          </h1>
+      <main className="lg:ml-64 max-w-screen-2xl">
+        <div className="max-w-full mx-auto">
+          {/* Top Bar with Breadcrumbs */}
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h1 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+                Admin Dashboard
+              </h1>
+              <nav className="flex text-sm text-gray-500 dark:text-gray-400 mt-1">
+                <span>Super Admin</span>
+                <span className="mx-2">/</span>
+                <span className="font-medium text-indigo-600 dark:text-indigo-400 capitalize">
+                  {adminTabs.find((tab) => tab.id === activeTab)?.name}
+                </span>
+              </nav>
+            </div>
 
-          <div className="bg-black-secondary rounded-xl shadow-xl p-4 sm:p-6 border border-gray-dark">
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <svg
+                    className="w-5 h-5 text-gray-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  className="pl-10 pr-4 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div className="relative">
+                <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
+                  <span className="font-semibold text-indigo-700 dark:text-indigo-300">
+                    {profile?.name?.charAt(0) || "A"}
+                  </span>
+                </div>
+                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
             {/* Dashboard Tab */}
             {activeTab === "dashboard" && dashboardData && (
               <div className="space-y-8">
-                {/* Metrics Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Quick Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
                   <MetricCard
                     title="Total Users"
                     value={dashboardData.totalUsers}
-                    trend="↗ 12%"
+                    change="+12%"
+                    icon="👥"
+                    color="bg-blue-100 dark:bg-blue-900/30"
                   />
                   <MetricCard
                     title="Active Sessions"
                     value={dashboardData.activeSessions}
-                    trend="→ Stable"
+                    change="+3.2%"
+                    icon="👤"
+                    color="bg-green-100 dark:bg-green-900/30"
                   />
                   <MetricCard
                     title="Cafe Owners"
                     value={dashboardData.cafeOwnersCount}
-                    trend="↗ 5%"
+                    change="+5.1%"
+                    icon="🏪"
+                    color="bg-amber-100 dark:bg-amber-900/30"
                   />
                   <MetricCard
-                    title="24h Signups"
+                    title="New Signups"
                     value={dashboardData.recentSignups}
-                    trend="↘ 3%"
+                    change="+8.7%"
+                    icon="📈"
+                    color="bg-purple-100 dark:bg-purple-900/30"
                   />
                 </div>
 
-                {/* Charts and System Health */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div className="lg:col-span-2 bg-black-primary p-6 rounded-lg border border-gray-medium">
-                    <h3 className="text-lg font-semibold text-gold-light mb-4">
-                      New Users (Last 7 Days)
-                    </h3>
-                    <div className="h-80">
+                {/* Charts Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* User Growth Chart */}
+                  <div className="bg-gray-50 dark:bg-gray-900 p-5 rounded-xl border border-gray-200 dark:border-gray-700">
+                    <div className="flex justify-between items-center mb-5">
+                      <h3 className="font-bold text-lg text-gray-800 dark:text-gray-200">
+                        User Growth
+                      </h3>
+                      <div className="text-sm text-gray-500">Last 7 days</div>
+                    </div>
+                    <div className="h-72">
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={dashboardData.newUsersLast7Days}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+                        <BarChart data={dashboardData.newUsersLast7Days ?? []}>
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            stroke="#e5e7eb"
+                            strokeOpacity={0.2}
+                          />
                           <XAxis
                             dataKey="date"
-                            stroke="#D4AF37"
-                            tick={{ fill: "#F0E6D2" }}
+                            stroke="#9ca3af"
+                            tick={{ fill: "#9ca3af" }}
                           />
-                          <YAxis stroke="#D4AF37" tick={{ fill: "#F0E6D2" }} />
+                          <YAxis stroke="#9ca3af" tick={{ fill: "#9ca3af" }} />
                           <Tooltip
                             contentStyle={{
-                              backgroundColor: "#1a1a1a",
-                              borderColor: "#D4AF37",
-                              color: "#F0E6D2",
+                              backgroundColor: "white",
+                              borderColor: "#e5e7eb",
+                              borderRadius: "0.5rem",
+                              boxShadow:
+                                "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
                             }}
                           />
-                          <Line
-                            type="monotone"
+                          <Bar
                             dataKey="count"
-                            stroke="#D4AF37"
-                            strokeWidth={2}
-                            activeDot={{ r: 8 }}
+                            fill="#6366f1"
+                            radius={[4, 4, 0, 0]}
                           />
-                        </LineChart>
+                        </BarChart>
                       </ResponsiveContainer>
                     </div>
                   </div>
 
-                  <div className="bg-black-primary p-6 rounded-lg border border-gray-medium">
-                    <h3 className="text-lg font-semibold text-gold-light mb-4">
-                      System Health
+                  {/* User Distribution */}
+                  <div className="bg-gray-50 dark:bg-gray-900 p-5 rounded-xl border border-gray-200 dark:border-gray-700">
+                    <h3 className="font-bold text-lg text-gray-800 dark:text-gray-200 mb-5">
+                      User Distribution
                     </h3>
-                    <div
-                      className={`text-center py-8 rounded-lg ${
-                        dashboardData.systemHealth === "operational"
-                          ? "bg-green-900/30 border border-green-500"
-                          : dashboardData.systemHealth === "degraded"
-                          ? "bg-yellow-900/30 border border-yellow-500"
-                          : "bg-red-900/30 border border-red-500"
-                      }`}
-                    >
-                      <div className="text-5xl mb-2">
-                        {dashboardData.systemHealth === "operational"
-                          ? "✅"
-                          : dashboardData.systemHealth === "degraded"
-                          ? "⚠️"
-                          : "❌"}
-                      </div>
-                      <p className="text-xl font-bold capitalize">
-                        {dashboardData.systemHealth}
-                      </p>
-                      <p className="mt-2 text-gray-300">
-                        {dashboardData.systemHealth === "operational"
-                          ? "All systems normal"
-                          : "Some services affected"}
-                      </p>
-                    </div>
-                    <div className="mt-6">
-                      <h4 className="font-semibold text-gold-light mb-2">
-                        API Status
-                      </h4>
-                      <div className="flex items-center justify-between py-2 border-b border-gray-700">
-                        <span>Auth Service</span>
-                        <span className="text-green-500">Operational</span>
-                      </div>
-                      <div className="flex items-center justify-between py-2 border-b border-gray-700">
-                        <span>Database</span>
-                        <span className="text-green-500">Operational</span>
-                      </div>
-                      <div className="flex items-center justify-between py-2">
-                        <span>Storage</span>
-                        <span className="text-yellow-500">Degraded</span>
-                      </div>
+                    <div className="h-72">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={dashboardData.userDistribution ?? []}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            outerRadius={80}
+                            fill="#8884d8"
+                            dataKey="count"
+                            label={({ name, percent }) =>
+                              `${name} ${(percent * 100).toFixed(0)}%`
+                            }
+                          >
+                            {(dashboardData.userDistribution ?? []).map(
+                              (entry, index) => (
+                                <Cell
+                                  key={`cell-${index}`}
+                                  fill={COLORS[index % COLORS.length]}
+                                />
+                              )
+                            )}
+                          </Pie>
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: "white",
+                              borderColor: "#e5e7eb",
+                              borderRadius: "0.5rem",
+                            }}
+                          />
+                          <Legend />
+                        </PieChart>
+                      </ResponsiveContainer>
                     </div>
                   </div>
                 </div>
 
-                {/* Quick Actions */}
-                <div className="bg-black-primary p-6 rounded-lg border border-gray-medium">
-                  <h3 className="text-lg font-semibold text-gold-light mb-4">
-                    Quick Actions
-                  </h3>
-                  <div className="flex flex-wrap gap-4">
-                    <button
-                      onClick={handleCreateUser}
-                      disabled={isCreatingUser}
-                      className="flex items-center gap-2 bg-gold-primary hover:bg-gold-dark text-black-primary px-4 py-2 rounded-lg font-semibold disabled:opacity-50"
-                    >
-                      {isCreatingUser ? (
-                        <>
-                          <LoadingSpinner size="small" />
-                          Creating...
-                        </>
-                      ) : (
-                        <>
-                          <PlusIcon />
-                          Create User
-                        </>
-                      )}
-                    </button>
-                    <button
-                      onClick={() => setActiveTab("audit")}
-                      className="flex items-center gap-2 border border-gold-primary text-gold-primary px-4 py-2 rounded-lg font-semibold"
-                    >
-                      <DocumentTextIcon />
-                      View Audit Log
-                    </button>
-                    <button
-                      onClick={() => setActiveTab("roles")}
-                      className="flex items-center gap-2 border border-gold-primary text-gold-primary px-4 py-2 rounded-lg font-semibold"
-                    >
-                      <ShieldCheckIcon />
-                      Manage Permissions
-                    </button>
+                {/* System Health & Actions */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* System Health */}
+                  <div className="lg:col-span-1 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
+                    <h3 className="font-bold text-lg text-gray-800 dark:text-gray-200 mb-4">
+                      System Status
+                    </h3>
+                    <div className="space-y-4">
+                      <StatusIndicator
+                        title="API Service"
+                        status="operational"
+                        lastChecked="2 min ago"
+                      />
+                      <StatusIndicator
+                        title="Database"
+                        status="operational"
+                        lastChecked="Just now"
+                      />
+                      <StatusIndicator
+                        title="Authentication"
+                        status="degraded"
+                        lastChecked="5 min ago"
+                      />
+                      <StatusIndicator
+                        title="Storage"
+                        status="operational"
+                        lastChecked="10 min ago"
+                      />
+                    </div>
+
+                    <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center">
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-800 dark:text-gray-200">
+                            System Health
+                          </h4>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Current status
+                          </p>
+                        </div>
+                        <div
+                          className={`px-3 py-1 rounded-full text-sm font-medium ${
+                            dashboardData.systemHealth === "operational"
+                              ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                              : dashboardData.systemHealth === "degraded"
+                              ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
+                              : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                          }`}
+                        >
+                          {dashboardData.systemHealth.charAt(0).toUpperCase() +
+                            dashboardData.systemHealth.slice(1)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quick Actions */}
+                  <div className="lg:col-span-2 bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-900/10 p-6 rounded-xl border border-indigo-200 dark:border-indigo-800/50">
+                    <h3 className="font-bold text-lg text-indigo-800 dark:text-indigo-300 mb-4">
+                      Quick Actions
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <ActionCard
+                        title="Create User"
+                        icon="👤"
+                        action={handleCreateUser}
+                        disabled={isCreatingUser}
+                        loading={isCreatingUser}
+                      />
+                      <ActionCard
+                        title="View Audit Log"
+                        icon="📝"
+                        action={() => setActiveTab("audit")}
+                      />
+                      <ActionCard
+                        title="Manage Permissions"
+                        icon="🔑"
+                        action={() => setActiveTab("roles")}
+                      />
+                      <ActionCard
+                        title="System Settings"
+                        icon="⚙️"
+                        action={() => setActiveTab("settings")}
+                      />
+                      <ActionCard
+                        title="Generate Cards"
+                        icon="🎴"
+                        action={() => setActiveTab("cardGenerator")}
+                      />
+                      <ActionCard
+                        title="View Requests"
+                        icon="📨"
+                        action={() => setActiveTab("requests")}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* User Management Tab */}
+            {/* Other Tabs */}
             {activeTab === "users" && <SuperAdminManageUserRoutes />}
-
-            {/* Role & Permissions Tab */}
             {activeTab === "roles" && <RolePermissionEditor />}
-
-            {/* Audit Logs Tab */}
             {activeTab === "audit" && <SuperAdminActivityLog enhanced={true} />}
-
-            {/* System Settings Tab */}
             {activeTab === "settings" && <SystemSettings />}
-
-            {/* Existing tabs */}
             {activeTab === "certificates" && <CertificatesTable />}
             {activeTab === "cafeOwners" && <CafeOwnerManagement />}
             {activeTab === "cardGenerator" && <EnhancedCardGenerator />}
@@ -346,71 +482,147 @@ const SuperAdminPanel = () => {
   );
 };
 
-// Metric Card Component
+// Modern Metric Card Component
 const MetricCard = ({
   title,
   value,
-  trend,
+  change,
+  icon,
+  color,
 }: {
   title: string;
   value: number;
-  trend: string;
+  change: string;
+  icon: string;
+  color: string;
 }) => (
-  <div className="bg-black-primary p-6 rounded-lg border border-gray-medium hover:border-gold-primary transition-colors">
-    <h3 className="text-lg font-semibold text-gold-light">{title}</h3>
-    <div className="flex items-end justify-between mt-2">
-      <p className="text-3xl font-bold text-cream">
-        {(value ?? 0).toLocaleString()}
-      </p>
-      <span className="text-gold-primary">{trend}</span>
+  <div
+    className={`${color} p-5 rounded-xl shadow-sm transition-all hover:shadow-md`}
+  >
+    <div className="flex justify-between items-start">
+      <div>
+        <h3 className="text-gray-500 dark:text-gray-400 text-sm font-medium">
+          {title}
+        </h3>
+        <p className="text-2xl font-bold mt-1">
+          {(value ?? 0).toLocaleString()}
+        </p>
+      </div>
+      <div className="w-12 h-12 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-center">
+        <span className="text-xl">{icon}</span>
+      </div>
+    </div>
+    <div className="mt-4">
+      <span className="inline-flex items-center text-sm font-medium text-green-600 dark:text-green-400">
+        <svg
+          className="w-4 h-4 mr-1"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M5 15l7-7 7 7"
+          />
+        </svg>
+        {change}
+      </span>
+      <span className="text-gray-500 dark:text-gray-400 text-sm ml-2">
+        from yesterday
+      </span>
     </div>
   </div>
 );
 
-// Icons for quick actions
-const PlusIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    className="h-5 w-5"
-    viewBox="0 0 20 20"
-    fill="currentColor"
-  >
-    <path
-      fillRule="evenodd"
-      d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
-      clipRule="evenodd"
-    />
-  </svg>
+// Status Indicator Component
+const StatusIndicator = ({
+  title,
+  status,
+  lastChecked,
+}: {
+  title: string;
+  status: "operational" | "degraded" | "outage";
+  lastChecked: string;
+}) => (
+  <div className="flex items-center">
+    <div
+      className={`w-3 h-3 rounded-full mr-3 ${
+        status === "operational"
+          ? "bg-green-500"
+          : status === "degraded"
+          ? "bg-yellow-500"
+          : "bg-red-500"
+      }`}
+    ></div>
+    <div className="flex-1">
+      <h4 className="font-medium text-gray-800 dark:text-gray-200">{title}</h4>
+      <p className="text-sm text-gray-500 dark:text-gray-400">
+        Last checked: {lastChecked}
+      </p>
+    </div>
+    <div
+      className={`text-xs px-2 py-1 rounded ${
+        status === "operational"
+          ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+          : status === "degraded"
+          ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
+          : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+      }`}
+    >
+      {status.charAt(0).toUpperCase() + status.slice(1)}
+    </div>
+  </div>
 );
 
-const DocumentTextIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    className="h-5 w-5"
-    viewBox="0 0 20 20"
-    fill="currentColor"
+// Action Card Component
+const ActionCard = ({
+  title,
+  icon,
+  action,
+  disabled,
+  loading,
+}: {
+  title: string;
+  icon: string;
+  action: () => void;
+  disabled?: boolean;
+  loading?: boolean;
+}) => (
+  <button
+    onClick={action}
+    disabled={disabled}
+    className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-500 transition-all flex flex-col items-center justify-center text-center h-full hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
   >
-    <path
-      fillRule="evenodd"
-      d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
-      clipRule="evenodd"
-    />
-  </svg>
-);
-
-const ShieldCheckIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    className="h-5 w-5"
-    viewBox="0 0 20 20"
-    fill="currentColor"
-  >
-    <path
-      fillRule="evenodd"
-      d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-      clipRule="evenodd"
-    />
-  </svg>
+    <div className="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-300 mb-3">
+      <span className="text-xl">{icon}</span>
+    </div>
+    <h4 className="font-medium text-gray-800 dark:text-gray-200">{title}</h4>
+    {loading && (
+      <div className="mt-2">
+        <svg
+          className="animate-spin h-5 w-5 text-indigo-600"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          ></circle>
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          ></path>
+        </svg>
+      </div>
+    )}
+  </button>
 );
 
 export default SuperAdminPanel;

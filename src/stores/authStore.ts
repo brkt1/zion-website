@@ -14,6 +14,7 @@ interface AuthState {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
+  permissions: string[] | null;
   loading: boolean;
   error: string | null;
 
@@ -30,6 +31,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   session: null,
   profile: null,
+  permissions: null,
   loading: true,
   error: null,
 
@@ -72,6 +74,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         user: null,
         session: null,
         profile: null,
+        permissions: null,
         loading: false,
       });
     } catch (error: any) {
@@ -108,26 +111,34 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   fetchProfile: async () => {
-    try {
-      const { session } = get();
-      if (!session?.user) return;
+    const { session } = get();
+    if (!session?.user) return;
 
-      // If you have a 'profiles' table in Supabase, and the user reference column is 'id'
-      const { data, error } = await supabase
+    try {
+      const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", session.user.id)
         .single();
 
-      if (error) {
-        console.error("fetchProfile: Supabase error:", error.message);
-        set({ profile: null });
-      } else {
-        set({ profile: data });
-      }
+      if (profileError) throw profileError;
+
+      const { data: permissionsData, error: permissionsError } = await supabase
+        .from("profile_permissions")
+        .select("permission_name")
+        .eq("profile_id", session.user.id);
+
+      if (permissionsError) throw permissionsError;
+
+      console.log("fetchProfile permissionsData:", permissionsData);
+
+      set({ 
+        profile: profileData,
+        permissions: permissionsData.map((p: any) => p.permission_name) 
+      });
+
     } catch (error) {
-      console.error("fetchProfile: Error during profile fetch:", error);
-      set({ profile: null });
+      console.error("Error fetching profile or permissions:", error);
     }
   },
 
@@ -168,7 +179,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         if (event === "SIGNED_IN" && session?.user) {
           await get().fetchProfile();
         } else if (event === "SIGNED_OUT") {
-          set({ profile: null });
+          set({ profile: null, permissions: null });
         }
       });
     } catch (error) {

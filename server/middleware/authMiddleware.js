@@ -8,8 +8,7 @@ const authenticateUser = async (req, res, next) => {
       return res.status(401).json({ error: "No token provided" });
     }
 
-    const SUPABASE_JWT_SECRET =
-      "BGub9TfYwmTYBP3zZRUHJfdQLXGTY2BbyAPPUSKTuUDyiFx9UMXnMNh3Y+nY9W5BNyfsE9WoCczJWAWnaTyxjw==";
+    const SUPABASE_JWT_SECRET = process.env.SUPABASE_JWT_SECRET;
 
     if (!SUPABASE_JWT_SECRET) {
       console.error("SUPABASE_JWT_SECRET is not defined");

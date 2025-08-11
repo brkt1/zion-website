@@ -33,11 +33,11 @@ const EnhancedCardGenerator: React.FC = () => {
 
   const navigate = useNavigate();
 
-  // available game routes - dynamically from gameTypes fetched from database
-  const availableRoutes = gameTypes.map((gt) => ({
+  // gameRoutes - dynamically from gameTypes fetched from database, uses actual game type IDs
+  const gameRoutes = gameTypes.map((gt) => ({
     id: gt.id,
     name: gt.name,
-    path: `/game/${gt.id}`, // adjust path as per your routing
+    path: `/game/${gt.id}`,
   }));
 
   // Fetch game types
@@ -82,9 +82,10 @@ const EnhancedCardGenerator: React.FC = () => {
 
   // Generate cards with enhanced features
   const generateEnhancedCards = async () => {
-    // ensure a game type is selected
-    if (!selectedGameType) {
-      alert("Please select a game type for the cards.");
+    // ensure a valid game type is selected
+    const validGameType = gameTypes.find((gt) => gt.id === selectedGameType);
+    if (!selectedGameType || selectedGameType === "0" || !validGameType) {
+      alert("Please select a valid game type for the cards.");
       return;
     }
 
@@ -92,13 +93,16 @@ const EnhancedCardGenerator: React.FC = () => {
     setShowDownloadMessage(false);
 
     try {
+      // Set route_access to the selected game type's id for lookup in the scanner
+      const routeAccess: string[] = selectedGameType ? [selectedGameType] : [];
+
       const cardsToGenerate = Array.from({ length: cardQuantity }, () => ({
         card_number: generateCardNumber(),
         duration,
         game_type_id: selectedGameType,
-        route_access: [],
+        route_access: routeAccess,
         used: false,
-        player_id: null, // Will be assigned when card is scanned
+        player_id: null,
         created_at: new Date().toISOString(),
       }));
 
@@ -226,12 +230,27 @@ const EnhancedCardGenerator: React.FC = () => {
         const gameTypeName =
           gameTypes.find((gt) => gt.id === card.game_type_id)?.name ||
           "Unknown";
-        const routeNames = card.route_access
-          .map(
-            (routeId: string) =>
-              availableRoutes.find((r) => r.id === routeId)?.name || routeId
-          )
-          .join(", ");
+        const routeNames =
+          card.route_access
+            .map((routeId: string) => {
+              try {
+                const route = gameRoutes.find((r) => r.id === routeId);
+                if (!route) {
+                  console.error(
+                    `Route mapping not found for routeId: ${routeId}`
+                  );
+                  return `Unknown Route (${routeId})`;
+                }
+                return `${route.name} (${route.path})`;
+              } catch (err) {
+                console.error(
+                  `Error mapping route for routeId: ${routeId}`,
+                  err
+                );
+                return `Error Route (${routeId})`;
+              }
+            })
+            .join(", ") || "No valid routes found";
 
         detailsDiv.innerHTML = `
           <p style="margin: 5px 0;"><strong>Game Type:</strong> ${gameTypeName}</p>

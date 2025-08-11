@@ -283,11 +283,13 @@ USING (
 );
 
 --- public.profile_permissions ---
--- Policy for SELECT: Only Super Admins can view profile-permission assignments
-CREATE POLICY "Super Admins can view profile permissions"
+-- Policy for SELECT: Super Admins can view all, users can view their own profile-permission assignments
+CREATE POLICY "Super Admins can view all profile permissions, users can view their own"
 ON public.profile_permissions FOR SELECT
 USING (
     public.get_user_role(auth.uid()) = 'SUPER_ADMIN'
+    OR
+    profile_id = auth.uid()
 );
 
 -- Policy for INSERT: Only Super Admins can assign permissions to profiles

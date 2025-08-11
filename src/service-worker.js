@@ -8,7 +8,7 @@ const PRECACHE_ASSETS = [
   '/',
   '/offline.html',
   '/public/manifest.json', // Updated path
-  'offline.png' // Updated path
+  '/offline.png' // Updated path
 ];
 
 // Immutable assets (cache forever)
@@ -143,7 +143,7 @@ async function handleAssetRequest(request) {
 async function serveFallbackResponse(request) {
   // Image fallback
   if (request.headers.get('accept').includes('image')) {
-    return caches.match('/images/offline.png') || 
+    return caches.match('/offline.png') || 
            new Response(null, { status: 404 });
   }
 

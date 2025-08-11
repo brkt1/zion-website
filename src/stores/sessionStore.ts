@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import { useAuthStore } from './authStore';
+import { create } from "zustand";
+import { useAuthStore } from "./authStore";
 
 interface GameSession {
   id: string;
@@ -20,23 +20,31 @@ interface SessionState {
   remainingTime: number;
   isTimerActive: boolean;
   isExpired: boolean;
-  
+
   // Actions
-  startSession: (gameTypeId: string, playerName: string, duration: number) => Promise<void>;
+  startSession: (
+    gameTypeId: string,
+    playerName: string,
+    duration: number
+  ) => Promise<void>;
   endSession: (finalScore?: number) => Promise<void>;
   updateScore: (score: number, stage?: number, streak?: number) => void;
   startTimer: (duration: number) => void;
   pauseTimer: () => void;
-  resetTimer: (options?: { time?: number; expire?: boolean; keepActive?: boolean }) => void;
+  resetTimer: (options?: {
+    time?: number;
+    expire?: boolean;
+    keepActive?: boolean;
+  }) => void;
   formatTime: (seconds: number) => string;
-  
+
   // Session persistence
   saveSession: () => void;
   loadSession: () => void;
   clearSession: () => void;
 }
 
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = "http://localhost:3001/api";
 
 const generateSessionId = () => {
   return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -52,11 +60,24 @@ export const useSessionStore = create<SessionState>((set, get) => ({
   isTimerActive: false,
   isExpired: false,
 
-  startSession: async (gameTypeId: string, playerName: string, duration: number) => {
+  updateTimer: (remainingTime: number, isExpired: boolean) => {
+    set({ remainingTime, isExpired });
+    // Optionally, stop timer if expired
+    if (isExpired) {
+      set({ isTimerActive: false });
+    }
+    get().saveSession();
+  },
+
+  startSession: async (
+    gameTypeId: string,
+    playerName: string,
+    duration: number
+  ) => {
     try {
       const sessionId = generateSessionId();
       const playerId = generatePlayerId();
-      
+
       const session: GameSession = {
         id: sessionId,
         playerId,
@@ -67,14 +88,14 @@ export const useSessionStore = create<SessionState>((set, get) => ({
         isActive: true,
         score: 0,
         stage: 1,
-        streak: 0
+        streak: 0,
       };
 
-      set({ 
+      set({
         currentSession: session,
         remainingTime: duration,
         isTimerActive: true,
-        isExpired: false 
+        isExpired: false,
       });
 
       // Save to localStorage for persistence
@@ -82,9 +103,8 @@ export const useSessionStore = create<SessionState>((set, get) => ({
 
       // Start the timer countdown
       get().startTimer(duration);
-
     } catch (error) {
-      console.error('Failed to start session:', error);
+      console.error("Failed to start session:", error);
       throw error;
     }
   },
@@ -95,29 +115,29 @@ export const useSessionStore = create<SessionState>((set, get) => ({
       if (!currentSession) return;
 
       const authStore = useAuthStore.getState();
-      
+
       // Update session with end time and final score
       const updatedSession = {
         ...currentSession,
         endTime: new Date(),
         isActive: false,
-        score: finalScore ?? currentSession.score
+        score: finalScore ?? currentSession.score,
       };
 
-      set({ 
+      set({
         currentSession: updatedSession,
         isTimerActive: false,
-        isExpired: true 
+        isExpired: true,
       });
 
       // Save final score to backend if authenticated
       if (authStore.session?.access_token) {
         try {
           await fetch(`${API_BASE_URL}/scores`, {
-            method: 'POST',
+            method: "POST",
             headers: {
-              'Authorization': `Bearer ${authStore.session.access_token}`,
-              'Content-Type': 'application/json',
+              Authorization: `Bearer ${authStore.session.access_token}`,
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({
               playerName: updatedSession.playerName,
@@ -126,11 +146,11 @@ export const useSessionStore = create<SessionState>((set, get) => ({
               stage: updatedSession.stage,
               sessionId: updatedSession.id,
               streak: updatedSession.streak,
-              gameTypeId: updatedSession.gameTypeId
-            })
+              gameTypeId: updatedSession.gameTypeId,
+            }),
           });
         } catch (error) {
-          console.error('Failed to save score to backend:', error);
+          console.error("Failed to save score to backend:", error);
         }
       }
 
@@ -138,9 +158,8 @@ export const useSessionStore = create<SessionState>((set, get) => ({
       setTimeout(() => {
         get().clearSession();
       }, 5000);
-
     } catch (error) {
-      console.error('Failed to end session:', error);
+      console.error("Failed to end session:", error);
     }
   },
 
@@ -152,7 +171,7 @@ export const useSessionStore = create<SessionState>((set, get) => ({
       ...currentSession,
       score,
       stage: stage ?? currentSession.stage,
-      streak: streak ?? currentSession.streak
+      streak: streak ?? currentSession.streak,
     };
 
     set({ currentSession: updatedSession });
@@ -160,16 +179,16 @@ export const useSessionStore = create<SessionState>((set, get) => ({
   },
 
   startTimer: (duration: number) => {
-    set({ 
-      remainingTime: duration, 
+    set({
+      remainingTime: duration,
       isTimerActive: true,
-      isExpired: false 
+      isExpired: false,
     });
 
     // Start countdown interval
     const interval = setInterval(() => {
       const { remainingTime, isTimerActive } = get();
-      
+
       if (!isTimerActive) {
         clearInterval(interval);
         return;
@@ -180,10 +199,10 @@ export const useSessionStore = create<SessionState>((set, get) => ({
         get().saveSession();
       } else {
         clearInterval(interval);
-        set({ 
+        set({
           remainingTime: 0,
           isTimerActive: false,
-          isExpired: true 
+          isExpired: true,
         });
         get().endSession();
       }
@@ -197,10 +216,10 @@ export const useSessionStore = create<SessionState>((set, get) => ({
 
   resetTimer: (options = {}) => {
     const { time = 0, expire = false, keepActive = false } = options;
-    set({ 
+    set({
       remainingTime: time,
       isTimerActive: keepActive,
-      isExpired: expire 
+      isExpired: expire,
     });
     get().saveSession();
   },
@@ -208,7 +227,9 @@ export const useSessionStore = create<SessionState>((set, get) => ({
   formatTime: (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    return `${minutes.toString().padStart(2, "0")}:${remainingSeconds
+      .toString()
+      .padStart(2, "0")}`;
   },
 
   saveSession: () => {
@@ -219,26 +240,30 @@ export const useSessionStore = create<SessionState>((set, get) => ({
         remainingTime,
         isTimerActive,
         isExpired,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
-      localStorage.setItem('gameSession', JSON.stringify(sessionData));
+      localStorage.setItem("gameSession", JSON.stringify(sessionData));
     }
   },
 
   loadSession: () => {
     try {
-      const stored = localStorage.getItem('gameSession');
+      const stored = localStorage.getItem("gameSession");
       if (stored) {
         const sessionData = JSON.parse(stored);
         const elapsed = Math.floor((Date.now() - sessionData.timestamp) / 1000);
         const newTime = Math.max(0, sessionData.remainingTime - elapsed);
-        
-        if (newTime > 0 && sessionData.isTimerActive && sessionData.session?.isActive) {
+
+        if (
+          newTime > 0 &&
+          sessionData.isTimerActive &&
+          sessionData.session?.isActive
+        ) {
           set({
             currentSession: sessionData.session,
             remainingTime: newTime,
             isTimerActive: true,
-            isExpired: false
+            isExpired: false,
           });
           get().startTimer(newTime);
         } else if (sessionData.session) {
@@ -246,12 +271,12 @@ export const useSessionStore = create<SessionState>((set, get) => ({
             currentSession: { ...sessionData.session, isActive: false },
             remainingTime: 0,
             isTimerActive: false,
-            isExpired: true
+            isExpired: true,
           });
         }
       }
     } catch (error) {
-      console.error('Failed to load session:', error);
+      console.error("Failed to load session:", error);
       get().clearSession();
     }
   },
@@ -261,18 +286,18 @@ export const useSessionStore = create<SessionState>((set, get) => ({
       currentSession: null,
       remainingTime: 0,
       isTimerActive: false,
-      isExpired: false
+      isExpired: false,
     });
-    localStorage.removeItem('gameSession');
-  }
+    localStorage.removeItem("gameSession");
+  },
 }));
 
 // Initialize session on app start
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   useSessionStore.getState().loadSession();
-  
+
   // Handle visibility change for timer persistence
-  document.addEventListener('visibilitychange', () => {
+  document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
       useSessionStore.getState().saveSession();
     } else {

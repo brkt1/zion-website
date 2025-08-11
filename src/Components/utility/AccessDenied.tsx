@@ -1,15 +1,61 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuthStore } from "../../stores/authStore";
 
 const AccessDenied: React.FC = () => {
-  // Get user role from localStorage or context if available
-  let role = null;
-  try {
-    const profile = JSON.parse(localStorage.getItem("profile") || "{}");
-    role = profile.role;
-  } catch {}
+  const [permissions, setPermissions] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { session } = useAuthStore();
 
-  const isAdmin = role === "ADMIN";
+  useEffect(() => {
+    const fetchPermissions = async () => {
+      try {
+        const response = await fetch("/api/profile_permissions", {
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+        });
+
+        if (!response.ok && response.status !== 304) {
+          throw new Error(
+            `Failed to fetch permissions: ${response.status} ${response.statusText}`
+          );
+        }
+
+        if (response.status !== 304) {
+          const contentType = response.headers.get("content-type");
+          if (!contentType || !contentType.includes("application/json")) {
+            throw new Error("Unexpected response format: Not JSON");
+          }
+
+          const data = await response.json();
+          setPermissions(data.map((p: { name: string }) => p.name));
+        }
+      } catch (err: any) {
+        console.error("Error fetching permissions:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (session) {
+      fetchPermissions();
+    } else {
+      setLoading(false);
+    }
+  }, [session]);
+
+  if (loading) {
+    return <div className="text-center text-cream">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center text-red-500">Error: {error}</div>;
+  }
+
+  const isAdmin = permissions.includes("ADMIN");
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-black-primary to-black-secondary">
@@ -20,7 +66,7 @@ const AccessDenied: React.FC = () => {
         {isAdmin ? (
           <>
             <p className="text-lg text-cream mb-6">
-              You are logged in as{" "}
+              You are logged in as an{" "}
               <span className="font-bold text-gold-secondary">ADMIN</span> but
               do not have permission to view this page.
               <br />

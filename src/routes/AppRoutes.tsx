@@ -1,10 +1,11 @@
-import React, { lazy, Suspense } from "react";
+import React, { lazy, Suspense, useEffect, useState } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import AccessDenied from "../Components/utility/AccessDenied";
 import LoadingSpinner from "../Components/utility/LoadingSpinner";
 import WrongGameType from "../Components/utility/WrongGameType";
 import { useAuthStore } from "../stores/authStore";
 import { useSessionStore } from "../stores/sessionStore";
+import { supabase } from "../supabaseClient";
 
 // Lazy-loaded components
 const Lovers = lazy(() => import("../TruthandDear-Component/Lovers"));
@@ -69,22 +70,75 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const location = useLocation();
   const { currentSession, isTimerActive } = useSessionStore();
   const { session } = useAuthStore();
+  interface GameType {
+    id: string;
+    name: string;
+    route_access: string[];
+  }
+  const [gameTypes, setGameTypes] = useState<GameType[]>([]);
+  const [loadingGameTypes, setLoadingGameTypes] = useState(true);
+
+  useEffect(() => {
+    // Fetch game types from Supabase
+    const fetchGameTypes = async () => {
+      setLoadingGameTypes(true);
+      const { data, error } = await supabase
+        .from("game_types")
+        .select("id, name, route_access");
+      if (data) {
+        setGameTypes(data);
+      }
+      setLoadingGameTypes(false);
+    };
+    fetchGameTypes();
+  }, []);
+
+  // Helper to check if the current route is allowed for the session's game type (by name)
+  const checkRouteAccess = (
+    currentRoute: string,
+    gameTypeName: string
+  ): boolean => {
+    const gameType = gameTypes.find((gt: GameType) => gt.name === gameTypeName);
+    if (!gameType) {
+      console.debug(`[DEBUG] Game type not found for name: ${gameTypeName}`);
+      return false;
+    }
+    // Check if the current route is in the route_access array
+    const hasAccess = (gameType.route_access || [])
+      .map((r: string) => r.toLowerCase())
+      .includes(currentRoute.toLowerCase());
+    console.debug(`[DEBUG] Current gameTypeName: ${gameTypeName}`);
+    console.debug(`[DEBUG] Expected route access for: ${currentRoute}`);
+    console.debug(
+      `[DEBUG] Available routes: ${(gameType.route_access || []).join(", ")}`
+    );
+    console.debug(`[DEBUG] Has access: ${hasAccess}`);
+    return hasAccess;
+  };
+
+  // If game types are still loading, show spinner
+  if (loadingGameTypes) {
+    return <LoadingSpinner />;
+  }
 
   // If it's a game-related route, check for active session and game type
   if (gameTypeRoutes[location.pathname]) {
     if (!currentSession?.isActive || !isTimerActive) {
       return <Navigate to="/game-select" replace state={{ fromGame: true }} />;
     }
-
-    // Check if the game type matches the session's game type
-    if (currentSession.gameTypeId !== gameTypeRoutes[location.pathname]) {
-      return (
-        <Navigate
-          to="/wrong-game-type"
-          replace
-          state={{ expectedGameType: gameTypeRoutes[location.pathname] }}
-        />
-      );
+    // Use route_access array for validation by gameType name
+    const expectedGameTypeName = gameTypeRoutes[location.pathname];
+    if (!checkRouteAccess(location.pathname, expectedGameTypeName)) {
+      // Gather debug info
+      const debugInfo = {
+        currentGameTypeName: expectedGameTypeName,
+        currentGameTypeId: currentSession.gameTypeId,
+        expectedGameType: expectedGameTypeName,
+        currentRoute: location.pathname,
+        isActive: currentSession?.isActive,
+        isTimerActive,
+      };
+      return <Navigate to="/wrong-game-type" replace state={debugInfo} />;
     }
   } else if (!session) {
     // For non-game routes, require a session
@@ -105,25 +159,20 @@ const RoleProtectedRoute: React.FC<RoleProtectedRouteProps> = ({
   children,
   allowedRoles,
 }) => {
-  const { session, profile, loading } = useAuthStore();
+  const { session, permissions, loading } = useAuthStore();
   const location = useLocation();
 
-  if (loading) {
-    return <LoadingSpinner />; // Or some other loading indicator
+  if (loading || !permissions) {
+    return <LoadingSpinner />;
   }
 
   if (!session) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  const profileRoleString = String(profile?.role || "").trim();
-  const allowedRolesStrings = allowedRoles.map((role) => String(role).trim());
+  const hasPermission = allowedRoles.some((role) => permissions.includes(role));
 
-  if (
-    !profile ||
-    !profile.role ||
-    !allowedRolesStrings.includes(profileRoleString)
-  ) {
+  if (!hasPermission) {
     return <Navigate to="/access-denied" replace />;
   }
 
@@ -257,7 +306,7 @@ const AppRoutes: React.FC = () => (
       <Route
         path="/enhanced-card-generator"
         element={
-          <RoleProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN", ]}>
+          <RoleProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
             <EnhancedCardGenerator />
           </RoleProtectedRoute>
         }
