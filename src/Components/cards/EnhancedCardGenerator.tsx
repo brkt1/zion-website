@@ -30,6 +30,8 @@ const EnhancedCardGenerator: React.FC = () => {
   const [generatedCards, setGeneratedCards] = useState<CardData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showDownloadMessage, setShowDownloadMessage] = useState(false);
+  // Fix: Define routeAccess as array containing selectedGameType
+  const routeAccess = selectedGameType ? [selectedGameType] : [];
 
   const navigate = useNavigate();
 
@@ -40,6 +42,31 @@ const EnhancedCardGenerator: React.FC = () => {
     path: `/game/${gt.id}`,
   }));
 
+  // Activate card by scanning (calls Supabase function)
+  const activateCard = async (cardNumber: string) => {
+    try {
+      const { data, error } = await supabase.rpc("scan_and_activate_card", {
+        p_card_number: cardNumber,
+      });
+      if (error) {
+        console.error("Error activating card:", error);
+        alert("Failed to activate card: " + error.message);
+      } else {
+        console.log("Card activation result:", data);
+        alert(data[0]?.message || "Card activation complete.");
+      }
+    } catch (err) {
+      console.error("Unexpected error activating card:", err);
+      alert("Unexpected error activating card.");
+    }
+  };
+
+  // Simulate scanning a card and automatically activate it
+  // Scan a card and automatically activate it
+  // You can call scanCard from your QR code scanner or UI
+  const scanCard = async (scannedCardNumber: string) => {
+    await activateCard(scannedCardNumber);
+  };
   // Fetch game types
   useEffect(() => {
     const fetchGameTypes = async () => {
@@ -93,8 +120,16 @@ const EnhancedCardGenerator: React.FC = () => {
     setShowDownloadMessage(false);
 
     try {
-      // Set route_access to the selected game type's id for lookup in the scanner
-      const routeAccess: string[] = selectedGameType ? [selectedGameType] : [];
+      // Get the current user's ID
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+      if (userError || !user) {
+        alert("You must be logged in to generate cards.");
+        setIsLoading(false);
+        return;
+      }
 
       const cardsToGenerate = Array.from({ length: cardQuantity }, () => ({
         card_number: generateCardNumber(),
@@ -103,6 +138,7 @@ const EnhancedCardGenerator: React.FC = () => {
         route_access: routeAccess,
         used: false,
         player_id: null,
+        created_by: user.id, // Set created_by to the current user's ID
         created_at: new Date().toISOString(),
       }));
 
@@ -322,6 +358,17 @@ const EnhancedCardGenerator: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-4 sm:p-8">
+      {/* Demo: Scan and activate the first generated card (for testing) */}
+      {generatedCards.length > 0 && (
+        <div className="mb-4 flex justify-center">
+          <button
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            onClick={() => scanCard(generatedCards[0].card_number)}
+          >
+            Scan & Activate First Card
+          </button>
+        </div>
+      )}
       <div className="max-w-4xl mx-auto bg-gray-800 rounded-2xl shadow-xl p-6 sm:p-8 border border-amber-500/20">
         <h1 className="text-2xl sm:text-3xl font-bold text-center mb-6 text-amber-400">
           Card Generator

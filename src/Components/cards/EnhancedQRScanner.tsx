@@ -36,6 +36,48 @@ interface GameRoute {
 }
 
 const EnhancedQRScanner: React.FC = () => {
+  // Manual scan state
+  interface CardActivationResult {
+    status: boolean;
+    message: string;
+    card_id?: string;
+    game_type_name?: string;
+  }
+  interface ManualError {
+    message: string;
+  }
+  const [manualCardId, setManualCardId] = useState<string>("");
+  const [manualLoading, setManualLoading] = useState<boolean>(false);
+  const [manualResult, setManualResult] = useState<
+    CardActivationResult[] | null
+  >(null);
+  const [manualError, setManualError] = useState<ManualError | null>(null);
+
+  // Manual scan handler
+  const handleManualScan = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setManualLoading(true);
+    setManualError(null);
+    setManualResult(null);
+    try {
+      const { data, error } = await supabase.rpc("scan_and_activate_card", {
+        p_card_number: manualCardId.toString(),
+      });
+      if (error) {
+        setManualError({ message: error.message || "Unknown error" });
+        return;
+      }
+      setManualResult(data as CardActivationResult[]);
+    } catch (err) {
+      if (err instanceof Error) {
+        setManualError({ message: err.message });
+      } else {
+        setManualError({ message: "Unknown error" });
+      }
+    } finally {
+      setManualLoading(false);
+    }
+  };
   const { startSession } = useSessionStore();
   const { initialize } = useAuthStore();
 
@@ -192,7 +234,7 @@ const EnhancedQRScanner: React.FC = () => {
         // Call backend function to scan and activate card
         const { data: result, error } = await supabase.rpc(
           "scan_and_activate_card",
-          { p_card_number: cardNumber }
+          { p_card_number: String(cardNumber) }
         );
 
         if (error) {
@@ -460,6 +502,41 @@ const EnhancedQRScanner: React.FC = () => {
   }
   return (
     <div className="min-h-screen bg-gradient-to-br from-black-primary to-black-secondary text-cream flex items-center justify-center p-4">
+      {/* Manual Card Scan Example */}
+      <div className="max-w-md mx-auto mb-8 p-4 bg-black-secondary rounded-xl border border-gold-primary/30">
+        <h2 className="text-lg font-bold mb-2 text-gold-primary">
+          Manual Card Scan Example
+        </h2>
+        <form onSubmit={handleManualScan} className="flex gap-2 mb-2">
+          <input
+            type="text"
+            value={manualCardId}
+            onChange={(e) => setManualCardId(e.target.value)}
+            placeholder="Enter Card Number or Scan QR"
+            className="flex-1 p-2 rounded border border-gold-primary"
+          />
+          <button
+            type="submit"
+            disabled={manualLoading}
+            className="px-4 py-2 bg-gold-primary text-black-primary rounded"
+          >
+            {manualLoading ? "Processing..." : "Activate Card"}
+          </button>
+        </form>
+        {manualError && (
+          <div className="text-red-400">Error: {manualError.message}</div>
+        )}
+        {manualResult && manualResult.length > 0 && manualResult[0].status && (
+          <div className="text-green-400">
+            Card activated successfully! Game: {manualResult[0].game_type_name}
+          </div>
+        )}
+        {manualResult && manualResult.length > 0 && !manualResult[0].status && (
+          <div className="text-red-400">
+            Activation failed: {manualResult[0].message}
+          </div>
+        )}
+      </div>
       {/* Login Modal */}
       {showLoginModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">

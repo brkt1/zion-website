@@ -5,8 +5,9 @@ module.exports = {
   },
   testEnvironment: 'jsdom',
   moduleNameMapper: {
-    '\.(css|less|sass|scss)$': 'identity-obj-proxy',
-    '\.(jpg|jpeg|png|gif|webp|svg)$': '<rootDir>/__mocks__/fileMock.js',
+    '^@/(.*)$': '<rootDir>/src/$1',
+    '\\.(css|less|sass|scss)$': 'identity-obj-proxy',
+    '\\.(jpg|jpeg|png|gif|webp|svg)$': '<rootDir>/__mocks__/fileMock.js',
   },
   testMatch: ['<rootDir>/src/**/*.test.{js,jsx,ts,tsx}', '!**/server/**/*.test.js'],
   transformIgnorePatterns: [

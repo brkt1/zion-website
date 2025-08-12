@@ -33,6 +33,7 @@ const profileRoutes = require("./routes/profileRoutes")(pool);
 const gameTypeRoutes = require("./routes/gameTypeRoutes");
 const cardRoutes = require("./routes/cardRoutes")(pool);
 const certificateRoutes = require("./routes/certificateRoutes");
+const enhancedCardRoutes = require("./routes/enhancedCardRoutes");
 const scoreRoutes = require("./routes/scoreRoutes");
 const questionRoutes = require("./routes/questionRoutes");
 const adminRoutes = require("./routes/adminRoutes");
@@ -50,6 +51,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/super-admin", superAdminRoutes);
 app.use("/api/winners", winnerRoutes);
 app.use("/api/leaderboard", leaderboardRoutes);
+app.use("/api/enhanced-cards", enhancedCardRoutes);
 
 // Health check
 app.get("/health", (req, res) => {

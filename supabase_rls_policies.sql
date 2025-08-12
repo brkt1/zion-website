@@ -9,6 +9,8 @@ ALTER TABLE public.admin_activity_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.permission_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.permissions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.profile_permissions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.enhanced_cards ENABLE ROW LEVEL SECURITY;
+ALTER VIEW public.enhanced_cards_with_profile ENABLE ROW LEVEL SECURITY;
 
 --- public.game_types ---
 -- Policy for SELECT: All authenticated users can view game types
@@ -64,12 +66,44 @@ USING (
     public.get_user_role(auth.uid()) IN ('ADMIN', 'SUPER_ADMIN')
 );
 
+--- public.enhanced_cards ---
+-- Policy for SELECT: All authenticated users can view enhanced cards
+CREATE POLICY "All authenticated users can view enhanced cards"
+ON public.enhanced_cards FOR SELECT
+USING (auth.role() = 'authenticated');
+
+-- Policy for INSERT: Only Admins and Super Admins can create enhanced cards
+CREATE POLICY "Admins and Super Admins can create enhanced cards"
+ON public.enhanced_cards FOR INSERT
+WITH CHECK (
+    public.get_user_role(auth.uid()) IN ('ADMIN', 'SUPER_ADMIN')
+);
+
+-- Policy for UPDATE: Only Admins and Super Admins can update enhanced cards
+CREATE POLICY "Admins and Super Admins can update enhanced cards"
+ON public.enhanced_cards FOR UPDATE
+USING (
+    public.get_user_role(auth.uid()) IN ('ADMIN', 'SUPER_ADMIN')
+);
+
+-- Policy for DELETE: Only Admins and Super Admins can delete enhanced cards
+CREATE POLICY "Admins and Super Admins can delete enhanced cards"
+ON public.enhanced_cards FOR DELETE
+USING (
+    public.get_user_role(auth.uid()) IN ('ADMIN', 'SUPER_ADMIN')
+);
+
+--- public.enhanced_cards_with_profile ---
+CREATE POLICY "All authenticated users can view enhanced_cards_with_profile"
+ON public.enhanced_cards_with_profile FOR SELECT
+USING (auth.role() = 'authenticated');
+
 --- public.certificates ---
 -- Policy for SELECT:
 -- Players can view their own certificates (by player_id or session_id if linked to auth.uid)
 -- Admins and Super Admins can view all certificates.
 -- Cafe owners can view certificates they are associated with (e.g., if they issued it, or if there's a cafe_id on the certificate).
--- For simplicity, assuming 'player_id' is linked to auth.uid() for players, and admins see all.
+-- For simplicity, assuming 'player_id' is linked to profile.id for players, and admins see all.
 CREATE POLICY "Users can view their own certificates, Admins and Super Admins can view all"
 ON public.certificates FOR SELECT
 USING (

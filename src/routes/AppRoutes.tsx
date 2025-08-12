@@ -238,29 +238,15 @@ const AppRoutes: React.FC = () => (
         }
       />
       <Route
-        path="/admin"
+        path="/admin/*"
         element={
           <RoleProtectedRoute allowedRoles={["ADMIN"]}>
             <Admin />
           </RoleProtectedRoute>
         }
       />
-      <Route
-        path="/admin/dashboard"
-        element={
-          <RoleProtectedRoute allowedRoles={["ADMIN"]}>
-            <Admin />
-          </RoleProtectedRoute>
-        }
-      />
-      <Route
-        path="/super-admin"
-        element={
-          <RoleProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
-            <SuperAdminPanel />
-          </RoleProtectedRoute>
-        }
-      />
+      
+      
       <Route
         path="/trivia-game"
         element={
@@ -293,33 +279,12 @@ const AppRoutes: React.FC = () => (
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/cafe-owner/dashboard"
-        element={
-          <RoleProtectedRoute allowedRoles={["CAFE_OWNER", "ADMIN"]}>
-            <CafeOwnerDashboard />
-          </RoleProtectedRoute>
-        }
-      />
+      
 
       {/* Enhanced Card System Routes */}
-      <Route
-        path="/enhanced-card-generator"
-        element={
-          <RoleProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
-            <EnhancedCardGenerator />
-          </RoleProtectedRoute>
-        }
-      />
+      
       <Route path="/enhanced-scanner" element={<EnhancedQRScanner />} />
-      <Route
-        path="/winner-card-scanner"
-        element={
-          <RoleProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
-            <WinnerCardScanner />
-          </RoleProtectedRoute>
-        }
-      />
+      
     </Routes>
   </Suspense>
 );

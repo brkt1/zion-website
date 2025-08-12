@@ -13,6 +13,11 @@ export default defineConfig({
     "process.env": {},
     "import.meta.env.VITE_API_BASE_URL": JSON.stringify(API_BASE_URL),
   },
+  resolve: {
+    alias: {
+      '@': '/src',
+    },
+  },
   plugins: [
     react({
       babel: {
