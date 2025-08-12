@@ -13,71 +13,34 @@ import { useSessionStore } from "../../stores/sessionStore";
 import { supabase } from "../../supabaseClient";
 
 interface ScannedCardData {
-  cardId: string;
-  cardNumber: string;
+  id: string;
+  card_number: string;
   duration: number;
+  game_type_id: string;
+  game_name: string;
+  game_description: string;
+  card_routes: string[];
+  game_routes: string[];
+  effective_routes: string[];
+  activated: boolean;
+  activated_at: string;
   used: boolean;
-  gameTypeId: string;
-  gameTypeName: string;
-  gameTypeDescription: string;
-  cardRouteAccess: string[];
-  gameTypeRouteAccess: string[];
-  createdAt: string;
-  playerEmail: string;
-  createdByEmail: string;
-  playerId: string;
-  timestamp: string;
+  allowedGames: {
+    id: string;
+    name: string;
+    path: string;
+    description?: string;
+  }[];
 }
 
 interface GameRoute {
   id: string;
   name: string;
   path: string;
+  description?: string;
 }
 
 const EnhancedQRScanner: React.FC = () => {
-  // Manual scan state
-  interface CardActivationResult {
-    status: boolean;
-    message: string;
-    card_id?: string;
-    game_type_name?: string;
-  }
-  interface ManualError {
-    message: string;
-  }
-  const [manualCardId, setManualCardId] = useState<string>("");
-  const [manualLoading, setManualLoading] = useState<boolean>(false);
-  const [manualResult, setManualResult] = useState<
-    CardActivationResult[] | null
-  >(null);
-  const [manualError, setManualError] = useState<ManualError | null>(null);
-
-  // Manual scan handler
-  const handleManualScan = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setManualLoading(true);
-    setManualError(null);
-    setManualResult(null);
-    try {
-      const { data, error } = await supabase.rpc("scan_and_activate_card", {
-        p_card_number: manualCardId.toString(),
-      });
-      if (error) {
-        setManualError({ message: error.message || "Unknown error" });
-        return;
-      }
-      setManualResult(data as CardActivationResult[]);
-    } catch (err) {
-      if (err instanceof Error) {
-        setManualError({ message: err.message });
-      } else {
-        setManualError({ message: "Unknown error" });
-      }
-    } finally {
-      setManualLoading(false);
-    }
-  };
   const { startSession } = useSessionStore();
   const { initialize } = useAuthStore();
 
@@ -91,35 +54,38 @@ const EnhancedQRScanner: React.FC = () => {
   const [availableRoutes, setAvailableRoutes] = useState<GameRoute[]>([]);
   const [selectedRoute, setSelectedRoute] = useState<string>("");
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [loginEmail, setLoginEmail] = useState("");
-  const [loginSent, setLoginSent] = useState(false);
-  const [loginError, setLoginError] = useState<string | null>(null);
 
   const scannerRef = useRef<HTMLDivElement>(null);
   const html5QrCode = useRef<Html5Qrcode | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Game routes mapping
-  const gameRoutes: GameRoute[] = [
-    { id: "trivia", name: "Trivia Game", path: "/trivia-game" },
-    { id: "truth-dare", name: "Truth or Dare", path: "/truth-or-dare" },
+  const gameRoutes: GameRoute[] = React.useMemo(() => [
+    {
+      id: "trivia",
+      name: "Trivia Game",
+      path: "/trivia-game",
+      description: "Answer trivia questions to win!",
+    },
+    {
+      id: "truth-dare",
+      name: "Truth or Dare",
+      path: "/truth-or-dare",
+      description: "Play truth or dare challenges.",
+    },
     {
       id: "rock-paper-scissors",
       name: "Rock Paper Scissors",
       path: "/rock-paper-scissors",
+      description: "Classic rock paper scissors game.",
     },
-    { id: "emoji", name: "Emoji Game", path: "/emoji-game" },
-  ];
-
-  // Generate unique player ID
-  const generatePlayerId = (): string => {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    return Array.from(
-      { length: 8 },
-      () => chars[Math.floor(Math.random() * chars.length)]
-    ).join("");
-  };
+    {
+      id: "emoji",
+      name: "Emoji Game",
+      path: "/emoji-game",
+      description: "Guess the emoji meanings!",
+    },
+  ], []);
 
   const requestCameraAccess = useCallback(async () => {
     try {
@@ -152,7 +118,6 @@ const EnhancedQRScanner: React.FC = () => {
   const initScanner = useCallback(async () => {
     if (!selectedCamera || !scannerRef.current || !hasCameraAccess) return;
 
-    // Check if user is logged in before allowing scan
     const user = (await supabase.auth.getUser()).data.user;
     if (!user) {
       setShowLoginModal(true);
@@ -165,12 +130,6 @@ const EnhancedQRScanner: React.FC = () => {
       }
 
       const container = scannerRef.current;
-      const qrboxSize = Math.min(
-        container.offsetWidth - 40,
-        container.offsetHeight - 40,
-        300
-      );
-
       html5QrCode.current = new Html5Qrcode(container.id);
       setIsScanning(true);
 
@@ -178,7 +137,7 @@ const EnhancedQRScanner: React.FC = () => {
         selectedCamera,
         {
           fps: 10,
-          qrbox: undefined, // Set qrbox to undefined to disable default rendering
+          qrbox: undefined,
           aspectRatio: 1.0,
           disableFlip: false,
         },
@@ -216,6 +175,50 @@ const EnhancedQRScanner: React.FC = () => {
     }
   }, []);
 
+  const activateCard = async (cardNumber: string, userId: string) => {
+    try {
+      if (!cardNumber?.trim()) {
+        throw new Error("Card number is required");
+      }
+      if (!userId) {
+        throw new Error("Authentication required");
+      }
+
+      const { data, error } = await supabase.rpc("activate_card_v2", {
+        p_card_number: cardNumber.trim(),
+        p_player_id: userId,
+      });
+
+      if (error) throw error;
+      if (!data || data.length === 0)
+        throw new Error("No activation data returned");
+
+      return {
+        success: true,
+        card: data[0],
+      };
+    } catch (error: any) {
+      console.error("Card activation failed:", {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+      });
+      const errorMap: Record<string, string> = {
+        YNFC1: "Invalid card number",
+        YNGT1: "This card has no game association",
+        YNGT2: "Game type not configured",
+        YNAU1: "Card registered to another player",
+        YNAL1: "Card already activated",
+        PGRST301: "System error - please contact support",
+        default: "Activation failed. Please try again.",
+      };
+      return {
+        success: false,
+        error: errorMap[error.code] || errorMap.default,
+      };
+    }
+  };
+
   const handleScan = useCallback(
     async (scannedData: string) => {
       if (isLoading) return;
@@ -223,7 +226,6 @@ const EnhancedQRScanner: React.FC = () => {
       setError(null);
 
       try {
-        // Only expect the card number from the QR code
         const cardNumber = scannedData.replace(/\D/g, "");
         if (!/^\d{13}$/.test(cardNumber)) {
           setError("Invalid card format. Please scan a valid Yenege card.");
@@ -231,187 +233,85 @@ const EnhancedQRScanner: React.FC = () => {
           return;
         }
 
-        // Call backend function to scan and activate card
-        const { data: result, error } = await supabase.rpc(
-          "scan_and_activate_card",
-          { p_card_number: String(cardNumber) }
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) {
+          setShowLoginModal(true);
+          setIsLoading(false);
+          return;
+        }
+
+        const result = await activateCard(cardNumber, user.id);
+        if (!result.success) {
+          setError(result.error ?? "Activation failed");
+          setIsLoading(false);
+          return;
+        }
+        const activation = result.card;
+
+        // effective_routes now contains route names (e.g., ['emoji'])
+        const allowedGames = gameRoutes.filter((game) =>
+          activation.effective_routes.includes(game.path)
         );
 
-        if (error) {
-          // Log error for diagnostics
-          console.error("Supabase scan_and_activate_card error:", error);
-          let userMessage =
-            "Card activation failed. Please try again or contact support.";
-          if (error.message?.toLowerCase().includes("not found")) {
-            userMessage = `Card not found.\nPossible reasons:\n- The card number does not exist in our system.\n- The card was entered incorrectly.\n- The card is not yet registered.\nIf you believe this is an error, please contact support.`;
-          } else if (error.message?.toLowerCase().includes("already used")) {
-            userMessage = `This card has already been used.\nIf you just purchased this card, please contact support.`;
-          }
-          setError(userMessage);
-          setIsLoading(false);
-          return;
-        }
-        if (!result || result.length === 0) {
-          console.error("No data returned from scan_and_activate_card", result);
-          setError(
-            "Card activation failed. No data returned. Please try again. If this persists, contact support."
-          );
-          setIsLoading(false);
-          return;
-        }
-        const activation = result[0];
-        if (!activation.status) {
-          // Log activation status error
-          console.error("Activation status false:", activation);
-          let userMessage =
-            activation.message || "Card activation failed. Please try again.";
-          if (activation.message?.toLowerCase().includes("already used")) {
-            userMessage = `This card has already been used.\nIf you just purchased this card, please contact support.`;
-          } else if (activation.message?.toLowerCase().includes("not found")) {
-            userMessage = `Card not found.\nPossible reasons:\n- The card number does not exist in our system.\n- The card was entered incorrectly.\n- The card is not yet registered.\nIf you believe this is an error, please contact support.`;
-          }
-          setError(userMessage);
-          setIsLoading(false);
-          return;
-        }
+        const cardData: ScannedCardData = {
+          id: activation.id,
+          card_number: activation.card_number.toString(),
+          duration: activation.duration,
+          game_type_id: activation.game_type_id,
+          game_name: activation.game_name,
+          game_description: activation.game_description,
+          card_routes: activation.card_routes || [],
+          game_routes: activation.game_routes || [],
+          effective_routes: activation.effective_routes || [],
+          activated: activation.activated,
+          activated_at: activation.activated_at,
+          used: activation.used,
+          allowedGames,
+        };
 
-        // Fetch all card and game type details in one query
-        const { data: cardDetails, error: cardDetailsError } =
-          await supabase.rpc("get_enhanced_card_details", {
-            p_card_id: activation.card_id,
-          });
-
-        if (cardDetailsError) {
-          console.error("Error fetching card details:", cardDetailsError);
-          setError(
-            "Failed to fetch card details. Please try again later. If this persists, contact support."
-          );
-          setIsLoading(false);
-          return;
-        }
-        if (!cardDetails || cardDetails.length === 0) {
-          console.error(
-            "No card details found for card_id",
-            activation.card_id
-          );
-          setError("Card details not found. Please contact support.");
-          setIsLoading(false);
-          return;
-        }
-        const cardRecord = cardDetails[0];
-
-        // Validate game_type_id
-        if (
-          !cardRecord.game_type_id ||
-          typeof cardRecord.game_type_id !== "string"
-        ) {
-          console.error("Invalid game_type_id:", cardRecord.game_type_id);
-          setError("Invalid game type ID. Please contact support.");
-          setIsLoading(false);
-          return;
-        }
-
-        // Check if card is used
-        if (cardRecord.used) {
+        if (activation.used) {
           setError("This card has already been used. Please scan a new card.");
           setIsLoading(false);
           return;
         }
 
-        // Prepare card data
-        const cardData: ScannedCardData = {
-          cardId: cardRecord.card_id,
-          cardNumber: cardRecord.card_number,
-          duration: cardRecord.duration,
-          used: cardRecord.used,
-          gameTypeId: cardRecord.game_type_id,
-          gameTypeName: cardRecord.game_type_name,
-          gameTypeDescription: cardRecord.game_type_description,
-          cardRouteAccess: cardRecord.card_route_access || [],
-          gameTypeRouteAccess: cardRecord.game_type_route_access || [],
-          createdAt: cardRecord.created_at,
-          playerEmail: cardRecord.player_email || "",
-          createdByEmail: cardRecord.created_by_email || "",
-          playerId: cardRecord.card_id,
-          timestamp: new Date().toISOString(),
-        };
-
-        // Set available routes based on game type's route_access
-        const cardRoutes = cardData.gameTypeRouteAccess
-          .map((routeId: string) =>
-            gameRoutes.find((route) => route.id === routeId)
-          )
-          .filter(Boolean) as GameRoute[];
-
-        setAvailableRoutes(cardRoutes);
-        setScannedCard(cardData);
-        const numericCardNumber = Number(scannedData.replace(/\D/g, ""));
-        if (
-          !Number.isFinite(numericCardNumber) ||
-          String(numericCardNumber).length !== 13
-        ) {
-          setError("Invalid card format. Please scan a valid Yenege card.");
+        if (allowedGames.length === 0) {
+          setError(
+            "No games available for this card. The card may not be associated with any games."
+          );
           setIsLoading(false);
           return;
         }
-        // Stop scanning
-        await stopScanner();
 
-        // Automatically start the game after scan (always use first available route)
-        if (cardRoutes.length > 0) {
-          setSelectedRoute(cardRoutes[0].id);
-          await startSession(
-            cardData.gameTypeId,
-            cardData.playerId,
-            cardData.duration * 60
-          );
-          const selectedGameRoute = gameRoutes.find(
-            (route) => route.id === cardRoutes[0].id
-          );
-          if (selectedGameRoute) {
-            navigate(selectedGameRoute.path, {
-              state: {
-                cardDetails: cardData,
-                playerId: cardData.playerId,
-                fromScanner: true,
-              },
-            });
-          }
-        }
+        setAvailableRoutes(allowedGames);
+        setScannedCard(cardData);
+        setSelectedRoute(allowedGames[0].id);
+
+        await startSession(
+          cardData.game_type_id,
+          cardData.id,
+          cardData.duration * 60
+        );
+        navigate(allowedGames[0].path, {
+          state: {
+            cardDetails: cardData,
+            playerId: cardData.id,
+            fromScanner: true,
+          },
+        });
+
+        await stopScanner();
       } catch (err) {
-        // Improved error handling: show specific error or fallback
-        setIsLoading(false);
-        setScannedCard(null);
-        setAvailableRoutes([]);
-        setSelectedRoute("");
-        // Log error for diagnostics
         console.error("Unexpected error in handleScan:", err);
-        if (err instanceof Error) {
-          if (err.message.includes("Invalid card format")) {
-            setError("Invalid card format. Please scan a valid Yenege card.");
-          } else if (err.message.includes("Card activation failed")) {
-            setError(
-              "Card activation failed. Please try again or contact support."
-            );
-          } else if (err.message.includes("Could not fetch card details")) {
-            setError("Failed to fetch card details. Please try again later.");
-          } else if (err.message.includes("Invalid game type ID")) {
-            setError("Invalid game type ID. Please contact support.");
-          } else {
-            setError(
-              `Unexpected error: ${err.message}. Please try again or contact support.`
-            );
-          }
-        } else {
-          setError(
-            "Failed to process card. Please try again or contact support."
-          );
-        }
-      } finally {
+        setError(
+          "Failed to process card. Please try again or contact support."
+        );
         setIsLoading(false);
       }
     },
-    [isLoading, stopScanner, startSession, navigate, gameRoutes]
+    [isLoading, stopScanner, startSession, navigate]
   );
 
   const resetScanner = () => {
@@ -423,12 +323,53 @@ const EnhancedQRScanner: React.FC = () => {
   };
 
   const handleManualEntry = () => {
-    const manualInput = prompt("Enter card number or scan data:");
+    const manualInput = prompt("Enter 13-digit card number:");
     if (manualInput) {
       handleScan(manualInput);
     }
   };
 
+  const startGame = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    if (!scannedCard || !selectedRoute || isLoading) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      await startSession(
+        scannedCard.game_type_id,
+        scannedCard.id,
+        scannedCard.duration * 60
+      );
+      // Find the correct route by route name (lowercase)
+      const selectedGameRoute = gameRoutes.find(
+        (route) =>
+          route.id === selectedRoute ||
+          route.name.toLowerCase() === selectedRoute.toLowerCase()
+      );
+      if (selectedGameRoute) {
+        // If user is not on the correct route, navigate automatically
+        if (location.pathname !== selectedGameRoute.path) {
+          navigate(selectedGameRoute.path, {
+            state: {
+              cardDetails: scannedCard,
+              playerId: scannedCard.id,
+              fromScanner: true,
+            },
+          });
+        }
+      } else {
+        setError("Selected game route is not allowed for this card.");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to start game");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Effect to handle session expiration messages
   useEffect(() => {
     if (location.state?.sessionExpired) {
       setError(
@@ -436,6 +377,26 @@ const EnhancedQRScanner: React.FC = () => {
       );
     }
   }, [location.state]);
+
+  // Effect to auto-correct route after scanning
+  useEffect(() => {
+    if (scannedCard && selectedRoute) {
+      const correctGameRoute = gameRoutes.find(
+        (route) =>
+          route.id === selectedRoute ||
+          route.name.toLowerCase() === selectedRoute.toLowerCase()
+      );
+      if (correctGameRoute && location.pathname !== correctGameRoute.path) {
+        navigate(correctGameRoute.path, {
+          state: {
+            cardDetails: scannedCard,
+            playerId: scannedCard.id,
+            fromScanner: true,
+          },
+        });
+      }
+    }
+  }, [scannedCard, selectedRoute, location.pathname, navigate, gameRoutes]);
 
   useEffect(() => {
     getCameras();
@@ -467,77 +428,8 @@ const EnhancedQRScanner: React.FC = () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [stopScanner, initScanner, hasCameraAccess, scannedCard]);
 
-  async function startGame(
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>
-  ): Promise<void> {
-    event.preventDefault();
-    if (!scannedCard || !selectedRoute || isLoading) return;
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      await startSession(
-        scannedCard.gameTypeId,
-        scannedCard.playerId,
-        scannedCard.duration * 60
-      );
-      const selectedGameRoute = gameRoutes.find(
-        (route) => route.id === selectedRoute
-      );
-      if (selectedGameRoute) {
-        navigate(selectedGameRoute.path, {
-          state: {
-            cardDetails: scannedCard,
-            playerId: scannedCard.playerId,
-            fromScanner: true,
-          },
-        });
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to start game");
-    } finally {
-      setIsLoading(false);
-    }
-  }
   return (
     <div className="min-h-screen bg-gradient-to-br from-black-primary to-black-secondary text-cream flex items-center justify-center p-4">
-      {/* Manual Card Scan Example */}
-      <div className="max-w-md mx-auto mb-8 p-4 bg-black-secondary rounded-xl border border-gold-primary/30">
-        <h2 className="text-lg font-bold mb-2 text-gold-primary">
-          Manual Card Scan Example
-        </h2>
-        <form onSubmit={handleManualScan} className="flex gap-2 mb-2">
-          <input
-            type="text"
-            value={manualCardId}
-            onChange={(e) => setManualCardId(e.target.value)}
-            placeholder="Enter Card Number or Scan QR"
-            className="flex-1 p-2 rounded border border-gold-primary"
-          />
-          <button
-            type="submit"
-            disabled={manualLoading}
-            className="px-4 py-2 bg-gold-primary text-black-primary rounded"
-          >
-            {manualLoading ? "Processing..." : "Activate Card"}
-          </button>
-        </form>
-        {manualError && (
-          <div className="text-red-400">Error: {manualError.message}</div>
-        )}
-        {manualResult && manualResult.length > 0 && manualResult[0].status && (
-          <div className="text-green-400">
-            Card activated successfully! Game: {manualResult[0].game_type_name}
-          </div>
-        )}
-        {manualResult && manualResult.length > 0 && !manualResult[0].status && (
-          <div className="text-red-400">
-            Activation failed: {manualResult[0].message}
-          </div>
-        )}
-      </div>
-      {/* Login Modal */}
       {showLoginModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
           <div className="bg-black-secondary rounded-2xl shadow-2xl border border-gold-primary/30 p-8 max-w-md w-full text-center">
@@ -561,14 +453,13 @@ const EnhancedQRScanner: React.FC = () => {
                   });
                   setIsLoading(false);
                   if (error) {
-                    setLoginError(error.message || "Google login failed");
+                    setError(error.message || "Google login failed");
                   }
                 }}
               >
                 {isLoading ? "Redirecting..." : "Login with Google"}
               </button>
             </div>
-            {/* Only Google login flow is available */}
           </div>
         </div>
       )}
@@ -586,7 +477,6 @@ const EnhancedQRScanner: React.FC = () => {
           <div className="p-6">
             {!scannedCard ? (
               <>
-                {/* Camera Selection */}
                 {cameras.length > 0 && (
                   <div className="mb-4">
                     <label className="block text-gold-light text-sm font-medium mb-2">
@@ -607,7 +497,6 @@ const EnhancedQRScanner: React.FC = () => {
                   </div>
                 )}
 
-                {/* Scanner Area */}
                 <div className="relative mb-6 border-2 border-gold-primary rounded-lg overflow-hidden bg-black-primary">
                   <div
                     id="scanner-container"
@@ -629,18 +518,12 @@ const EnhancedQRScanner: React.FC = () => {
                       </div>
                     ) : isScanning ? (
                       <div className="absolute inset-0 flex items-center justify-center">
-                        {/* Custom Overlay */}
                         <div className="absolute inset-0 bg-black-pure opacity-70" />
-
-                        {/* QR Box Visuals */}
                         <div className="relative z-10 w-[min(300px,80vw)] h-[min(300px,80vw)]">
-                          {/* Corner borders */}
                           <div className="absolute top-0 left-0 w-1/4 h-1/4 border-t-4 border-l-4 border-gold-primary rounded-tl-lg" />
                           <div className="absolute top-0 right-0 w-1/4 h-1/4 border-t-4 border-r-4 border-gold-primary rounded-tr-lg" />
                           <div className="absolute bottom-0 left-0 w-1/4 h-1/4 border-b-4 border-l-4 border-gold-primary rounded-bl-lg" />
                           <div className="absolute bottom-0 right-0 w-1/4 h-1/4 border-b-4 border-r-4 border-gold-primary rounded-br-lg" />
-
-                          {/* Scanning line */}
                           <div className="absolute top-0 left-0 w-full h-1 bg-gold-secondary animate-scan-line" />
                         </div>
                       </div>
@@ -648,7 +531,6 @@ const EnhancedQRScanner: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Control Buttons */}
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <button
                     onClick={handleManualEntry}
@@ -667,7 +549,6 @@ const EnhancedQRScanner: React.FC = () => {
                 </div>
               </>
             ) : (
-              /* Card Details and Route Selection */
               <div className="space-y-6">
                 <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-4">
                   <h3 className="text-green-400 font-bold text-lg mb-3">
@@ -679,28 +560,8 @@ const EnhancedQRScanner: React.FC = () => {
                         <span className="text-gold-light font-semibold">
                           Card Number:
                         </span>{" "}
-                        {scannedCard.cardNumber}
+                        {scannedCard.card_number}
                       </p>
-                      <p>
-                        <span className="text-gold-light font-semibold">
-                          Player ID:
-                        </span>{" "}
-                        {scannedCard.playerId}
-                      </p>
-                      <p>
-                        <span className="text-gold-light font-semibold">
-                          Player Email:
-                        </span>{" "}
-                        {scannedCard.playerEmail}
-                      </p>
-                      <p>
-                        <span className="text-gold-light font-semibold">
-                          Created By:
-                        </span>{" "}
-                        {scannedCard.createdByEmail}
-                      </p>
-                    </div>
-                    <div>
                       <p>
                         <span className="text-gold-light font-semibold">
                           Duration:
@@ -709,19 +570,27 @@ const EnhancedQRScanner: React.FC = () => {
                       </p>
                       <p>
                         <span className="text-gold-light font-semibold">
+                          Activated At:
+                        </span>{" "}
+                        {new Date(scannedCard.activated_at).toLocaleString()}
+                      </p>
+                    </div>
+                    <div>
+                      <p>
+                        <span className="text-gold-light font-semibold">
                           Game Type:
                         </span>{" "}
-                        {scannedCard.gameTypeName}
+                        {scannedCard.game_name}
                       </p>
                       <p>
                         <span className="text-gold-light font-semibold">
                           Description:
                         </span>{" "}
-                        {scannedCard.gameTypeDescription}
+                        {scannedCard.game_description}
                       </p>
                       <p>
                         <span className="text-gold-light font-semibold">
-                          Routes:
+                          Available Games:
                         </span>{" "}
                         {availableRoutes.length}
                       </p>
@@ -741,19 +610,19 @@ const EnhancedQRScanner: React.FC = () => {
                     Select Game to Play:
                   </label>
                   <div className="grid grid-cols-1 gap-3">
-                    {availableRoutes.map((route) => (
+                    {scannedCard.allowedGames.map((game) => (
                       <button
-                        key={route.id}
-                        onClick={() => setSelectedRoute(route.id)}
+                        key={game.id}
+                        onClick={() => setSelectedRoute(game.id)}
                         className={`p-4 rounded-lg border-2 transition-all text-left ${
-                          selectedRoute === route.id
+                          selectedRoute === game.id
                             ? "border-gold-primary bg-gold-primary/10 text-gold-light"
                             : "border-gray-medium bg-gray-dark text-gray-light hover:border-gold-primary/50"
                         }`}
                       >
-                        <div className="font-semibold">{route.name}</div>
+                        <div className="font-semibold">{game.name}</div>
                         <div className="text-sm opacity-75">
-                          Tap to select this game
+                          {game.description || "Tap to select this game"}
                         </div>
                       </button>
                     ))}
@@ -782,11 +651,10 @@ const EnhancedQRScanner: React.FC = () => {
               </div>
             )}
 
-            {/* Error Display */}
             {error && (
               <div className="p-4 mb-4 bg-red-900/20 rounded-lg border-l-4 border-red-500">
                 <div className="text-red-300">
-                  <p className="font-medium">{error}</p>
+                  <p className="font-medium whitespace-pre-line">{error}</p>
                   {error.includes("Camera access") && (
                     <button
                       onClick={getCameras}
@@ -795,7 +663,6 @@ const EnhancedQRScanner: React.FC = () => {
                       <FaRedo /> Retry Camera Access
                     </button>
                   )}
-                  {/* Contact Support Button */}
                   <button
                     className="w-full mt-3 bg-gold-primary text-black-primary py-2 rounded-lg hover:bg-gold-secondary transition-colors flex items-center justify-center gap-2"
                     onClick={() => {
@@ -811,7 +678,6 @@ const EnhancedQRScanner: React.FC = () => {
               </div>
             )}
 
-            {/* Loading Display */}
             {isLoading && (
               <div className="p-4 text-center text-gold-light">
                 <div className="inline-flex items-center gap-2 animate-pulse">

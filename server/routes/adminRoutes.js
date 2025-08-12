@@ -149,4 +149,49 @@ router.post("/log-login", authenticateUser, async (req, res) => {
   }
 });
 
+// Cafe Owner Dashboard Route
+router.get("/cafe-owner/dashboard", authenticateUser, async (req, res) => {
+  try {
+    const userId = req.user.id; // Authenticated user's ID
+
+    // Check if the user is a CAFE_OWNER
+    const { rows: profileRows } = await pool.query(
+      "SELECT role FROM public.profiles WHERE id = $1",
+      [userId]
+    );
+
+    if (!profileRows || profileRows.length === 0 || profileRows[0].role !== "CAFE_OWNER") {
+      return res.status(403).json({ error: "Access denied. Not a Cafe Owner." });
+    }
+
+    // Fetch data for the Cafe Owner Dashboard
+    // Assuming player_id in certificates table corresponds to the cafe owner's user_id
+    const totalCertificatesResult = await pool.query(
+      "SELECT COUNT(*) AS total FROM public.certificates WHERE player_id = $1",
+      [userId]
+    );
+    const totalCertificates = Number(totalCertificatesResult.rows[0].total);
+
+    const totalPrizesRedeemedResult = await pool.query(
+      "SELECT COUNT(*) AS total FROM public.certificates WHERE player_id = $1 AND prize_delivered = TRUE",
+      [userId]
+    );
+    const totalPrizesRedeemed = Number(totalPrizesRedeemedResult.rows[0].total);
+
+    const dashboardData = {
+      totalCertificates,
+      totalPrizesRedeemed,
+      // Add more cafe owner specific data here as needed
+    };
+
+    res.json(dashboardData);
+  } catch (error) {
+    console.error("Cafe Owner dashboard error:", error);
+    res.status(500).json({
+      error: "Failed to load Cafe Owner dashboard",
+      details: error.message,
+    });
+  }
+});
+
 module.exports = router;

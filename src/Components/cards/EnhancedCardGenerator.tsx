@@ -30,8 +30,13 @@ const EnhancedCardGenerator: React.FC = () => {
   const [generatedCards, setGeneratedCards] = useState<CardData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showDownloadMessage, setShowDownloadMessage] = useState(false);
-  // Fix: Define routeAccess as array containing selectedGameType
-  const routeAccess = selectedGameType ? [selectedGameType] : [];
+  // Define routeAccess as array containing the selected game type's name
+  const selectedGameTypeObj = gameTypes.find(
+    (gt) => gt.id === selectedGameType
+  );
+  const routeAccess = selectedGameTypeObj
+    ? [selectedGameTypeObj.name.toLowerCase()]
+    : [];
 
   const navigate = useNavigate();
 
@@ -43,29 +48,60 @@ const EnhancedCardGenerator: React.FC = () => {
   }));
 
   // Activate card by scanning (calls Supabase function)
-  const activateCard = async (cardNumber: string) => {
+  const activateCard = async (cardNumber: string, userId: string) => {
     try {
-      const { data, error } = await supabase.rpc("scan_and_activate_card", {
-        p_card_number: cardNumber,
+      // Ensure cardNumber is a string
+      const stringCardNumber = String(cardNumber);
+      const { data, error } = await supabase.rpc("activate_card", {
+        p_card_number: stringCardNumber,
+        p_player_id: userId,
       });
-      if (error) {
-        console.error("Error activating card:", error);
-        alert("Failed to activate card: " + error.message);
-      } else {
-        console.log("Card activation result:", data);
-        alert(data[0]?.message || "Card activation complete.");
-      }
-    } catch (err) {
-      console.error("Unexpected error activating card:", err);
-      alert("Unexpected error activating card.");
+
+      if (error) throw error;
+
+      return {
+        success: true,
+        card: data[0],
+      };
+    } catch (error: any) {
+      console.error("Activation error details:", {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+      });
+      const errorMessages: Record<string, string> = {
+        YNFC1: "Card not found",
+        YNGT1: "Invalid card type",
+        YNGT2: "Game type not found",
+        YNAU1: "Card registered to another player",
+        YNAL1: "Card already activated",
+        42702: "System error - please contact support",
+      };
+      return {
+        success: false,
+        error: errorMessages[error.code] || "Activation failed",
+      };
     }
   };
 
-  // Simulate scanning a card and automatically activate it
   // Scan a card and automatically activate it
   // You can call scanCard from your QR code scanner or UI
   const scanCard = async (scannedCardNumber: string) => {
-    await activateCard(scannedCardNumber);
+    // Get the current user's ID
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+    if (userError || !user) {
+      alert("You must be logged in to activate cards.");
+      return;
+    }
+    const result = await activateCard(scannedCardNumber, user.id);
+    if (result.success) {
+      alert("Card activated successfully!");
+    } else {
+      alert(result.error);
+    }
   };
   // Fetch game types
   useEffect(() => {
@@ -135,7 +171,7 @@ const EnhancedCardGenerator: React.FC = () => {
         card_number: generateCardNumber(),
         duration,
         game_type_id: selectedGameType,
-        route_access: routeAccess,
+        route_access: selectedGameTypeObj.route_access, // Use the route_access from the selected game type
         used: false,
         player_id: null,
         created_by: user.id, // Set created_by to the current user's ID

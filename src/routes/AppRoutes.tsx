@@ -4,6 +4,7 @@ import AccessDenied from "../Components/utility/AccessDenied";
 import LoadingSpinner from "../Components/utility/LoadingSpinner";
 import WrongGameType from "../Components/utility/WrongGameType";
 import { useAuthStore } from "../stores/authStore";
+
 import { useSessionStore } from "../stores/sessionStore";
 import { supabase } from "../supabaseClient";
 
@@ -126,6 +127,23 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     if (!currentSession?.isActive || !isTimerActive) {
       return <Navigate to="/game-select" replace state={{ fromGame: true }} />;
     }
+
+    const expectedGameTypeId = gameTypeRoutes[location.pathname];
+    const actualGameTypeId = currentSession.gameTypeId;
+
+    // If the actual game type ID doesn't match the expected game type ID for this route,
+    // and the actual game type ID is known, redirect to the canonical path for the actual game type.
+    if (actualGameTypeId && actualGameTypeId !== expectedGameTypeId) {
+        // Find the canonical path for the actual game type
+        const canonicalPathForActualGame = Object.keys(gameTypeRoutes).find(
+            key => gameTypeRoutes[key] === actualGameTypeId
+        );
+
+        if (canonicalPathForActualGame && canonicalPathForActualGame !== location.pathname) {
+            return <Navigate to={canonicalPathForActualGame} replace />;
+        }
+    }
+
     // Use route_access array for validation by gameType name
     const expectedGameTypeName = gameTypeRoutes[location.pathname];
     if (!checkRouteAccess(location.pathname, expectedGameTypeName)) {

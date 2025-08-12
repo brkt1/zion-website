@@ -1,7 +1,10 @@
 import React, { useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
-import { RouteMap } from "../../types"; // Assuming you have a centralized types file
+// Type for mapping routes to React components or render functions
+type RouteMap = {
+  [route: string]: React.ComponentType<any> | (() => JSX.Element);
+};
 import LoadingSpinner from "../utility/LoadingSpinner";
 
 // Lazy-load admin components using dynamic import syntax

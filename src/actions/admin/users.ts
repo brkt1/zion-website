@@ -1,6 +1,7 @@
-"use server";
+import { createServerClient } from "@supabase/auth-helpers-nextjs";
+import { Database } from "@/types/supabase";
 
-import { createClient } from "@/utils/supabase/server";
+"use server";
 
 export async function updateUserRole(formData: FormData) {
   const id = formData.get("id");
@@ -43,3 +44,10 @@ export async function deleteUser(formData: FormData) {
   }
   return { success: true };
 }
+function createClient() {
+  return createServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
+

@@ -9,6 +9,25 @@ const router = express.Router();
 router.get("/global", authenticateUser, async (req, res) => {
   try {
     // Fetch scores and emoji_scores from Supabase
+    // Fetch all profiles to get all potential players
+    const { data: profiles, error: profilesError } = await supabase
+      .from("profiles")
+      .select("id"); // Assuming 'id' is the player_id
+
+    if (profilesError) {
+      console.error("Error fetching profiles:", profilesError.message);
+      // Continue with an empty profiles list if there's an error
+    }
+
+    const allPlayerIds = profiles ? profiles.map(p => p.id) : [];
+
+    // Initialize scoreMap with all players from profiles, setting initial score to 0
+    const scoreMap = {};
+    allPlayerIds.forEach(id => {
+      scoreMap[id] = { playerName: `User ${id.substring(0, 4)}`, totalScore: 0 }; // Placeholder name
+    });
+
+    // Fetch scores and emoji_scores from Supabase
     const { data: scores, error: scoresError } = await supabase
       .from("scores")
       .select("player_id, player_name, score");
@@ -26,15 +45,21 @@ router.get("/global", authenticateUser, async (req, res) => {
     const safeScores = scores || [];
     const safeEmojiScores = emojiScores || [];
 
-    // Aggregate scores
+    // Aggregate scores and update player names
     const combined = [...safeScores, ...safeEmojiScores];
-    const scoreMap = {};
     combined.forEach(({ player_id, player_name, score }) => {
       if (!scoreMap[player_id]) {
+        // This case should ideally not happen if all players are in 'profiles'
+        // but it's a fallback for players who might exist in scores but not profiles
         scoreMap[player_id] = { playerName: player_name, totalScore: 0 };
+      }
+      // Update player name if a more specific one is found
+      if (player_name && scoreMap[player_id].playerName.startsWith("User ")) {
+        scoreMap[player_id].playerName = player_name;
       }
       scoreMap[player_id].totalScore += score;
     });
+
     // Sort and get top 10
     const leaderboard = Object.entries(scoreMap)
       .map(([playerId, { playerName, totalScore }]) => ({
@@ -45,6 +70,7 @@ router.get("/global", authenticateUser, async (req, res) => {
       .sort((a, b) => b.totalScore - a.totalScore)
       .slice(0, 10)
       .map((row, idx) => ({ ...row, rank: idx + 1 }));
+
     res.json(leaderboard);
   } catch (error) {
     console.error("Failed to fetch global leaderboard:", error);

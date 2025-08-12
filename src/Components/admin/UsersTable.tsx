@@ -2,6 +2,13 @@ import { deleteUser, updateUserRole } from "@/actions/admin/users";
 import { Link } from "react-router-dom";
 
 export default function UsersTable({ users }: { users: any[] }) {
+  // Ensure users is always an array
+  const safeUsers = Array.isArray(users) ? users : [];
+
+  if (!safeUsers.length) {
+    return <div className="p-6 text-center text-gray-500">No users found.</div>;
+  }
+
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
@@ -22,7 +29,7 @@ export default function UsersTable({ users }: { users: any[] }) {
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {users.map((user) => (
+          {safeUsers.map((user) => (
             <tr key={user.id}>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="font-medium text-gray-900">{user.email}</div>
