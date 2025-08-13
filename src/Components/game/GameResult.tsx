@@ -13,6 +13,18 @@ interface GameResultData {
   // Add other relevant game details here
 }
 
+// Interface for the raw server response
+interface ServerGameResult {
+  player_name: string;
+  player_id: string;
+  score: number;
+  game_type: string;
+  timestamp: string;
+  session_id: string;
+  stage?: number;
+  streak?: number;
+}
+
 const GameResult: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -22,7 +34,7 @@ const GameResult: React.FC = () => {
 
   useEffect(() => {
     const fetchResult = async () => {
-      const { sessionId, playerId } = location.state || {};
+      const { sessionId, playerId, playerName, gameType, score, timestamp } = location.state || {};
 
       if (!sessionId || !playerId) {
         setError('Missing session or player ID.');
@@ -31,17 +43,53 @@ const GameResult: React.FC = () => {
       }
 
       try {
-        // This endpoint needs to be created on the backend to fetch results for a session/player
+        // Try to fetch from API first
         const response = await fetch(`http://localhost:3001/api/scores/result?sessionId=${sessionId}&playerId=${playerId}`);
         
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        if (response.ok) {
+          const serverData: ServerGameResult = await response.json();
+          console.log('Server response data:', serverData);
+          
+          // Map server data to component data structure
+          const mappedData: GameResultData = {
+            playerName: serverData.player_name || 'Unknown Player',
+            playerId: serverData.player_id || 'Unknown ID',
+            score: serverData.score || 0,
+            gameType: serverData.game_type || 'Unknown Game',
+            timestamp: serverData.timestamp || new Date().toISOString(),
+          };
+          
+          console.log('Mapped data from API:', mappedData);
+          setResult(mappedData);
+        } else {
+          // If API fails, use navigation state data as fallback
+          console.log('API call failed, using navigation state data as fallback');
+          const fallbackData: GameResultData = {
+            playerName: playerName || 'Unknown Player',
+            playerId: playerId || 'Unknown ID',
+            score: score || 0,
+            gameType: gameType || 'Unknown Game',
+            timestamp: timestamp || new Date().toISOString(),
+          };
+          
+          console.log('Fallback data from navigation state:', fallbackData);
+          setResult(fallbackData);
         }
-
-        const data = await response.json();
-        setResult(data);
       } catch (err: any) {
-        setError(err.message || 'Failed to fetch game results.');
+        console.error('Error fetching game results:', err);
+        
+        // Use navigation state data as fallback if API completely fails
+        console.log('Using navigation state data as fallback due to error');
+        const fallbackData: GameResultData = {
+          playerName: playerName || 'Unknown Player',
+          playerId: playerId || 'Unknown ID',
+          score: score || 0,
+          gameType: gameType || 'Unknown Game',
+          timestamp: timestamp || new Date().toISOString(),
+        };
+        
+        console.log('Fallback data from navigation state:', fallbackData);
+        setResult(fallbackData);
       } finally {
         setIsLoading(false);
       }

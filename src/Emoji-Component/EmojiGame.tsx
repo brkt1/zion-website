@@ -88,10 +88,12 @@ const EmojiGame = () => {
     user?.email?.split("@")[0];
   const googleId = user?.id;
 
-  // Fetch configuration data
+  // Fetch configuration data with retry mechanism
   useEffect(() => {
-    const fetchConfig = async () => {
+    const fetchConfig = async (retryCount = 0) => {
       try {
+        console.log(`🔄 Fetching configuration (attempt ${retryCount + 1})...`);
+        
         // Fetch reward thresholds
         const { data: rewards, error: rewardsError } = await supabase
           .from("emoji_rewards")
@@ -105,6 +107,7 @@ const EmojiGame = () => {
             thresholds[r.reward_type.toUpperCase()] = r.threshold;
           });
           setRewardThresholds(thresholds);
+          console.log("✅ Rewards loaded:", Object.keys(thresholds).length);
         }
 
         // Fetch stage requirements
@@ -122,7 +125,7 @@ const EmojiGame = () => {
             requirements[s.stage_number] = s;
           });
           setStageRequirements(requirements);
-          console.log("Loaded stage requirements:", requirements);
+          console.log("✅ Stage requirements loaded:", Object.keys(requirements).length);
         }
 
         // Fetch emoji game type ID
@@ -134,19 +137,37 @@ const EmojiGame = () => {
 
         if (gameTypeError) {
           console.error("Error fetching emoji game type:", gameTypeError);
-          setConfigError("Failed to load game type configuration");
+          if (gameTypeError.code === 'PGRST116') {
+            const errorMsg = "Emoji game type not found. Please contact support to set up the game.";
+            setConfigError(errorMsg);
+            
+            // Retry after 5 seconds if this is the first attempt
+            if (retryCount === 0) {
+              console.log("🔄 Retrying in 5 seconds...");
+              setTimeout(() => fetchConfig(1), 5000);
+              return;
+            }
+          } else {
+            setConfigError("Failed to load game type configuration");
+          }
         } else if (gameTypeData) {
           setEmojiGameTypeId(gameTypeData.id);
+          console.log("✅ Emoji game type loaded:", gameTypeData.id);
+        } else {
+          setConfigError("Emoji game type not found in database");
         }
 
         // Mark configuration as loaded
         setConfigLoaded(true);
+        console.log("✅ Configuration loading completed");
+        
       } catch (error) {
         console.error("Error fetching configuration:", error);
         setConfigError("Failed to load configuration");
         setConfigLoaded(true);
       }
     };
+    
     fetchConfig();
   }, []);
 
@@ -336,16 +357,34 @@ const EmojiGame = () => {
 
   const saveScore = async () => {
     try {
-      if (!emojiGameTypeId) {
-        console.error("Emoji game type ID not loaded");
-        return;
+      // Try to get game type ID if not already loaded
+      let gameTypeId = emojiGameTypeId;
+      
+      if (!gameTypeId) {
+        console.log("Game type ID not loaded, attempting to fetch...");
+        const { data: gameTypeData, error: gameTypeError } = await supabase
+          .from("game_types")
+          .select("id")
+          .eq("name", "emoji")
+          .single();
+        
+        if (gameTypeError || !gameTypeData) {
+          console.error("Failed to fetch emoji game type:", gameTypeError);
+          console.error("Cannot save score without game type ID");
+          setFeedback("Error: Game configuration not loaded. Please refresh and try again.");
+          return;
+        }
+        
+        gameTypeId = gameTypeData.id;
+        setEmojiGameTypeId(gameTypeId);
+        console.log("Fetched game type ID:", gameTypeId);
       }
 
       const scoreData = {
         player_name: playerName,
         player_id: playerId,
         score: score,
-        game_type_id: emojiGameTypeId,
+        game_type_id: gameTypeId,
         stage: currentStage,
         session_id: sessionId,
         streak: maxStreak,
@@ -358,12 +397,26 @@ const EmojiGame = () => {
       
       if (error) {
         console.error("Error saving score:", error);
+        
+        // Provide user-friendly error message
+        if (error.code === '23503') {
+          setFeedback("Error: Database constraint violation. Please contact support.");
+        } else if (error.code === '42501') {
+          setFeedback("Error: Permission denied. Please refresh and try again.");
+        } else {
+          setFeedback("Error saving score. Please try again.");
+        }
+        
         throw error;
       }
       
       console.log("Score saved successfully:", data);
+      setFeedback("Score saved successfully!");
     } catch (error) {
       console.error("Error saving score:", error);
+      if (!feedback) {
+        setFeedback("Failed to save score. Please try again.");
+      }
     }
   };
 
