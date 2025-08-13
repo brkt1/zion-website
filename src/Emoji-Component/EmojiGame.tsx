@@ -33,6 +33,52 @@ type StageRequirement = {
   reward_type: RewardType;
 };
 
+// Speech Recognition Types
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+}
+
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onstart: (event: Event) => void;
+  onresult: (event: SpeechRecognitionEvent) => void;
+  onerror: (event: SpeechRecognitionErrorEvent) => void;
+  onend: (event: Event) => void;
+  start: () => void;
+  stop: () => void;
+}
+
+interface SpeechRecognitionResultList {
+  readonly length: number;
+  item(index: number): SpeechRecognitionResult;
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionResult {
+  readonly length: number;
+  item(index: number): SpeechRecognitionAlternative;
+  [index: number]: SpeechRecognitionAlternative;
+  isFinal: boolean;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition: new () => SpeechRecognition;
+    webkitSpeechRecognition: new () => SpeechRecognition;
+  }
+}
+
 const EmojiGame = () => {
   const navigate = useNavigate();
   const { user, session } = useAuthStore();
@@ -78,6 +124,13 @@ const EmojiGame = () => {
   const [configLoaded, setConfigLoaded] = useState<boolean>(false);
   const [configError, setConfigError] = useState<string | null>(null);
   const [emojiGameTypeId, setEmojiGameTypeId] = useState<string | null>(null);
+
+  // Speech Recognition State
+  const [isListening, setIsListening] = useState<boolean>(false);
+  const [transcript, setTranscript] = useState<string>("");
+  const [speechError, setSpeechError] = useState<string | null>(null);
+  const [audioMode, setAudioMode] = useState<boolean>(false);
+  const [confidence, setConfidence] = useState<number>(0);
 
   // If user is authenticated, use their name and id
   const googleName =
@@ -491,6 +544,79 @@ const EmojiGame = () => {
     navigate("/");
   };
 
+  // Speech Recognition Functions
+  const startListening = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      setSpeechError("Speech recognition is not supported in this browser. Please use Chrome or Edge.");
+      return;
+    }
+
+    setSpeechError(null);
+    setTranscript("");
+    setConfidence(0);
+    setIsListening(true);
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+
+    recognition.onstart = () => {
+      console.log("🎤 Speech recognition started");
+      setFeedback("Listening... Speak now!");
+    };
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      const transcript = event.results[0][0].transcript;
+      const confidence = event.results[0][0].confidence;
+      console.log("🎤 Speech recognized:", transcript, "Confidence:", confidence);
+      setTranscript(transcript);
+      setGuess(transcript);
+      setConfidence(confidence);
+      setIsListening(false);
+      
+      // Auto-submit the answer after speech recognition
+      setTimeout(() => {
+        handleGuess();
+      }, 500);
+    };
+
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+      console.error("🎤 Speech recognition error:", event.error);
+      setSpeechError(`Speech recognition error: ${event.error}`);
+      setIsListening(false);
+      setFeedback("Speech recognition failed. Please try typing instead.");
+    };
+
+    recognition.onend = () => {
+      console.log("🎤 Speech recognition ended");
+      setIsListening(false);
+      if (!transcript) {
+        setFeedback("Speech recognition ended. Please try again or type your answer.");
+      }
+    };
+
+    recognition.start();
+  };
+
+  const stopListening = () => {
+    setIsListening(false);
+    setFeedback("Speech recognition stopped.");
+  };
+
+  const toggleAudioMode = () => {
+    setAudioMode(!audioMode);
+    if (audioMode) {
+      // Switching from audio to text mode
+      setFeedback("Switched to text input mode");
+    } else {
+      // Switching from text to audio mode
+      setFeedback("Switched to voice input mode. Click the microphone to speak!");
+    }
+  };
+
   // Timer effect
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
@@ -887,14 +1013,121 @@ const EmojiGame = () => {
                       Hint: {hintString}
                     </div>
                   )}
-                  <input
-                    value={guess}
-                    onChange={(e) => setGuess(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && handleGuess()}
-                    placeholder="Type your answer..."
-                    className="w-full px-4 py-3 bg-white/5 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-amber-500 placeholder-white/40"
-                    disabled={!!feedback && feedback.includes("Correct")}
-                  />
+                  
+                  {/* Audio Mode Toggle */}
+                  <div className="flex items-center justify-center gap-2">
+                    <button
+                      onClick={toggleAudioMode}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                        audioMode 
+                          ? 'bg-blue-500 text-white' 
+                          : 'bg-white/10 text-white hover:bg-white/20'
+                      }`}
+                    >
+                      {audioMode ? '🎤 Voice Mode' : '⌨️ Text Mode'}
+                    </button>
+                  </div>
+                  
+                  {/* Audio Mode Instructions */}
+                  {audioMode && (
+                    <div className="bg-blue-500/10 border border-blue-500/20 px-4 py-2 rounded-lg text-sm text-blue-300">
+                      💡 <strong>Voice Mode:</strong> Click the microphone button and speak your answer clearly. 
+                      The game will automatically submit your answer after recognition.
+                    </div>
+                  )}
+
+                  {/* Audio Mode UI */}
+                  {audioMode ? (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={isListening ? stopListening : startListening}
+                          disabled={!!feedback && feedback.includes("Correct")}
+                          className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-all ${
+                            isListening 
+                              ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse' 
+                              : 'bg-blue-500 hover:bg-blue-600 text-white'
+                          }`}
+                        >
+                          {isListening ? (
+                            <div className="flex items-center justify-center gap-2">
+                              <div className="w-2 h-2 bg-white rounded-full animate-ping"></div>
+                              <div className="w-2 h-2 bg-white rounded-full animate-ping" style={{animationDelay: '0.2s'}}></div>
+                              <div className="w-2 h-2 bg-white rounded-full animate-ping" style={{animationDelay: '0.4s'}}></div>
+                              🛑 Stop Listening
+                            </div>
+                          ) : (
+                            '🎤 Start Listening'
+                          )}
+                        </button>
+                      </div>
+                      
+                      {/* Current Guess Display */}
+                      <div className="bg-white/5 border border-white/20 px-4 py-2 rounded-lg text-sm">
+                        <span className="text-white/60">Current Answer:</span>
+                        <div className="mt-1 font-medium text-white">
+                          {guess || (transcript ? transcript : 'No answer yet')}
+                        </div>
+                      </div>
+                      
+                      {transcript && (
+                        <div className="bg-blue-500/20 border border-blue-500/30 px-4 py-2 rounded-lg text-sm">
+                          <div className="flex items-center justify-between">
+                            <span className="text-blue-300">Heard:</span>
+                            <span className="text-green-400 text-xs">✓ Recognized</span>
+                          </div>
+                          <div className="mt-1 font-medium">{transcript}</div>
+                          <div className="mt-1 text-xs text-blue-200">
+                            Answer will be submitted automatically...
+                          </div>
+                          {confidence > 0 && (
+                            <div className="mt-1 text-xs text-blue-200">
+                              Confidence: {Math.round(confidence * 100)}%
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {speechError && (
+                        <div className="bg-red-500/20 border border-red-500/30 px-4 py-2 rounded-lg text-sm text-red-300">
+                          {speechError}
+                        </div>
+                      )}
+                      
+                      {/* Manual Submit for Audio Mode */}
+                      {guess && (
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            onClick={handleGuess}
+                            disabled={!!feedback && feedback.includes("Correct")}
+                            className="py-2 bg-green-500 hover:bg-green-600 rounded-lg text-sm font-semibold text-white"
+                          >
+                            ✅ Submit Answer
+                          </button>
+                          <button
+                            onClick={() => {
+                              setGuess("");
+                              setTranscript("");
+                              setConfidence(0);
+                            }}
+                            className="py-2 bg-gray-500 hover:bg-gray-600 rounded-lg text-sm font-semibold text-white"
+                          >
+                            🗑️ Clear & Re-record
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    /* Text Mode UI */
+                    <input
+                      value={guess}
+                      onChange={(e) => setGuess(e.target.value)}
+                      onKeyPress={(e) => e.key === "Enter" && handleGuess()}
+                      placeholder="Type your answer..."
+                      className="w-full px-4 py-3 bg-white/5 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-amber-500 placeholder-white/40"
+                      disabled={!!feedback && feedback.includes("Correct")}
+                    />
+                  )}
 
                   <div className="grid grid-cols-2 gap-3">
                     <button
