@@ -329,16 +329,7 @@ const EmojiGame = () => {
       if (newTries <= 0) {
         setGameOver(true);
         await saveScore();
-        navigate("/game-result", {
-          state: {
-            sessionId: sessionId,
-            playerId: playerId,
-            playerName: playerName,
-            gameType: "Emoji Game",
-            score: score,
-            timestamp: new Date().toISOString(),
-          },
-        });
+        // Navigation is now handled by the gameOver effect
       }
     }
     setGuess("");
@@ -514,6 +505,37 @@ const EmojiGame = () => {
     }
     return () => clearInterval(interval);
   }, [timer, showIntro, gameOver]);
+
+  // Effect to handle game over and navigation
+  useEffect(() => {
+    if (gameOver) {
+      console.log("🎮 Game over detected, preparing to navigate...");
+      console.log("📊 Final game state:", {
+        sessionId,
+        playerId,
+        playerName,
+        score,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Small delay to ensure saveScore completes
+      const timer = setTimeout(() => {
+        console.log("🚀 Navigating to game result page...");
+        navigate("/game-result", {
+          state: {
+            sessionId: sessionId,
+            playerId: playerId,
+            playerName: playerName,
+            gameType: "Emoji Game",
+            score: score,
+            timestamp: new Date().toISOString(),
+          },
+        });
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [gameOver, sessionId, playerId, playerName, score, navigate]);
 
   // Initialize player progress on mount
   useEffect(() => {

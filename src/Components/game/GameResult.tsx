@@ -1,7 +1,7 @@
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import LoadingSpinner from '../utility/LoadingSpinner';
 
 interface GameResultData {
@@ -34,13 +34,17 @@ const GameResult: React.FC = () => {
 
   useEffect(() => {
     const fetchResult = async () => {
+      console.log("🎯 GameResult: Received location state:", location.state);
       const { sessionId, playerId, playerName, gameType, score, timestamp } = location.state || {};
 
       if (!sessionId || !playerId) {
+        console.error("❌ GameResult: Missing required data:", { sessionId, playerId });
         setError('Missing session or player ID.');
         setIsLoading(false);
         return;
       }
+
+      console.log("✅ GameResult: Required data present:", { sessionId, playerId, playerName, gameType, score, timestamp });
 
       try {
         // Try to fetch from API first
