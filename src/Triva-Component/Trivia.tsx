@@ -78,7 +78,7 @@ const TriviaGame = () => {
         ];
         
         const { data, error } = await supabase
-          .from("questionstrivia")
+          .from("quiz_questions")
           .select("*")
           .gte('difficulty', difficultyRange[0])
           .lte('difficulty', difficultyRange[1])
@@ -111,7 +111,7 @@ const TriviaGame = () => {
     ];
     
     await supabase
-      .from("questionstrivia")
+      .from("quiz_questions")
       .select("*")
       .gte('difficulty', difficultyRange[0])
       .lte('difficulty', difficultyRange[1])

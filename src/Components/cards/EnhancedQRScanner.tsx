@@ -224,39 +224,28 @@ const EnhancedQRScanner: React.FC = () => {
 
   const handleScan = useCallback(
     async (scannedData: string) => {
-      console.log("handleScan called with:", scannedData);
-      if (isLoading) {
-        console.log("handleScan: isLoading is true, returning.");
-        return;
-      }
+      if (isLoading) return;
       setIsLoading(true);
       setError(null);
 
       try {
         const cardNumber = scannedData.replace(/\D/g, "");
-        console.log("handleScan: Processed card number:", cardNumber);
-
         if (!/^\d{13}$/.test(cardNumber)) {
           setError("Invalid card format. Please scan a valid Yenege card.");
           setIsLoading(false);
-          console.log("handleScan: Invalid card format.");
           return;
         }
 
-        console.log("handleScan: Getting user session...");
         let user = null;
         try {
           const { data, error } = await supabase.auth.getUser();
           if (error) {
-            console.error("handleScan: Error getting user session:", error);
             setError("Failed to get user session. Please try logging in again.");
             setIsLoading(false);
             return;
           }
           user = data.user;
-          console.log("handleScan: User from session:", user);
         } catch (err) {
-          console.error("handleScan: Exception during getUser:", err);
           setError("An unexpected error occurred while getting user session.");
           setIsLoading(false);
           return;
@@ -265,22 +254,16 @@ const EnhancedQRScanner: React.FC = () => {
         if (!user) {
           setShowLoginModal(true);
           setIsLoading(false);
-          console.log("handleScan: User not logged in, showing login modal.");
           return;
         }
 
-        console.log("handleScan: Activating card...");
         const result = await activateCard(cardNumber, user.id);
-        console.log("handleScan: activateCard result:", result);
-
         if (!result.success) {
           setError(result.error ?? "Activation failed");
           setIsLoading(false);
-          console.log("handleScan: Card activation failed.", result.error);
           return;
         }
         const activation = result.card;
-        console.log("handleScan: Card activation successful, data:", activation);
 
         // effective_routes may contain game names, ids, or paths (e.g., ['emoji game'])
         const allowedGames = gameRoutes.filter((game) => {
@@ -296,7 +279,6 @@ const EnhancedQRScanner: React.FC = () => {
             );
           });
         });
-        console.log("handleScan: Allowed games:", allowedGames);
 
         const cardData: ScannedCardData = {
           id: activation.id,
@@ -313,12 +295,10 @@ const EnhancedQRScanner: React.FC = () => {
           used: activation.used,
           allowedGames,
         };
-        console.log("handleScan: Constructed cardData:", cardData);
 
         if (activation.used) {
           setError("This card has already been used. Please scan a new card.");
           setIsLoading(false);
-          console.log("handleScan: Card already used.");
           return;
         }
 
@@ -327,7 +307,6 @@ const EnhancedQRScanner: React.FC = () => {
             "No games available for this card. The card may not be associated with any games."
           );
           setIsLoading(false);
-          console.log("handleScan: No allowed games for this card.");
           return;
         }
 
@@ -335,13 +314,11 @@ const EnhancedQRScanner: React.FC = () => {
         setScannedCard(cardData);
         setSelectedRoute(allowedGames[0].id);
 
-        console.log("handleScan: Starting session...");
         await startSession(
           cardData.game_type_id,
           cardData.id,
           cardData.duration * 60
         );
-        console.log("handleScan: Session started. Navigating...");
         navigate(allowedGames[0].path, {
           state: {
             cardDetails: cardData,
@@ -350,7 +327,6 @@ const EnhancedQRScanner: React.FC = () => {
           },
         });
 
-        console.log("handleScan: Stopping scanner...");
         await stopScanner();
       } catch (err) {
         console.error("Unexpected error in handleScan:", err);
@@ -372,14 +348,9 @@ const EnhancedQRScanner: React.FC = () => {
   };
 
   const handleManualEntry = () => {
-    console.log("Manual Entry button clicked.");
     const manualInput = prompt("Enter 13-digit card number:");
-    console.log("Manual input received:", manualInput);
     if (manualInput) {
-      console.log("Calling handleScan with:", manualInput);
       handleScan(manualInput);
-    } else {
-      console.log("Manual input was empty or cancelled.");
     }
   };
 

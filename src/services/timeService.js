@@ -12,9 +12,6 @@ class TimeServiceClass {
     this.startTime = null;
     this.duration = 0;
     this.isExpired = false;
-    
-    // Initialize from storage on creation
-    this.loadFromStorage();
   }
 
   // Initialize timer with duration in minutes

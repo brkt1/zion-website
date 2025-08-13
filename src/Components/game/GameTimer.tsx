@@ -1,9 +1,10 @@
-import React, { useContext, useEffect, useCallback, Suspense } from 'react';
+import React, { useContext, useEffect, useCallback, Suspense, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 const ThankYou = React.lazy(() => import('../utility/ThankYou'));
 import { TimeContext } from '../../App.tsx';
 import type { TimeContextType } from '../../@types/app';
+import { TimeService } from '../../services/timeService';
 
 const registerServiceWorker = async () => {
   if ('serviceWorker' in navigator) {
@@ -29,43 +30,35 @@ const registerServiceWorker = async () => {
 
 const GameTimer = () => {
   const context = useContext(TimeContext) as TimeContextType;
-  const { remainingTime, isExpired, formatTime, updateTimer, isTimerActive } = context;
+  const { formatTime } = context;
+  const [remainingTime, setRemainingTime] = useState(0);
+  const [isExpired, setIsExpired] = useState(false);
+  const [isTimerActive, setIsTimerActive] = useState(false);
+
   const progressPercentage = (remainingTime / 120) * 100;
   const navigate = useNavigate();
 
-  // Save timer state to sessionStorage whenever it changes
+  // Subscribe to TimeService updates
   useEffect(() => {
-    sessionStorage.setItem('timerState', JSON.stringify({
-      remainingTime,
-      isExpired,
-      isTimerActive,
-      lastUpdated: Date.now()
-    }));
-  }, [remainingTime, isExpired, isTimerActive]);
+    const unsubscribe = TimeService.subscribe((state) => {
+      setRemainingTime(state.remainingTime);
+      setIsExpired(state.isExpired);
+      setIsTimerActive(state.isActive);
+    });
+    return () => unsubscribe();
+  }, []);
 
   // Load timer state from sessionStorage on component mount
   useEffect(() => {
-    const savedState = sessionStorage.getItem('timerState');
-    if (savedState) {
-      try {
-        const { remainingTime, isExpired, isTimerActive, lastUpdated } = JSON.parse(savedState);
-        
-        // Calculate elapsed time since last save
-        const elapsedSeconds = Math.floor((Date.now() - lastUpdated) / 1000);
-        const updatedRemainingTime = Math.max(0, remainingTime - elapsedSeconds);
-        const updatedIsExpired = updatedRemainingTime <= 0;
-        
-        updateTimer(updatedRemainingTime, updatedIsExpired);
-        
-        // If timer was active and now expired, show thank you
-        if (isTimerActive && updatedIsExpired) {
-          navigate('/thank-you'); // or show the ThankYou component directly
-        }
-      } catch (error) {
-        console.error('Failed to parse saved timer state:', error);
-      }
+    // TimeService state is managed by sessionStore, so GameTimer just observes it.
+    // The initial state will be set by the sessionStore's subscription to TimeService.
+    // No direct loading needed here.
+
+    // If timer was active and now expired, show thank you
+    if (isTimerActive && isExpired) {
+      navigate('/thank-you'); // or show the ThankYou component directly
     }
-  }, [updateTimer, navigate]);
+  }, [navigate, isTimerActive, isExpired]);
 
   const handleVisibilityChange = useCallback(() => {
     if (document.hidden && remainingTime > 0 && isTimerActive) {
@@ -77,25 +70,26 @@ const GameTimer = () => {
     registerServiceWorker();
 
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      navigator.serviceWorker.addEventListener('message', (event) => {
+      const messageHandler = (event: MessageEvent) => {
         if (event.data.type === 'TIMER_UPDATE') {
-          const { remainingTime, isExpired } = event.data;
-          updateTimer(remainingTime, isExpired);
+          // TimeService is already globally managing state, so no direct update needed here
+          // The subscription in the other useEffect will handle state updates
         }
-      });
+      };
+      navigator.serviceWorker.addEventListener('message', messageHandler);
+      return () => {
+        navigator.serviceWorker.removeEventListener('message', messageHandler);
+      };
     }
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('beforeunload', handleVisibilityChange);
 
     return () => {
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.removeEventListener('message', () => {});
-      }
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', handleVisibilityChange);
     };
-  }, [updateTimer, handleVisibilityChange]);
+  }, [handleVisibilityChange]);
 
   if (isExpired) {
     return (

@@ -57,19 +57,30 @@ export const useSessionStore = create<SessionState>((set, get) => {
     isExpired: false,
   });
 
-  // Subscribe to TimeService updates
-  TimeService.subscribe((state) => {
+  // Function to handle TimeService updates
+  const handleTimeServiceUpdate = (state: any) => {
     set({
       remainingTime: state.remainingTime,
       isTimerActive: state.isActive,
       isExpired: state.isExpired,
     });
     if (state.isExpired) {
-      get().endSession();
+      // Defer endSession call to ensure it's available
+      queueMicrotask(() => {
+        get().endSession();
+      });
     }
-  });
+  };
+
+  // Subscribe to TimeService updates
+  TimeService.subscribe(handleTimeServiceUpdate);
 
   return {
+    currentSession: null, // Reset initial state here as well
+    remainingTime: 0,
+    isTimerActive: false,
+    isExpired: false,
+
     startSession: async (
       gameTypeId: string,
       playerName: string,
@@ -247,3 +258,5 @@ export const useSessionStore = create<SessionState>((set, get) => {
     },
   };
 });
+
+  
