@@ -1,20 +1,25 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-    FaGamepad, 
-    FaQuestionCircle, 
-    FaSmile, 
-    FaHandRock, 
-    FaDownload,
+import React, { useEffect, useState } from 'react';
+import {
+    FaChevronRight,
     FaCrown,
-    FaStar,
-    FaChevronRight
+    FaDownload,
+    FaGamepad,
+    FaHandRock,
+    FaLock,
+    FaQuestionCircle,
+    FaSmile
 } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 import GlobalLeaderboard from './Components/utility/GlobalLeaderboard';
+
+import { useAuthStore } from './stores/authStore';
 
 const Landing = () => {
   const [showDownloadButton, setShowDownloadButton] = useState(false);
+  const [availableGames, setAvailableGames] = useState<Game[]>([]);
+  const [isLoadingGames, setIsLoadingGames] = useState(true);
+  const { user, session } = useAuthStore();
 
   const handleLaunchApp = () => {
     // Attempt to launch the app via custom URL scheme on user gesture
@@ -41,34 +46,45 @@ const Landing = () => {
     window.location.href = 'https://yenege.com';
   };
 
-  const games = [ 
+  // Show all games for all users
+  useEffect(() => {
+    setIsLoadingGames(true);
+    setAvailableGames(allGames);
+    setIsLoadingGames(false);
+  }, []);
+
+  const allGames = [ 
     { 
       to: "/emoji-game", 
       label: "Emoji Game", 
       description: "Guess the hidden emoji phrases",
       icon: FaSmile,
-      accentColor: "bg-gold-primary"
+      accentColor: "bg-gold-primary",
+      gameTypeName: "emoji"
     },
     { 
       to: "/truth-or-dare", 
       label: "Truth or Dare", 
       description: "Choose lovers or friends mode",
       icon: FaGamepad,
-      accentColor: "bg-gold-secondary"
+      accentColor: "bg-gold-secondary",
+      gameTypeName: "truth_or_dare"
     },
     { 
       to: "/trivia-game", 
       label: "Trivia Challenge", 
       description: "Test your knowledge across categories",
       icon: FaQuestionCircle,
-      accentColor: "bg-gold-primary"
+      accentColor: "bg-gold-primary",
+      gameTypeName: "trivia"
     },
     { 
       to: "/rock-paper-scissors", 
       label: "Rock Paper Scissors", 
       description: "The ultimate showdown", 
       icon: FaHandRock,
-      accentColor: "bg-gold-secondary"
+      accentColor: "bg-gold-secondary",
+      gameTypeName: "rock_paper_scissors"
     }
   ];
 
@@ -78,6 +94,7 @@ const Landing = () => {
     description: string;
     icon: React.ComponentType<{ className?: string }>;
     accentColor: string;
+    gameTypeName: string;
   }
 
   interface GameButtonProps {
@@ -202,9 +219,33 @@ const Landing = () => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
         >
-          {games.map((game, index) => (
-            <GameButton key={game.to} game={game} index={index} />
-          ))}
+          {isLoadingGames ? (
+            // Loading state
+            Array.from({ length: 4 }).map((_, index) => (
+              <motion.div
+                key={index}
+                className="h-full bg-black-secondary rounded-xl border border-gray-dark animate-pulse"
+                style={{ height: '200px' }}
+              />
+            ))
+          ) : availableGames.length > 0 ? (
+            availableGames.map((game, index) => (
+              <GameButton key={game.to} game={game} index={index} />
+            ))
+          ) : (
+            // No games available state
+            <motion.div
+              className="col-span-full text-center py-12"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              <FaLock className="text-4xl text-gray-medium mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-white mb-2">All Games Completed!</h3>
+              <p className="text-gray-light">
+                You've played all available games. Check back later for new content!
+              </p>
+            </motion.div>
+          )}
         </motion.div>
 
         {showDownloadButton ? (

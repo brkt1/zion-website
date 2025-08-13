@@ -18,6 +18,8 @@ import { useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import { GameSessionGuard } from '../Components/game/GameSessionGuard';
 import GlobalLeaderboard from '../Components/utility/GlobalLeaderboard';
+import { ContentHistoryService } from "../services/contentHistoryService";
+
 import { useAuthStore } from '../stores/authStore';
 import { useSessionStore } from '../stores/sessionStore';
 import { supabase } from "../supabaseClient";
@@ -66,30 +68,99 @@ const TriviaGame = () => {
   const googleName = session?.user?.user_metadata?.full_name || session?.user?.user_metadata?.name || user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0];
   const googleId = user?.id;
 
-  // Fetch questions with difficulty scaling
+  // Fetch questions with content history filtering
   useEffect(() => {
     const fetchQuestions = async () => {
       setIsLoading(true);
       try {
-        // Fetch questions based on current stage (higher stages get harder questions)
-        const difficultyRange = [
-          Math.max(1, currentStage - 1),
-          Math.min(3, currentStage + 1)
-        ];
-        
-        const { data, error } = await supabase
-          .from("quiz_questions")
-          .select("*")
-          .gte('difficulty', difficultyRange[0])
-          .lte('difficulty', difficultyRange[1])
-          .order('difficulty', { ascending: currentStage < 2 })
-          .limit(20); // More questions for variety
+        // If user is authenticated, get unseen questions
+        if (user?.id) {
+          try {
+            const unseenQuestions = await ContentHistoryService.getUnseenQuestions(user.id);
+            
+            if (unseenQuestions.length > 0) {
+              // Filter by difficulty range
+              const difficultyRange = [
+                Math.max(1, currentStage - 1),
+                Math.min(3, currentStage + 1)
+              ];
+              const filteredQuestions = unseenQuestions.filter(question => 
+                question.difficulty >= difficultyRange[0] && question.difficulty <= difficultyRange[1]
+              );
+              
+              if (filteredQuestions.length > 0) {
+                setQuestions(filteredQuestions);
+                preloadNextStageQuestions(currentStage + 1);
+              } else {
+                // Fallback to seen questions if no unseen ones match difficulty
+                const fallbackQuestions = await ContentHistoryService.getFallbackContent(
+                  user.id, 
+                  await ContentHistoryService.getGameTypeIdByName('trivia') || '', 
+                  'question', 
+                  20
+                );
+                if (fallbackQuestions.length > 0) {
+                  setQuestions(fallbackQuestions);
+                } else {
+                  showFeedback("No questions available. Please try again.", 'error');
+                }
+              }
+            } else {
+              // User has seen all questions, get fallback content
+              const fallbackQuestions = await ContentHistoryService.getFallbackContent(
+                user.id, 
+                await ContentHistoryService.getGameTypeIdByName('trivia') || '', 
+                'question', 
+                20
+              );
+              if (fallbackQuestions.length > 0) {
+                setQuestions(fallbackQuestions);
+              } else {
+                showFeedback("No questions available. Please try again.", 'error');
+              }
+            }
+          } catch (historyError) {
+            console.error("Error fetching unseen questions:", historyError);
+            // Fallback to original method
+            const difficultyRange = [
+              Math.max(1, currentStage - 1),
+              Math.min(3, currentStage + 1)
+            ];
+            
+            const { data, error } = await supabase
+              .from("quiz_questions")
+              .select("*")
+              .gte('difficulty', difficultyRange[0])
+              .lte('difficulty', difficultyRange[1])
+              .order('difficulty', { ascending: currentStage < 2 })
+              .limit(20);
 
-        if (error) throw error;
-        if (data) {
-          setQuestions(data);
-          // Pre-load next stage questions
-          preloadNextStageQuestions(currentStage + 1);
+            if (error) throw error;
+            if (data) {
+              setQuestions(data);
+              preloadNextStageQuestions(currentStage + 1);
+            }
+          }
+        } else {
+          // For unauthenticated users, use original method
+          const difficultyRange = [
+            Math.max(1, currentStage - 1),
+            Math.min(3, currentStage + 1)
+          ];
+          
+          const { data, error } = await supabase
+            .from("quiz_questions")
+            .select("*")
+            .gte('difficulty', difficultyRange[0])
+            .lte('difficulty', difficultyRange[1])
+            .order('difficulty', { ascending: currentStage < 2 })
+            .limit(20);
+
+          if (error) throw error;
+          if (data) {
+            setQuestions(data);
+            preloadNextStageQuestions(currentStage + 1);
+          }
         }
       } catch (error) {
         console.error("Error fetching questions:", error);
@@ -100,7 +171,7 @@ const TriviaGame = () => {
     };
 
     fetchQuestions();
-  }, [currentStage]);
+  }, [currentStage, user?.id]);
 
   const preloadNextStageQuestions = async (nextStage: number) => {
     if (nextStage > 3) return;
@@ -208,6 +279,17 @@ const TriviaGame = () => {
           });
       }
 
+      // Note: Content history will be recorded as questions are shown
+      try {
+        const gameTypeId = await ContentHistoryService.getGameTypeIdByName('trivia');
+        if (gameTypeId && idToUse) {
+          console.log("Game started - content history will be recorded as questions are shown");
+        }
+      } catch (historyError) {
+        console.error("Failed to initialize content history:", historyError);
+        // Don't prevent game from starting if history recording fails
+      }
+
       setGameStarted(true);
       setIsGameOver(false);
       setScore(0);
@@ -217,6 +299,9 @@ const TriviaGame = () => {
         setCurrentQuestionIndex(initialIndex);
         setUsedQuestionIndices([initialIndex]);
         setTimer(Math.max(10, 15 - (currentStage - 1) * 2));
+        
+        // Record that the initial question has been shown
+        setTimeout(() => recordQuestionSeen(initialIndex), 100);
       } else {
         showFeedback("No questions available to start the game.", 'error');
         setIsLoading(false); // Ensure loading state is reset if no questions
@@ -249,6 +334,25 @@ const TriviaGame = () => {
     handleNextQuestion();
   };
 
+  const recordQuestionSeen = async (questionIndex: number) => {
+    if (user?.id && questions[questionIndex]) {
+      try {
+        const gameTypeId = await ContentHistoryService.getGameTypeIdByName('trivia');
+        if (gameTypeId) {
+          await ContentHistoryService.recordContentSeen(
+            user.id,
+            gameTypeId,
+            questions[questionIndex].id,
+            'question'
+          );
+          console.log(`Question "${questions[questionIndex].question.substring(0, 50)}..." recorded as seen`);
+        }
+      } catch (error) {
+        console.error("Failed to record question as seen:", error);
+      }
+    }
+  };
+
   const handleNextQuestion = () => {
     const nextIndex = getRandomQuestionIndex();
 
@@ -256,6 +360,9 @@ const TriviaGame = () => {
       setCurrentQuestionIndex(nextIndex);
       setUsedQuestionIndices((prev) => [...prev, nextIndex]);
       setTimer(Math.max(10, 15 - (currentStage - 1) * 2));
+      
+      // Record that this question has been shown
+      recordQuestionSeen(nextIndex);
     } else {
       endGame();
     }
@@ -321,6 +428,17 @@ const TriviaGame = () => {
           timestamp: new Date().toISOString(),
           session_id: sessionId
         });
+      }
+
+      // Note: Content history was recorded during gameplay
+      try {
+        const gameTypeId = await ContentHistoryService.getGameTypeIdByName('trivia');
+        if (gameTypeId && playerId) {
+          console.log("Game completed - content history was recorded during gameplay");
+        }
+      } catch (historyError) {
+        console.error("Failed to record game completion:", historyError);
+        // Don't prevent game from ending if history recording fails
       }
 
       // Navigate to game result page

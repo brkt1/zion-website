@@ -11,12 +11,15 @@ import {
 import {supabase} from "../supabaseClient";
 import { GameSessionGuard } from '../Components/game/GameSessionGuard';
 import { useSessionStore } from '../stores/sessionStore';
+import { ContentHistoryService } from '../services/contentHistoryService';
+import { useAuthStore } from '../stores/authStore';
 
 const FriendsGameMode = () => {
  const location = useLocation();
   const navigate = useNavigate();
   const { category, gameMode } = location.state || {};
   const { startSession } = useSessionStore();
+  const { user } = useAuthStore();
 
   // Design Tokens
   const designTokens = {
@@ -48,19 +51,88 @@ const FriendsGameMode = () => {
   useEffect(() => {
     const fetchAllQuestions = async () => {
       try {
-        const { data, error } = await supabase
-          .from("frquetion")
-          .select("question, type");
-
-        if (error) throw error;
+        let data;
         
-        if (data && data.length > 0) {
-          const questionsByType = {
-            Truth: data.filter(item => item.type === 'Truth').map(item => item.question),
-            Dare: data.filter(item => item.type === 'Dare').map(item => item.question)
-          };
+        if (user) {
+          // Use content history for authenticated users
+          try {
+            const unseenTruthQuestions = await ContentHistoryService.getUnseenFriendsQuestions(
+              user.id, 
+              'Truth'
+            );
+            
+            const unseenDareQuestions = await ContentHistoryService.getUnseenFriendsQuestions(
+              user.id, 
+              'Dare'
+            );
+            
+            if (unseenTruthQuestions.length > 0 || unseenDareQuestions.length > 0) {
+              const questionsByType = {
+                Truth: unseenTruthQuestions.map(item => item.question),
+                Dare: unseenDareQuestions.map(item => item.question)
+              };
+              
+              setQuestions(questionsByType);
+            } else {
+              // Fallback to recently seen content
+              const gameTypeId = await ContentHistoryService.getGameTypeIdByName('truth_or_dare');
+              if (gameTypeId) {
+                const fallbackTruth = await ContentHistoryService.getFallbackContent(
+                  user.id,
+                  gameTypeId,
+                  'friends_question',
+                  10
+                );
+                
+                const fallbackDare = await ContentHistoryService.getFallbackContent(
+                  user.id,
+                  gameTypeId,
+                  'friends_question',
+                  10
+                );
+                
+                const questionsByType = {
+                  Truth: fallbackTruth.map(item => item.question),
+                  Dare: fallbackDare.map(item => item.question)
+                };
+                
+                setQuestions(questionsByType);
+              }
+            }
+          } catch (historyError) {
+            console.error('Content history error, falling back to original logic:', historyError);
+            // Fallback to original logic
+            const { data: originalData, error } = await supabase
+              .from("frquetion")
+              .select("question, type");
+
+            if (error) throw error;
+            
+            if (originalData && originalData.length > 0) {
+              const questionsByType = {
+                Truth: originalData.filter(item => item.type === 'Truth').map(item => item.question),
+                Dare: originalData.filter(item => item.type === 'Dare').map(item => item.question)
+              };
+              
+              setQuestions(questionsByType);
+            }
+          }
+        } else {
+          // Original logic for unauthenticated users
+          const { data: originalData, error } = await supabase
+            .from("frquetion")
+            .select("question, type");
+
+          if (error) throw error;
           
-          setQuestions(questionsByType);
+          if (originalData && originalData.length > 0) {
+            const questionsByType = {
+              Truth: originalData.filter(item => item.type === 'Truth').map(item => item.question),
+              Dare: originalData.filter(item => item.type === 'Dare').map(item => item.question)
+            };
+            
+            setQuestions(questionsByType);
+          }
         }
       } catch (error) {
         console.error("Error fetching questions:", error);
@@ -81,10 +153,10 @@ const FriendsGameMode = () => {
     };
 
     fetchAllQuestions();
-  }, []);
+  }, [user]);
 
   // Question Fetch Logic
-  const fetchQuestion = useCallback((type) => {
+  const fetchQuestion = useCallback(async (type) => {
     try {
       const typeQuestions = questions[type] || [];
       const sessionDisplayed = sessionDisplayedQuestions[type];
@@ -111,11 +183,38 @@ const FriendsGameMode = () => {
       }));
 
       setQuestion(newQuestion);
+      
+      // Record content as seen for authenticated users
+      if (user && newQuestion) {
+        try {
+          // Find the question ID from the original data
+          const { data: questionData, error } = await supabase
+            .from("frquetion")
+            .select("id")
+            .eq("question", newQuestion)
+            .eq("type", type)
+            .single();
+          
+          if (!error && questionData?.id) {
+            const gameTypeId = await ContentHistoryService.getGameTypeIdByName('truth_or_dare');
+            if (gameTypeId) {
+              await ContentHistoryService.recordContentSeen(
+                user.id,
+                gameTypeId,
+                questionData.id,
+                'friends_question'
+              );
+            }
+          }
+        } catch (error) {
+          console.error('Failed to record content seen:', error);
+        }
+      }
     } catch (error) {
       console.error("Error fetching question:", error);
       setQuestion(`No ${type} questions available. Please try again.`);
     }
-  }, [questions, sessionDisplayedQuestions]);
+  }, [questions, sessionDisplayedQuestions, user]);
 
   // Player Management Functions
   const addPlayer = () => {
@@ -161,9 +260,9 @@ const FriendsGameMode = () => {
   };
 
   // Game Logic Functions
-  const handleChoice = (choice) => {
+  const handleChoice = async (choice) => {
     setPlayerChoice(choice);
-    fetchQuestion(choice);
+    await fetchQuestion(choice);
   };
 
   const handleNextPlayer = () => {

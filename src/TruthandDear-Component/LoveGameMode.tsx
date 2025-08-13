@@ -4,11 +4,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FaHeart, FaFire, FaArrowLeft, FaDice } from "react-icons/fa";
 import { supabase } from "../supabaseClient";
 import { GameSessionGuard } from '../Components/game/GameSessionGuard';
+import { ContentHistoryService } from '../services/contentHistoryService';
+import { useAuthStore } from '../stores/authStore';
 
 const LoverGameMode = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { subtype } = location.state || {};
+  const { user } = useAuthStore();
 
   const [type, setType] = useState(null);
   const [questions, setQuestions] = useState([]);
@@ -24,13 +27,52 @@ const LoverGameMode = () => {
       setLoading(true);
 
       try {
-        const { data, error } = await supabase
-          .from("questions")
-          .select("*")
-          .ilike("type", type)
-          .ilike("subtype", subtypeState);
-
-        if (error) throw error;
+        let data;
+        
+        if (user) {
+          // Use content history for authenticated users
+          try {
+            const unseenQuestions = await ContentHistoryService.getUnseenLoversQuestions(
+              user.id, 
+              type, 
+              subtypeState
+            );
+            
+            if (unseenQuestions.length > 0) {
+              data = unseenQuestions;
+            } else {
+              // Fallback to recently seen content
+              const fallbackContent = await ContentHistoryService.getFallbackContent(
+                user.id,
+                await ContentHistoryService.getGameTypeIdByName('truth_or_dare') || '',
+                'lovers_question',
+                20
+              );
+              data = fallbackContent;
+            }
+          } catch (historyError) {
+            console.error('Content history error, falling back to original logic:', historyError);
+            // Fallback to original logic
+            const { data: originalData, error } = await supabase
+              .from("questions")
+              .select("*")
+              .ilike("type", type)
+              .ilike("subtype", subtypeState);
+            
+            if (error) throw error;
+            data = originalData;
+          }
+        } else {
+          // Original logic for unauthenticated users
+          const { data: originalData, error } = await supabase
+            .from("questions")
+            .select("*")
+            .ilike("type", type)
+            .ilike("subtype", subtypeState);
+          
+          if (error) throw error;
+          data = originalData;
+        }
 
         if (data.length === 0) {
           setCurrentQuestion({ content: "No questions found. Try different settings." });
@@ -48,9 +90,9 @@ const LoverGameMode = () => {
     };
 
     fetchQuestions();
-  }, [type, subtypeState]);
+  }, [type, subtypeState, user]);
 
-  const nextQuestion = () => {
+  const nextQuestion = async () => {
     if (questions.length > 0) {
       const availableQuestions = questions.filter(
         q => !questionHistory.some(history => history.id === q.id)
@@ -65,6 +107,23 @@ const LoverGameMode = () => {
         const nextQ = availableQuestions[Math.floor(Math.random() * availableQuestions.length)];
         setCurrentQuestion(nextQ);
         setQuestionHistory(prev => [...prev, nextQ]);
+        
+        // Record content as seen for authenticated users
+        if (user && nextQ.id) {
+          try {
+            const gameTypeId = await ContentHistoryService.getGameTypeIdByName('truth_or_dare');
+            if (gameTypeId) {
+              await ContentHistoryService.recordContentSeen(
+                user.id,
+                gameTypeId,
+                nextQ.id,
+                'lovers_question'
+              );
+            }
+          } catch (error) {
+            console.error('Failed to record content seen:', error);
+          }
+        }
       }
     }
     setType(null);
