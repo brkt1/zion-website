@@ -1,12 +1,9 @@
-import React, { lazy, Suspense, useEffect, useState } from "react";
+import React, { lazy, Suspense } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import AccessDenied from "../Components/utility/AccessDenied";
 import LoadingSpinner from "../Components/utility/LoadingSpinner";
 import WrongGameType from "../Components/utility/WrongGameType";
 import { useAuthStore } from "../stores/authStore";
-
-import { useSessionStore } from "../stores/sessionStore";
-import { supabase } from "../supabaseClient";
 
 // Lazy-loaded components
 const Lovers = lazy(() => import("../TruthandDear-Component/Lovers"));
@@ -55,117 +52,15 @@ interface ProtectedRouteProps {
   children: React.ReactElement;
 }
 
-// Map routes to their expected gameTypeIds
-const gameTypeRoutes: { [key: string]: string } = {
-  "/lovers": "TRUTH_OR_DARE",
-  "/friends": "TRUTH_OR_DARE",
-  "/game-mode": "TRUTH_OR_DARE",
-  "/friends-game-mode": "TRUTH_OR_DARE",
-  "/truth-or-dare": "TRUTH_OR_DARE",
-  "/trivia-game": "TRIVIA",
-  "/rock-paper-scissors": "ROCK_PAPER_SCISSORS",
-  "/emoji-game": "EMOJI_GAME",
-};
-
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const location = useLocation();
-  const { currentSession, isTimerActive } = useSessionStore();
   const { session } = useAuthStore();
-  interface GameType {
-    id: string;
-    name: string;
-    route_access: string[];
-  }
-  const [gameTypes, setGameTypes] = useState<GameType[]>([]);
-  const [loadingGameTypes, setLoadingGameTypes] = useState(true);
+  const location = useLocation();
 
-  useEffect(() => {
-    // Fetch game types from Supabase
-    const fetchGameTypes = async () => {
-      setLoadingGameTypes(true);
-      const { data, error } = await supabase
-        .from("game_types")
-        .select("id, name, route_access");
-      if (data) {
-        setGameTypes(data);
-      }
-      setLoadingGameTypes(false);
-    };
-    fetchGameTypes();
-  }, []);
-
-  // Helper to check if the current route is allowed for the session's game type (by name)
-  const checkRouteAccess = (
-    currentRoute: string,
-    gameTypeName: string
-  ): boolean => {
-    const gameType = gameTypes.find((gt: GameType) => gt.name === gameTypeName);
-    if (!gameType) {
-      console.debug(`[DEBUG] Game type not found for name: ${gameTypeName}`);
-      return false;
-    }
-    // Check if the current route is in the route_access array
-    const hasAccess = (gameType.route_access || [])
-      .map((r: string) => r.toLowerCase())
-      .includes(currentRoute.toLowerCase());
-    console.debug(`[DEBUG] Current gameTypeName: ${gameTypeName}`);
-    console.debug(`[DEBUG] Expected route access for: ${currentRoute}`);
-    console.debug(
-      `[DEBUG] Available routes: ${(gameType.route_access || []).join(", ")}`
-    );
-    console.debug(`[DEBUG] Has access: ${hasAccess}`);
-    return hasAccess;
-  };
-
-  // If game types are still loading, show spinner
-  if (loadingGameTypes) {
-    return <LoadingSpinner />;
-  }
-
-  // If it's a game-related route, check for active session and game type
-  if (gameTypeRoutes[location.pathname]) {
-    if (!currentSession?.isActive || !isTimerActive) {
-      return <Navigate to="/game-select" replace state={{ fromGame: true }} />;
-    }
-
-    const expectedGameTypeId = gameTypeRoutes[location.pathname];
-    const actualGameTypeId = currentSession.gameTypeId;
-
-    // If the actual game type ID doesn't match the expected game type ID for this route,
-    // and the actual game type ID is known, redirect to the canonical path for the actual game type.
-    if (actualGameTypeId && actualGameTypeId !== expectedGameTypeId) {
-        // Find the canonical path for the actual game type
-        const canonicalPathForActualGame = Object.keys(gameTypeRoutes).find(
-            key => gameTypeRoutes[key] === actualGameTypeId
-        );
-
-        if (canonicalPathForActualGame && canonicalPathForActualGame !== location.pathname) {
-            return <Navigate to={canonicalPathForActualGame} replace />;
-        }
-    }
-
-    // Use route_access array for validation by gameType name
-    const expectedGameTypeName = gameTypeRoutes[location.pathname];
-    if (!checkRouteAccess(location.pathname, expectedGameTypeName)) {
-      // Gather debug info
-      const debugInfo = {
-        currentGameTypeName: expectedGameTypeName,
-        currentGameTypeId: currentSession.gameTypeId,
-        expectedGameType: expectedGameTypeName,
-        currentRoute: location.pathname,
-        isActive: currentSession?.isActive,
-        isTimerActive,
-      };
-      return <Navigate to="/wrong-game-type" replace state={debugInfo} />;
-    }
-  } else if (!session) {
-    // For non-game routes, require a session
+  if (!session) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  return React.cloneElement(children, {
-    ...location.state,
-  });
+  return children;
 };
 
 interface RoleProtectedRouteProps {
@@ -207,6 +102,8 @@ const AppRoutes: React.FC = () => (
       <Route path="/access-denied" element={<AccessDenied />} />
       <Route path="/wrong-game-type" element={<WrongGameType />} />
       <Route path="/game-result" element={<GameResult />} />
+
+      {/* Games */}
       <Route
         path="/lovers"
         element={
@@ -248,24 +145,6 @@ const AppRoutes: React.FC = () => (
         }
       />
       <Route
-        path="/qr-scan"
-        element={
-          <ProtectedRoute>
-            <EnhancedQRScanner />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/*"
-        element={
-          <RoleProtectedRoute allowedRoles={["ADMIN"]}>
-            <Admin />
-          </RoleProtectedRoute>
-        }
-      />
-      
-      
-      <Route
         path="/trivia-game"
         element={
           <ProtectedRoute>
@@ -297,12 +176,42 @@ const AppRoutes: React.FC = () => (
           </ProtectedRoute>
         }
       />
-      
+
+      {/* Admin Routes */}
+      <Route
+        path="/admin/*"
+        element={
+          <RoleProtectedRoute allowedRoles={["ADMIN"]}>
+            <Admin />
+          </RoleProtectedRoute>
+        }
+      />
+      <Route
+        path="/super-admin/*"
+        element={
+          <RoleProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
+            <SuperAdminPanel />
+          </RoleProtectedRoute>
+        }
+      />
+      <Route
+        path="/cafe-owner/dashboard"
+        element={
+          <RoleProtectedRoute allowedRoles={["CAFE_OWNER"]}>
+            <CafeOwnerDashboard />
+          </RoleProtectedRoute>
+        }
+      />
 
       {/* Enhanced Card System Routes */}
-      
       <Route path="/enhanced-scanner" element={<EnhancedQRScanner />} />
-      
+      <Route path="/qr-scan" element={<EnhancedQRScanner />} />
+      <Route
+        path="/enhanced-card-generator"
+        element={<EnhancedCardGenerator />}
+      />
+      <Route path="/winner-card-scanner" element={<WinnerCardScanner />} />
+      <Route path="/winner-card-generator" element={<WinnerCardGenerator />} />
     </Routes>
   </Suspense>
 );
