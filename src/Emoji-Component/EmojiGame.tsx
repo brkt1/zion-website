@@ -1,22 +1,21 @@
-import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  SparklesIcon,
+import {
   ClockIcon,
+  GiftIcon,
   HeartIcon,
   LightBulbIcon,
-  TrophyIcon,
-  GiftIcon
+  SparklesIcon,
+  TrophyIcon
 } from '@heroicons/react/24/outline';
-import { supabase } from '../supabaseClient';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
-import CertificateGenerator from '../Components/utility/CertificateGenerator';
 import { GameSessionGuard } from '../Components/game/GameSessionGuard';
-import { useAuthStore } from '../stores/authStore';
-import { User } from '@supabase/supabase-js';
 import GlobalLeaderboard from '../Components/utility/GlobalLeaderboard';
-import { Dialog } from '@headlessui/react';
+import { useAuthStore } from '../stores/authStore';
+import { useSessionStore } from '../stores/sessionStore';
+import { supabase } from '../supabaseClient';
+
 
 // Reward thresholds
 const REWARD_THRESHOLDS = {
@@ -44,6 +43,7 @@ type RewardType = 'free_game' | 'coffee' | 'cash_prize';
 const EmojiMastermind = () => {
   const navigate = useNavigate();
   const { user, session } = useAuthStore();
+  const { startSession } = useSessionStore();
 
   // State Management
   const [currentEmoji, setCurrentEmoji] = useState<Emoji | null>(null);
@@ -265,14 +265,14 @@ const EmojiMastermind = () => {
     }
   };
 
-  const handleStartGame = () => {
+  const handleStartGame = async () => {
     let nameToUse = playerName;
     let idToUse = playerId;
     if (user && googleName && googleId) {
       nameToUse = googleName;
       idToUse = googleId;
       setPlayerName(googleName);
-      setPlayerId(googleId);
+      setPlayerId(googleName);
     } else {
       if (playerName.trim().length < 3) {
         setFeedback('Please enter a name with at least 3 characters');
@@ -284,6 +284,14 @@ const EmojiMastermind = () => {
     }
     const newSessionId = uuidv4();
     setSessionId(newSessionId);
+    
+    // Start game session
+    try {
+      await startSession('emoji-game', nameToUse, 1800); // 30 minutes
+    } catch (error) {
+      console.error('Failed to start game session:', error);
+    }
+    
     // Initialize player progress
     supabase.from('emoji_player_progress')
       .upsert({
@@ -406,322 +414,248 @@ const EmojiMastermind = () => {
   };
 
   return (
-    <GameSessionGuard>
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-yellow-800 to-indigo-900 flex flex-col items-center justify-center p-4 text-white overflow-hidden relative">
-        {/* Leaderboard Modal */}
-        <Dialog open={showLeaderboard} onClose={() => setShowLeaderboard(false)} className="fixed z-50 inset-0 overflow-y-auto">
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-yellow-800 to-indigo-900 flex flex-col items-center justify-center p-4 text-white overflow-hidden relative">
+      {/* Leaderboard Modal */}
+      {showLeaderboard && (
+        <div className="fixed z-50 inset-0 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen">
-            <Dialog.Overlay className="fixed inset-0 bg-black/60" />
+            <div className="fixed inset-0 bg-black/60" />
             <div className="relative bg-gray-900 rounded-xl shadow-xl p-6 w-full max-w-lg z-10">
               <button onClick={() => setShowLeaderboard(false)} className="absolute top-2 right-2 text-yellow-400 hover:text-yellow-200 text-xl">&times;</button>
               <GlobalLeaderboard onTopRank={(rank) => setTopRank(rank > 0 && rank <= 3 ? rank : null)} />
             </div>
           </div>
-        </Dialog>
-
-        {/* Animated background bubbles */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(10)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-6 h-6 bg-white/10 rounded-full backdrop-blur-sm"
-              initial={{
-                x: Math.random() * window.innerWidth,
-                y: Math.random() * window.innerHeight,
-                scale: Math.random() * 0.5 + 0.5
-              }}
-              animate={{
-                y: [0, window.innerHeight],
-                opacity: [1, 0],
-                transition: {
-                  duration: Math.random() * 10 + 10,
-                  repeat: Infinity,
-                  repeatType: 'loop'
-                }
-              }}
-            />
-          ))}
         </div>
+      )}
 
-        <div className="relative z-10 w-full max-w-md flex flex-col items-center space-y-4">
+      {/* Animated background bubbles */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(10)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-6 h-6 bg-white/10 rounded-full backdrop-blur-sm"
+            initial={{
+              x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 800),
+              y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 600),
+              scale: Math.random() * 0.5 + 0.5
+            }}
+            animate={{
+              y: [0, typeof window !== 'undefined' ? window.innerHeight : 600],
+              opacity: [1, 0],
+              transition: {
+                duration: Math.random() * 10 + 10,
+                repeat: Infinity,
+                repeatType: 'loop'
+              }
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="relative z-10 w-full max-w-md flex flex-col items-center space-y-4">
+        {showIntro ? (
           <motion.div 
             className="w-full bg-white/5 backdrop-blur-lg rounded-2xl shadow-xl border border-white/10 p-4 space-y-6"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            {showIntro ? (
-              <motion.div className="text-center space-y-6">
-                <div className="space-y-3">
-                  <h1 className="text-4xl sm:text-5xl font-black bg-gradient-to-r from-amber-400 to-yellow-500 text-transparent bg-clip-text">
-                    Emoji Mastermind
-                  </h1>
-                  <p className="text-sm sm:text-base text-white/80 font-light">
-                    Crack the emoji enigma! Use your wits to decipher hidden phrases.
-                    Earn rewards and climb the leaderboards 🏆
-                  </p>
-                </div>
+            <div className="space-y-3">
+              <h1 className="text-4xl sm:text-5xl font-black bg-gradient-to-r from-amber-400 to-yellow-500 text-transparent bg-clip-text">
+                Emoji Mastermind
+              </h1>
+              <p className="text-sm sm:text-base text-white/80 font-light">
+                Crack the emoji enigma! Use your wits to decipher hidden phrases.
+                Earn rewards and climb the leaderboards 🏆
+              </p>
+            </div>
 
-                <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-                  <div className="space-y-3 mb-4">
-                    <div className="flex flex-col sm:flex-row justify-center gap-2">
-                      <div className="bg-white/10 px-3 py-1.5 rounded-full flex items-center gap-2 text-sm">
-                        <SparklesIcon className="w-4 h-4 text-amber-400" />
-                        <span>Stage-based Rewards</span>
-                      </div>
-                      <div className="bg-white/10 px-3 py-1.5 rounded-full flex items-center gap-2 text-sm">
-                        <ClockIcon className="w-4 h-4 text-amber-400" />
-                        <span>Timed Challenges</span>
-                      </div>
-                    </div>
+            <div className="bg-white/5 p-4 rounded-xl border border-white/10">
+              <div className="space-y-3 mb-4">
+                <div className="flex flex-col sm:flex-row justify-center gap-2">
+                  <div className="bg-white/10 px-3 py-1.5 rounded-full flex items-center gap-2 text-sm">
+                    <SparklesIcon className="w-4 h-4 text-amber-400" />
+                    <span>Stage-based Rewards</span>
                   </div>
-
-                  <div className="space-y-3">
-                    <h3 className="text-lg font-semibold text-amber-400">Enter Your Name</h3>
-                    {!user ? (
-                      <input
-                        value={playerName}
-                        onChange={(e) => setPlayerName(e.target.value)}
-                        placeholder="Enter your name..."
-                        required
-                        className="w-full px-4 py-3 bg-white/5 rounded-xl text-center text-base focus:outline-none focus:ring-2 focus:ring-amber-500 placeholder-white/40"
-                      />
-                    ) : (
-                      <div className="text-white text-lg font-semibold flex items-center justify-center gap-2">
-                        <SparklesIcon className="w-5 h-5 text-amber-400" />
-                        {googleName}
-                      </div>
-                    )}
-                    <p className="text-xs text-white/60">Your name will be used for the leaderboard</p>
-                  </div>
-                </div>
-
-                <motion.button
-                  onClick={handleStartGame}
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  disabled={!playerName.trim()}
-                  className={`w-full py-3 bg-gradient-to-r from-amber-500 to-yellow-600 rounded-xl text-base font-semibold ${
-                    !playerName.trim() ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                >
-                  Start Challenge 🚀
-                </motion.button>
-              </motion.div>
-            ) : gameOver ? (
-              <motion.div 
-                className="text-center space-y-6"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5 }}
-              >
-                <div className="space-y-3">
-                  <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-amber-400 to-yellow-500 text-transparent bg-clip-text">
-                    Game Complete!
-                  </h2>
-                  <div className="text-xl font-light text-white/80">
-                    Final Score: <span className="font-bold text-amber-400">{score}</span>
-                  </div>
-                  {maxStreak > 3 && (
-                    <div className="text-sm text-green-300">
-                      🔥 Max Streak: {maxStreak}x
-                    </div>
-                  )}
-
-                  {/* Reward display */}
-                  {currentReward && (
-                    <motion.div
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      className="bg-white/5 p-3 rounded-xl border border-white/10 flex items-center justify-center gap-2"
-                    >
-                      <RewardIcon rewardType={currentReward} />
-                      <span className="text-yellow-300">
-                        {currentReward === 'free_game' && 'Free Game Unlocked!'}
-                        {currentReward === 'coffee' && 'Free Coffee Unlocked!'}
-                        {currentReward === 'cash_prize' && '$1000 Prize Unlocked!'}
-                      </span>
-                    </motion.div>
-                  )}
-
-                  <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-                    {/* CertificateGenerator will be rendered by ThankYou component */}
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={handleRestartGame}
-                    className="py-2.5 bg-white/5 hover:bg-white/10 rounded-xl flex items-center justify-center gap-1"
-                  >
-                    Play Again
-                  </button>
-                  <button
-                    onClick={handleBackToMenu}
-                    className="py-2.5 bg-white/5 hover:bg-white/10 rounded-xl"
-                  >
-                    Return to Menu
-                  </button>
-                </div>
-
-                {/* Leaderboard and user points display */}
-                <div className="bg-white/5 p-4 rounded-xl border border-white/10 mt-4">
-                  <h3 className="text-lg font-bold text-amber-400 mb-2">🏆 Leaderboard</h3>
-                  <ol className="text-left space-y-1">
-                    {leaderboard.map((entry, idx) => (
-                      <li key={idx} className="flex justify-between">
-                        <span className={entry.player_name === playerName ? 'font-bold text-yellow-300' : ''}>
-                          {idx + 1}. {entry.player_name}
-                        </span>
-                        <span className="text-amber-300">{entry.score}</span>
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-                <div className="bg-white/5 p-3 rounded-xl border border-white/10 mt-2">
-                  <span className="text-white/80">Your total points: </span>
-                  <span className="text-amber-400 font-bold">{userTotalPoints}</span>
-                </div>
-              </motion.div>
-            ) : (
-              <div className="space-y-6">
-                {/* Game Header */}
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-2 mb-4">
-                  <div className="text-base font-semibold text-amber-400">
-                    Player: {playerName || 'Guest'}
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <div className="bg-white/10 px-3 py-1 rounded-full text-sm">
-                      <span className="text-amber-400">⭐ {score}</span>
-                    </div>
-                    <div className="bg-white/10 px-3 py-1 rounded-full flex items-center gap-1 text-sm">
-                      <HeartIcon className="w-4 h-4 text-rose-400" />
-                      <span>{remainingTries}</span>
-                    </div>
-                    <div className="bg-white/10 px-3 py-1 rounded-full text-sm">
-                      ⏳ {timer}s
-                    </div>
-                    {streak > 0 && (
-                      <div className="bg-green-500/20 px-3 py-1 rounded-full text-sm text-green-300">
-                        🔥 {streak}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Stage progress */}
-                <div className="mb-2">
-                  <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                  <motion.div
-  animate={{
-    width: `${Math.min(100, (score / STAGE_REQUIREMENTS[currentStage].score) * 100)}%`
-  }}
-/>
-                  </div>
-                    <p className="text-white/70 text-xs mt-1 text-right">
-                      Stage {currentStage}: {score}/{STAGE_REQUIREMENTS[currentStage] && STAGE_REQUIREMENTS[currentStage]['score']}
-                    </p>
-                </div>
-
-                {/* Emoji Display */}
-                <motion.div 
-                  className="bg-white/5 p-6 rounded-xl border border-white/10 flex items-center justify-center"
-                  key={currentEmoji?.id}
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ type: 'spring', stiffness: 300 }}
-                >
-                  <span className="text-6xl sm:text-8xl">{currentEmoji?.emoji || '🎲'}</span>
-                </motion.div>
-
-                {/* Game Controls */}
-                <div className="space-y-6">
-                  <AnimatePresence>
-                    {feedback && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0 }}
-                        className={`px-6 py-3 rounded-xl text-center border ${
-                          feedback.includes('Correct') 
-                            ? 'bg-green-500/10 text-green-400 border-green-500/20' 
-                            : 'bg-red-500/10 text-red-400 border-red-500/20'
-                        }`}
-                      >
-                        {feedback}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  <div className="space-y-3">
-                    {showHint && (
-                      <div className="bg-white/10 px-4 py-2 rounded-lg text-sm border border-white/20">
-                        Hint: {hintString}
-                      </div>
-                    )}
-                    <input
-                      value={guess}
-                      onChange={(e) => setGuess(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleGuess()}
-                      placeholder="Type your answer..."
-                      className="w-full px-4 py-3 bg-white/5 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-amber-500 placeholder-white/40"
-                    />
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <button
-                        onClick={generateHint}
-                        disabled={showHint || hintCount === 0}
-                        className="py-2.5 text-sm bg-white/5 hover:bg-white/10 disabled:opacity-40 rounded-xl flex items-center justify-center gap-1"
-                      >
-                        <LightBulbIcon className="w-4 h-4" />
-                        Hint ({hintCount})
-                      </button>
-                      <button
-                        onClick={handleSkip}
-                        className="py-2.5 text-sm bg-white/5 hover:bg-white/10 rounded-xl"
-                      >
-                        Skip ➔
-                      </button>
-                    </div>
-
-                    <button
-                      onClick={handleGuess}
-                      className="w-full py-3 bg-gradient-to-r from-amber-500 to-yellow-600 rounded-xl text-sm font-semibold"
-                    >
-                      Submit Answer
-                    </button>
+                  <div className="bg-white/10 px-3 py-1.5 rounded-full flex items-center gap-2 text-sm">
+                    <ClockIcon className="w-4 h-4 text-amber-400" />
+                    <span>Timed Challenges</span>
                   </div>
                 </div>
               </div>
-            )}
+
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold text-amber-400">Enter Your Name</h3>
+                {!user ? (
+                  <input
+                    value={playerName}
+                    onChange={(e) => setPlayerName(e.target.value)}
+                    placeholder="Enter your name..."
+                    required
+                    className="w-full px-4 py-3 bg-white/5 rounded-xl text-center text-base focus:outline-none focus:ring-2 focus:ring-amber-500 placeholder-white/40"
+                  />
+                ) : (
+                  <div className="text-white text-lg font-semibold flex items-center justify-center gap-2">
+                    <SparklesIcon className="w-5 h-5 text-amber-400" />
+                    {googleName}
+                  </div>
+                )}
+                <p className="text-xs text-white/60">Your name will be used for the leaderboard</p>
+              </div>
+            </div>
+
+            <motion.button
+              onClick={handleStartGame}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              disabled={!playerName.trim()}
+              className={`w-full py-3 bg-gradient-to-r from-amber-500 to-yellow-600 rounded-xl text-base font-semibold ${
+                !playerName.trim() ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+            >
+              Start Challenge 🚀
+            </motion.button>
           </motion.div>
-        </div>
+        ) : (
+          <GameSessionGuard>
+            <div className="space-y-6">
+              {/* Game Header */}
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-2 mb-4">
+                <div className="text-base font-semibold text-amber-400">
+                  Player: {playerName || 'Guest'}
+                </div>
 
-        {/* View Global Leaderboard button */}
-        <button
-          onClick={() => setShowLeaderboard(true)}
-          className="fixed top-4 right-4 z-40 bg-yellow-500 hover:bg-yellow-400 text-indigo-900 font-bold px-4 py-2 rounded-full shadow-lg transition-all"
-        >
-          View Global Leaderboard
-        </button>
+                <div className="flex items-center gap-2">
+                  <div className="bg-white/10 px-3 py-1 rounded-full text-sm">
+                    <span className="text-amber-400">⭐ {score}</span>
+                  </div>
+                  <div className="bg-white/10 px-3 py-1 rounded-full flex items-center gap-1 text-sm">
+                    <HeartIcon className="w-4 h-4 text-rose-400" />
+                    <span>{remainingTries}</span>
+                  </div>
+                  <div className="bg-white/10 px-3 py-1 rounded-full text-sm">
+                    ⏳ {timer}s
+                  </div>
+                  {streak > 0 && (
+                    <div className="bg-green-500/20 px-3 py-1 rounded-full text-sm text-green-300">
+                      🔥 {streak}
+                    </div>
+                  )}
+                </div>
+              </div>
 
-        {/* Top 3 Badge */}
-        {topRank && topRank > 0 && topRank <= 3 && (
-          <div className="fixed top-20 right-4 z-40 bg-green-500/90 text-white px-4 py-2 rounded-full shadow-lg text-lg font-bold border-2 border-green-300 animate-bounce">
-            {topRank === 1 && '🥇 You are #1 on the Global Leaderboard!'}
-            {topRank === 2 && '🥈 You are #2 on the Global Leaderboard!'}
-            {topRank === 3 && '🥉 You are #3 on the Global Leaderboard!'}
-          </div>
-        )}
+              {/* Stage progress */}
+              <div className="mb-2">
+                <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                  <motion.div
+                    animate={{
+                      width: `${Math.min(100, (score / STAGE_REQUIREMENTS[currentStage].score) * 100)}%`
+                    }}
+                  />
+                </div>
+                  <p className="text-white/70 text-xs mt-1 text-right">
+                    Stage {currentStage}: {score}/{STAGE_REQUIREMENTS[currentStage] && STAGE_REQUIREMENTS[currentStage]['score']}
+                  </p>
+              </div>
 
-        {/* Bonus Points Message */}
-        {topRank && topRank > 0 && topRank <= 3 && bonusGiven && !showIntro && (
-          <div className="fixed top-36 right-4 z-40 bg-yellow-500/90 text-indigo-900 px-4 py-2 rounded-full shadow-lg text-lg font-bold border-2 border-yellow-300 animate-bounce">
-            +10 Bonus Points for Top 3 Leaderboard!
-          </div>
+              {/* Emoji Display */}
+              <motion.div 
+                className="bg-white/5 p-6 rounded-xl border border-white/10 flex items-center justify-center"
+                key={currentEmoji?.id}
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: 'spring', stiffness: 300 }}
+              >
+                <span className="text-6xl sm:text-8xl">{currentEmoji?.emoji || '🎲'}</span>
+              </motion.div>
+
+              {/* Game Controls */}
+              <div className="space-y-6">
+                <AnimatePresence>
+                  {feedback && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      className={`px-6 py-3 rounded-xl text-center border ${
+                        feedback.includes('Correct') 
+                          ? 'bg-green-500/10 text-green-400 border-green-500/20' 
+                          : 'bg-red-500/10 text-red-400 border-red-500/20'
+                      }`}
+                    >
+                      {feedback}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <div className="space-y-3">
+                  {showHint && (
+                    <div className="bg-white/10 px-4 py-2 rounded-lg text-sm border border-white/20">
+                      Hint: {hintString}
+                    </div>
+                  )}
+                  <input
+                    value={guess}
+                    onChange={(e) => setGuess(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleGuess()}
+                    placeholder="Type your answer..."
+                    className="w-full px-4 py-3 bg-white/5 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-amber-500 placeholder-white/40"
+                  />
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={generateHint}
+                      disabled={showHint || hintCount === 0}
+                      className="py-2.5 text-sm bg-white/5 hover:bg-white/10 disabled:opacity-40 rounded-xl flex items-center justify-center gap-1"
+                    >
+                      <LightBulbIcon className="w-4 h-4" />
+                      Hint ({hintCount})
+                    </button>
+                    <button
+                      onClick={handleSkip}
+                      className="py-2.5 text-sm bg-white/5 hover:bg-white/10 rounded-xl"
+                    >
+                      Skip ➔
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={handleGuess}
+                    className="w-full py-3 bg-gradient-to-r from-amber-500 to-yellow-600 rounded-xl text-sm font-semibold"
+                  >
+                    Submit Answer
+                  </button>
+                </div>
+              </div>
+            </div>
+          </GameSessionGuard>
         )}
       </div>
-    </GameSessionGuard>
+
+      {/* View Global Leaderboard button */}
+      <button
+        onClick={() => setShowLeaderboard(true)}
+        className="fixed top-4 right-4 z-40 bg-yellow-500 hover:bg-yellow-400 text-indigo-900 font-bold px-4 py-2 rounded-full shadow-lg transition-all"
+      >
+        View Global Leaderboard
+      </button>
+
+      {/* Top 3 Badge */}
+      {topRank && topRank > 0 && topRank <= 3 && (
+        <div className="fixed top-20 right-4 z-40 bg-green-500/90 text-white px-4 py-2 rounded-full shadow-lg text-lg font-bold border-2 border-green-300 animate-bounce">
+          {topRank === 1 && '🥇 You are #1 on the Global Leaderboard!'}
+          {topRank === 2 && '🥈 You are #2 on the Global Leaderboard!'}
+          {topRank === 3 && '🥉 You are #3 on the Global Leaderboard!'}
+        </div>
+      )}
+
+      {/* Bonus Points Message */}
+      {topRank && topRank > 0 && topRank <= 3 && bonusGiven && !showIntro && (
+        <div className="fixed top-36 right-4 z-40 bg-yellow-500/90 text-indigo-900 px-4 py-2 rounded-full shadow-lg text-lg font-bold border-2 border-yellow-300 animate-bounce">
+          +10 Bonus Points for Top 3 Leaderboard!
+        </div>
+      )}
+    </div>
   );
 };
 

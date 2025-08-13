@@ -1,27 +1,26 @@
-import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { 
-  FaQuestionCircle, 
-  FaPlayCircle, 
-  FaArrowRight, 
-  FaTrophy, 
+import { Dialog } from '@headlessui/react';
+import { AnimatePresence, motion } from "framer-motion";
+import { useCallback, useEffect, useState } from "react";
+import {
   FaClock,
-  FaGamepad,
-  FaMedal,
   FaCoffee,
+  FaGamepad,
   FaHome,
-  FaRedo,
+  FaMedal,
   FaMoneyBillWave,
+  FaPlayCircle,
+  FaQuestionCircle,
+  FaRedo,
+  FaTrophy,
   FaUser
 } from "react-icons/fa";
-import { supabase } from "../supabaseClient";
 import { useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
-import CertificateGenerator from '../Components/utility/CertificateGenerator';
 import { GameSessionGuard } from '../Components/game/GameSessionGuard';
-import { useAuthStore } from '../stores/authStore';
 import GlobalLeaderboard from '../Components/utility/GlobalLeaderboard';
-import { Dialog } from '@headlessui/react';
+import { useAuthStore } from '../stores/authStore';
+import { useSessionStore } from '../stores/sessionStore';
+import { supabase } from "../supabaseClient";
 
 // Reward thresholds
 const REWARD_THRESHOLDS = {
@@ -40,6 +39,7 @@ const STAGE_REQUIREMENTS = {
 const TriviaGame = () => {
   const navigate = useNavigate();
   const { user, session } = useAuthStore();
+  const { startSession } = useSessionStore();
 
   // State Management
   const [questions, setQuestions] = useState<any[]>([]);
@@ -155,14 +155,23 @@ const TriviaGame = () => {
   }, [questions, usedQuestionIndices]);
 
   const startGame = async () => {
+    console.log("startGame called.");
+    console.log("User:", user);
+    console.log("googleName:", googleName);
+    console.log("googleId:", googleId);
+    console.log("playerName (input field):", playerName);
+    console.log("isLoading:", isLoading);
+
     let nameToUse = playerName;
     let idToUse = playerId;
     if (user && googleName && googleId) {
+      console.log("Using Google account details.");
       nameToUse = googleName;
       idToUse = googleId;
       setPlayerName(googleName);
       setPlayerId(googleId);
     } else {
+      console.log("Using manual player name.");
       if (playerName.trim().length < 3) {
         showFeedback("Please enter a name with at least 3 characters", 'error');
         return;
@@ -172,8 +181,12 @@ const TriviaGame = () => {
       idToUse = newPlayerId;
     }
     try {
+      console.log("Attempting to start game with name:", nameToUse, "and ID:", idToUse);
       const newSessionId = uuidv4();
       setSessionId(newSessionId);
+      
+      // Start game session
+      await startSession('trivia-game', nameToUse, 1800); // 30 minutes
       
       // Check player progress
       const { data: progress } = await supabase
@@ -204,10 +217,15 @@ const TriviaGame = () => {
         setCurrentQuestionIndex(initialIndex);
         setUsedQuestionIndices([initialIndex]);
         setTimer(Math.max(10, 15 - (currentStage - 1) * 2));
+      } else {
+        showFeedback("No questions available to start the game.", 'error');
+        setIsLoading(false); // Ensure loading state is reset if no questions
       }
     } catch (error) {
       console.error("Game start error:", error);
       showFeedback("Failed to start game. Please try again.", 'error');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -479,7 +497,7 @@ const TriviaGame = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={startGame}
-            disabled={playerName.trim().length < 3 || isLoading}
+            disabled={!!playerName || isLoading}
             className={`w-full py-4 bg-gradient-to-r from-yellow-400 to-yellow-500 
             text-indigo-900 rounded-xl font-bold uppercase tracking-wide 
             hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed 
@@ -863,7 +881,7 @@ const TriviaGame = () => {
   }, [gameStarted, topRank, bonusGiven, playerId, playerName, sessionId, currentStage, session]);
 
   return (
-    <GameSessionGuard>
+    <div>
       <AnimatePresence mode="wait">
         {isLoading ? (
           <motion.div
@@ -882,14 +900,16 @@ const TriviaGame = () => {
         ) : isGameOver ? (
           renderEndScreen()
         ) : gameStarted ? (
-          renderQuestionScreen()
+          <GameSessionGuard>
+            {renderQuestionScreen()}
+          </GameSessionGuard>
         ) : (
           renderStartScreen()
         )}
       </AnimatePresence>
 
       {/* Show badge and leaderboard modal button */}
-      {topRank && topRank > 0 && topRank <= 3 && bonusGiven && gameStarted && (
+      {topRank !== null && topRank > 0 && topRank <= 3 && bonusGiven && gameStarted && (
         <div className="fixed top-20 right-4 z-40 bg-yellow-500/90 text-indigo-900 px-4 py-2 rounded-full shadow-lg text-lg font-bold border-2 border-yellow-300 animate-bounce">
           +10 Bonus Points for Top 3 Leaderboard!
         </div>
@@ -909,7 +929,7 @@ const TriviaGame = () => {
           </div>
         </div>
       </Dialog>
-    </GameSessionGuard>
+    </div>
   );
 };
 

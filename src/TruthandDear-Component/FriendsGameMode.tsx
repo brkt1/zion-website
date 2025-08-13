@@ -10,11 +10,13 @@ import {
 } from "react-icons/fa";
 import {supabase} from "../supabaseClient";
 import { GameSessionGuard } from '../Components/game/GameSessionGuard';
+import { useSessionStore } from '../stores/sessionStore';
 
 const FriendsGameMode = () => {
  const location = useLocation();
   const navigate = useNavigate();
   const { category, gameMode } = location.state || {};
+  const { startSession } = useSessionStore();
 
   // Design Tokens
   const designTokens = {
@@ -134,9 +136,23 @@ const FriendsGameMode = () => {
     setCurrentPlayerInput("");
 
     if (gameMode === "1vs1" && newPlayers.length === 2) {
+      // Start game session before transitioning to game-start
+      startGameSession(newPlayers);
       setCurrentStep("game-start");
     } else if (gameMode === "group-challenge" && newPlayers.length === playerCount) {
+      // Start game session before transitioning to game-start
+      startGameSession(newPlayers);
       setCurrentStep("game-start");
+    }
+  };
+
+  // Start game session
+  const startGameSession = async (playerList) => {
+    try {
+      // Start a 30-minute game session (1800 seconds)
+      await startSession('friends-game', playerList.join(', '), 1800);
+    } catch (error) {
+      console.error('Failed to start game session:', error);
     }
   };
 
@@ -348,13 +364,17 @@ const FriendsGameMode = () => {
   );
 
   return (
-    <GameSessionGuard>
-      <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] flex items-center justify-center p-4">
-        <AnimatePresence>
-          {currentStep === "player-input" ? renderPlayerInput() : renderGameStart()}
-        </AnimatePresence>
-      </div>
-    </GameSessionGuard>
+    <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] flex items-center justify-center p-4">
+      <AnimatePresence>
+        {currentStep === "player-input" ? (
+          renderPlayerInput()
+        ) : (
+          <GameSessionGuard>
+            {renderGameStart()}
+          </GameSessionGuard>
+        )}
+      </AnimatePresence>
+    </div>
   );
 };
 

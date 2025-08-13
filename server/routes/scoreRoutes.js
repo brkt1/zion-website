@@ -108,6 +108,9 @@ router.delete(
 router.get("/result", async (req, res) => {
   try {
     const { sessionId, playerId } = req.query;
+    console.log("Received request for game result:");
+    console.log("  sessionId:", sessionId);
+    console.log("  playerId:", playerId);
 
     if (!sessionId || !playerId) {
       return res
@@ -123,6 +126,11 @@ router.get("/result", async (req, res) => {
       .eq("player_id", playerId)
       .order("timestamp", { ascending: false })
       .limit(1);
+
+    console.log("Supabase query result:");
+    console.log("  scoresData:", scoresData);
+    console.log("  scoresError:", scoresError);
+
     if (scoresError || !scoresData || scoresData.length === 0) {
       return res.status(404).json({ error: "Game result not found." });
     }

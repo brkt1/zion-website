@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { FaArrowLeft, FaUserPlus, FaUsers } from "react-icons/fa";
 import { useLocation, useNavigate } from "react-router-dom";
-import { FaUserPlus, FaUsers, FaArrowLeft } from "react-icons/fa";
-import { GameSessionGuard } from './GameSessionGuard';
 
 const Friends = () => {
   const location = useLocation();
@@ -77,13 +76,11 @@ const Friends = () => {
   );
 
   return (
-    <GameSessionGuard>
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0f0f1c] to-[#0d1323]">
-        <AnimatePresence mode="wait">
-          {renderPlayerInput()}
-        </AnimatePresence>
-      </div>
-    </GameSessionGuard>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0f0f1c] to-[#0d1323]">
+      <AnimatePresence mode="wait">
+        {renderPlayerInput()}
+      </AnimatePresence>
+    </div>
   );
 };
 

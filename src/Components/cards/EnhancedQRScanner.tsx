@@ -46,6 +46,7 @@ const EnhancedQRScanner: React.FC = () => {
 
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState<string>("");
   const [cameras, setCameras] = useState<any[]>([]);
   const [selectedCamera, setSelectedCamera] = useState<string | null>(null);
   const [hasCameraAccess, setHasCameraAccess] = useState(false);
@@ -54,6 +55,7 @@ const EnhancedQRScanner: React.FC = () => {
   const [availableRoutes, setAvailableRoutes] = useState<GameRoute[]>([]);
   const [selectedRoute, setSelectedRoute] = useState<string>("");
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [networkStatus, setNetworkStatus] = useState<string>("online");
 
   const scannerRef = useRef<HTMLDivElement>(null);
   const html5QrCode = useRef<Html5Qrcode | null>(null);
@@ -180,6 +182,7 @@ const EnhancedQRScanner: React.FC = () => {
 
   const activateCard = async (cardNumber: string, userId: string) => {
     try {
+      console.log("activateCard called with:", { cardNumber, userId });
       if (!cardNumber?.trim()) {
         throw new Error("Card number is required");
       }
@@ -187,10 +190,27 @@ const EnhancedQRScanner: React.FC = () => {
         throw new Error("Authentication required");
       }
 
-      const { data, error } = await supabase.rpc("activate_card_v2", {
+      // Add timeout to prevent hanging database calls
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => {
+          console.warn("Database request timed out after 25 seconds");
+          reject(new Error("Database request timed out"));
+        }, 25000); // 25 second timeout
+      });
+
+      console.log("Making database call to activate_card_v2...");
+      const activationPromise = supabase.rpc("activate_card_v2", {
         p_card_number: cardNumber.trim(),
         p_player_id: userId,
       });
+
+      // Race between timeout and activation
+      const { data, error } = await Promise.race([
+        activationPromise,
+        timeoutPromise.then(() => Promise.reject(new Error("Database request timed out")))
+      ]) as any;
+
+      console.log("Database response received:", { data, error });
 
       if (error) throw error;
       if (!data || data.length === 0)
@@ -225,46 +245,78 @@ const EnhancedQRScanner: React.FC = () => {
   const handleScan = useCallback(
     async (scannedData: string) => {
       if (isLoading) return;
+      console.log("Starting card scan process...", { scannedData });
       setIsLoading(true);
       setError(null);
+      setLoadingStep("Validating card format...");
+
+      // Add timeout to prevent infinite loading
+      const timeoutId = setTimeout(() => {
+        console.warn("Card scan request timed out after 30 seconds");
+        setIsLoading(false);
+        setLoadingStep("");
+        setError("Request timed out. Please try again.");
+      }, 30000); // 30 second timeout
 
       try {
         const cardNumber = scannedData.replace(/\D/g, "");
+        console.log("Card number extracted:", cardNumber);
         if (!/^\d{13}$/.test(cardNumber)) {
           setError("Invalid card format. Please scan a valid Yenege card.");
+          clearTimeout(timeoutId);
           setIsLoading(false);
+          setLoadingStep("");
           return;
         }
 
+        setLoadingStep("Checking user session...");
+        console.log("Checking user session...");
         let user = null;
         try {
           const { data, error } = await supabase.auth.getUser();
           if (error) {
+            console.error("User session error:", error);
             setError("Failed to get user session. Please try logging in again.");
+            clearTimeout(timeoutId);
             setIsLoading(false);
+            setLoadingStep("");
             return;
           }
           user = data.user;
+          console.log("User session found:", user?.id);
         } catch (err) {
+          console.error("Unexpected error getting user session:", err);
           setError("An unexpected error occurred while getting user session.");
+          clearTimeout(timeoutId);
           setIsLoading(false);
+          setLoadingStep("");
           return;
         }
 
         if (!user) {
+          console.log("No user found, showing login modal");
           setShowLoginModal(true);
+          clearTimeout(timeoutId);
           setIsLoading(false);
+          setLoadingStep("");
           return;
         }
 
+        setLoadingStep("Activating card...");
+        console.log("Activating card with number:", cardNumber, "for user:", user.id);
         const result = await activateCard(cardNumber, user.id);
+        console.log("Card activation result:", result);
         if (!result.success) {
           setError(result.error ?? "Activation failed");
+          clearTimeout(timeoutId);
           setIsLoading(false);
+          setLoadingStep("");
           return;
         }
         const activation = result.card;
 
+        setLoadingStep("Processing game routes...");
+        console.log("Processing game routes for activation:", activation);
         // effective_routes may contain game names, ids, or paths (e.g., ['emoji game'])
         const allowedGames = gameRoutes.filter((game) => {
           return activation.effective_routes.some((route: string) => {
@@ -279,6 +331,8 @@ const EnhancedQRScanner: React.FC = () => {
             );
           });
         });
+
+        console.log("Allowed games found:", allowedGames);
 
         const cardData: ScannedCardData = {
           id: activation.id,
@@ -297,19 +351,27 @@ const EnhancedQRScanner: React.FC = () => {
         };
 
         if (activation.used) {
+          console.log("Card already used");
           setError("This card has already been used. Please scan a new card.");
+          clearTimeout(timeoutId);
           setIsLoading(false);
+          setLoadingStep("");
           return;
         }
 
         if (allowedGames.length === 0) {
+          console.log("No games available for card");
           setError(
             "No games available for this card. The card may not be associated with any games."
           );
+          clearTimeout(timeoutId);
           setIsLoading(false);
+          setLoadingStep("");
           return;
         }
 
+        setLoadingStep("Starting game session...");
+        console.log("Starting game session...");
         setAvailableRoutes(allowedGames);
         setScannedCard(cardData);
         setSelectedRoute(allowedGames[0].id);
@@ -319,6 +381,9 @@ const EnhancedQRScanner: React.FC = () => {
           cardData.id,
           cardData.duration * 60
         );
+        
+        setLoadingStep("Redirecting to game...");
+        console.log("Redirecting to game:", allowedGames[0].path);
         navigate(allowedGames[0].path, {
           state: {
             cardDetails: cardData,
@@ -327,13 +392,18 @@ const EnhancedQRScanner: React.FC = () => {
           },
         });
 
+        clearTimeout(timeoutId);
+        setLoadingStep("");
+        console.log("Card scan process completed successfully");
         await stopScanner();
       } catch (err) {
         console.error("Unexpected error in handleScan:", err);
         setError(
           "Failed to process card. Please try again or contact support."
         );
+        clearTimeout(timeoutId);
         setIsLoading(false);
+        setLoadingStep("");
       }
     },
     [isLoading, stopScanner, startSession, navigate]
@@ -344,6 +414,8 @@ const EnhancedQRScanner: React.FC = () => {
     setAvailableRoutes([]);
     setSelectedRoute("");
     setError(null);
+    setIsLoading(false);
+    setLoadingStep("");
     initScanner();
   };
 
@@ -448,9 +520,18 @@ const EnhancedQRScanner: React.FC = () => {
       }
     };
 
+    const handleOnline = () => setNetworkStatus("online");
+    const handleOffline = () => setNetworkStatus("offline");
+
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () =>
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
   }, [stopScanner, initScanner, hasCameraAccess, scannedCard]);
 
   return (
@@ -500,6 +581,14 @@ const EnhancedQRScanner: React.FC = () => {
           </div>
 
           <div className="p-6">
+            {networkStatus === "offline" && (
+              <div className="mb-4 p-3 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
+                <p className="text-yellow-400 text-sm text-center">
+                  ⚠️ You appear to be offline. Please check your internet connection.
+                </p>
+              </div>
+            )}
+            
             {!scannedCard ? (
               <>
                 {cameras.length > 0 && (
@@ -688,6 +777,18 @@ const EnhancedQRScanner: React.FC = () => {
                       <FaRedo /> Retry Camera Access
                     </button>
                   )}
+                  {(error.includes("timed out") || error.includes("Failed to process") || error.includes("Activation failed")) && (
+                    <button
+                      onClick={() => {
+                        setError(null);
+                        setIsLoading(false);
+                        setLoadingStep("");
+                      }}
+                      className="w-full mt-3 bg-gold-primary text-black-primary py-2 rounded-lg hover:bg-gold-secondary transition-colors flex items-center justify-center gap-2"
+                    >
+                      <FaRedo /> Try Again
+                    </button>
+                  )}
                   <button
                     className="w-full mt-3 bg-gold-primary text-black-primary py-2 rounded-lg hover:bg-gold-secondary transition-colors flex items-center justify-center gap-2"
                     onClick={() => {
@@ -722,6 +823,23 @@ const EnhancedQRScanner: React.FC = () => {
                     />
                   </svg>
                   {scannedCard ? "Starting game..." : "Processing card..."}
+                </div>
+                {loadingStep && (
+                  <div className="mt-2 text-sm text-gold-light/80">
+                    {loadingStep}
+                  </div>
+                )}
+                <div className="mt-3">
+                  <button
+                    onClick={() => {
+                      setIsLoading(false);
+                      setLoadingStep("");
+                      setError("Scan cancelled. Please try again.");
+                    }}
+                    className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition-colors text-sm"
+                  >
+                    Cancel Processing
+                  </button>
                 </div>
               </div>
             )}
