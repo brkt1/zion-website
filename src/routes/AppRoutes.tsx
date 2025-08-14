@@ -72,10 +72,10 @@ const RoleProtectedRoute: React.FC<RoleProtectedRouteProps> = ({
   children,
   allowedRoles,
 }) => {
-  const { session, permissions, loading } = useAuthStore();
+  const { session, profile, loading } = useAuthStore();
   const location = useLocation();
 
-  if (loading || !permissions) {
+  if (loading || !profile) {
     return <LoadingSpinner />;
   }
 
@@ -83,7 +83,14 @@ const RoleProtectedRoute: React.FC<RoleProtectedRouteProps> = ({
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  const hasPermission = allowedRoles.some((role) => permissions.includes(role));
+  // Safety check to ensure profile.role is a valid string
+  const userRole = profile?.role;
+  if (!userRole || typeof userRole !== 'string') {
+    console.warn('Invalid profile role:', userRole, 'Profile:', profile);
+    return <Navigate to="/access-denied" replace />;
+  }
+
+  const hasPermission = allowedRoles.includes(userRole as any);
 
   if (!hasPermission) {
     return <Navigate to="/access-denied" replace />;

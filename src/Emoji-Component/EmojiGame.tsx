@@ -1,321 +1,298 @@
-import {
-  ClockIcon,
-  GiftIcon,
-  HeartIcon,
-  LightBulbIcon,
-  SparklesIcon,
-  TrophyIcon,
-} from "@heroicons/react/24/outline";
-import { AnimatePresence, motion } from "framer-motion";
+import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
+import { motion } from "framer-motion";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
+import { ConfettiEffect } from "../Components/effects/ConfettiEffect";
+import { EmojiCard } from "../Components/game/EmojiCard";
+import { GameControls } from "../Components/game/GameControls";
+import { GameHeader } from "../Components/game/GameHeader";
 import { GameSessionGuard } from "../Components/game/GameSessionGuard";
+import { IntroScreen } from "../Components/game/IntroScreen";
+import { RewardModal } from "../Components/game/RewardModal";
+import { LoadingSpinner } from "../Components/ui/LoadingSpinner";
 import GlobalLeaderboard from "../Components/utility/GlobalLeaderboard";
-import { useAuthStore } from "../stores/authStore";
-import { useSessionStore } from "../stores/sessionStore";
-import { supabase } from "../supabaseClient";
+import { useGameSession } from "../hooks/useGameSession";
+import { useLeaderboard } from "../hooks/useLeaderboard";
+import { usePlayerProgress } from "../hooks/usePlayerProgress";
+import type { Emoji, GameConfig, RewardType } from "../types/game";
 
-type Emoji = {
-  id: string;
-  emoji: string;
-  title: string;
-  difficulty: number;
-};
-
-type RewardType = "free_game" | "coffee" | "cash_prize";
-
-// Type for stage requirements from database
-type StageRequirement = {
-  id: number;
-  stage_number: number;
-  score: number;
-  reward_type: RewardType;
-};
-
-const EmojiGame = () => {
+export const EmojiGame = () => {
   const navigate = useNavigate();
-  const { user, session } = useAuthStore();
-  const { startSession } = useSessionStore();
+  const supabase = useSupabaseClient();
+  const user = useUser();
+  // Removed session usage, use user instead
 
-  // State Management
+  // Game state
   const [currentEmoji, setCurrentEmoji] = useState<Emoji | null>(null);
-  const [guess, setGuess] = useState<string>("");
-  const [score, setScore] = useState<number>(0);
-  const [remainingTries, setRemainingTries] = useState<number>(3);
+  const [guess, setGuess] = useState("");
+
+  // Safe setter for guess to ensure it's always a string
+  const setGuessSafe = (value: any) => {
+    if (typeof value === 'string') {
+      setGuess(value);
+    } else {
+      console.warn('Attempted to set guess to non-string value:', value, 'Type:', typeof value, 'Stack:', new Error().stack);
+      setGuess(String(value || ''));
+    }
+  };
+  const [score, setScore] = useState(0);
+  const [remainingTries, setRemainingTries] = useState(3);
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [showHint, setShowHint] = useState<boolean>(false);
+  const [showHint, setShowHint] = useState(false);
   const [emojis, setEmojis] = useState<Emoji[]>([]);
   const [nextStageEmojis, setNextStageEmojis] = useState<Emoji[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [showIntro, setShowIntro] = useState<boolean>(true);
-  const [hintCount, setHintCount] = useState<number>(3);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showIntro, setShowIntro] = useState(true);
+  const [hintCount, setHintCount] = useState(3);
   const [currentReward, setCurrentReward] = useState<RewardType | null>(null);
-  const [currentStage, setCurrentStage] = useState<number>(1);
-  const [hintString, setHintString] = useState<string>("");
-  const [timer, setTimer] = useState<number>(30);
-  const [playerName, setPlayerName] = useState<string>("");
-  const [gameOver, setGameOver] = useState<boolean>(false);
-  const [playerId, setPlayerId] = useState<string>("");
-  const [sessionId, setSessionId] = useState<string>("");
-  const [streak, setStreak] = useState<number>(0);
-  const [maxStreak, setMaxStreak] = useState<number>(0);
-  // Leaderboard state
-  const [leaderboard, setLeaderboard] = useState<
-    { player_name: string; score: number }[]
-  >([]);
-  const [userTotalPoints, setUserTotalPoints] = useState<number>(0);
-  const [showLeaderboard, setShowLeaderboard] = useState(false);
-  const [topRank, setTopRank] = useState<number | null>(null);
-  const [bonusGiven, setBonusGiven] = useState(false);
-  // Dynamic reward thresholds and stage requirements
-  const [rewardThresholds, setRewardThresholds] = useState<
-    Record<string, number>
-  >({});
-  const [stageRequirements, setStageRequirements] = useState<
-    Record<number, StageRequirement>
-  >({});
-  const [configLoaded, setConfigLoaded] = useState<boolean>(false);
-  const [configError, setConfigError] = useState<string | null>(null);
+  const [currentStage, setCurrentStage] = useState(1);
+  const [hintString, setHintString] = useState("");
+  const [timer, setTimer] = useState(30);
+  const [playerName, setPlayerName] = useState("");
+  const [gameOver, setGameOver] = useState(false);
+  const [sessionId, setSessionId] = useState("");
+  const [streak, setStreak] = useState(0);
+  const [maxStreak, setMaxStreak] = useState(0);
+  const [showRewardModal, setShowRewardModal] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
 
-  // If user is authenticated, use their name and id
+  // Dynamic game configuration
+  const [gameConfig, setGameConfig] = useState<GameConfig>({
+    rewardThresholds: {},
+    stageRequirements: {},
+    maxStage: 1,
+  });
+
+  // Custom hooks
+  const { startSession } = useGameSession();
+  const { progress, updateProgress } = usePlayerProgress();
+  const {
+    leaderboard,
+    userRank,
+    userTotalPoints,
+    showLeaderboard,
+    setShowLeaderboard,
+    refreshLeaderboard,
+  } = useLeaderboard();
+
+  // Get player info from user
   const googleName =
-    session?.user?.user_metadata?.full_name ||
-    session?.user?.user_metadata?.name ||
     user?.user_metadata?.full_name ||
     user?.user_metadata?.name ||
     user?.email?.split("@")[0];
-  const googleId = user?.id;
+  const googleId = user?.id || "";
 
-  // Fetch configuration data
+  // Fetch game configuration
   useEffect(() => {
     const fetchConfig = async () => {
       try {
-        // Fetch reward thresholds
         const { data: rewards, error: rewardsError } = await supabase
           .from("emoji_rewards")
           .select("*");
 
-        if (rewardsError) {
-          console.error("Error fetching rewards:", rewardsError);
-        } else if (rewards) {
-          const thresholds: Record<string, number> = {};
-          rewards.forEach((r: any) => {
-            thresholds[r.reward_type.toUpperCase()] = r.threshold;
-          });
-          setRewardThresholds(thresholds);
-        }
-
-        // Fetch stage requirements
         const { data: stages, error: stagesError } = await supabase
           .from("emoji_stages")
           .select("*")
           .order("stage_number", { ascending: true });
 
-        if (stagesError) {
-          console.error("Error fetching stages:", stagesError);
-          setConfigError("Failed to load stage requirements");
-        } else if (stages) {
-          const requirements: Record<number, StageRequirement> = {};
-          stages.forEach((s: StageRequirement) => {
-            requirements[s.stage_number] = s;
-          });
-          setStageRequirements(requirements);
-          console.log("Loaded stage requirements:", requirements);
+        if (rewardsError || stagesError) {
+          console.error("Error fetching config:", rewardsError || stagesError);
+          return;
         }
 
-        // Mark configuration as loaded
-        setConfigLoaded(true);
+        const thresholds = rewards?.reduce(
+          (acc, r) => ({
+            ...acc,
+            [r.reward_type.toUpperCase()]: r.threshold,
+          }),
+          {}
+        );
+
+        const requirements = stages?.reduce(
+          (acc, s) => ({
+            ...acc,
+            [s.stage_number]: s,
+          }),
+          {}
+        );
+
+        const maxStage = Math.max(
+          ...(stages?.map((s) => s.stage_number) || [1])
+        );
+
+        setGameConfig({
+          rewardThresholds: thresholds || {},
+          stageRequirements: requirements || {},
+          maxStage,
+        });
       } catch (error) {
-        console.error("Error fetching configuration:", error);
-        setConfigError("Failed to load configuration");
-        setConfigLoaded(true);
+        console.error("Error loading game config:", error);
       }
     };
+
     fetchConfig();
-  }, []);
+  }, [supabase]);
 
-  // Fetch emojis with difficulty scaling
-  const fetchEmojis = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      if (nextStageEmojis.length > 0 && currentStage === 2) {
-        setEmojis(nextStageEmojis);
-        selectRandomEmoji(nextStageEmojis);
-      } else {
-        const difficultyRange = [
-          Math.max(1, currentStage - 1),
-          Math.min(3, currentStage + 1),
-        ];
-        const { data, error } = await supabase
-          .from("emojis")
-          .select("*")
-          .gte("difficulty", difficultyRange[0])
-          .lte("difficulty", difficultyRange[1])
-          .order("difficulty", { ascending: currentStage < 2 });
-        if (error) throw error;
-        if (data && data.length > 0) {
-          setEmojis(data as Emoji[]);
-          selectRandomEmoji(data as Emoji[]);
-          // Pre-load next stage emojis
-          preloadNextStageEmojis(currentStage + 1);
-        } else {
-          setFeedback("Failed to load emojis. Please try again.");
-        }
-      }
-    } catch (error) {
-      setFeedback("Failed to load emojis. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [currentStage, nextStageEmojis]);
+  // Preload next stage emojis
+  const preloadNextStageEmojis = useCallback(async (nextStage: number) => {
+    if (nextStage > gameConfig.maxStage) return;
 
-  const preloadNextStageEmojis = async (nextStage: number) => {
-    // Get the maximum stage number dynamically
-    const maxStage = Math.max(...Object.keys(stageRequirements).map(Number));
-    if (nextStage > maxStage) return;
     const difficultyRange = [
       Math.max(1, nextStage - 1),
-      Math.min(3, nextStage + 1),
+      Math.min(5, nextStage + 1),
     ];
+
     const { data } = await supabase
       .from("emojis")
       .select("*")
       .gte("difficulty", difficultyRange[0])
       .lte("difficulty", difficultyRange[1])
       .limit(20);
-    setNextStageEmojis((data || []) as Emoji[]);
-  };
 
-  const selectRandomEmoji = (emojiList: Emoji[]) => {
-    if (emojiList.length === 0) {
+    setNextStageEmojis((data || []) as Emoji[]);
+  }, [gameConfig.maxStage, supabase]);
+
+  // Select random emoji from list
+  const selectRandomEmoji = useCallback((emojiList: Emoji[]) => {
+    if (!emojiList.length) {
       setGameOver(true);
       return;
     }
+
     const randomIndex = Math.floor(Math.random() * emojiList.length);
-    const randomEmoji = emojiList[randomIndex];
-    setCurrentEmoji(randomEmoji);
-    setGuess("");
+    setCurrentEmoji(emojiList[randomIndex]);
+    setGuessSafe("");
     setShowHint(false);
     setFeedback(null);
     setHintString("");
     setTimer(30);
-  };
+  }, []);
+
+  // Fetch emojis with difficulty scaling
+  const fetchEmojis = useCallback(
+    async (stage: number) => {
+      setIsLoading(true);
+      try {
+        if (nextStageEmojis.length > 0 && stage === currentStage + 1) {
+          setEmojis(nextStageEmojis);
+          selectRandomEmoji(nextStageEmojis);
+          return;
+        }
+
+        const difficultyRange = [
+          Math.max(1, stage - 1),
+          Math.min(5, stage + 1),
+        ];
+
+        const { data, error } = await supabase
+          .from("emojis")
+          .select("*")
+          .gte("difficulty", difficultyRange[0])
+          .lte("difficulty", difficultyRange[1])
+          .order("difficulty", { ascending: stage < 3 });
+
+        if (error) throw error;
+
+        if (data?.length) {
+          setEmojis(data as Emoji[]);
+          selectRandomEmoji(data as Emoji[]);
+          preloadNextStageEmojis(stage + 1);
+        } else {
+          setFeedback("Failed to load emojis. Please try again.");
+        }
+      } catch (error) {
+        setFeedback("Failed to load emojis. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [currentStage, nextStageEmojis.length, supabase, preloadNextStageEmojis, selectRandomEmoji]
+  );
 
   const handleGuess = async () => {
-    if (!currentEmoji || !guess.trim()) return;
-    const userGuess = guess.toLowerCase().trim();
-    const correctAnswer = currentEmoji.title.toLowerCase().trim();
-    const isCorrect = userGuess === correctAnswer;
+    if (!currentEmoji || !guess || typeof guess !== 'string' || !guess.trim()) return;
+
+    const isCorrect =
+      guess.toLowerCase().trim() === currentEmoji.title.toLowerCase().trim();
+
     if (isCorrect) {
       const newScore = score + 1;
       setScore(newScore);
-      setStreak((prev) => {
-        const newStreak = prev + 1;
-        if (newStreak > maxStreak) setMaxStreak(newStreak);
-        return newStreak;
-      });
+
+      // Update streak
+      const newStreak = streak + 1;
+      setStreak(newStreak);
+      if (newStreak > maxStreak) setMaxStreak(newStreak);
+
       setFeedback(`Correct! 🎉 The answer is "${currentEmoji.title}".`);
-      // Check for stage completion and rewards
-      const stageRequirement = stageRequirements[currentStage];
-      if (
-        stageRequirement &&
-        newScore >= stageRequirement.score &&
-        configLoaded
-      ) {
-        setCurrentReward(stageRequirement.reward_type as RewardType);
+
+      // Check for stage completion
+      const stageReq = gameConfig.stageRequirements[currentStage];
+      if (stageReq && newScore >= stageReq.score) {
+        setCurrentReward(stageReq.reward_type);
+        setShowRewardModal(true);
+        setShowConfetti(true);
+
         // Update player progress
-        try {
-          const { data: progress } = await supabase
-            .from("emoji_player_progress")
-            .select("*")
-            .eq("player_id", playerId)
-            .single();
-          if (progress) {
-            const availableStages = Object.keys(stageRequirements)
-              .map(Number)
-              .sort((a, b) => a - b);
-            const currentStageIndex = availableStages.indexOf(
-              progress.current_stage
-            );
-            const nextStageIndex = Math.min(
-              availableStages.length - 1,
-              currentStageIndex + 1
-            );
-            const newStage = availableStages[nextStageIndex];
-            if (
-              newStage &&
-              newStage >= 1 &&
-              newStage <= Math.max(...availableStages)
-            ) {
-              setCurrentStage(newStage);
-            }
-            await supabase
-              .from("emoji_player_progress")
-              .update({
-                total_wins: progress.total_wins + 1,
-                last_win: new Date().toISOString(),
-                rewards_claimed: [
-                  ...progress.rewards_claimed,
-                  stageRequirement.reward_type,
-                ],
-                current_stage: newStage,
-                sessions_played: progress.sessions_played + 1,
-              })
-              .eq("player_id", playerId);
-            setCurrentStage(newStage);
-            fetchEmojis();
-          }
-          // Save certificate
-          await supabase.from("emoji_certificates").insert({
-            player_name: playerName,
-            player_id: playerId,
-            game_type: "emoji",
-            score: newScore,
-            reward_type: stageRequirement.reward_type,
-            timestamp: new Date().toISOString(),
-            session_id: sessionId,
-          });
-        } catch (error) {
-          console.error("Error updating progress:", error);
-        }
+        await updateProgress({
+          totalWins: progress.totalWins + 1,
+          rewardsClaimed: [...progress.rewardsClaimed, stageReq.reward_type],
+          currentStage: Math.min(currentStage + 1, gameConfig.maxStage),
+        });
+
+        // Save certificate
+        await supabase.from("emoji_certificates").insert({
+          player_name: playerName,
+          player_id: googleId || sessionId,
+          game_type: "emoji",
+          score: newScore,
+          reward_type: stageReq.reward_type,
+          session_id: sessionId,
+        });
+
+        // Advance to next stage
+        const nextStage = Math.min(currentStage + 1, gameConfig.maxStage);
+        setCurrentStage(nextStage);
+        fetchEmojis(nextStage);
       }
-      const updatedEmojis = emojis.filter(
-        (emoji) => emoji.id !== currentEmoji.id
-      );
-      setEmojis(updatedEmojis);
-      // Only show next emoji after user clicks a button (not automatically)
-      // Remove setTimeout/selectRandomEmoji here
+
+      // Remove used emoji
+      setEmojis((prev) => prev.filter((e) => e.id !== currentEmoji.id));
       setHintCount(3);
     } else {
+      // Incorrect guess
       const newTries = remainingTries - 1;
       setRemainingTries(newTries);
       setStreak(0);
       setFeedback("Incorrect! 😢 Try again.");
+
       if (newTries <= 0) {
-        setGameOver(true);
-        await saveScore();
-        navigate("/game-result", {
-          state: {
-            sessionId: sessionId,
-            playerId: playerId,
-            playerName: playerName,
-            gameType: "Emoji Game",
-            score: score,
-            timestamp: new Date().toISOString(),
-          },
-        });
+        endGame();
       }
     }
-    setGuess("");
+  };
+
+  const endGame = async () => {
+    setGameOver(true);
+    await saveScore();
+    navigate("/game-result", {
+      state: {
+        sessionId,
+        playerId: googleId || sessionId,
+        playerName,
+        gameType: "Emoji Game",
+        score,
+        timestamp: new Date().toISOString(),
+      },
+    });
   };
 
   const generateHint = () => {
     if (hintCount > 0 && currentEmoji) {
       const titleWords = currentEmoji.title.split(" ");
       const lastWord = titleWords.pop();
-      const hint = `______ ${lastWord}`;
-      setHintString(hint);
+      setHintString(`______ ${lastWord}`);
       setShowHint(true);
       setHintCount((prev) => prev - 1);
     }
@@ -325,226 +302,116 @@ const EmojiGame = () => {
     try {
       await supabase.from("emoji_scores").insert({
         player_name: playerName,
-        player_id: playerId,
-        score: score,
+        player_id: googleId || sessionId,
+        score,
         game_type: "emoji",
         stage: currentStage,
         session_id: sessionId,
         streak: maxStreak,
-        timestamp: new Date().toISOString(),
       });
+
+      refreshLeaderboard();
     } catch (error) {
       console.error("Error saving score:", error);
     }
   };
 
   const handleSkip = () => {
-    if (remainingTries > 1) {
-      setRemainingTries((prev) => prev - 1);
+    if (emojis.length > 1) {
       setFeedback("Skipped! Next emoji.");
-      // Only show next emoji after skip
-      const updatedEmojis = emojis.filter(
-        (emoji) => emoji.id !== currentEmoji?.id
-      );
-      setEmojis(updatedEmojis);
-      selectRandomEmoji(updatedEmojis);
+      setEmojis((prev) => {
+        const filtered = prev.filter((e) => e.id !== currentEmoji?.id);
+        selectRandomEmoji(filtered);
+        return filtered;
+      });
       setHintCount(3);
     } else {
-      setFeedback("No lives left to skip!");
-      setGameOver(true);
+      setFeedback("No more emojis left to skip!");
+      endGame();
     }
   };
 
   const handleStartGame = async () => {
-    let nameToUse = playerName;
-    let idToUse = playerId;
-    if (user && googleName && googleId) {
-      nameToUse = googleName;
-      idToUse = googleId;
-      setPlayerName(googleName);
-      setPlayerId(googleId);
-    } else {
-      if (!playerName || playerName.trim().length < 3) {
-        setFeedback("Please enter a name with at least 3 characters");
-        return;
-      }
-      const newPlayerId = uuidv4();
-      setPlayerId(newPlayerId);
-      idToUse = newPlayerId;
-    }
-    const newSessionId = uuidv4();
-    setSessionId(newSessionId);
+    const nameToUse = googleName || playerName;
+    const idToUse = googleId || uuidv4();
 
-    // Start game session
-    try {
-      await startSession("emoji-game", nameToUse, 1800); // 30 minutes
-    } catch (error) {
-      console.error("Failed to start game session:", error);
+    if (!nameToUse || nameToUse.trim().length < 3) {
+      setFeedback("Please enter a name with at least 3 characters");
+      return;
     }
+
+    setPlayerName(nameToUse);
+    setSessionId(uuidv4());
+
+    // Start game session (30 minutes)
+    await startSession("emoji-game", nameToUse, 1800);
 
     // Initialize player progress
-    supabase.from("emoji_player_progress").upsert(
-      {
-        player_id: idToUse,
-        current_stage: 1,
-        sessions_played: 0,
-      },
-      { onConflict: "player_id" }
-    );
+    await updateProgress({
+      playerId: idToUse,
+      playerName: nameToUse,
+      currentStage: 1,
+    });
+
     setShowIntro(false);
-    fetchEmojis();
-  };
-
-  const handleRestartGame = () => {
-    setScore(0);
-    setRemainingTries(3);
-    setGameOver(false);
-    setCurrentReward(null);
-    setStreak(0);
-    setMaxStreak(0);
-    fetchEmojis();
-  };
-
-  const handleBackToMenu = () => {
-    navigate("/");
+    fetchEmojis(1);
   };
 
   // Timer effect
   useEffect(() => {
-    let interval: ReturnType<typeof setInterval>;
+    let interval: NodeJS.Timeout;
+
     if (!showIntro && !gameOver && timer > 0) {
-      interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
-      }, 1000);
+      interval = setInterval(() => setTimer((prev) => prev - 1), 1000);
     } else if (timer === 0 && !gameOver) {
-      setFeedback("Time is up! Game Over!");
-      setGameOver(true);
-      saveScore();
-    }
-    return () => clearInterval(interval);
-  }, [timer, showIntro, gameOver]);
+      const newTries = remainingTries - 1;
+      setRemainingTries(newTries);
 
-  // Initialize player progress on mount
-  useEffect(() => {
-    if (!showIntro) {
-      fetchEmojis();
-    }
-  }, [showIntro, fetchEmojis]);
-
-  // Validate current stage when configuration loads
-  useEffect(() => {
-    if (configLoaded && Object.keys(stageRequirements).length > 0) {
-      const availableStages = Object.keys(stageRequirements)
-        .map(Number)
-        .sort((a, b) => a - b);
-      if (
-        availableStages.length > 0 &&
-        !availableStages.includes(currentStage)
-      ) {
-        // Set to the first available stage if current stage is invalid
-        setCurrentStage(availableStages[0]);
-      }
-    }
-  }, [configLoaded, stageRequirements, currentStage]);
-
-  // Fetch leaderboard and user total points after game over
-  useEffect(() => {
-    if (gameOver) {
-      // Fetch top 10 scores
-      supabase
-        .from("emoji_scores")
-        .select("player_name, score")
-        .order("score", { ascending: false })
-        .limit(10)
-        .then(({ data }) => {
-          if (data) setLeaderboard(data);
+      if (newTries <= 0) {
+        endGame();
+      } else {
+        setFeedback("Time is up! Next emoji.");
+        setEmojis((prev) => prev.filter((e) => e.id !== currentEmoji?.id));
+        // Use a callback to avoid stale closure issues
+        setEmojis((prev) => {
+          const filtered = prev.filter((e) => e.id !== currentEmoji?.id);
+          selectRandomEmoji(filtered);
+          return filtered;
         });
-      // Fetch user's total points
-      if (playerId) {
-        supabase
-          .from("emoji_scores")
-          .select("score")
-          .eq("player_id", playerId)
-          .then(({ data }) => {
-            if (data) {
-              const total = data.reduce(
-                (sum, row) => sum + (row.score || 0),
-                0
-              );
-              setUserTotalPoints(total);
-            }
-          });
+        setHintCount(3);
+        setTimer(20);
       }
     }
-  }, [gameOver, playerId]);
 
-  // Grant bonus points at the start of a new game session if in top 3
+    return () => clearInterval(interval);
+  }, [timer, showIntro, gameOver, remainingTries, currentEmoji?.id, selectRandomEmoji]);
+
+  // Confetti effect timeout
   useEffect(() => {
-    const grantBonusIfNeeded = async () => {
-      if (
-        !showIntro &&
-        topRank &&
-        topRank > 0 &&
-        topRank <= 3 &&
-        !bonusGiven &&
-        playerId &&
-        sessionId
-      ) {
-        try {
-          const token = session?.access_token;
-          const response = await fetch("/api/leaderboard/bonus", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: token ? `Bearer ${token}` : "",
-            },
-            body: JSON.stringify({ playerId, sessionId, gameType: "emoji" }),
-          });
-          if (response.ok) {
-            setScore((prev) => prev + 10);
-            setBonusGiven(true);
-          } else {
-            // If already granted or not eligible, just set as given to avoid spamming
-            setBonusGiven(true);
-          }
-        } catch (e) {
-          setBonusGiven(true);
-        }
-      }
-      if (showIntro) {
-        setBonusGiven(false); // Reset for next session
-      }
-    };
-    grantBonusIfNeeded();
-  }, [
-    showIntro,
-    topRank,
-    bonusGiven,
-    playerId,
-    playerName,
-    sessionId,
-    currentStage,
-    session,
-  ]);
-
-  // Reward icon component
-  const RewardIcon = ({ rewardType }: { rewardType: RewardType }) => {
-    switch (rewardType) {
-      case "free_game":
-        return <GiftIcon className="w-6 h-6 text-blue-400 animate-pulse" />;
-      case "coffee":
-        return <GiftIcon className="w-6 h-6 text-yellow-400 animate-pulse" />;
-      case "cash_prize":
-        return <TrophyIcon className="w-6 h-6 text-green-400 animate-pulse" />;
-      default:
-        return (
-          <SparklesIcon className="w-6 h-6 text-purple-400 animate-pulse" />
-        );
+    if (showConfetti) {
+      const timer = setTimeout(() => setShowConfetti(false), 5000);
+      return () => clearTimeout(timer);
     }
-  };
+  }, [showConfetti]);
+
+  // Ensure guess is always a string - add this effect early
+  useEffect(() => {
+    if (guess !== null && guess !== undefined && typeof guess !== 'string') {
+      console.warn('Guess state is not a string, fixing:', guess, 'Type:', typeof guess, 'Stack:', new Error().stack);
+      setGuessSafe(String(guess || ''));
+    }
+  }, [guess]);
+
+  // Debug effect to track guess state changes
+  useEffect(() => {
+    console.log('Guess state changed:', guess, 'Type:', typeof guess);
+  }, [guess]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-yellow-800 to-indigo-900 flex flex-col items-center justify-center p-4 text-white overflow-hidden relative">
+      {/* Confetti effect */}
+      {showConfetti && <ConfettiEffect />}
+
       {/* Leaderboard Modal */}
       {showLeaderboard && (
         <div className="fixed z-50 inset-0 overflow-y-auto">
@@ -557,33 +424,34 @@ const EmojiGame = () => {
               >
                 &times;
               </button>
-              <GlobalLeaderboard
-                onTopRank={(rank) =>
-                  setTopRank(rank > 0 && rank <= 3 ? rank : null)
-                }
-              />
+              <GlobalLeaderboard />
             </div>
           </div>
         </div>
       )}
 
-      {/* Animated background bubbles */}
+      {/* Reward Modal */}
+      {showRewardModal && currentReward && (
+        <RewardModal
+          rewardType={currentReward}
+          onClose={() => setShowRewardModal(false)}
+          stage={currentStage}
+        />
+      )}
+
+      {/* Animated background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(10)].map((_, i) => (
           <motion.div
             key={i}
             className="absolute w-6 h-6 bg-white/10 rounded-full backdrop-blur-sm"
             initial={{
-              x:
-                Math.random() *
-                (typeof window !== "undefined" ? window.innerWidth : 800),
-              y:
-                Math.random() *
-                (typeof window !== "undefined" ? window.innerHeight : 600),
+              x: Math.random() * window.innerWidth,
+              y: Math.random() * window.innerHeight,
               scale: Math.random() * 0.5 + 0.5,
             }}
             animate={{
-              y: [0, typeof window !== "undefined" ? window.innerHeight : 600],
+              y: [0, window.innerHeight],
               opacity: [1, 0],
               transition: {
                 duration: Math.random() * 10 + 10,
@@ -597,246 +465,71 @@ const EmojiGame = () => {
 
       <div className="relative z-10 w-full max-w-md flex flex-col items-center space-y-4">
         {showIntro ? (
-          <motion.div
-            className="w-full bg-white/5 backdrop-blur-lg rounded-2xl shadow-xl border border-white/10 p-4 space-y-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="space-y-3">
-              <h1 className="text-4xl sm:text-5xl font-black bg-gradient-to-r from-amber-400 to-yellow-500 text-transparent bg-clip-text">
-                Emoji Mastermind
-              </h1>
-              <p className="text-sm sm:text-base text-white/80 font-light">
-                Crack the emoji enigma! Use your wits to decipher hidden
-                phrases. Earn rewards and climb the leaderboards 🏆
-              </p>
-            </div>
-
-            <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-              <div className="space-y-3 mb-4">
-                <div className="flex flex-col sm:flex-row justify-center gap-2">
-                  <div className="bg-white/10 px-3 py-1.5 rounded-full flex items-center gap-2 text-sm">
-                    <SparklesIcon className="w-4 h-4 text-amber-400" />
-                    <span>Stage-based Rewards</span>
-                  </div>
-                  <div className="bg-white/10 px-3 py-1.5 rounded-full flex items-center gap-2 text-sm">
-                    <ClockIcon className="w-4 h-4 text-amber-400" />
-                    <span>Timed Challenges</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <h3 className="text-lg font-semibold text-amber-400">
-                  Enter Your Name
-                </h3>
-                {user && googleName ? (
-                  <div className="text-white text-lg font-semibold flex items-center justify-center gap-2">
-                    <SparklesIcon className="w-5 h-5 text-amber-400" />
-                    {googleName}
-                  </div>
-                ) : (
-                  <input
-                    value={playerName}
-                    onChange={(e) => setPlayerName(e.target.value)}
-                    placeholder="Enter your name..."
-                    required
-                    className="w-full px-4 py-3 bg-white/5 rounded-xl text-center text-base focus:outline-none focus:ring-2 focus:ring-amber-500 placeholder-white/40"
-                  />
-                )}
-                <p className="text-xs text-white/60">
-                  Your name will be used for the leaderboard
-                </p>
-              </div>
-            </div>
-
-            {configError && (
-              <div className="bg-red-500/10 text-red-400 px-4 py-2 rounded-lg text-sm border border-red-500/20">
-                {configError}
-              </div>
-            )}
-
-            <motion.button
-              onClick={handleStartGame}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              disabled={
-                !user || !googleName
-                  ? !playerName.trim() || !configLoaded || !!configError
-                  : !configLoaded || !!configError
-              }
-              className={`w-full py-3 bg-gradient-to-r from-amber-500 to-yellow-600 rounded-xl text-base font-semibold ${
-                !configLoaded || !!configError || (!user && !playerName.trim())
-                  ? "opacity-50 cursor-not-allowed"
-                  : ""
-              }`}
-            >
-              {configError
-                ? "Configuration Error"
-                : !configLoaded
-                ? "Loading Configuration..."
-                : "Start Challenge 🚀"}
-            </motion.button>
-          </motion.div>
+          <IntroScreen
+            playerName={playerName}
+            googleName={googleName}
+            onNameChange={setPlayerName}
+            onStart={handleStartGame}
+            isLoading={isLoading}
+          />
         ) : (
           <GameSessionGuard>
-            <div className="space-y-6">
-              {/* Game Header */}
-              <div className="flex flex-col sm:flex-row justify-between items-center gap-2 mb-4">
-                <div className="text-base font-semibold text-amber-400">
-                  Player: {playerName || "Guest"}
-                </div>
+            <div className="space-y-6 w-full">
+              <GameHeader
+                playerName={playerName}
+                score={score}
+                remainingTries={remainingTries}
+                timer={timer}
+                streak={streak}
+                currentStage={currentStage}
+                stageRequirements={gameConfig.stageRequirements}
+              />
 
-                <div className="flex items-center gap-2">
-                  <div className="bg-white/10 px-3 py-1 rounded-full text-sm">
-                    <span className="text-amber-400">⭐ {score}</span>
-                  </div>
-                  <div className="bg-white/10 px-3 py-1 rounded-full flex items-center gap-1 text-sm">
-                    <HeartIcon className="w-4 h-4 text-rose-400" />
-                    <span>{remainingTries}</span>
-                  </div>
-                  <div className="bg-white/10 px-3 py-1 rounded-full text-sm">
-                    ⏳ {timer}s
-                  </div>
-                  {streak > 0 && (
-                    <div className="bg-green-500/20 px-3 py-1 rounded-full text-sm text-green-300">
-                      🔥 {streak}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Stage progress */}
-              {configLoaded && stageRequirements[currentStage] ? (
-                <div className="mb-2">
-                  <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                    <motion.div
-                      animate={{
-                        width: `${Math.min(
-                          100,
-                          (score / stageRequirements[currentStage].score) * 100
-                        )}%`,
-                      }}
-                    />
-                  </div>
-                  <p className="text-white/70 text-xs mt-1 text-right">
-                    Stage {currentStage}: {score}/
-                    {stageRequirements[currentStage].score}
-                  </p>
-                </div>
+              {isLoading ? (
+                <LoadingSpinner />
               ) : (
-                <div className="mb-2">
-                  <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                    <div className="h-2 bg-white/20 animate-pulse" />
-                  </div>
-                  <p className="text-white/70 text-xs mt-1 text-right">
-                    Loading stage configuration...
-                  </p>
-                </div>
-              )}
-
-              {/* Emoji Display */}
-              <motion.div
-                className="bg-white/5 p-6 rounded-xl border border-white/10 flex items-center justify-center"
-                key={currentEmoji?.id}
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <span className="text-6xl sm:text-8xl">
-                  {currentEmoji?.emoji || "🎲"}
-                </span>
-              </motion.div>
-
-              {/* Game Controls */}
-              <div className="space-y-6">
-                <AnimatePresence>
-                  {feedback && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0 }}
-                      className={`px-6 py-3 rounded-xl text-center border ${
-                        feedback.includes("Correct")
-                          ? "bg-green-500/10 text-green-400 border-green-500/20"
-                          : "bg-red-500/10 text-red-400 border-red-500/20"
-                      }`}
-                    >
-                      {feedback}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                <div className="space-y-3">
-                  {showHint && (
-                    <div className="bg-white/10 px-4 py-2 rounded-lg text-sm border border-white/20">
-                      Hint: {hintString}
-                    </div>
-                  )}
-                  <input
-                    value={guess}
-                    onChange={(e) => setGuess(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && handleGuess()}
-                    placeholder="Type your answer..."
-                    className="w-full px-4 py-3 bg-white/5 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-amber-500 placeholder-white/40"
+                <>
+                  <EmojiCard
+                    emoji={currentEmoji?.emoji || "🎲"}
+                    key={currentEmoji?.id}
                   />
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      onClick={generateHint}
-                      disabled={showHint || hintCount === 0}
-                      className="py-2.5 text-sm bg-white/5 hover:bg-white/10 disabled:opacity-40 rounded-xl flex items-center justify-center gap-1"
-                    >
-                      <LightBulbIcon className="w-4 h-4" />
-                      Hint ({hintCount})
-                    </button>
-                    <button
-                      onClick={handleSkip}
-                      className="py-2.5 text-sm bg-white/5 hover:bg-white/10 rounded-xl"
-                    >
-                      Skip ➔
-                    </button>
-                  </div>
-
-                  <button
-                    onClick={handleGuess}
-                    className="w-full py-3 bg-gradient-to-r from-amber-500 to-yellow-600 rounded-xl text-sm font-semibold"
-                  >
-                    Submit Answer
-                  </button>
-                </div>
-              </div>
+                  <GameControls
+                    feedback={feedback}
+                    showHint={showHint}
+                    hintString={hintString}
+                    guess={guess}
+                    onGuessChange={setGuessSafe}
+                    onGuessSubmit={handleGuess}
+                    onHint={generateHint}
+                    hintCount={hintCount}
+                    onSkip={handleSkip}
+                  />
+                </>
+              )}
             </div>
           </GameSessionGuard>
         )}
       </div>
 
-      {/* View Global Leaderboard button */}
-      <button
-        onClick={() => setShowLeaderboard(true)}
-        className="fixed top-4 right-4 z-40 bg-yellow-500 hover:bg-yellow-400 text-indigo-900 font-bold px-4 py-2 rounded-full shadow-lg transition-all"
-      >
-        View Global Leaderboard
-      </button>
-
-      {/* Top 3 Badge */}
-      {topRank && topRank > 0 && topRank <= 3 && (
-        <div className="fixed top-20 right-4 z-40 bg-green-500/90 text-white px-4 py-2 rounded-full shadow-lg text-lg font-bold border-2 border-green-300 animate-bounce">
-          {topRank === 1 && "🥇 You are #1 on the Global Leaderboard!"}
-          {topRank === 2 && "🥈 You are #2 on the Global Leaderboard!"}
-          {topRank === 3 && "🥉 You are #3 on the Global Leaderboard!"}
-        </div>
+      {/* Leaderboard button */}
+      {!showIntro && (
+        <button
+          onClick={() => setShowLeaderboard(true)}
+          className="fixed top-4 right-4 z-40 bg-yellow-500 hover:bg-yellow-400 text-indigo-900 font-bold px-4 py-2 rounded-full shadow-lg transition-all"
+        >
+          View Leaderboard
+        </button>
       )}
 
-      {/* Bonus Points Message */}
-      {topRank && topRank > 0 && topRank <= 3 && bonusGiven && !showIntro && (
-        <div className="fixed top-36 right-4 z-40 bg-yellow-500/90 text-indigo-900 px-4 py-2 rounded-full shadow-lg text-lg font-bold border-2 border-yellow-300 animate-bounce">
-          +10 Bonus Points for Top 3 Leaderboard!
+      {/* Top rank badge */}
+      {userRank && userRank > 0 && userRank <= 3 && !showIntro && (
+        <div className="fixed top-20 right-4 z-40 bg-green-500/90 text-white px-4 py-2 rounded-full shadow-lg text-lg font-bold border-2 border-green-300 animate-bounce">
+          {userRank === 1 && "🥇 You are #1 on the Leaderboard!"}
+          {userRank === 2 && "🥈 You are #2 on the Leaderboard!"}
+          {userRank === 3 && "🥉 You are #3 on the Leaderboard!"}
         </div>
       )}
     </div>
   );
 };
-
-export default EmojiGame;

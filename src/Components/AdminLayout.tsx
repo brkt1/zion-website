@@ -1,6 +1,6 @@
 import { supabase } from "@/supabaseClient";
 import React, { useEffect, useState } from "react";
-import { Link, Navigate, useLocation } from "react-router-dom";
+import { NavLink, Navigate, useLocation } from "react-router-dom";
 import LoadingSpinner from "./utility/LoadingSpinner";
 
 export default function AdminLayout({
@@ -28,6 +28,10 @@ export default function AdminLayout({
         } = await clientSupabase.auth.getUser();
         if (userError) throw userError;
         setUser(fetchedUser);
+
+        if (fetchedUser) {
+          console.log("USER ID:", fetchedUser.id);
+        }
 
         if (!fetchedUser) {
           setLoading(false);
@@ -110,150 +114,186 @@ export default function AdminLayout({
         <nav>
           <ul className="space-y-2">
             <li>
-              <Link
+              <NavLink
                 to="/admin/dashboard"
-                className="block p-2 rounded hover:bg-black-secondary"
+                className={({ isActive }) =>
+                  `block p-2 rounded ${isActive ? 'bg-yellow-500 text-black-primary' : 'hover:bg-black-secondary'}`
+                }
               >
                 Dashboard
-              </Link>
+              </NavLink>
             </li>
             <li>
-              <Link
+              <NavLink
                 to="/admin/game-types"
-                className="block p-2 rounded hover:bg-black-secondary"
+                className={({ isActive }) =>
+                  `block p-2 rounded ${isActive ? 'bg-yellow-500 text-black-primary' : 'hover:bg-black-secondary'}`
+                }
               >
                 Game Types
-              </Link>
+              </NavLink>
             </li>
             <li>
-              <Link
+              <NavLink
                 to="/admin/cards"
-                className="block p-2 rounded hover:bg-black-secondary"
+                className={({ isActive }) =>
+                  `block p-2 rounded ${isActive ? 'bg-yellow-500 text-black-primary' : 'hover:bg-black-secondary'}`
+                }
               >
                 Card Management
-              </Link>
+              </NavLink>
             </li>
             <li>
-              <Link
+              <NavLink
                 to="/admin/users"
-                className="block p-2 rounded hover:bg-black-secondary"
+                className={({ isActive }) =>
+                  `block p-2 rounded ${isActive ? 'bg-yellow-500 text-black-primary' : 'hover:bg-black-secondary'}`
+                }
               >
                 User Administration
-              </Link>
+              </NavLink>
             </li>
             <li>
-              <Link
+              <NavLink
                 to="/admin/cafe-owner-dashboard"
-                className="block p-2 rounded hover:bg-black-secondary"
+                className={({ isActive }) =>
+                  `block p-2 rounded ${isActive ? 'bg-yellow-500 text-black-primary' : 'hover:bg-black-secondary'}`
+                }
               >
                 Cafe Owner Dashboard
-              </Link>
+              </NavLink>
             </li>
             <li>
-              <Link
+              <NavLink
                 to="/admin/cafe-owner-management"
-                className="block p-2 rounded hover:bg-black-secondary"
+                className={({ isActive }) =>
+                  `block p-2 rounded ${isActive ? 'bg-yellow-500 text-black-primary' : 'hover:bg-black-secondary'}`
+                }
               >
                 Cafe Owner Management
-              </Link>
+              </NavLink>
             </li>
             <li>
-              <Link
+              <NavLink
                 to="/admin/certificates"
-                className="block p-2 rounded hover:bg-black-secondary"
+                className={({ isActive }) =>
+                  `block p-2 rounded ${isActive ? 'bg-yellow-500 text-black-primary' : 'hover:bg-black-secondary'}`
+                }
               >
                 Certificates
-              </Link>
+              </NavLink>
             </li>
             <li>
-              <Link
+              <NavLink
                 to="/admin/reward-winner"
-                className="block p-2 rounded hover:bg-black-secondary"
+                className={({ isActive }) =>
+                  `block p-2 rounded ${isActive ? 'bg-yellow-500 text-black-primary' : 'hover:bg-black-secondary'}`
+                }
               >
                 Reward Winner
-              </Link>
+              </NavLink>
             </li>
             <li>
-              <Link
+              <NavLink
                 to="/admin/role-permission-editor"
-                className="block p-2 rounded hover:bg-black-secondary"
+                className={({ isActive }) =>
+                  `block p-2 rounded ${isActive ? 'bg-yellow-500 text-black-primary' : 'hover:bg-black-secondary'}`
+                }
               >
                 Role Permission Editor
-              </Link>
+              </NavLink>
             </li>
             <li>
-              <Link
+              <NavLink
                 to="/admin/system-settings"
-                className="block p-2 rounded hover:bg-black-secondary"
+                className={({ isActive }) =>
+                  `block p-2 rounded ${isActive ? 'bg-yellow-500 text-black-primary' : 'hover:bg-black-secondary'}`
+                }
               >
                 System Settings
-              </Link>
+              </NavLink>
             </li>
             <li>
-              <Link
+              <NavLink
                 to="/admin/winner-list"
-                className="block p-2 rounded hover:bg-black-secondary"
+                className={({ isActive }) =>
+                  `block p-2 rounded ${isActive ? 'bg-yellow-500 text-black-primary' : 'hover:bg-black-secondary'}`
+                }
               >
                 Winner List
-              </Link>
+              </NavLink>
             </li>
             <li>
-              <Link
+              <NavLink
                 to="/admin/winner-scanner"
-                className="block p-2 rounded hover:bg-black-secondary"
+                className={({ isActive }) =>
+                  `block p-2 rounded ${isActive ? 'bg-yellow-500 text-black-primary' : 'hover:bg-black-secondary'}`
+                }
               >
                 Winner Scanner
-              </Link>
+              </NavLink>
             </li>
             <li>
-              <Link
+              <NavLink
                 to="/admin/enhanced-card-generator"
-                className="block p-2 rounded hover:bg-black-secondary"
+                className={({ isActive }) =>
+                  `block p-2 rounded ${isActive ? 'bg-yellow-500 text-black-primary' : 'hover:bg-black-secondary'}`
+                }
               >
                 Enhanced Card Generator
-              </Link>
+              </NavLink>
             </li>
             <li>
-              <Link
+              <NavLink
                 to="/admin/enhanced-qr-scanner"
-                className="block p-2 rounded hover:bg-black-secondary"
+                className={({ isActive }) =>
+                  `block p-2 rounded ${isActive ? 'bg-yellow-500 text-black-primary' : 'hover:bg-black-secondary'}`
+                }
               >
                 Enhanced QR Scanner
-              </Link>
+              </NavLink>
             </li>
             <li>
-              <Link
+              <NavLink
                 to="/admin/winner-card-generator"
-                className="block p-2 rounded hover:bg-black-secondary"
+                className={({ isActive }) =>
+                  `block p-2 rounded ${isActive ? 'bg-yellow-500 text-black-primary' : 'hover:bg-black-secondary'}`
+                }
               >
                 Winner Card Generator
-              </Link>
+              </NavLink>
             </li>
             {profile?.role === "SUPER_ADMIN" && (
               <>
                 <li>
-                  <Link
+                  <NavLink
                     to="/admin/permissions"
-                    className="block p-2 rounded hover:bg-black-secondary"
+                    className={({ isActive }) =>
+                      `block p-2 rounded ${isActive ? 'bg-yellow-500 text-black-primary' : 'hover:bg-black-secondary'}`
+                    }
                   >
                     Permissions
-                  </Link>
+                  </NavLink>
                 </li>
                 <li>
-                  <Link
+                  <NavLink
                     to="/admin/audit-logs"
-                    className="block p-2 rounded hover:bg-black-secondary"
+                    className={({ isActive }) =>
+                      `block p-2 rounded ${isActive ? 'bg-yellow-500 text-black-primary' : 'hover:bg-black-secondary'}`
+                    }
                   >
                     Audit Logs
-                  </Link>
+                  </NavLink>
                 </li>
                 <li>
-                  <Link
+                  <NavLink
                     to="/admin/permission-manager"
-                    className="block p-2 rounded hover:bg-black-secondary"
+                    className={({ isActive }) =>
+                      `block p-2 rounded ${isActive ? 'bg-yellow-500 text-black-primary' : 'hover:bg-black-secondary'}`
+                    }
                   >
                     Permission Manager
-                  </Link>
+                  </NavLink>
                 </li>
               </>
             )}
