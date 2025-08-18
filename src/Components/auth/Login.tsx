@@ -4,10 +4,11 @@ import { useAuthStore } from '../../stores/authStore';
 
 import { motion } from 'framer-motion';
 import { FaEnvelope, FaLock, FaSignInAlt, FaSpinner } from 'react-icons/fa';
+import { FcGoogle } from 'react-icons/fc';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { signIn, error, loading, user, profile, clearError } = useAuthStore();
+  const { signIn, error, loading, user, profile, clearError, signInWithGoogle } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -54,7 +55,21 @@ const Login = () => {
           <p className="text-gray-light">Sign in to your GameHub account</p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-5">
+        <div className="space-y-5">
+          <button
+            type="button"
+            onClick={signInWithGoogle}
+            className="w-full py-3 rounded-lg transition-all duration-200 flex items-center justify-center bg-white text-black hover:bg-gray-100"
+          >
+            <FcGoogle className="mr-2 text-xl" /> Continue with Google
+          </button>
+
+          <div className="flex items-center space-x-2 text-gray-medium">
+            <div className="flex-1 h-px bg-gray-dark" />
+            <span className="text-sm">or</span>
+            <div className="flex-1 h-px bg-gray-dark" />
+          </div>
+
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <FaEnvelope className="text-gray-medium" />
@@ -63,7 +78,7 @@ const Login = () => {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
+              autoComplete="email"
               className="w-full py-3 pl-10 pr-4 bg-black-primary text-cream rounded-lg border border-gray-dark focus:outline-none focus:ring-1 focus:ring-gold-primary"
               placeholder="Email address"
             />
@@ -84,7 +99,8 @@ const Login = () => {
           </div>
 
           <button 
-            type="submit" 
+            type="button" 
+            onClick={handleLogin}
             disabled={loading}
             className={`w-full py-3 rounded-lg transition-all duration-200 flex items-center justify-center
               ${loading 
@@ -104,7 +120,7 @@ const Login = () => {
               </>
             )}
           </button>
-        </form>
+        </div>
 
         {error && (
           <motion.div 

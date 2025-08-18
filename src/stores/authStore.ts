@@ -24,6 +24,8 @@ interface AuthState {
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
+  sendMagicLink: (email: string, redirectTo?: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   initialize: () => Promise<void>;
   fetchProfile: () => Promise<void>;
   clearError: () => void;
@@ -140,6 +142,47 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         error: error.message || "Sign up failed",
         loading: false,
       });
+      throw error;
+    }
+  },
+
+  sendMagicLink: async (email: string, redirectTo?: string) => {
+    try {
+      // Do not toggle global loading to avoid blocking password sign-in UI
+      set({ error: null });
+
+      const emailRedirectTo = redirectTo || `${window.location.origin}`;
+
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo,
+        },
+      });
+
+      if (error) throw error;
+    } catch (error: any) {
+      set({ error: error.message || 'Failed to send magic link' });
+      throw error;
+    }
+  },
+
+  signInWithGoogle: async () => {
+    try {
+      set({ error: null });
+      const redirectTo = window.location.origin;
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo,
+          queryParams: {
+            prompt: 'select_account',
+          },
+        },
+      });
+      if (error) throw error;
+    } catch (error: any) {
+      set({ error: error.message || 'Google sign-in failed' });
       throw error;
     }
   },
@@ -322,6 +365,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     } catch (error) {
       console.error("Error fetching profile or permissions:", error);
       // Set default values on error to prevent undefined state
+      const { session } = get();
+      if (!session?.user) return;
       const fallbackProfile = get().validateProfile({
         id: session.user.id,
         userId: session.user.id,

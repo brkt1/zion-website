@@ -1,9 +1,10 @@
 const express = require("express");
 const cors = require("cors");
 const pool = require("./db");
+const path = require("path");
 
 require("dotenv").config({
-  path: "/media/becky/fbb95933-6bf3-476c-ad04-81ce8356b618/yenege/zion-website/.env",
+  path: path.resolve(__dirname, "../.env"),
 });
 
 const app = express();
