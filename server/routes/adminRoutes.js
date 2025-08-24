@@ -1,24 +1,27 @@
 const express = require("express");
-const pool = require("../db");
 const {
   authenticateUser,
   requireAdmin,
 } = require("../middleware/authMiddleware");
 const { logAdminActivity } = require("../middleware/activityLogger");
 const { requirePermission } = require("../middleware/permissionMiddleware");
+const supabase = require("../supabaseClient");
 
 const router = express.Router();
 
 // Admin Routes
 router.get("/users", authenticateUser, requireAdmin, async (req, res) => {
   try {
-    const { rows } = await pool.query(`
-      SELECT u.*, p.role
-      FROM auth.users u
-      LEFT JOIN public.profiles p ON u.id = p.id
-      ORDER BY u.created_at DESC
-    `);
-    res.json(rows);
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, email, role, created_at")
+      .order("created_at", { ascending: false });
+    
+    if (error) {
+      return res.status(500).json({ error: "Failed to fetch users" });
+    }
+    
+    res.json(data);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch users" });
   }
@@ -39,40 +42,23 @@ router.post(
       // You will need to replace this with your actual user creation logic.
       const newUser = { id: "new-user-id", email };
 
-      const { rows: userRows } = await pool.query(
-        `
-      INSERT INTO users (email, auth_user_id)
-      VALUES ($1, $2)
-      RETURNING *;
-    `,
-        [email, newUser.id]
-      );
+      // Create profile using Supabase
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .insert({
+          id: newUser.id,
+          email: email,
+          name: name,
+          role: "CAFE_OWNER"
+        })
+        .select()
+        .single();
 
-      const user = userRows[0];
+      if (profileError) {
+        return res.status(500).json({ error: "Failed to create profile" });
+      }
 
-      const { rows: profileRows } = await pool.query(
-        `
-      INSERT INTO profiles (user_id, role)
-      VALUES ($1, $2)
-      RETURNING *;
-    `,
-        [user.id, "CAFE_OWNER"]
-      );
-
-      const profile = profileRows[0];
-
-      const { rows: cafeOwnerRows } = await pool.query(
-        `
-      INSERT INTO cafe_owners (name, email, user_id)
-      VALUES ($1, $2, $3)
-      RETURNING *;
-    `,
-        [name, email, user.id]
-      );
-
-      const cafeOwner = cafeOwnerRows[0];
-
-      res.status(201).json({ user: { ...user, profile }, cafeOwner });
+      res.status(201).json({ user: profileData });
     } catch (error) {
       res.status(500).json({ error: "Failed to create cafe owner" });
     }
@@ -82,28 +68,60 @@ router.post(
 router.get("/dashboard", authenticateUser, requireAdmin, async (req, res) => {
   console.log("[DEBUG] req.user in /dashboard:", req.user);
   try {
-    const totalUsersResult = await pool.query(
-      "SELECT COUNT(*) AS total FROM public.profiles"
-    );
-    const totalUsers = Number(totalUsersResult.rows[0].total);
+    // Get total users count
+    const { count: totalUsers, error: countError } = await supabase
+      .from("profiles")
+      .select("*", { count: "exact", head: true });
 
-    const { rows: userRoles } = await pool.query(
-      `
-      SELECT p.id AS userId, u.email, p.role
-      FROM public.profiles p
-      LEFT JOIN auth.users u ON p.id = u.id
-    `
-    );
+    if (countError) {
+      console.error("Error counting users:", countError);
+      return res.status(500).json({ error: "Failed to count users" });
+    }
+
+    // Get user roles
+    const { data: userRoles, error: userRolesError } = await supabase
+      .from("profiles")
+      .select("id, email, role, created_at")
+      .order("created_at", { ascending: false });
+
+    if (userRolesError) {
+      console.error("Error fetching user roles:", userRolesError);
+      return res.status(500).json({ error: "Failed to fetch user roles" });
+    }
+
+    // Get recent admin activities
+    const { data: recentActivities, error: activitiesError } = await supabase
+      .from("admin_activity_log")
+      .select("admin_id, action, created_at, details")
+      .order("created_at", { ascending: false })
+      .limit(10);
+
+    if (activitiesError) {
+      console.warn("Could not fetch recent activities:", activitiesError.message);
+    }
+
+    // Get role distribution
+    const roleDistribution = {};
+    userRoles.forEach(user => {
+      const role = user.role || "USER";
+      roleDistribution[role] = (roleDistribution[role] || 0) + 1;
+    });
 
     const dashboardData = {
-      totalUsers,
-      activeSessions: 0,
-      recentActivities: [],
+      totalUsers: totalUsers || 0,
+      activeSessions: 0, // This would need to be implemented based on your session management
+      recentActivities: recentActivities || [],
       userRoles: userRoles.map((user) => ({
-        userId: user.userId,
+        userId: user.id,
         email: user.email || "",
         role: user.role || "USER",
+        created_at: user.created_at
       })),
+      roleDistribution: Object.entries(roleDistribution).map(([role, count]) => ({
+        role,
+        count
+      })),
+      systemHealth: "operational"
     };
 
     res.setHeader("Content-Type", "application/json");
@@ -121,24 +139,35 @@ router.get("/dashboard", authenticateUser, requireAdmin, async (req, res) => {
 router.post("/log-login", authenticateUser, async (req, res) => {
   try {
     const adminId = req.user.id;
-    const { rows } = await pool.query(
-      "SELECT role FROM profiles WHERE id = $1",
-      [adminId]
-    );
-    const profile = rows[0];
+    const { data: profileData, error: profileError } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", adminId)
+      .single();
+
+    if (profileError) {
+      return res.status(500).json({ error: "Failed to fetch profile" });
+    }
+
+    const profile = profileData;
 
     if (
       profile &&
       (profile.role === "ADMIN" || profile.role === "SUPER_ADMIN")
     ) {
-      await pool.query(
-        "INSERT INTO admin_activity_log (admin_id, action, details) VALUES ($1, $2, $3)",
-        [
-          adminId,
-          "ADMIN_LOGIN",
-          { ipAddress: req.ip, userAgent: req.headers["user-agent"] },
-        ]
-      );
+      const { error: logError } = await supabase
+        .from("admin_activity_log")
+        .insert({
+          admin_id: adminId,
+          action: "ADMIN_LOGIN",
+          details: { ipAddress: req.ip, userAgent: req.headers["user-agent"] }
+        });
+
+      if (logError) {
+        console.error("Error logging admin login:", logError);
+        return res.status(500).json({ error: "Failed to log login activity" });
+      }
+
       res.status(200).json({ message: "Login activity logged" });
     } else {
       res.status(403).json({ error: "Not an admin" });
@@ -155,32 +184,42 @@ router.get("/cafe-owner/dashboard", authenticateUser, async (req, res) => {
     const userId = req.user.id; // Authenticated user's ID
 
     // Check if the user is a CAFE_OWNER
-    const { rows: profileRows } = await pool.query(
-      "SELECT role FROM public.profiles WHERE id = $1",
-      [userId]
-    );
+    const { data: profileData, error: profileError } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", userId)
+      .single();
 
-    if (!profileRows || profileRows.length === 0 || profileRows[0].role !== "CAFE_OWNER") {
+    if (profileError || !profileData || profileData.role !== "CAFE_OWNER") {
       return res.status(403).json({ error: "Access denied. Not a Cafe Owner." });
     }
 
     // Fetch data for the Cafe Owner Dashboard
     // Assuming player_id in certificates table corresponds to the cafe owner's user_id
-    const totalCertificatesResult = await pool.query(
-      "SELECT COUNT(*) AS total FROM public.certificates WHERE player_id = $1",
-      [userId]
-    );
-    const totalCertificates = Number(totalCertificatesResult.rows[0].total);
+    const { count: totalCertificates, error: certCountError } = await supabase
+      .from("certificates")
+      .select("*", { count: "exact", head: true })
+      .eq("player_id", userId);
 
-    const totalPrizesRedeemedResult = await pool.query(
-      "SELECT COUNT(*) AS total FROM public.certificates WHERE player_id = $1 AND prize_delivered = TRUE",
-      [userId]
-    );
-    const totalPrizesRedeemed = Number(totalPrizesRedeemedResult.rows[0].total);
+    if (certCountError) {
+      console.error("Error counting certificates:", certCountError);
+      return res.status(500).json({ error: "Failed to count certificates" });
+    }
+
+    const { count: totalPrizesRedeemed, error: prizeCountError } = await supabase
+      .from("certificates")
+      .select("*", { count: "exact", head: true })
+      .eq("player_id", userId)
+      .eq("prize_delivered", true);
+
+    if (prizeCountError) {
+      console.error("Error counting prizes:", prizeCountError);
+      return res.status(500).json({ error: "Failed to count prizes" });
+    }
 
     const dashboardData = {
-      totalCertificates,
-      totalPrizesRedeemed,
+      totalCertificates: totalCertificates || 0,
+      totalPrizesRedeemed: totalPrizesRedeemed || 0,
       // Add more cafe owner specific data here as needed
     };
 

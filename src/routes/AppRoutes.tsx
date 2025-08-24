@@ -33,6 +33,7 @@ const SuperAdminPanel = lazy(
 );
 const Login = lazy(() => import("../Components/auth/Login"));
 
+
 // Enhanced Card System Components
 const EnhancedCardGenerator = lazy(
   () => import("../Components/cards/EnhancedCardGenerator")
@@ -188,11 +189,12 @@ const AppRoutes: React.FC = () => (
       <Route
         path="/admin/*"
         element={
-          <RoleProtectedRoute allowedRoles={["ADMIN"]}>
+          <RoleProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
             <Admin />
           </RoleProtectedRoute>
         }
       />
+
       <Route
         path="/super-admin/*"
         element={

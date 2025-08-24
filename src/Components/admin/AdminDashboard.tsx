@@ -1,11 +1,13 @@
 import React, { useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
+import LoadingSpinner from "../utility/LoadingSpinner";
+import DashboardStats from "./DashboardStats";
+
 // Type for mapping routes to React components or render functions
 type RouteMap = {
   [route: string]: React.ComponentType<any> | (() => JSX.Element);
 };
-import LoadingSpinner from "../utility/LoadingSpinner";
 
 // Lazy-load admin components using dynamic import syntax
 const AdminComponents = {
@@ -30,24 +32,20 @@ const AdminDashboard: React.FC = () => {
   // Get user permissions from auth store
   const { permissions, loading } = useAuthStore();
 
+  // Debug logging
+  console.log("AdminDashboard render:", { pathname, permissions, loading });
+
   // Helper to check permission
   const hasEnhancedCardPermission = permissions?.includes(
     "CAN_USE_ENHANCED_CARD"
   );
 
+  console.log("Enhanced card permission:", hasEnhancedCardPermission);
+
   // Type-safe route-component mapping with permission checks
   const routeMap: RouteMap = useMemo(
     () => ({
-      "/admin/dashboard": () => (
-        <div className="p-6">
-          <h1 className="text-3xl font-bold text-gray-800 mb-4">
-            Admin Dashboard
-          </h1>
-          <p className="text-lg text-gray-600">
-            Welcome to the admin dashboard.
-          </p>
-        </div>
-      ),
+      "/admin/dashboard": DashboardStats,
       "/admin/users": AdminComponents.UsersTable,
       "/admin/game-types": AdminComponents.GameTypesTable,
       "/admin/cafe-owner-dashboard": AdminComponents.CafeOwnerDashboard,
@@ -59,7 +57,7 @@ const AdminDashboard: React.FC = () => {
       "/admin/enhanced-card-generator": () =>
         loading ? (
           <div className="flex items-center justify-center h-80">
-            <LoadingSpinner size="lg" />
+            <LoadingSpinner />
           </div>
         ) : hasEnhancedCardPermission ? (
           <AdminComponents.EnhancedCardGenerator />
@@ -77,7 +75,7 @@ const AdminDashboard: React.FC = () => {
       "/admin/enhanced-qr-scanner": () =>
         loading ? (
           <div className="flex items-center justify-center h-80">
-            <LoadingSpinner size="lg" />
+            <LoadingSpinner />
           </div>
         ) : hasEnhancedCardPermission ? (
           <AdminComponents.EnhancedQRScanner />
@@ -93,6 +91,7 @@ const AdminDashboard: React.FC = () => {
           </div>
         ),
       "/admin/winner-card-generator": AdminComponents.WinnerCardGenerator,
+      "/admin/database": React.lazy(() => import("../../routes/admin/database/page")),
     }),
     [permissions, loading, hasEnhancedCardPermission]
   );
@@ -107,19 +106,29 @@ const AdminDashboard: React.FC = () => {
         <p className="text-lg text-gray-600">
           Welcome to the admin dashboard. Select a section from the navigation.
         </p>
+        <div className="mt-4 p-4 bg-gray-100 rounded">
+          <p className="text-sm text-gray-600">Current path: {pathname}</p>
+          <p className="text-sm text-gray-600">Available routes: {Object.keys(routeMap).join(', ')}</p>
+        </div>
       </div>
     ),
-    []
+    [pathname, routeMap]
   );
 
   // Get the matched component or use default
   const CurrentComponent = routeMap[pathname] || (() => defaultContent);
 
+  console.log("AdminDashboard route matching:", { 
+    pathname, 
+    matchedRoute: routeMap[pathname] ? pathname : 'default',
+    CurrentComponent: CurrentComponent.name || 'function'
+  });
+
   return (
     <React.Suspense
       fallback={
         <div className="flex items-center justify-center h-80">
-          <LoadingSpinner size="lg" />
+          <LoadingSpinner />
         </div>
       }
     >

@@ -1,443 +1,336 @@
-# Yenege GameHub: Comprehensive Project Overview
+# Yenege Game App - MVP System
 
-## 🚀 Project Overview
+A comprehensive social gaming platform that combines QR code access, multiplayer gaming, and a sophisticated reward system for cafés and special events.
 
-The Yenege GameHub is a modern web application designed to provide an engaging and secure gaming experience. It features a dynamic frontend built with React, a robust backend powered by Node.js, and leverages Supabase for authentication, database, and real-time capabilities. The platform supports various game types, manages user sessions, tracks scores, and includes an administrative panel for content and user management, as well as a dedicated dashboard for cafe owners.
+## 🎮 Overview
+
+Yenege Game App is a revolutionary gaming platform designed to transform how people interact with games in social settings. The app supports two main gaming modes:
+
+- **Normal Mode**: Daily gaming at cafés with QR code access
+- **Game Night Mode**: Special events with tablet stations and global competition
 
 ## ✨ Key Features
 
-*   **Interactive Landing Page**: Showcases available games with engaging animations and provides clear calls to action.
-*   **Diverse Game Collection**: Includes Emoji Game, Truth or Dare (with Lovers/Friends modes), Trivia Challenge, and Rock Paper Scissors.
-*   **Secure Game Sessions**: Timer-based sessions with persistence across browser restarts/tabs, ensuring fair play.
-*   **Enhanced Card System**: Supports scanning of game cards (QR codes) to initiate sessions and manage access.
-*   **Role-Based Access Control (RBAC)**: Differentiates access for Players, Cafe Owners, and Admins, ensuring secure and tailored experiences.
-*   **Comprehensive Admin Panel**: Allows administrators to manage users, game content, issue certificates, and track winners.
-*   **Cafe Owner Dashboard**: Provides cafe-specific insights, including card usage and local winner tracking.
-*   **Robust Authentication**: Secure user login and session management via Supabase.
+### 🎯 Core Gaming Features
+- **QR Code Gaming**: Scan QR codes to access games instantly at any café or event location
+- **Multiplayer Mode**: Create or join game rooms to play with friends and compete together
+- **Multiple Game Types**: Emoji Game, Trivia Challenge, Truth or Dare, Rock Paper Scissors
+- **Real-time Competition**: Live leaderboards and instant scoring
 
-## 💻 Technical Stack
+### 🏆 Reward System
+- **Café Rewards**: Set by café owners, approved by admins
+- **Weekly/Monthly Rewards**: Global leaderboard competitions with countdown timers
+- **Points System**: Earn points through gameplay and redeem for rewards
+- **Achievement System**: Track progress and unlock special rewards
 
-*   **Frontend**: React (with TypeScript), React Router DOM, Zustand (State Management), Tailwind CSS (Styling), Framer Motion (Animations).
-*   **Backend**: Node.js, Express.js, PostgreSQL.
-*   **Authentication, Database & Realtime**: Supabase.
+### 👥 Admin Roles & Management
+- **Waiter**: Generate QR codes for players
+- **Café Owner**: Set café-specific rewards and manage café operations
+- **Admin**: Approve café rewards and monitor system
+- **Super Admin**: Set weekly/monthly rewards and manage global leaderboards
+- **Game Night Admin**: Manage event setup, location, and tablet allocations
 
-## 🌐 Architecture
+### 💳 Payment Integration
+- **Ethiopian Payment Methods**: Telebirr, CBE Birr, Credit/Debit Cards, Digital Wallets
+- **Secure Transactions**: Payment verification before game start
+- **Transaction History**: Complete payment tracking and management
 
-The application follows a client-server architecture with a clear separation of concerns:
+## 🏗️ System Architecture
 
-### Frontend (Client-Side)
+### Frontend
+- **React 18** with TypeScript
+- **Tailwind CSS** for modern, responsive design
+- **Framer Motion** for smooth animations
+- **React Router** for navigation
+- **Context API** for state management
 
-The React application serves as the user interface, handling all interactions and displaying game content.
+### Backend
+- **Supabase** for database and authentication
+- **PostgreSQL** with advanced features
+- **Real-time subscriptions** for live updates
+- **Row Level Security** for data protection
 
-*   **Routing**: Managed by `react-router-dom`, with dynamic and protected routes.
-    *   `AppRoutes.tsx`: Centralizes all route definitions.
-    *   `ProtectedRoute`: Ensures users are authenticated and have an active game session for game-related content.
-    *   `RoleProtectedRoute`: Enforces role-based access for sensitive areas like Admin and Cafe Owner dashboards.
-*   **State Management**: Zustand stores manage global application state.
-    *   `authStore.ts`: Manages user authentication status, session details, and user profile (including roles).
-    *   `sessionStore.ts`: Manages active game sessions, timers, and game-specific data, with persistence via `localStorage`.
-*   **Components**: Modular and reusable React components organized by feature (e.g., `Components/admin`, `Components/game`, `Components/cards`).
-*   **Styling**: Tailwind CSS for utility-first styling, ensuring a consistent and modern UI.
-*   **QR Scanning**: Utilizes `html5-qrcode` for client-side QR code scanning, integrated with custom UI for a modern look.
+### Key Components
+- **Authentication System**: Google OAuth integration
+- **Game Engine**: Modular game system supporting multiple game types
+- **QR Code System**: Dynamic QR code generation and validation
+- **Leaderboard Engine**: Real-time ranking calculations
+- **Reward Management**: Comprehensive reward creation and redemption system
 
-### Backend (Server-Side)
-
-The Node.js/Express.js backend provides the API endpoints for the frontend, manages data persistence, and enforces business logic and security.
-
-*   **Database**: PostgreSQL, managed via Supabase.
-*   **Authentication**: Handled by Supabase, which provides user authentication, JWT management, and row-level security.
-*   **API Endpoints**: Organized by domain (e.g., `server/routes/authRoutes.js`, `server/routes/cardRoutes.js`, `server/routes/adminRoutes.js`).
-*   **Middleware**: Includes authentication and authorization middleware to protect sensitive routes and ensure role-based access control.
-
-### Database Schema (High-Level)
-
-*   **`users`**: Supabase managed user accounts.
-*   **`profiles`**: Stores user-specific data, including `role` (`USER`, `ADMIN`, `CAFE_OWNER`), linked to Supabase `users`.
-*   **`game_types`**: Defines different game categories (e.g., Trivia, Truth or Dare).
-*   **`cards`**: Represents physical/digital game cards, linked to `game_types`, with `used` status and `player_id`.
-*   **`game_sessions`**: Tracks active game sessions, including `player_id`, `game_type_id`, `start_time`, `end_time`, `score`, `duration`.
-*   **`scores`**: Stores historical game scores for players.
-*   **`certificates`**: Manages game completion certificates.
-*   **`rewards`**: Tracks rewards issued to winners.
-*   **`cafe_owners`**: Details for cafe owner accounts.
-
-## 🎮 Game Flow
-
-1.  **Landing Page**: User lands on the main page, sees available games.
-2.  **Login**: Users (players, cafe owners, admins) log in via the `/login` route. Authentication state and user role are managed by `authStore`.
-3.  **Game Selection / Card Scan**: 
-    *   Players navigate to `/game-select` to scan a game card (QR code).
-    *   The `EnhancedQRScanner` processes the card data.
-    *   If the card is valid and unused, it determines the `gameTypeId` and `routeAccess`.
-4.  **Session Initiation**: Upon selecting a game from the scanned card, `sessionStore` initiates a new game session, setting the timer and `gameTypeId`.
-5.  **Protected Game Play**: 
-    *   `ProtectedRoute` ensures an active session and redirects if not present.
-    *   The system verifies if the `gameTypeId` of the active session matches the requested game route. If not, the user is redirected to a "Wrong Game Type" page.
-    *   The `GameTimer` component displays the remaining time, which persists even if the user navigates away or restarts the browser.
-6.  **Game Completion**: When the timer expires or the game concludes, the score is saved via the backend API.
-7.  **Role-Based Access**: 
-    *   **Admin**: Can access `/admin` (protected by `RoleProtectedRoute` for `ADMIN` role).
-    *   **Cafe Owner**: Can access `/cafe-owner/dashboard` (protected by `RoleProtectedRoute` for `CAFE_OWNER` or `ADMIN` roles).
-    *   **Players**: Can access game-related routes and general user features.
-
-## 🛠️ Setup and Running
+## 🚀 Getting Started
 
 ### Prerequisites
-
-*   Node.js (LTS recommended)
-*   npm or Yarn
-*   Supabase project (with configured authentication and database tables)
+- Node.js 18+ 
+- npm or yarn
+- Supabase account
+- PostgreSQL database
 
 ### Installation
 
-1.  **Clone the repository**:
-    ```bash
-    git clone <repository-url>
-    cd zion-website
-    ```
-2.  **Install Frontend Dependencies**:
-    ```bash
-    npm install # or yarn install
-    ```
-3.  **Install Backend Dependencies**:
-    ```bash
-    cd server
-    npm install # or yarn install
-    cd ..
-    ```
-4.  **Environment Variables**:
-    Create a `.env` file in the project root and in the `server/` directory based on `.env.example` files.
-    *   **Frontend `.env`**:
-        ```
-        VITE_SUPABASE_URL=your_supabase_url
-        VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-        ```
-    *   **Backend `server/.env`**:
-        ```
-        DATABASE_URL="postgresql://user:password@host:port/database?schema=public"
-        SUPABASE_URL=your_supabase_url
-        SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
-        JWT_SECRET=a_strong_random_secret_key
-        ```
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/your-username/yenege-game-app.git
+   cd yenege-game-app
+   ```
 
-### Running the Application
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-To start both the frontend and backend servers:
+3. **Set up environment variables**
+   ```bash
+   cp .env.example .env.local
+   ```
+   
+   Fill in your Supabase credentials:
+   ```env
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
 
+4. **Set up the database**
+   ```bash
+   # Run the database schema
+   psql -h your_host -U your_user -d your_database -f db/yenege_game_app_schema.sql
+   ```
+
+5. **Start the development server**
+   ```bash
+   npm run dev
+   ```
+
+## 📱 Usage Guide
+
+### For Players
+
+1. **Sign Up/Login**: Use Google OAuth for quick access
+2. **Scan QR Code**: Visit a café and scan the QR code provided by waiters
+3. **Choose Game Mode**: Select solo or multiplayer mode
+4. **Play Games**: Enjoy various games and earn points
+5. **Redeem Rewards**: Use points to get café rewards and global prizes
+
+### For Waiters
+
+1. **Login**: Access waiter dashboard
+2. **Generate QR Codes**: Create QR codes for specific games and modes
+3. **Monitor Games**: Track active game sessions
+4. **Manage Players**: Assist players with game access
+
+### For Café Owners
+
+1. **Café Management**: Set up and manage café information
+2. **Create Rewards**: Design café-specific rewards for players
+3. **Analytics**: View player engagement and reward redemptions
+4. **Settings**: Configure café operating hours and policies
+
+### For Admins
+
+1. **Reward Approval**: Review and approve café reward requests
+2. **System Monitoring**: Track overall platform performance
+3. **User Management**: Manage user roles and permissions
+4. **Content Moderation**: Ensure quality of game content
+
+### For Super Admins
+
+1. **Global Rewards**: Set weekly/monthly global competitions
+2. **User Role Management**: Assign and modify user roles
+3. **System Configuration**: Configure platform-wide settings
+4. **Analytics Dashboard**: Comprehensive platform insights
+
+### For Game Night Admins
+
+1. **Event Setup**: Create and configure special gaming events
+2. **Tablet Allocation**: Assign tablets to specific games and locations
+3. **Event Management**: Start, monitor, and end events
+4. **Winner Announcement**: Declare event winners and distribute prizes
+
+## 🎯 Game Types
+
+### 1. Emoji Game
+- **Objective**: Guess hidden emoji phrases
+- **Scoring**: Points based on speed and accuracy
+- **Difficulty Levels**: Easy, Medium, Hard
+- **Content**: Curated emoji combinations
+
+### 2. Trivia Challenge
+- **Objective**: Answer questions across various categories
+- **Scoring**: Points for correct answers, bonus for speed
+- **Categories**: Geography, History, Science, Entertainment
+- **Difficulty**: Adaptive based on player performance
+
+### 3. Truth or Dare
+- **Objective**: Choose between truth questions or dares
+- **Modes**: Lovers mode, Friends mode
+- **Scoring**: Points for completing challenges
+- **Content**: Age-appropriate and culturally sensitive
+
+### 4. Rock Paper Scissors
+- **Objective**: Classic game with modern twists
+- **Scoring**: Points for wins, bonus for streaks
+- **Variants**: Tournament mode, team battles
+- **Rewards**: Special rewards for winning streaks
+
+## 🔐 Security Features
+
+- **Row Level Security**: Database-level access control
+- **JWT Authentication**: Secure token-based authentication
+- **Role-based Access Control**: Granular permission system
+- **Input Validation**: Comprehensive data validation
+- **SQL Injection Protection**: Parameterized queries
+- **XSS Prevention**: Content sanitization
+
+## 📊 Database Schema
+
+The application uses a comprehensive PostgreSQL schema with the following key tables:
+
+- **users**: User management and authentication
+- **cafes**: Café information and locations
+- **qr_codes**: Dynamic QR code generation
+- **game_sessions**: Individual game tracking
+- **game_rooms**: Multiplayer room management
+- **rewards**: Reward system management
+- **leaderboards**: Competition tracking
+- **payment_transactions**: Financial transaction history
+
+## 🎨 UI/UX Features
+
+- **Responsive Design**: Works on all device sizes
+- **Dark Theme**: Modern, eye-friendly interface
+- **Smooth Animations**: Engaging user interactions
+- **Intuitive Navigation**: Easy-to-use interface
+- **Accessibility**: WCAG compliant design
+- **Loading States**: Clear feedback for all actions
+
+## 🔄 Real-time Features
+
+- **Live Leaderboards**: Instant score updates
+- **Game Status**: Real-time game session tracking
+- **Notifications**: Instant user notifications
+- **Chat System**: In-game communication
+- **Live Events**: Real-time event updates
+
+## 📈 Analytics & Reporting
+
+- **User Analytics**: Player behavior tracking
+- **Game Performance**: Game completion rates
+- **Reward Analytics**: Redemption patterns
+- **Café Insights**: Venue performance metrics
+- **Event Reports**: Special event analytics
+
+## 🚀 Deployment
+
+### Production Build
 ```bash
-npm run dev # This script should start both frontend (Vite) and backend (Node.js)
+npm run build
 ```
 
-*   The frontend will typically run on `http://localhost:5173` (or similar).
-*   The backend API will run on `http://localhost:3001`.
+### Environment Setup
+- Configure production environment variables
+- Set up production database
+- Configure CDN for static assets
+- Set up monitoring and logging
+
+### Deployment Options
+- **Vercel**: Frontend deployment
+- **Supabase**: Backend and database
+- **Docker**: Containerized deployment
+- **AWS/GCP**: Cloud infrastructure
+
+## 🧪 Testing
+
+### Run Tests
+```bash
+npm test
+```
+
+### Test Coverage
+```bash
+npm run test:coverage
+```
+
+### E2E Testing
+```bash
+npm run test:e2e
+```
+
+## 📚 API Documentation
+
+### Authentication Endpoints
+- `POST /auth/signin` - User sign in
+- `POST /auth/signup` - User registration
+- `POST /auth/signout` - User sign out
+
+### Game Endpoints
+- `POST /games/start` - Start a new game
+- `GET /games/:id` - Get game details
+- `PUT /games/:id/end` - End a game session
+
+### QR Code Endpoints
+- `POST /qr/generate` - Generate new QR code
+- `POST /qr/scan` - Scan and validate QR code
+- `PUT /qr/:id/deactivate` - Deactivate QR code
+
+### Leaderboard Endpoints
+- `GET /leaderboards/global` - Global leaderboard
+- `GET /leaderboards/cafe/:id` - Café-specific leaderboard
+- `GET /leaderboards/weekly` - Weekly leaderboard
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please follow the existing code style and submit pull requests.
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Submit a pull request
 
 ## 📄 License
 
-[Specify your project's license here, e.g., MIT, Apache 2.0]
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🆘 Support
+
+- **Documentation**: [docs.yenege.com](https://docs.yenege.com)
+- **Issues**: [GitHub Issues](https://github.com/your-username/yenege-game-app/issues)
+- **Discord**: [Join our community](https://discord.gg/yenege)
+- **Email**: support@yenege.com
+
+## 🗺️ Roadmap
+
+### Phase 1 (Current - MVP)
+- ✅ Core gaming functionality
+- ✅ QR code system
+- ✅ Basic reward system
+- ✅ Admin panels
+
+### Phase 2 (Q2 2024)
+- 🔄 Advanced analytics
+- 🔄 AI-powered content generation
+- 🔄 Social features
+- 🔄 Mobile app
+
+### Phase 3 (Q3 2024)
+- 🔄 Blockchain integration
+- 🔄 NFT rewards
+- 🔄 Tournament system
+- 🔄 API marketplace
+
+### Phase 4 (Q4 2024)
+- 🔄 VR/AR gaming
+- 🔄 International expansion
+- 🔄 Enterprise features
+- 🔄 Advanced AI features
+
+## 🙏 Acknowledgments
+
+- **Supabase Team**: For the amazing backend platform
+- **React Team**: For the powerful frontend framework
+- **Tailwind CSS**: For the utility-first CSS framework
+- **Framer Motion**: For the smooth animations
+- **OpenAI**: For AI content generation capabilities
 
 ---
 
-### API Minimum Viable Product (MVP) for Front-End Functionality
+**Built with ❤️ for the Ethiopian gaming community**
 
-**Base URL**: `http://localhost:3001/api`
-
-**General Considerations**:
-*   **Authentication**: All protected endpoints (marked with 🔒) require a valid JWT `Authorization: Bearer <token>` header. The token is obtained via the `/auth/login` endpoint.
-*   **Error Handling**: All endpoints should return consistent error responses, typically with a `4xx` or `5xx` status code and a JSON body like:
-    ```json
-    {
-      "message": "Error description",
-      "code": "OPTIONAL_ERROR_CODE"
-    }
-    ```
-*   **Data Validation**: The backend should perform robust validation on all incoming request data.
-
----
-
-#### 1. Authentication & User Management
-
-**1.1. Login**
-*   **Endpoint**: `POST /auth/login`
-*   **Description**: Authenticates a user with email and password, returning a session token and user details.
-*   **Request**:
-    *   **Headers**: `Content-Type: application/json`
-    *   **Body**:
-        ```json
-        {
-          "email": "string",
-          "password": "string"
-        }
-        ```
-*   **Response**:
-    *   **Success (200 OK)**:
-        ```json
-        {
-          "session": {
-            "access_token": "string",
-            "refresh_token": "string",
-            "expires_in": "number",
-            "token_type": "Bearer",
-            "user": {
-              "id": "string",
-              "email": "string",
-              "created_at": "string",
-              "updated_at": "string"
-            }
-          },
-          "profile": {
-            "id": "string",
-            "userId": "string",
-            "role": "USER" | "ADMIN" | "CAFE_OWNER",
-            "createdAt": "string",
-            "updatedAt": "string"
-          }
-        }
-        ```
-    *   **Error (401 Unauthorized)**: Invalid credentials.
-
-**1.2. Get User Profile 🔒**
-*   **Endpoint**: `GET /profile`
-*   **Description**: Retrieves the authenticated user's profile, including their role.
-*   **Request**:
-    *   **Headers**: `Authorization: Bearer <token>`
-*   **Response**:
-    *   **Success (200 OK)**:
-        ```json
-        {
-          "id": "string",
-          "userId": "string",
-          "role": "USER" | "ADMIN" | "CAFE_OWNER",
-          "createdAt": "string",
-          "updatedAt": "string"
-        }
-        ```
-    *   **Error (401 Unauthorized)**: Invalid or missing token.
-    *   **Error (404 Not Found)**: Profile not found for the user.
-
-**1.3. Logout 🔒**
-*   **Endpoint**: `POST /auth/logout`
-*   **Description**: Invalidates the current user session.
-*   **Request**:
-    *   **Headers**: `Authorization: Bearer <token>`
-*   **Response**:
-    *   **Success (204 No Content)**
-    *   **Error (401 Unauthorized)**: Invalid or missing token.
-
----
-
-#### 2. Game Session Management
-
-**2.1. Save Game Score 🔒**
-*   **Endpoint**: `POST /scores`
-*   **Description**: Saves a player's game score to the database.
-*   **Request**:
-    *   **Headers**: `Authorization: Bearer <token>`, `Content-Type: application/json`
-    *   **Body**:
-        ```json
-        {
-          "playerName": "string",
-          "playerId": "string",
-          "score": "number",
-          "stage": "number",
-          "sessionId": "string",
-          "streak": "number",
-          "gameTypeId": "string"
-        }
-        ```
-*   **Response**:
-    *   **Success (201 Created)**:
-        ```json
-        {
-          "message": "Score saved successfully",
-          "scoreId": "string"
-        }
-        ```
-    *   **Error (400 Bad Request)**: Invalid input data.
-    *   **Error (401 Unauthorized)**: Invalid or missing token.
-
----
-
-#### 3. Card Management
-
-**3.1. Get All Unused Cards 🔒**
-*   **Endpoint**: `GET /cards`
-*   **Description**: Retrieves all cards that have not been used yet.
-*   **Request**:
-    *   **Headers**: `Authorization: Bearer <token>`
-*   **Response**:
-    *   **Success (200 OK)**:
-        ```json
-        [
-          {
-            "id": "string",
-            "content": "string",
-            "duration": "number",
-            "used": false,
-            "game_type_id": "string",
-            "card_number": "string",
-            "created_at": "string",
-            "game_types": {
-              "name": "string"
-            }
-          }
-        ]
-        ```
-
-**3.2. Create a New Card 🔒 (Admin Only)**
-*   **Endpoint**: `POST /cards`
-*   **Description**: Creates a new game card.
-*   **Request**:
-    *   **Headers**: `Authorization: Bearer <token>`, `Content-Type: application/json`
-    *   **Body**:
-        ```json
-        {
-          "content": "string",
-          "duration": "number",
-          "gameTypeId": "string",
-          "cardNumber": "string"
-        }
-        ```
-*   **Response**:
-    *   **Success (201 Created)**:
-        ```json
-        {
-          "id": "string",
-          "content": "string",
-          "duration": "number",
-          "used": false,
-          "game_type_id": "string",
-          "card_number": "string",
-          "created_at": "string",
-          "game_types": {
-            "name": "string"
-          }
-        }
-        ```
-
-**3.3. Mark Card as Used 🔒**
-*   **Endpoint**: `PATCH /cards/{id}/use`
-*   **Description**: Marks a specific card as used.
-*   **Request**:
-    *   **Headers**: `Authorization: Bearer <token>`
-*   **Response**:
-    *   **Success (200 OK)**:
-        ```json
-        {
-          "id": "string",
-          "content": "string",
-          "duration": "number",
-          "used": true,
-          "game_type_id": "string",
-          "card_number": "string",
-          "created_at": "string",
-          "game_types": {
-            "name": "string"
-          }
-        }
-        ```
-
----
-
-#### 4. Winner Management
-
-**4.1. Get All Winners 🔒**
-*   **Endpoint**: `GET /winners`
-*   **Description**: Retrieves all winning certificates.
-*   **Request**:
-    *   **Headers**: `Authorization: Bearer <token>`
-*   **Response**:
-    *   **Success (200 OK)**:
-        ```json
-        [
-          {
-            "id": "string",
-            "player_name": "string",
-            "player_id": "string",
-            "score": "number",
-            "has_won_coffee": true,
-            "has_won_prize": false,
-            "reward_type": "string",
-            "timestamp": "string",
-            "session_id": "string",
-            "prize_delivered": false,
-            "prize_amount": null,
-            "created_at": "string",
-            "game_type_id": "string",
-            "game_types": {
-              "name": "string"
-            }
-          }
-        ]
-        ```
-
----
-
-#### 5. Admin & Cafe Owner Functionality
-
-**5.1. Admin Dashboard Data 🔒**
-*   **Endpoint**: `GET /admin/dashboard`
-*   **Description**: Retrieves data necessary for the admin dashboard. (Specific data points to be defined based on dashboard content).
-*   **Request**:
-    *   **Headers**: `Authorization: Bearer <token>`
-*   **Response**:
-    *   **Success (200 OK)**:
-        ```json
-        {
-          "totalUsers": "number",
-          "activeSessions": "number",
-          "recentActivities": [
-            {
-              "id": "string",
-              "type": "string",
-              "description": "string",
-              "timestamp": "string"
-            }
-          ],
-          "userRoles": [
-            {
-              "userId": "string",
-              "email": "string",
-              "role": "USER" | "ADMIN" | "CAFE_OWNER"
-            }
-          ]
-          // ... other admin-specific data
-        }
-        ```
-    *   **Error (401 Unauthorized)**: Invalid or missing token.
-    *   **Error (403 Forbidden)**: User does not have ADMIN role.
-
-**5.2. Cafe Owner Dashboard Data 🔒**
-*   **Endpoint**: `GET /cafe-owner/dashboard`
-*   **Description**: Retrieves data specific to the cafe owner dashboard. (Specific data points to be defined based on dashboard content).
-*   **Request**:
-    *   **Headers**: `Authorization: Bearer <token>`
-*   **Response**:
-    *   **Success (200 OK)**:
-        ```json
-        {
-          "cafeName": "string",
-          "totalCardsScanned": "number",
-          "activeGames": "number",
-          "recentWinners": [
-            {
-              "winnerId": "string",
-              "playerName": "string",
-              "gameType": "string",
-              "reward": "string",
-              "timestamp": "string"
-            }
-          ],
-          "cardUsageStats": {
-            "used": "number",
-            "available": "number"
-          }
-        }
-        ```
-    *   **Error (401 Unauthorized)**: Invalid or missing token.
-    *   **Error (403 Forbidden)**: User does not have CAFE_OWNER or ADMIN role.
-
----
+*Yenege Game App - Where Gaming Meets Social Innovation*

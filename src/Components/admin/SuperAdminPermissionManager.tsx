@@ -25,16 +25,22 @@ export default function SuperAdminPermissionManager() {
         if (profileError) throw profileError;
         setProfiles(profileData || []);
 
-        // Fetch all permissions
-        const { data: permData, error: permError } = await supabase
-          .from("profile_permissions")
-          .select("profile_id, permission_name");
-        if (permError) throw permError;
-        const permMap: Record<string, string[]> = {};
-        permData?.forEach((p: any) => {
-          if (!permMap[p.profile_id]) permMap[p.profile_id] = [];
-          permMap[p.profile_id].push(p.permission_name);
-        });
+        // Fetch all permissions using the actual database structure: user_permissions table
+        let permMap: Record<string, string[]> = {};
+        try {
+          const { data: userPerms, error: userPermError } = await supabase
+            .from("user_permissions")
+            .select("user_id, permission_name");
+          
+          if (!userPermError && userPerms && userPerms.length > 0) {
+            userPerms.forEach((p: any) => {
+              if (!permMap[p.user_id]) permMap[p.user_id] = [];
+              permMap[p.user_id].push(p.permission_name);
+            });
+          }
+        } catch (error) {
+          console.warn("Error fetching permissions, using empty permissions:", error);
+        }
         setPermissions(permMap);
       } catch (err: any) {
         setError(err.message);
@@ -55,24 +61,32 @@ export default function SuperAdminPermissionManager() {
       if (hasPermission) {
         // Revoke permission
         await supabase
-          .from("profile_permissions")
+          .from("user_permissions")
           .delete()
-          .match({ profile_id: profileId, permission_name: permission });
+          .match({ user_id: profileId, permission_name: permission });
       } else {
         // Grant permission
         await supabase
-          .from("profile_permissions")
-          .insert({ profile_id: profileId, permission_name: permission });
+          .from("user_permissions")
+          .insert({ user_id: profileId, permission_name: permission });
       }
-      // Refresh permissions
-      const { data: permData } = await supabase
-        .from("profile_permissions")
-        .select("profile_id, permission_name");
-      const permMap: Record<string, string[]> = {};
-      permData?.forEach((p: any) => {
-        if (!permMap[p.profile_id]) permMap[p.profile_id] = [];
-        permMap[p.profile_id].push(p.permission_name);
-      });
+      
+      // Refresh permissions using the same logic as fetchProfiles
+      let permMap: Record<string, string[]> = {};
+      try {
+        const { data: userPerms, error: userPermError } = await supabase
+          .from("user_permissions")
+          .select("user_id, permission_name");
+        
+        if (!userPermError && userPerms && userPerms.length > 0) {
+          userPerms.forEach((p: any) => {
+            if (!permMap[p.user_id]) permMap[p.user_id] = [];
+            permMap[p.user_id].push(p.permission_name);
+          });
+        }
+      } catch (error) {
+        console.warn("Error refreshing permissions:", error);
+      }
       setPermissions(permMap);
     } catch (err: any) {
       setError(err.message);

@@ -48,16 +48,34 @@ export default function AdminLayout({
         if (profileError) throw profileError;
         setProfile(fetchedProfile);
 
-        // Fetch permissions
-        const { data: permissionsData, error: permissionsError } =
-          await clientSupabase
-            .from("profile_permissions")
-            .select("permission_name")
-            .eq("profile_id", fetchedUser.id);
-        if (permissionsError) throw permissionsError;
-        setPermissions(
-          permissionsData?.map((p: any) => p.permission_name) || []
-        );
+        // Fetch permissions using the actual database structure: user_permissions table
+        let permissionsData: string[] = [];
+        try {
+          const { data: userPerms, error: userPermError } =
+            await clientSupabase
+              .from("user_permissions")
+              .select("permission_name")
+              .eq("user_id", fetchedUser.id);
+          
+          if (!userPermError && userPerms && userPerms.length > 0) {
+            permissionsData = userPerms.map(p => p.permission_name);
+          }
+        } catch (error) {
+          console.warn("Error fetching permissions, using role-based fallback:", error);
+        }
+        
+        // If no permissions found, use role-based fallback
+        if (permissionsData.length === 0 && fetchedUser.role) {
+          const rolePermissions: { [key: string]: string[] } = {
+            'SUPER_ADMIN': ['can_manage_all', 'can_manage_admins', 'can_manage_users', 'can_manage_cards', 'can_manage_game_types', 'CAN_USE_ENHANCED_CARD'],
+            'ADMIN': ['can_manage_users', 'can_manage_cards', 'can_manage_game_types', 'CAN_USE_ENHANCED_CARD'],
+            'CAFE_OWNER': ['can_manage_cards', 'can_view_leaderboard'],
+            'USER': ['can_play_games', 'can_view_leaderboard']
+          };
+          permissionsData = rolePermissions[fetchedUser.role] || [];
+        }
+        
+        setPermissions(permissionsData);
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -79,6 +97,16 @@ export default function AdminLayout({
   if (!user) {
     return <Navigate to="/login" replace />;
   }
+
+  // Debug logging
+  console.log("AdminLayout render:", { 
+    user, 
+    profile, 
+    permissions, 
+    loading, 
+    error,
+    pathname: location.pathname 
+  });
 
   // Permission check for enhanced card routes
   const enhancedCardRoutes = [

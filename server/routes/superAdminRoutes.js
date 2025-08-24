@@ -292,73 +292,7 @@ router.post(
   }
 );
 
-router.post(
-  "/create-admin",
-  authenticateUser,
-  requirePermission("can_create_admin_users"),
-  async (req, res) => {
-    const { email, password, role, permissions } = req.body;
-
-    try {
-      // Create user in Supabase Auth
-      const { data: signUpData, error: signUpError } =
-        await supabase.auth.admin.createUser({
-          email,
-          password,
-          email_confirm: true, // Automatically confirm email
-        });
-      if (signUpError) {
-        throw new Error(signUpError.message);
-      }
-      const newUserId = signUpData.user.id;
-      // Set role in profiles table
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .insert({ id: newUserId, role })
-        .select();
-      if (profileError) {
-        await supabase.auth.admin.deleteUser(newUserId);
-        throw new Error(profileError.message);
-      }
-      // Assign granular permissions
-      if (permissions && permissions.length > 0) {
-        // Get permission ids
-        const { data: permData, error: permError } = await supabase
-          .from("permissions")
-          .select("id, name")
-          .in("name", permissions);
-        if (permError) throw permError;
-        const permRows = permData || [];
-        const profilePerms = permRows.map((p) => ({
-          profile_id: newUserId,
-          permission_id: p.id,
-        }));
-        if (profilePerms.length > 0) {
-          const { error: ppError } = await supabase
-            .from("profile_permissions")
-            .insert(profilePerms);
-          if (ppError) throw ppError;
-        }
-      }
-      logAdminActivity("CREATED_ADMIN_USER", newUserId, {
-        email,
-        role,
-        permissions,
-      })(req, res, () => {});
-      res.status(201).json({
-        message: "Admin user created successfully",
-        userId: newUserId,
-      });
-    } catch (error) {
-      console.error("Error creating admin user:", error);
-      res
-        .status(500)
-        .json({ error: error.message || "Failed to create admin user" });
-    }
-  }
-);
-
-// Get all available permissions
+// Get all permissions
 router.get(
   "/permissions",
   authenticateUser,
@@ -367,13 +301,435 @@ router.get(
     try {
       const { data, error } = await supabase
         .from("permissions")
-        .select("id, name, description")
+        .select("*")
+        .order("category", { ascending: true })
         .order("name", { ascending: true });
+      
       if (error) throw error;
       res.json(data);
     } catch (error) {
       console.error("Failed to fetch permissions:", error);
       res.status(500).json({ error: "Failed to fetch permissions" });
+    }
+  }
+);
+
+// Get role permissions
+router.get(
+  "/role-permissions",
+  authenticateUser,
+  requireSuperAdmin,
+  async (req, res) => {
+    try {
+      const { data, error } = await supabase
+        .from("role_permissions")
+        .select("*");
+      
+      if (error) throw error;
+      res.json(data);
+    } catch (error) {
+      console.error("Failed to fetch role permissions:", error);
+      res.status(500).json({ error: "Failed to fetch role permissions" });
+    }
+  }
+);
+
+// Create/Update role permissions
+router.post(
+  "/role-permissions",
+  authenticateUser,
+  requireSuperAdmin,
+  async (req, res) => {
+    const { role, permission_id } = req.body;
+    const superAdminId = req.user.id;
+
+    try {
+      const { data, error } = await supabase
+        .from("role_permissions")
+        .insert({ role, permission_id })
+        .select();
+      
+      if (error) throw error;
+      
+      // Log the activity
+      await logAdminActivity(superAdminId, "GRANT_ROLE_PERMISSION", null, {
+        role,
+        permission_id,
+        action: "granted"
+      });
+      
+      res.json({ message: "Role permission granted successfully" });
+    } catch (error) {
+      console.error("Failed to grant role permission:", error);
+      res.status(500).json({ error: "Failed to grant role permission" });
+    }
+  }
+);
+
+// Delete role permissions
+router.delete(
+  "/role-permissions",
+  authenticateUser,
+  requireSuperAdmin,
+  async (req, res) => {
+    const { role, permission_id } = req.body;
+    const superAdminId = req.user.id;
+
+    try {
+      const { error } = await supabase
+        .from("role_permissions")
+        .delete()
+        .match({ role, permission_id });
+      
+      if (error) throw error;
+      
+      // Log the activity
+      await logAdminActivity(superAdminId, "REVOKE_ROLE_PERMISSION", null, {
+        role,
+        permission_id,
+        action: "revoked"
+      });
+      
+      res.json({ message: "Role permission revoked successfully" });
+    } catch (error) {
+      console.error("Failed to revoke role permission:", error);
+      res.status(500).json({ error: "Failed to revoke role permission" });
+    }
+  }
+);
+
+// Get admin roles
+router.get(
+  "/admin-roles",
+  authenticateUser,
+  requireSuperAdmin,
+  async (req, res) => {
+    try {
+      const { data, error } = await supabase
+        .from("admin_roles")
+        .select("*")
+        .eq("is_active", true)
+        .order("name", { ascending: true });
+      
+      if (error) throw error;
+      res.json(data);
+    } catch (error) {
+      console.error("Failed to fetch admin roles:", error);
+      res.status(500).json({ error: "Failed to fetch admin roles" });
+    }
+  }
+);
+
+// Create admin role
+router.post(
+  "/admin-roles",
+  authenticateUser,
+  requireSuperAdmin,
+  async (req, res) => {
+    const { name, description, permissions } = req.body;
+    const superAdminId = req.user.id;
+
+    try {
+      // Create the admin role
+      const { data: roleData, error: roleError } = await supabase
+        .from("admin_roles")
+        .insert({ 
+          name, 
+          description, 
+          created_by: superAdminId 
+        })
+        .select()
+        .single();
+      
+      if (roleError) throw roleError;
+      
+      // Assign permissions to the role
+      if (permissions && permissions.length > 0) {
+        const rolePermissions = permissions.map(permissionId => ({
+          admin_role_id: roleData.id,
+          permission_id: permissionId
+        }));
+        
+        const { error: permError } = await supabase
+          .from("admin_role_permissions")
+          .insert(rolePermissions);
+        
+        if (permError) throw permError;
+      }
+      
+      // Log the activity
+      await logAdminActivity(superAdminId, "CREATE_ADMIN_ROLE", roleData.id, {
+        role_name: name,
+        permissions_count: permissions?.length || 0
+      });
+      
+      res.json({ message: "Admin role created successfully", role: roleData });
+    } catch (error) {
+      console.error("Failed to create admin role:", error);
+      res.status(500).json({ error: "Failed to create admin role" });
+    }
+  }
+);
+
+// Delete admin role
+router.delete(
+  "/admin-roles/:id",
+  authenticateUser,
+  requireSuperAdmin,
+  async (req, res) => {
+    const { id } = req.params;
+    const superAdminId = req.user.id;
+
+    try {
+      // Get role info for logging
+      const { data: roleData, error: roleError } = await supabase
+        .from("admin_roles")
+        .select("name")
+        .eq("id", id)
+        .single();
+      
+      if (roleError) throw roleError;
+      
+      // Delete the role (this will cascade to permissions)
+      const { error } = await supabase
+        .from("admin_roles")
+        .delete()
+        .eq("id", id);
+      
+      if (error) throw error;
+      
+      // Log the activity
+      await logAdminActivity(superAdminId, "DELETE_ADMIN_ROLE", id, {
+        role_name: roleData.name
+      });
+      
+      res.json({ message: "Admin role deleted successfully" });
+    } catch (error) {
+      console.error("Failed to delete admin role:", error);
+      res.status(500).json({ error: "Failed to delete admin role" });
+    }
+  }
+);
+
+// Get user permissions
+router.get(
+  "/user-permissions/:userId",
+  authenticateUser,
+  requireSuperAdmin,
+  async (req, res) => {
+    const { userId } = req.params;
+
+    try {
+      const { data, error } = await supabase
+        .from("user_permissions")
+        .select(`
+          id,
+          user_id,
+          permission_id,
+          granted_at,
+          granted_by,
+          permissions!inner(name)
+        `)
+        .eq("user_id", userId);
+      
+      if (error) throw error;
+      
+      // Transform the data to include permission names
+      const transformedData = data.map(item => ({
+        id: item.id,
+        user_id: item.user_id,
+        permission_id: item.permission_id,
+        permission_name: item.permissions.name,
+        granted_at: item.granted_at,
+        granted_by: item.granted_by
+      }));
+      
+      res.json(transformedData);
+    } catch (error) {
+      console.error("Failed to fetch user permissions:", error);
+      res.status(500).json({ error: "Failed to fetch user permissions" });
+    }
+  }
+);
+
+// Grant user permission
+router.post(
+  "/user-permissions",
+  authenticateUser,
+  requireSuperAdmin,
+  async (req, res) => {
+    const { user_id, permission_id } = req.body;
+    const superAdminId = req.user.id;
+
+    try {
+      const { data, error } = await supabase
+        .from("user_permissions")
+        .insert({ 
+          user_id, 
+          permission_id, 
+          granted_by: superAdminId 
+        })
+        .select();
+      
+      if (error) throw error;
+      
+      // Log the activity
+      await logAdminActivity(superAdminId, "GRANT_USER_PERMISSION", user_id, {
+        permission_id,
+        action: "granted"
+      });
+      
+      res.json({ message: "User permission granted successfully" });
+    } catch (error) {
+      console.error("Failed to grant user permission:", error);
+      res.status(500).json({ error: "Failed to grant user permission" });
+    }
+  }
+);
+
+// Revoke user permission
+router.delete(
+  "/user-permissions",
+  authenticateUser,
+  requireSuperAdmin,
+  async (req, res) => {
+    const { user_id, permission_id } = req.body;
+    const superAdminId = req.user.id;
+
+    try {
+      const { error } = await supabase
+        .from("user_permissions")
+        .delete()
+        .match({ user_id, permission_id });
+      
+      if (error) throw error;
+      
+      // Log the activity
+      await logAdminActivity(superAdminId, "REVOKE_USER_PERMISSION", user_id, {
+        permission_id,
+        action: "revoked"
+      });
+      
+      res.json({ message: "User permission revoked successfully" });
+    } catch (error) {
+      console.error("Failed to revoke user permission:", error);
+      res.status(500).json({ error: "Failed to revoke user permission" });
+    }
+  }
+);
+
+// Create admin user
+router.post(
+  "/create-admin",
+  authenticateUser,
+  requireSuperAdmin,
+  async (req, res) => {
+    const { email, password, name, role, permissions } = req.body;
+    const superAdminId = req.user.id;
+
+    try {
+      // Create user in Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: { full_name: name }
+      });
+      
+      if (authError) throw authError;
+      
+      // Create profile
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .insert({
+          id: authData.user.id,
+          name,
+          email,
+          role
+        });
+      
+      if (profileError) throw profileError;
+      
+      // Assign additional permissions if specified
+      if (permissions && permissions.length > 0) {
+        const userPermissions = permissions.map(permissionId => ({
+          user_id: authData.user.id,
+          permission_id: permissionId,
+          granted_by: superAdminId
+        }));
+        
+        const { error: permError } = await supabase
+          .from("user_permissions")
+          .insert(userPermissions);
+        
+        if (permError) throw permError;
+      }
+      
+      // Log the activity
+      await logAdminActivity(superAdminId, "CREATE_ADMIN_USER", authData.user.id, {
+        email,
+        role,
+        permissions_count: permissions?.length || 0
+      });
+      
+      res.json({ message: "Admin user created successfully", user: authData.user });
+    } catch (error) {
+      console.error("Failed to create admin user:", error);
+      res.status(500).json({ error: "Failed to create admin user" });
+    }
+  }
+);
+
+// Delete admin user
+router.delete(
+  "/delete-admin",
+  authenticateUser,
+  requireSuperAdmin,
+  async (req, res) => {
+    const { user_id } = req.body;
+    const superAdminId = req.user.id;
+
+    try {
+      // Get user info for logging
+      const { data: userData, error: userError } = await supabase
+        .from("profiles")
+        .select("email, role")
+        .eq("id", user_id)
+        .single();
+      
+      if (userError) throw userError;
+      
+      // Delete user permissions first
+      const { error: permError } = await supabase
+        .from("user_permissions")
+        .delete()
+        .eq("user_id", user_id);
+      
+      if (permError) throw permError;
+      
+      // Delete profile
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("id", user_id);
+      
+      if (profileError) throw profileError;
+      
+      // Delete user from auth (this will cascade to other tables)
+      const { error: authError } = await supabase.auth.admin.deleteUser(user_id);
+      
+      if (authError) throw authError;
+      
+      // Log the activity
+      await logAdminActivity(superAdminId, "DELETE_ADMIN_USER", user_id, {
+        email: userData.email,
+        role: userData.role
+      });
+      
+      res.json({ message: "Admin user deleted successfully" });
+    } catch (error) {
+      console.error("Failed to delete admin user:", error);
+      res.status(500).json({ error: "Failed to delete admin user" });
     }
   }
 );
