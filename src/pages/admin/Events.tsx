@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
-import { FaArrowLeft, FaEdit, FaPlus, FaTrash } from 'react-icons/fa';
+import { FaArrowLeft, FaEdit, FaPlus, FaSpinner, FaTimes, FaTrash, FaUpload } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import { ImageUpload } from '../../Components/admin/ImageUpload';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 import { adminApi } from '../../services/adminApi';
 import { api, Event } from '../../services/api';
+import { uploadImage } from '../../services/upload';
 
 const Events = () => {
   const { loading: authLoading } = useAdminAuth();
@@ -26,6 +28,9 @@ const Events = () => {
     featured: false,
     gallery: [] as string[],
   });
+  const [newGalleryImage, setNewGalleryImage] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string>('');
 
   useEffect(() => {
     if (!authLoading) {
@@ -79,6 +84,9 @@ const Events = () => {
       featured: event.featured || false,
       gallery: event.gallery || [],
     });
+    setNewGalleryImage('');
+    setUploading(false);
+    setUploadProgress('');
     setShowModal(true);
   };
 
@@ -108,6 +116,92 @@ const Events = () => {
       featured: false,
       gallery: [],
     });
+    setNewGalleryImage('');
+    setUploading(false);
+    setUploadProgress('');
+  };
+
+  const addGalleryImage = () => {
+    if (newGalleryImage.trim() && !formData.gallery.includes(newGalleryImage.trim())) {
+      setFormData({
+        ...formData,
+        gallery: [...formData.gallery, newGalleryImage.trim()],
+      });
+      setNewGalleryImage('');
+    }
+  };
+
+  const removeGalleryImage = (index: number) => {
+    setFormData({
+      ...formData,
+      gallery: formData.gallery.filter((_, i) => i !== index),
+    });
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    setUploadProgress('');
+
+    try {
+      // First, validate all files before uploading
+      const fileArray = Array.from(files);
+      const invalidFiles: string[] = [];
+      
+      fileArray.forEach((file) => {
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+          invalidFiles.push(`${file.name} is not an image file`);
+        }
+        // Validate file size (max 5MB)
+        else if (file.size > 5 * 1024 * 1024) {
+          const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+          invalidFiles.push(`${file.name} is too large (${sizeMB}MB). Maximum size is 5MB`);
+        }
+      });
+
+      if (invalidFiles.length > 0) {
+        throw new Error(invalidFiles.join('\n'));
+      }
+
+      // Upload files one by one to show progress
+      const uploadedUrls: string[] = [];
+      for (let i = 0; i < fileArray.length; i++) {
+        const file = fileArray[i];
+        setUploadProgress(`Uploading ${i + 1}/${fileArray.length}: ${file.name}...`);
+        
+        try {
+          const url = await uploadImage(file);
+          uploadedUrls.push(url);
+        } catch (uploadError: any) {
+          // If one file fails, continue with others but track the error
+          throw new Error(`Failed to upload ${file.name}: ${uploadError.message}`);
+        }
+      }
+      
+      // Add all uploaded URLs to gallery
+      setFormData({
+        ...formData,
+        gallery: [...formData.gallery, ...uploadedUrls],
+      });
+
+      setUploadProgress(`Successfully uploaded ${uploadedUrls.length} image(s)!`);
+      
+      // Clear the file input
+      event.target.value = '';
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      // Show error in a more user-friendly way
+      const errorMessage = error.message || 'Failed to upload images';
+      alert(`Upload Error:\n\n${errorMessage}`);
+      setUploadProgress('');
+    } finally {
+      setUploading(false);
+      // Clear progress message after a delay
+      setTimeout(() => setUploadProgress(''), 5000);
+    }
   };
 
   return (
@@ -272,13 +366,12 @@ const Events = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Image URL *</label>
-                    <input
-                      type="url"
-                      required
+                    <ImageUpload
                       value={formData.image}
-                      onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                      onChange={(url) => setFormData({ ...formData, image: url })}
+                      label="Event Image"
+                      folder="events"
+                      required
                     />
                   </div>
                   <div>
@@ -329,6 +422,113 @@ const Events = () => {
                     className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
                   />
                 </div>
+                
+                {/* Gallery Images Section */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Gallery Images
+                    <span className="text-xs text-gray-500 ml-2">(Additional images shown on event detail page)</span>
+                  </label>
+                  
+                  {/* Upload images */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Upload Images
+                    </label>
+                    <div className="flex gap-2">
+                      <label className="flex-1 cursor-pointer">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={handleImageUpload}
+                          disabled={uploading}
+                          className="hidden"
+                        />
+                        <div className={`flex items-center justify-center gap-2 px-4 py-2 border-2 border-dashed rounded-md transition-colors ${
+                          uploading
+                            ? 'border-gray-300 bg-gray-50 cursor-not-allowed'
+                            : 'border-indigo-300 bg-indigo-50 hover:bg-indigo-100 hover:border-indigo-400'
+                        }`}>
+                          {uploading ? (
+                            <>
+                              <FaSpinner className="animate-spin text-indigo-600" />
+                              <span className="text-sm text-gray-600">Uploading...</span>
+                            </>
+                          ) : (
+                            <>
+                              <FaUpload className="text-indigo-600" />
+                              <span className="text-sm text-indigo-600 font-medium">Choose Images to Upload</span>
+                            </>
+                          )}
+                        </div>
+                      </label>
+                    </div>
+                    {uploadProgress && (
+                      <p className="mt-2 text-sm text-gray-600">{uploadProgress}</p>
+                    )}
+                    <p className="mt-1 text-xs text-gray-500">You can select multiple images. Max size: 5MB per image.</p>
+                  </div>
+
+                  {/* Add new gallery image by URL */}
+                  <div className="flex gap-2 mb-4">
+                    <input
+                      type="url"
+                      value={newGalleryImage}
+                      onChange={(e) => setNewGalleryImage(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          addGalleryImage();
+                        }
+                      }}
+                      placeholder="Or enter image URL"
+                      className="flex-1 border border-gray-300 rounded-md px-3 py-2"
+                    />
+                    <button
+                      type="button"
+                      onClick={addGalleryImage}
+                      disabled={!newGalleryImage.trim()}
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <FaPlus />
+                      Add URL
+                    </button>
+                  </div>
+
+                  {/* Gallery images preview */}
+                  {formData.gallery.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {formData.gallery.map((imageUrl, index) => (
+                        <div key={index} className="relative group">
+                          <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+                            <img
+                              src={imageUrl}
+                              alt={`Gallery ${index + 1}`}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23ddd" width="200" height="200"/%3E%3Ctext fill="%23999" font-family="sans-serif" font-size="14" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3EInvalid Image%3C/text%3E%3C/svg%3E';
+                              }}
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeGalleryImage(index)}
+                            className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"
+                            title="Remove image"
+                          >
+                            <FaTimes size={12} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {formData.gallery.length === 0 && (
+                    <p className="text-sm text-gray-500 italic">No gallery images added yet. Add image URLs above.</p>
+                  )}
+                </div>
+
                 <div>
                   <label className="flex items-center">
                     <input

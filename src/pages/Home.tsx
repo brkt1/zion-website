@@ -234,28 +234,53 @@ const Home = () => {
                   e.currentTarget.style.boxShadow = "0 4px 24px rgba(0, 0, 0, 0.06)";
                 }}
               >
-                {/* Abstract gradient header */}
+                {/* Event Image */}
                 <div 
                   className="h-40 sm:h-48 relative overflow-hidden"
                   style={{
                     background: `linear-gradient(135deg, ${index % 3 === 0 ? 'rgba(255, 212, 71, 0.15)' : index % 3 === 1 ? 'rgba(255, 111, 94, 0.15)' : 'rgba(255, 212, 71, 0.2)'} 0%, ${index % 3 === 0 ? 'rgba(255, 111, 94, 0.15)' : index % 3 === 1 ? 'rgba(255, 212, 71, 0.15)' : 'rgba(255, 111, 94, 0.2)'} 100%)`,
                   }}
                 >
-                  {/* Abstract shapes */}
+                  {/* Event Image */}
+                  {event.image ? (
+                    <img
+                      src={event.image}
+                      alt={event.title}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                      onError={(e) => {
+                        // Fallback to gradient if image fails to load
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  ) : null}
+                  
+                  {/* Overlay gradient for better text readability */}
                   <div 
-                    className="absolute top-0 right-0 w-24 h-24 md:w-32 md:h-32 rounded-full opacity-30 group-hover:opacity-50 transition-opacity duration-700 blur-2xl"
+                    className="absolute inset-0 opacity-0 group-hover:opacity-30 transition-opacity duration-700"
                     style={{
                       background: `linear-gradient(135deg, ${index % 3 === 0 ? 'rgba(255, 212, 71, 0.4)' : index % 3 === 1 ? 'rgba(255, 111, 94, 0.4)' : 'rgba(255, 212, 71, 0.5)'} 0%, ${index % 3 === 0 ? 'rgba(255, 111, 94, 0.4)' : index % 3 === 1 ? 'rgba(255, 212, 71, 0.4)' : 'rgba(255, 111, 94, 0.5)'} 100%)`,
-                      transform: "translate(20%, -20%)",
                     }}
                   ></div>
-                  <div 
-                    className="absolute bottom-0 left-0 w-20 h-20 md:w-24 md:h-24 rounded-full opacity-20 group-hover:opacity-40 transition-opacity duration-700 blur-xl"
-                    style={{
-                      background: `linear-gradient(135deg, ${index % 3 === 0 ? 'rgba(255, 111, 94, 0.3)' : index % 3 === 1 ? 'rgba(255, 212, 71, 0.3)' : 'rgba(255, 212, 71, 0.4)'} 0%, ${index % 3 === 0 ? 'rgba(255, 212, 71, 0.3)' : index % 3 === 1 ? 'rgba(255, 111, 94, 0.3)' : 'rgba(255, 111, 94, 0.4)'} 100%)`,
-                      transform: "translate(-20%, 20%)",
-                    }}
-                  ></div>
+                  
+                  {/* Abstract shapes as fallback decoration */}
+                  {!event.image && (
+                    <>
+                      <div 
+                        className="absolute top-0 right-0 w-24 h-24 md:w-32 md:h-32 rounded-full opacity-30 group-hover:opacity-50 transition-opacity duration-700 blur-2xl"
+                        style={{
+                          background: `linear-gradient(135deg, ${index % 3 === 0 ? 'rgba(255, 212, 71, 0.4)' : index % 3 === 1 ? 'rgba(255, 111, 94, 0.4)' : 'rgba(255, 212, 71, 0.5)'} 0%, ${index % 3 === 0 ? 'rgba(255, 111, 94, 0.4)' : index % 3 === 1 ? 'rgba(255, 212, 71, 0.4)' : 'rgba(255, 111, 94, 0.5)'} 100%)`,
+                          transform: "translate(20%, -20%)",
+                        }}
+                      ></div>
+                      <div 
+                        className="absolute bottom-0 left-0 w-20 h-20 md:w-24 md:h-24 rounded-full opacity-20 group-hover:opacity-40 transition-opacity duration-700 blur-xl"
+                        style={{
+                          background: `linear-gradient(135deg, ${index % 3 === 0 ? 'rgba(255, 111, 94, 0.3)' : index % 3 === 1 ? 'rgba(255, 212, 71, 0.3)' : 'rgba(255, 212, 71, 0.4)'} 0%, ${index % 3 === 0 ? 'rgba(255, 212, 71, 0.3)' : index % 3 === 1 ? 'rgba(255, 111, 94, 0.3)' : 'rgba(255, 111, 94, 0.4)'} 100%)`,
+                          transform: "translate(-20%, 20%)",
+                        }}
+                      ></div>
+                    </>
+                  )}
                   
                   {/* Badge */}
                   <div className="absolute top-4 right-4 md:top-6 md:right-6">

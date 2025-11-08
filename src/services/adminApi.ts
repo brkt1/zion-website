@@ -420,6 +420,96 @@ export const adminApi = {
       if (error) throw error;
       return data;
     },
+
+    updateCEO: async (ceo: { name: string; title: string; image?: string; bio: string; quote?: string; socialLinks?: Array<{ platform: string; url: string; icon?: string }> }) => {
+      const { data: existing } = await supabase
+        .from('about_content')
+        .select('*')
+        .limit(1)
+        .single();
+
+      if (existing) {
+        const { data, error } = await supabase
+          .from('about_content')
+          .update({
+            ceo_name: ceo.name,
+            ceo_title: ceo.title,
+            ceo_image: ceo.image || null,
+            ceo_bio: ceo.bio,
+            ceo_quote: ceo.quote || null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', existing.id)
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        // Update CEO social links
+        if (ceo.socialLinks && ceo.socialLinks.length > 0) {
+          const { data: existingLinks } = await supabase
+            .from('ceo_social_links')
+            .select('id');
+          
+          if (existingLinks && existingLinks.length > 0) {
+            await supabase
+              .from('ceo_social_links')
+              .delete()
+              .in('id', existingLinks.map(l => l.id));
+          }
+
+          const { error: linksError } = await supabase
+            .from('ceo_social_links')
+            .insert(ceo.socialLinks.map((link, index) => ({
+              platform: link.platform,
+              url: link.url,
+              icon: link.icon || null,
+              display_order: index + 1,
+            })));
+
+          if (linksError) throw linksError;
+        }
+
+        return data;
+      } else {
+        // Create new about_content entry if it doesn't exist
+        const { data, error } = await supabase
+          .from('about_content')
+          .insert({
+            story_title: '',
+            story_content: '',
+            mission_title: '',
+            mission_content: '',
+            vision_title: '',
+            vision_content: '',
+            ceo_name: ceo.name,
+            ceo_title: ceo.title,
+            ceo_image: ceo.image || null,
+            ceo_bio: ceo.bio,
+            ceo_quote: ceo.quote || null,
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        // Insert CEO social links
+        if (ceo.socialLinks && ceo.socialLinks.length > 0) {
+          const { error: linksError } = await supabase
+            .from('ceo_social_links')
+            .insert(ceo.socialLinks.map((link, index) => ({
+              platform: link.platform,
+              url: link.url,
+              icon: link.icon || null,
+              display_order: index + 1,
+            })));
+
+          if (linksError) throw linksError;
+        }
+
+        return data;
+      }
+    },
   },
 
   // Home Content CRUD
@@ -522,6 +612,130 @@ export const adminApi = {
 
       if (error) throw error;
       return data;
+    },
+  },
+
+  // Tickets - Get all tickets with buyer information
+  tickets: {
+    getAll: async () => {
+      const { data, error } = await supabase
+        .from('tickets')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+
+    getByStatus: async (status: 'pending' | 'success' | 'failed' | 'cancelled') => {
+      const { data, error } = await supabase
+        .from('tickets')
+        .select('*')
+        .eq('status', status)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+
+    getByEvent: async (eventId: string) => {
+      const { data, error } = await supabase
+        .from('tickets')
+        .select('*')
+        .eq('event_id', eventId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+  },
+
+  // Reminders - Manage call reminders for customers
+  reminders: {
+    create: async (reminderData: {
+      ticket_id?: string;
+      customer_email: string;
+      customer_name?: string;
+      customer_phone?: string;
+      reminder_date: string;
+      reminder_time?: string;
+      notes?: string;
+    }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const { data, error } = await supabase
+        .from('reminders')
+        .insert([{
+          ticket_id: reminderData.ticket_id || null,
+          customer_email: reminderData.customer_email,
+          customer_name: reminderData.customer_name || null,
+          customer_phone: reminderData.customer_phone || null,
+          reminder_date: reminderData.reminder_date,
+          reminder_time: reminderData.reminder_time || null,
+          notes: reminderData.notes || null,
+          created_by: user?.id || null,
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+
+    getAll: async () => {
+      const { data, error } = await supabase
+        .from('reminders')
+        .select('*')
+        .order('reminder_date', { ascending: true });
+
+      if (error) throw error;
+      return data;
+    },
+
+    getByCustomer: async (customerEmail: string) => {
+      const { data, error } = await supabase
+        .from('reminders')
+        .select('*')
+        .eq('customer_email', customerEmail)
+        .order('reminder_date', { ascending: true });
+
+      if (error) throw error;
+      return data;
+    },
+
+    update: async (reminderId: string, updates: {
+      reminder_date?: string;
+      reminder_time?: string;
+      notes?: string;
+      status?: 'pending' | 'completed' | 'cancelled';
+    }) => {
+      const updateData: any = {
+        ...updates,
+        updated_at: new Date().toISOString(),
+      };
+
+      if (updates.status === 'completed') {
+        updateData.completed_at = new Date().toISOString();
+      }
+
+      const { data, error } = await supabase
+        .from('reminders')
+        .update(updateData)
+        .eq('id', reminderId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+
+    delete: async (reminderId: string) => {
+      const { error } = await supabase
+        .from('reminders')
+        .delete()
+        .eq('id', reminderId);
+
+      if (error) throw error;
     },
   },
 };

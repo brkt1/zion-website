@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { FaArrowLeft, FaEdit, FaPlus, FaTrash } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
+import { ImageUpload } from '../../Components/admin/ImageUpload';
 import { adminApi } from '../../services/adminApi';
 import { api, Destination } from '../../services/api';
 import { supabase } from '../../services/supabase';
@@ -183,13 +184,12 @@ const Destinations = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Image URL *</label>
-                  <input
-                    type="url"
-                    required
+                  <ImageUpload
                     value={formData.img}
-                    onChange={(e) => setFormData({ ...formData, img: e.target.value })}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                    onChange={(url) => setFormData({ ...formData, img: url })}
+                    label="Destination Image"
+                    folder="destinations"
+                    required
                   />
                 </div>
                 <div>

@@ -67,6 +67,18 @@ export interface AboutContent {
     title: string;
     description: string;
   }>;
+  ceo?: {
+    name: string;
+    title: string;
+    image?: string;
+    bio: string;
+    quote?: string;
+    socialLinks?: Array<{
+      platform: string;
+      url: string;
+      icon?: string;
+    }>;
+  };
 }
 
 export interface ContactInfo {
@@ -308,7 +320,18 @@ export const api = {
       // Don't throw, just use empty array
     }
 
-    return {
+    // Fetch CEO social links
+    const { data: ceoSocialData, error: ceoSocialError } = await supabase
+      .from('ceo_social_links')
+      .select('*')
+      .order('display_order', { ascending: true });
+
+    if (ceoSocialError) {
+      console.error('Error fetching CEO social links:', ceoSocialError);
+      // Don't throw, just use empty array
+    }
+
+    const result: AboutContent = {
       story: {
         title: aboutData?.story_title || '',
         content: aboutData?.story_content || '',
@@ -332,6 +355,24 @@ export const api = {
         description: m.description,
       })),
     };
+
+    // Add CEO data if it exists
+    if (aboutData?.ceo_name || aboutData?.ceo_bio) {
+      result.ceo = {
+        name: aboutData.ceo_name || '',
+        title: aboutData.ceo_title || '',
+        image: aboutData.ceo_image || undefined,
+        bio: aboutData.ceo_bio || '',
+        quote: aboutData.ceo_quote || undefined,
+        socialLinks: (ceoSocialData || []).map((link: any) => ({
+          platform: link.platform,
+          url: link.url,
+          icon: link.icon,
+        })),
+      };
+    }
+
+    return result;
   },
 
   // Contact Info

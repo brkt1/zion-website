@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { FaArrowLeft, FaPlus, FaSave, FaTrash } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
+import { ImageUpload } from '../../Components/admin/ImageUpload';
 import { adminApi } from '../../services/adminApi';
 import { AboutContent, api } from '../../services/api';
 import { supabase } from '../../services/supabase';
@@ -15,6 +16,14 @@ const About = () => {
     vision: { title: '', content: '' },
     values: [] as Array<{ number: string; title: string; description: string }>,
     milestones: [] as Array<{ year: string; title: string; description: string }>,
+    ceo: {
+      name: '',
+      title: '',
+      image: '',
+      bio: '',
+      quote: '',
+      socialLinks: [] as Array<{ platform: string; url: string; icon?: string }>,
+    },
   });
   const navigate = useNavigate();
 
@@ -39,6 +48,14 @@ const About = () => {
         vision: data.vision,
         values: data.values,
         milestones: data.milestones,
+        ceo: {
+          name: data.ceo?.name || '',
+          title: data.ceo?.title || '',
+          image: data.ceo?.image || '',
+          bio: data.ceo?.bio || '',
+          quote: data.ceo?.quote || '',
+          socialLinks: data.ceo?.socialLinks || [],
+        },
       });
     } catch (error) {
       console.error('Error loading about content:', error);
@@ -54,6 +71,9 @@ const About = () => {
       await adminApi.aboutContent.update(formData);
       await adminApi.aboutContent.updateValues(formData.values);
       await adminApi.aboutContent.updateMilestones(formData.milestones);
+      if (formData.ceo.name || formData.ceo.bio) {
+        await adminApi.aboutContent.updateCEO(formData.ceo);
+      }
       alert('About content updated successfully!');
       loadContent();
     } catch (error: any) {
@@ -101,6 +121,35 @@ const About = () => {
     const updated = [...formData.milestones];
     updated[index] = { ...updated[index], [field]: value };
     setFormData({ ...formData, milestones: updated });
+  };
+
+  const addSocialLink = () => {
+    setFormData({
+      ...formData,
+      ceo: {
+        ...formData.ceo,
+        socialLinks: [...formData.ceo.socialLinks, { platform: '', url: '' }],
+      },
+    });
+  };
+
+  const removeSocialLink = (index: number) => {
+    setFormData({
+      ...formData,
+      ceo: {
+        ...formData.ceo,
+        socialLinks: formData.ceo.socialLinks.filter((_, i) => i !== index),
+      },
+    });
+  };
+
+  const updateSocialLink = (index: number, field: string, value: string) => {
+    const updated = [...formData.ceo.socialLinks];
+    updated[index] = { ...updated[index], [field]: value };
+    setFormData({
+      ...formData,
+      ceo: { ...formData.ceo, socialLinks: updated },
+    });
   };
 
   return (
@@ -334,6 +383,131 @@ const About = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* CEO Section */}
+          <div className="bg-white shadow rounded-lg p-6">
+            <h2 className="text-xl font-bold mb-4">CEO Section</h2>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">CEO Name</label>
+                  <input
+                    type="text"
+                    value={formData.ceo.name}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      ceo: { ...formData.ceo, name: e.target.value },
+                    })}
+                    placeholder="John Doe"
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">CEO Title</label>
+                  <input
+                    type="text"
+                    value={formData.ceo.title}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      ceo: { ...formData.ceo, title: e.target.value },
+                    })}
+                    placeholder="Chief Executive Officer"
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                  />
+                </div>
+              </div>
+              <div>
+                <ImageUpload
+                  value={formData.ceo.image}
+                  onChange={(url) => setFormData({
+                    ...formData,
+                    ceo: { ...formData.ceo, image: url },
+                  })}
+                  label="CEO Image"
+                  folder="about"
+                  previewClassName="w-32 h-32 object-cover rounded-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">CEO Quote</label>
+                <textarea
+                  rows={2}
+                  value={formData.ceo.quote}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    ceo: { ...formData.ceo, quote: e.target.value },
+                  })}
+                  placeholder="An inspiring quote from the CEO"
+                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">CEO Bio</label>
+                <textarea
+                  rows={6}
+                  value={formData.ceo.bio}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    ceo: { ...formData.ceo, bio: e.target.value },
+                  })}
+                  placeholder="A detailed biography of the CEO"
+                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                />
+              </div>
+              
+              {/* Social Links */}
+              <div>
+                <div className="flex justify-between items-center mb-4">
+                  <label className="block text-sm font-medium text-gray-700">Social Links</label>
+                  <button
+                    type="button"
+                    onClick={addSocialLink}
+                    className="text-sm text-indigo-600 hover:text-indigo-800"
+                  >
+                    <FaPlus className="inline mr-1" />
+                    Add Social Link
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {formData.ceo.socialLinks.map((social, index) => (
+                    <div key={index} className="border border-gray-200 rounded-lg p-4">
+                      <div className="grid grid-cols-12 gap-4">
+                        <div className="col-span-4">
+                          <label className="block text-sm font-medium text-gray-700">Platform</label>
+                          <input
+                            type="text"
+                            value={social.platform}
+                            onChange={(e) => updateSocialLink(index, 'platform', e.target.value)}
+                            placeholder="LinkedIn, Twitter, etc."
+                            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                          />
+                        </div>
+                        <div className="col-span-7">
+                          <label className="block text-sm font-medium text-gray-700">URL</label>
+                          <input
+                            type="url"
+                            value={social.url}
+                            onChange={(e) => updateSocialLink(index, 'url', e.target.value)}
+                            placeholder="https://linkedin.com/in/username"
+                            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                          />
+                        </div>
+                        <div className="col-span-1 flex items-end">
+                          <button
+                            type="button"
+                            onClick={() => removeSocialLink(index)}
+                            className="text-red-600 hover:text-red-800"
+                          >
+                            <FaTrash />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 

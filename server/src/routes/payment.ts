@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import chapa from '../services/chapa';
+import { generateThankYouMessage, sendWhatsAppMessage } from '../services/whatsapp';
 
 const router = express.Router();
 
@@ -10,6 +11,7 @@ interface InitializePaymentRequest {
   phone_number?: string;
   currency: string;
   amount: string;
+  quantity?: number;
   tx_ref: string;
   callback_url?: string;
   return_url?: string;
@@ -35,6 +37,7 @@ router.post('/initialize', async (req: Request, res: Response) => {
       phone_number,
       currency,
       amount,
+      quantity,
       tx_ref,
       callback_url,
       return_url,
@@ -72,7 +75,7 @@ router.post('/initialize', async (req: Request, res: Response) => {
     returnUrlParams.set('tx_ref', transactionRef);
     if (event_id) returnUrlParams.set('event_id', event_id);
     if (event_title) returnUrlParams.set('event_title', event_title);
-    // Note: quantity should be calculated on frontend or passed separately
+    if (quantity) returnUrlParams.set('quantity', quantity.toString());
     
     const returnUrl = return_url || `${baseUrl}/payment/success?${returnUrlParams.toString()}`;
 
@@ -106,12 +109,33 @@ router.post('/initialize', async (req: Request, res: Response) => {
     // or a public URL service like ngrok
     try {
       // Prepare payment data - ensure amount is a string (Chapa expects string)
+      // Chapa expects amount as a string in base currency (e.g., "100.00" for 100 ETB)
+      // Chapa will convert it to cents internally and return amounts in cents
+      const amountValue = parseFloat(String(amount)) || 0;
+      
+      // Validate amount
+      if (amountValue <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid payment amount. Amount must be greater than 0.',
+        });
+      }
+
+      console.log('Payment amount details:', {
+        receivedAmount: amount,
+        parsedAmount: amountValue,
+        quantity: quantity || 1,
+        expectedTotal: amountValue,
+        currency: currency.toUpperCase(),
+        note: 'Amount should be total (price * quantity)',
+      });
+
       const paymentData: any = {
         first_name: first_name || 'Customer',
         last_name: last_name || '',
         email,
         currency: currency.toUpperCase(), // Ensure uppercase (ETB, USD, etc.)
-        amount: String(amount), // Ensure it's a string
+        amount: String(amountValue), // Send as string in base currency (e.g., "50.00" for 50 ETB)
         tx_ref: transactionRef,
         callback_url: callbackUrl,
         return_url: returnUrl,
@@ -408,9 +432,53 @@ router.get('/verify/:tx_ref', async (req: Request, res: Response) => {
     }
 
     // Handle response structure
-    const verificationData = response.data || response;
+    const verificationData: any = response.data || response;
     
     console.log('Verification data:', JSON.stringify(verificationData, null, 2));
+
+    // If payment is successful, send WhatsApp thank you message
+    const status = verificationData.status?.toLowerCase();
+    // Access phone_number from meta or directly (Chapa may store it in different places)
+    const phoneNumber = verificationData.phone_number || verificationData.meta?.phone_number;
+    
+    if ((status === "success" || status === "successful" || status === "completed") && phoneNumber) {
+      try {
+        const amount = verificationData.amount 
+          ? (typeof verificationData.amount === 'string' 
+              ? parseFloat(verificationData.amount) / 100 
+              : verificationData.amount / 100)
+          : 0;
+        
+        const thankYouMessage = generateThankYouMessage({
+          customerName: verificationData.first_name && verificationData.last_name
+            ? `${verificationData.first_name} ${verificationData.last_name}`
+            : verificationData.first_name || verificationData.last_name,
+          amount,
+          currency: verificationData.currency || 'ETB',
+          txRef: verificationData.tx_ref || '',
+          eventTitle: verificationData.event_title || verificationData.meta?.event_title,
+          quantity: verificationData.quantity || verificationData.meta?.quantity,
+        });
+
+        // Send WhatsApp message asynchronously (don't wait for it)
+        sendWhatsAppMessage({
+          to: phoneNumber,
+          message: thankYouMessage,
+          customerName: verificationData.first_name || verificationData.last_name,
+        }).then((result) => {
+          if (result.success) {
+            console.log('✅ WhatsApp thank you message sent successfully:', result.messageId);
+          } else {
+            console.warn('⚠️  Failed to send WhatsApp message:', result.error);
+          }
+        }).catch((error) => {
+          console.error('❌ Error sending WhatsApp message:', error);
+        });
+      } catch (error: any) {
+        // Don't fail the verification if WhatsApp sending fails
+        console.error('Error preparing WhatsApp message:', error);
+      }
+    }
 
     res.json({
       success: true,
@@ -466,6 +534,52 @@ router.post('/webhook', async (req: Request, res: Response) => {
       const verification = await chapa.verify({ tx_ref });
       console.log('Payment verified:', verification);
 
+      const verificationData: any = verification.data || verification;
+      const status = verificationData.status?.toLowerCase();
+
+      // If payment is successful, send WhatsApp thank you message
+      // Access phone_number from meta or directly (Chapa may store it in different places)
+      const phoneNumber = verificationData.phone_number || verificationData.meta?.phone_number || req.body.phone_number;
+      
+      if ((status === "success" || status === "successful" || status === "completed") && phoneNumber) {
+        try {
+          const amount = verificationData.amount 
+            ? (typeof verificationData.amount === 'string' 
+                ? parseFloat(verificationData.amount) / 100 
+                : verificationData.amount / 100)
+            : 0;
+          
+          const thankYouMessage = generateThankYouMessage({
+            customerName: verificationData.first_name && verificationData.last_name
+              ? `${verificationData.first_name} ${verificationData.last_name}`
+              : verificationData.first_name || verificationData.last_name,
+            amount,
+            currency: verificationData.currency || 'ETB',
+            txRef: verificationData.tx_ref || tx_ref,
+            eventTitle: verificationData.event_title || verificationData.meta?.event_title || req.body.event_title,
+            quantity: verificationData.quantity || verificationData.meta?.quantity || req.body.quantity,
+          });
+
+          // Send WhatsApp message asynchronously (don't wait for it)
+          sendWhatsAppMessage({
+            to: phoneNumber,
+            message: thankYouMessage,
+            customerName: verificationData.first_name || verificationData.last_name,
+          }).then((result) => {
+            if (result.success) {
+              console.log('✅ WhatsApp thank you message sent successfully via webhook:', result.messageId);
+            } else {
+              console.warn('⚠️  Failed to send WhatsApp message via webhook:', result.error);
+            }
+          }).catch((error) => {
+            console.error('❌ Error sending WhatsApp message via webhook:', error);
+          });
+        } catch (error: any) {
+          // Don't fail the webhook if WhatsApp sending fails
+          console.error('Error preparing WhatsApp message in webhook:', error);
+        }
+      }
+
       // Here you can update your database, send emails, etc.
       // Example:
       // - Update payment status in database
@@ -479,8 +593,6 @@ router.post('/webhook', async (req: Request, res: Response) => {
       // 1. Install @supabase/supabase-js in the server
       // 2. Set up Supabase client with service role key
       // 3. Call saveTicket service here when status is 'success'
-      
-      // TODO: Add your business logic here based on verification.data.status
     }
 
     // Always return 200 to acknowledge receipt
@@ -512,6 +624,88 @@ router.get('/generate-tx-ref', async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to generate transaction reference',
+    });
+  }
+});
+
+// Send WhatsApp thank you message
+router.post('/send-whatsapp-thankyou', async (req: Request, res: Response) => {
+  try {
+    const {
+      phone_number,
+      customer_name,
+      amount,
+      currency,
+      tx_ref,
+      event_title,
+      quantity,
+    } = req.body;
+
+    // Validate required fields
+    if (!phone_number) {
+      return res.status(400).json({
+        success: false,
+        message: 'Phone number is required',
+      });
+    }
+
+    if (!amount || !currency || !tx_ref) {
+      return res.status(400).json({
+        success: false,
+        message: 'Amount, currency, and transaction reference are required',
+      });
+    }
+
+    // Generate thank you message
+    const message = generateThankYouMessage({
+      customerName: customer_name,
+      amount: parseFloat(amount),
+      currency,
+      txRef: tx_ref,
+      eventTitle: event_title,
+      quantity: quantity ? parseInt(quantity, 10) : undefined,
+    });
+
+    // Send WhatsApp message
+    const result = await sendWhatsAppMessage({
+      to: phone_number,
+      message,
+      customerName: customer_name,
+    });
+
+    if (result.success) {
+      res.json({
+        success: true,
+        message: 'WhatsApp thank you message sent successfully',
+        messageId: result.messageId,
+      });
+    } else {
+      // Provide more detailed error information
+      const errorMessage = result.error || 'Failed to send WhatsApp message';
+      console.error('WhatsApp sending failed:', errorMessage);
+      
+      // Check if it's a configuration error
+      if (errorMessage.includes('not configured') || errorMessage.includes('No WhatsApp provider')) {
+        return res.status(500).json({
+          success: false,
+          message: errorMessage,
+          error: 'CONFIGURATION_ERROR',
+          hint: 'Please check your .env file in the server directory and ensure Twilio credentials are set. See WHATSAPP_SETUP.md for details.',
+        });
+      }
+      
+      res.status(500).json({
+        success: false,
+        message: errorMessage,
+        error: 'WHATSAPP_SEND_ERROR',
+      });
+    }
+  } catch (error: any) {
+    console.error('WhatsApp message sending error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to send WhatsApp message',
+      error: 'WHATSAPP_ERROR',
     });
   }
 });

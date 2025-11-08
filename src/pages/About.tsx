@@ -1,4 +1,4 @@
-import { FaArrowRight, FaWhatsapp } from "react-icons/fa";
+import { FaArrowRight, FaEnvelope, FaFacebook, FaInstagram, FaLinkedin, FaTwitter, FaWhatsapp } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { ErrorState } from "../Components/ui/ErrorState";
 import { LoadingState } from "../Components/ui/LoadingState";
@@ -412,6 +412,199 @@ const About = () => {
           </div>
         </div>
       </section>
+
+      {/* CEO Section */}
+      {content.ceo && (
+        <section className="py-12 md:py-16 lg:py-24 relative overflow-hidden bg-white">
+          <div className="container mx-auto px-4 sm:px-6">
+            <div className="text-center mb-12 md:mb-16 lg:mb-20">
+              <div className="inline-block mb-4 md:mb-6">
+                <div 
+                  className="h-1 w-16 md:w-20 mx-auto mb-3 md:mb-4 rounded-full"
+                  style={{
+                    background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                  }}
+                ></div>
+              </div>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 tracking-tight px-4">
+                <span 
+                  className="block"
+                  style={{
+                    background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                  }}
+                >
+                  Leadership
+                </span>
+              </h2>
+              <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed px-4">
+                  Meet the visionary behind Yenege
+              </p>
+            </div>
+
+            <div className="max-w-5xl mx-auto">
+              <div className="group relative overflow-hidden rounded-2xl md:rounded-3xl bg-gradient-to-br from-gray-50 to-white border border-gray-100 transition-all duration-700"
+                style={{
+                  boxShadow: "0 4px 24px rgba(0, 0, 0, 0.06)",
+                }}
+                onMouseEnter={(e) => {
+                  if (window.innerWidth >= 768) {
+                    e.currentTarget.style.boxShadow = "0 20px 40px rgba(255, 111, 94, 0.15)";
+                    e.currentTarget.style.transform = "translateY(-4px)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = "0 4px 24px rgba(0, 0, 0, 0.06)";
+                  e.currentTarget.style.transform = "translateY(0)";
+                }}
+              >
+                {/* Abstract gradient background */}
+                <div 
+                  className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-3xl"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(255, 212, 71, 0.2) 0%, rgba(255, 111, 94, 0.2) 100%)",
+                    transform: "translate(30%, -30%)",
+                  }}
+                ></div>
+
+                <div className="relative z-10 p-8 md:p-12 lg:p-16">
+                  <div className="flex flex-col lg:flex-row gap-8 md:gap-12 items-center">
+                    {/* CEO Image */}
+                    <div className="flex-shrink-0">
+                      <div className="relative">
+                        <div 
+                          className="w-48 h-48 md:w-64 md:h-64 rounded-2xl md:rounded-3xl overflow-hidden transition-all duration-700 group-hover:scale-105"
+                          style={{
+                            boxShadow: "0 10px 40px rgba(0, 0, 0, 0.15)",
+                          }}
+                        >
+                          {content.ceo.image ? (
+                            <img 
+                              src={content.ceo.image} 
+                              alt={content.ceo.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div 
+                              className="w-full h-full flex items-center justify-center text-6xl md:text-8xl font-bold"
+                              style={{
+                                background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
+                                color: "#1C2951",
+                              }}
+                            >
+                              {content.ceo.name.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+                        {/* Decorative accent */}
+                        <div 
+                          className="absolute -bottom-4 -right-4 w-24 h-24 md:w-32 md:h-32 rounded-full opacity-20 blur-2xl"
+                          style={{
+                            background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    {/* CEO Content */}
+                    <div className="flex-grow text-center lg:text-left">
+                      {/* Decorative line */}
+                      <div 
+                        className="h-1 w-16 md:w-20 mb-6 md:mb-8 mx-auto lg:mx-0 rounded-full"
+                        style={{
+                          background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                        }}
+                      ></div>
+
+                      {/* Name and Title */}
+                      <h3 
+                        className="text-3xl md:text-4xl lg:text-5xl font-bold mb-2 md:mb-3 tracking-tight"
+                        style={{
+                          background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)",
+                          WebkitBackgroundClip: "text",
+                          WebkitTextFillColor: "transparent",
+                          backgroundClip: "text",
+                        }}
+                      >
+                        {content.ceo.name}
+                      </h3>
+                      <p 
+                        className="text-lg md:text-xl mb-6 md:mb-8 font-semibold"
+                        style={{
+                          color: "#FF6F5E",
+                        }}
+                      >
+                        {content.ceo.title}
+                      </p>
+
+                      {/* Quote */}
+                      {content.ceo.quote && (
+                        <blockquote className="text-lg md:text-xl text-gray-700 italic mb-6 md:mb-8 leading-relaxed border-l-4 pl-4 md:pl-6"
+                          style={{
+                            borderColor: "#FF6F5E",
+                          }}
+                        >
+                          "{content.ceo.quote}"
+                        </blockquote>
+                      )}
+
+                      {/* Bio */}
+                      <p className="text-base md:text-lg text-gray-600 mb-6 md:mb-8 leading-relaxed">
+                        {content.ceo.bio}
+                      </p>
+
+                      {/* Social Links */}
+                      {content.ceo.socialLinks && content.ceo.socialLinks.length > 0 && (
+                        <div className="flex flex-wrap gap-3 md:gap-4 justify-center lg:justify-start">
+                          {content.ceo.socialLinks.map((social, index) => {
+                            const getIcon = () => {
+                              const platform = social.platform.toLowerCase();
+                              if (platform.includes('linkedin')) return <FaLinkedin size={20} />;
+                              if (platform.includes('twitter') || platform.includes('x')) return <FaTwitter size={20} />;
+                              if (platform.includes('instagram')) return <FaInstagram size={20} />;
+                              if (platform.includes('facebook')) return <FaFacebook size={20} />;
+                              if (platform.includes('email') || platform.includes('mail')) return <FaEnvelope size={20} />;
+                              return null;
+                            };
+
+                            return (
+                              <a
+                                key={index}
+                                href={social.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full transition-all duration-300 hover:scale-110"
+                                style={{
+                                  background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
+                                  boxShadow: "0 4px 15px rgba(255, 111, 94, 0.3)",
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.boxShadow = "0 6px 20px rgba(255, 111, 94, 0.5)";
+                                  e.currentTarget.style.transform = "translateY(-2px)";
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.boxShadow = "0 4px 15px rgba(255, 111, 94, 0.3)";
+                                  e.currentTarget.style.transform = "translateY(0)";
+                                }}
+                              >
+                                <span className="text-white">
+                                  {getIcon()}
+                                </span>
+                              </a>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* CTA Section */}
       <section className="py-12 md:py-16 lg:py-24 relative overflow-hidden bg-gray-50">

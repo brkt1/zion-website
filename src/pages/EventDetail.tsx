@@ -21,6 +21,7 @@ const EventDetail = () => {
     last_name: "",
     email: "",
     phone_number: "",
+    quantity: 1,
   });
 
   if (isLoading) {
@@ -52,17 +53,58 @@ const EventDetail = () => {
     setIsProcessing(true);
 
     try {
+      // Calculate total amount based on quantity
+      // Handle "Free" price or parse numeric price
+      let pricePerTicket = 0;
+      if (event.price && event.price !== "Free" && event.price.toString().toLowerCase() !== "free") {
+        // Extract numeric value from price string (handles "25", "25.00", "25 ETB", etc.)
+        const priceStr = event.price.toString().trim();
+        const numericPrice = priceStr.replace(/[^0-9.]/g, '');
+        pricePerTicket = parseFloat(numericPrice) || 0;
+      }
+      
+      const quantity = paymentForm.quantity || 1;
+      const totalAmount = (pricePerTicket * quantity).toFixed(2);
+
+      // Validate calculation
+      if (pricePerTicket <= 0 && event.price !== "Free") {
+        alert('Invalid event price. Please contact support.');
+        setIsProcessing(false);
+        return;
+      }
+
+      if (quantity <= 0) {
+        alert('Please select at least 1 ticket.');
+        setIsProcessing(false);
+        return;
+      }
+
+      console.log('Payment calculation:', {
+        originalPrice: event.price,
+        pricePerTicket,
+        quantity,
+        totalAmount,
+        currency: event.currency,
+      });
+
       const paymentData: PaymentRequest = {
         first_name: paymentForm.first_name,
         last_name: paymentForm.last_name,
         email: paymentForm.email,
         phone_number: paymentForm.phone_number,
         currency: event.currency,
-        amount: event.price,
+        amount: totalAmount, // This should be the total (price * quantity)
+        quantity: quantity,
         event_id: event.id,
         event_title: event.title,
         preferred_payment_method: selectedPaymentMethod || undefined,
       };
+
+      console.log('Sending payment data to server:', {
+        ...paymentData,
+        amount: totalAmount,
+        quantity: quantity,
+      });
 
       const response = await initializePayment(paymentData);
 
@@ -127,9 +169,27 @@ const EventDetail = () => {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const name = e.target.name;
+    let value: string | number = e.target.value;
+    
+    // Handle quantity as a number
+    if (name === 'quantity') {
+      const numValue = parseInt(e.target.value, 10);
+      // Only update if it's a valid positive number, otherwise keep current value
+      if (!isNaN(numValue) && numValue > 0) {
+        value = numValue;
+      } else if (e.target.value === '') {
+        // Allow empty temporarily while user is typing
+        value = 1; // Default to 1 if empty
+      } else {
+        // Invalid input, don't update
+        return;
+      }
+    }
+    
     setPaymentForm({
       ...paymentForm,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
   };
 
@@ -166,6 +226,20 @@ const EventDetail = () => {
         <div className="grid lg:grid-cols-3 gap-12">
           {/* Main Content */}
           <div className="lg:col-span-2">
+            {/* Event Image */}
+            {event.image && (
+              <div className="mb-12 rounded-lg overflow-hidden">
+                <img
+                  src={event.image}
+                  alt={event.title}
+                  className="w-full h-64 md:h-96 object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              </div>
+            )}
+            
             {/* Event Info */}
             <div className="grid md:grid-cols-3 gap-8 mb-12 pb-12 border-b border-gray-200">
               <div>
@@ -211,7 +285,7 @@ const EventDetail = () => {
             {event.gallery && event.gallery.length > 0 && (
               <div>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-6">Event Gallery</h2>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {event.gallery.map((image, index) => (
                     <div
                       key={index}
@@ -220,7 +294,7 @@ const EventDetail = () => {
                       <img
                         src={image}
                         alt={`${event.title} - Gallery ${index + 1}`}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                       />
                     </div>
                   ))}
@@ -391,11 +465,56 @@ const EventDetail = () => {
                 />
               </div>
 
+              <div>
+                <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-1">
+                  Number of Tickets *
+                </label>
+                <input
+                  type="number"
+                  id="quantity"
+                  name="quantity"
+                  required
+                  min="1"
+                  max={event.maxAttendees ? event.maxAttendees - (event.attendees || 0) : 100}
+                  value={paymentForm.quantity || 1}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border-b border-gray-300 bg-transparent focus:outline-none focus:border-gray-900 transition-colors"
+                  placeholder="1"
+                />
+                {event.maxAttendees && (
+                  <p className="mt-1 text-xs text-gray-500">
+                    {event.maxAttendees - (event.attendees || 0)} tickets available
+                  </p>
+                )}
+              </div>
+
               <div className="pt-6 border-t border-gray-200">
-                <div className="flex justify-between items-center mb-6">
-                  <span className="text-gray-700">Total Amount:</span>
+                <div className="space-y-2 mb-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Price per ticket:</span>
+                    <span className="text-gray-900 font-medium">
+                      {event.price === "Free" || event.price?.toLowerCase() === "free" 
+                        ? "Free" 
+                        : `${parseFloat(event.price.toString().replace(/[^0-9.]/g, '') || '0').toFixed(2)} ${event.currency}`}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Quantity:</span>
+                    <span className="text-gray-900 font-medium">
+                      {paymentForm.quantity}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                  <span className="text-gray-700 font-medium">Total Amount:</span>
                   <span className="text-2xl font-semibold text-gray-900">
-                    {event.price} {event.currency}
+                    {(() => {
+                      const price = event.price === "Free" || event.price?.toLowerCase() === "free"
+                        ? 0
+                        : parseFloat(event.price.toString().replace(/[^0-9.]/g, '') || '0');
+                      const qty = paymentForm.quantity || 1;
+                      return `${(price * qty).toFixed(2)} ${event.currency}`;
+                    })()}
                   </span>
                 </div>
               </div>
@@ -408,6 +527,13 @@ const EventDetail = () => {
                     setIsProcessing(false);
                     setPaymentStep('form');
                     setSelectedPaymentMethod(null);
+                    setPaymentForm({
+                      first_name: "",
+                      last_name: "",
+                      email: "",
+                      phone_number: "",
+                      quantity: 1,
+                    });
                   }}
                   className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
                 >
@@ -459,10 +585,32 @@ const EventDetail = () => {
                 </div>
 
                 <div className="pt-6 border-t border-gray-200">
-                  <div className="flex justify-between items-center mb-6">
-                    <span className="text-gray-700">Total Amount:</span>
+                  <div className="space-y-2 mb-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Price per ticket:</span>
+                      <span className="text-gray-900 font-medium">
+                        {event.price === "Free" || event.price?.toLowerCase() === "free" 
+                          ? "Free" 
+                          : `${parseFloat(event.price.toString().replace(/[^0-9.]/g, '') || '0').toFixed(2)} ${event.currency}`}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Quantity:</span>
+                      <span className="text-gray-900 font-medium">
+                        {paymentForm.quantity}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                    <span className="text-gray-700 font-medium">Total Amount:</span>
                     <span className="text-2xl font-semibold text-gray-900">
-                      {event.price} {event.currency}
+                      {(() => {
+                        const price = event.price === "Free" || event.price?.toLowerCase() === "free"
+                          ? 0
+                          : parseFloat(event.price.toString().replace(/[^0-9.]/g, '') || '0');
+                        const qty = paymentForm.quantity || 1;
+                        return `${(price * qty).toFixed(2)} ${event.currency}`;
+                      })()}
                     </span>
                   </div>
                 </div>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { FaArrowLeft, FaSave } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
+import { ImageUpload } from '../../Components/admin/ImageUpload';
 import { adminApi } from '../../services/adminApi';
 import { api, SiteConfig } from '../../services/api';
 import { supabase } from '../../services/supabase';
@@ -122,12 +123,12 @@ const Settings = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Logo URL</label>
-            <input
-              type="url"
+            <ImageUpload
               value={formData.logo}
-              onChange={(e) => setFormData({ ...formData, logo: e.target.value })}
-              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+              onChange={(url) => setFormData({ ...formData, logo: url })}
+              label="Site Logo"
+              folder="site"
+              previewClassName="w-32 h-32 object-contain rounded-lg"
             />
           </div>
 

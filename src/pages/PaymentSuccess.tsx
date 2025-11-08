@@ -5,6 +5,7 @@ import QRCode from "react-qr-code";
 import { Link, useSearchParams } from "react-router-dom";
 import { verifyPayment } from "../services/payment";
 import { getTicketByTxRef, saveTicket } from "../services/ticket";
+import { sendWhatsAppThankYou } from "../services/whatsapp";
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
@@ -17,6 +18,7 @@ const PaymentSuccess = () => {
   const [retryCount, setRetryCount] = useState(0);
   const [isDownloading, setIsDownloading] = useState(false);
   const [ticketSaved, setTicketSaved] = useState(false);
+  const [whatsappSent, setWhatsappSent] = useState(false);
   const ticketRef = useRef<HTMLDivElement>(null);
 
   // Function to save ticket to database
@@ -33,9 +35,20 @@ const PaymentSuccess = () => {
       }
 
       // Get amount value
-      const amount = paymentData.amount 
-        ? (typeof paymentData.amount === 'string' ? parseFloat(paymentData.amount) / 100 : paymentData.amount / 100)
-        : 0;
+      // Chapa returns amounts in cents, so we divide by 100
+      // But if the amount is already in base currency (from our calculation), we use it as is
+      let amount = 0;
+      if (paymentData.amount) {
+        if (typeof paymentData.amount === 'string') {
+          const parsed = parseFloat(paymentData.amount);
+          // If amount is > 10000, it's likely in cents (e.g., 10000 = 100.00 ETB)
+          // If amount is < 10000, it might be in base currency already
+          // Chapa typically returns in cents, so we divide by 100
+          amount = parsed / 100;
+        } else {
+          amount = paymentData.amount / 100;
+        }
+      }
 
       // Get customer name
       const customerName = paymentData.first_name && paymentData.last_name
@@ -87,6 +100,58 @@ const PaymentSuccess = () => {
     }
   }, [quantityParam, eventIdParam, eventTitleParam, ticketSaved]);
 
+  // Function to send WhatsApp thank you message
+  const sendWhatsAppMessage = useCallback(async (paymentData: any, txRef: string | null) => {
+    if (!txRef || whatsappSent || !paymentData.phone_number) return; // Don't send twice or if no phone number
+
+    try {
+      // Get amount value
+      let amount = 0;
+      if (paymentData.amount) {
+        if (typeof paymentData.amount === 'string') {
+          const parsed = parseFloat(paymentData.amount);
+          amount = parsed / 100;
+        } else {
+          amount = paymentData.amount / 100;
+        }
+      }
+
+      // Get customer name
+      const customerName = paymentData.first_name && paymentData.last_name
+        ? `${paymentData.first_name} ${paymentData.last_name}`
+        : paymentData.first_name || paymentData.last_name || '';
+
+      // Get quantity
+      let quantity = 1;
+      if (quantityParam) {
+        const qty = parseInt(quantityParam, 10);
+        if (!isNaN(qty) && qty > 0) quantity = qty;
+      }
+
+      // Send WhatsApp message
+      const result = await sendWhatsAppThankYou({
+        phone_number: paymentData.phone_number,
+        customer_name: customerName || undefined,
+        amount: amount,
+        currency: paymentData.currency || 'ETB',
+        tx_ref: txRef,
+        event_title: eventTitleParam || undefined,
+        quantity: quantity,
+      });
+
+      if (result.success) {
+        console.log('✅ WhatsApp thank you message sent successfully:', result.messageId);
+        setWhatsappSent(true);
+      } else {
+        console.warn('⚠️  Failed to send WhatsApp message:', result.error);
+        // Don't show error to user, it's not critical
+      }
+    } catch (error: any) {
+      console.error('Error sending WhatsApp message:', error);
+      // Don't show error to user, it's not critical
+    }
+  }, [quantityParam, eventTitleParam, whatsappSent]);
+
   useEffect(() => {
     const verify = async (attempt: number = 0) => {
       if (!txRef) {
@@ -106,6 +171,8 @@ const PaymentSuccess = () => {
             setVerificationStatus("success");
             // Save ticket to database
             saveTicketToDatabase(response.data, txRef);
+            // Send WhatsApp thank you message (backend also sends it, but this is a backup)
+            sendWhatsAppMessage(response.data, txRef);
           } else if (status === "failed" || status === "cancelled" || status === "canceled") {
             setVerificationStatus("failed");
           } else if (status === "pending" || status === "processing") {
@@ -158,7 +225,7 @@ const PaymentSuccess = () => {
     };
 
     verify();
-  }, [txRef, retryCount, saveTicketToDatabase]);
+  }, [txRef, retryCount, saveTicketToDatabase, sendWhatsAppMessage]);
 
   // Format amount for display
   const formatAmount = (amount: number) => {
@@ -192,12 +259,21 @@ const PaymentSuccess = () => {
 
 
   // Get amount value - handle both string and number formats
+  // Chapa returns amounts in cents, so we divide by 100
   const getAmount = () => {
-    if (!paymentData) return 0;
+    if (!paymentData || !paymentData.amount) return 0;
+    
+    let amountValue = 0;
     if (typeof paymentData.amount === 'string') {
-      return parseFloat(paymentData.amount) / 100;
+      amountValue = parseFloat(paymentData.amount);
+    } else {
+      amountValue = paymentData.amount;
     }
-    return paymentData.amount / 100;
+    
+    // Chapa returns amounts in cents (smallest currency unit)
+    // So we divide by 100 to get the base currency value
+    // Example: 10000 cents = 100.00 ETB
+    return amountValue / 100;
   };
 
   // Get ticket quantity - from URL param or calculate from amount/price, default to 1
@@ -333,21 +409,6 @@ const PaymentSuccess = () => {
                 <br /><br />
                 <strong>Note:</strong> Please download your ticket and present the QR code at the event entrance. The QR code contains all your payment and ticket information for verification.
               </p>
-
-              <div className="space-y-3 pt-4">
-                <Link
-                  to="/events"
-                  className="block w-full bg-cyan-400 text-white py-3 rounded-lg font-semibold hover:bg-cyan-500 transition-all text-center"
-                >
-                  Browse More Events
-                </Link>
-                <Link
-                  to="/"
-                  className="block w-full border border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-all text-center"
-                >
-                  Go to Home
-                </Link>
-              </div>
             </div>
 
             {/* stub */}

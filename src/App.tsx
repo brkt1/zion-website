@@ -9,6 +9,7 @@ import PaymentCallback from "./pages/PaymentCallback";
 import PaymentFailed from "./pages/PaymentFailed";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import AdminAbout from "./pages/admin/About";
+import AdminRedirect from "./pages/admin/AdminRedirect";
 import AdminCategories from "./pages/admin/Categories";
 import AdminContact from "./pages/admin/Contact";
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -46,6 +47,7 @@ function App() {
         } />
         
         {/* Admin Routes */}
+        <Route path="/admin" element={<AdminRedirect />} />
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/events" element={<AdminEvents />} />

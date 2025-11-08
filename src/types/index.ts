@@ -10,6 +10,7 @@ export interface PaymentRequest {
   phone_number?: string;
   currency: string;
   amount: string;
+  quantity?: number; // Number of tickets
   tx_ref?: string;
   event_id?: string;
   event_title?: string;
@@ -116,4 +117,31 @@ export interface CreateTicketData {
     name: string;
   };
   payment_date?: string;
+}
+
+// Reminder types
+export interface Reminder {
+  id: string;
+  ticket_id?: string;
+  customer_email: string;
+  customer_name?: string;
+  customer_phone?: string;
+  reminder_date: string;
+  reminder_time?: string;
+  notes?: string;
+  status: 'pending' | 'completed' | 'cancelled';
+  created_by?: string;
+  created_at: string;
+  updated_at: string;
+  completed_at?: string;
+}
+
+export interface CreateReminderData {
+  ticket_id?: string;
+  customer_email: string;
+  customer_name?: string;
+  customer_phone?: string;
+  reminder_date: string;
+  reminder_time?: string;
+  notes?: string;
 }
