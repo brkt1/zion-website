@@ -255,7 +255,10 @@ export const adminApi = {
 
     updateSocialLinks: async (links: Array<{ platform: string; url: string }>) => {
       // Delete all existing links
-      await supabase.from('social_links').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      const { data: existing } = await supabase.from('social_links').select('id');
+      if (existing && existing.length > 0) {
+        await supabase.from('social_links').delete().in('id', existing.map(l => l.id));
+      }
 
       // Insert new links
       const { data, error } = await supabase
@@ -313,7 +316,10 @@ export const adminApi = {
     },
 
     updateNavigation: async (links: Array<{ path: string; label: string }>) => {
-      await supabase.from('navigation_links').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      const { data: existing } = await supabase.from('navigation_links').select('id');
+      if (existing && existing.length > 0) {
+        await supabase.from('navigation_links').delete().in('id', existing.map(l => l.id));
+      }
 
       const { data, error } = await supabase
         .from('navigation_links')
@@ -376,7 +382,10 @@ export const adminApi = {
     },
 
     updateValues: async (values: Array<{ number: string; title: string; description: string }>) => {
-      await supabase.from('about_values').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      const { data: existing } = await supabase.from('about_values').select('id');
+      if (existing && existing.length > 0) {
+        await supabase.from('about_values').delete().in('id', existing.map(v => v.id));
+      }
 
       const { data, error } = await supabase
         .from('about_values')
@@ -393,7 +402,10 @@ export const adminApi = {
     },
 
     updateMilestones: async (milestones: Array<{ year: string; title: string; description: string }>) => {
-      await supabase.from('about_milestones').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      const { data: existing } = await supabase.from('about_milestones').select('id');
+      if (existing && existing.length > 0) {
+        await supabase.from('about_milestones').delete().in('id', existing.map(m => m.id));
+      }
 
       const { data, error } = await supabase
         .from('about_milestones')
@@ -453,7 +465,10 @@ export const adminApi = {
     },
 
     updateHeroCategories: async (categories: Array<{ label: string; path: string }>) => {
-      await supabase.from('hero_categories').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      const { data: existing } = await supabase.from('hero_categories').select('id');
+      if (existing && existing.length > 0) {
+        await supabase.from('hero_categories').delete().in('id', existing.map(c => c.id));
+      }
 
       const { data, error } = await supabase
         .from('hero_categories')
@@ -469,7 +484,10 @@ export const adminApi = {
     },
 
     updateHomeCategories: async (categories: Array<{ title: string; description: string; link: string; number: string }>) => {
-      await supabase.from('home_categories').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      const { data: existing } = await supabase.from('home_categories').select('id');
+      if (existing && existing.length > 0) {
+        await supabase.from('home_categories').delete().in('id', existing.map(c => c.id));
+      }
 
       const { data, error } = await supabase
         .from('home_categories')
@@ -487,7 +505,10 @@ export const adminApi = {
     },
 
     updateCtaButtons: async (buttons: Array<{ text: string; link: string; type: 'primary' | 'secondary' }>) => {
-      await supabase.from('home_cta_buttons').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      const { data: existing } = await supabase.from('home_cta_buttons').select('id');
+      if (existing && existing.length > 0) {
+        await supabase.from('home_cta_buttons').delete().in('id', existing.map(b => b.id));
+      }
 
       const { data, error } = await supabase
         .from('home_cta_buttons')

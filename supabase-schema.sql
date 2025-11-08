@@ -106,6 +106,7 @@ CREATE TABLE IF NOT EXISTS social_links (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   platform TEXT NOT NULL,
   url TEXT NOT NULL,
+  icon TEXT,
   display_order INTEGER DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

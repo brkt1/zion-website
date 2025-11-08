@@ -1,0 +1,229 @@
+import { useEffect, useState } from 'react';
+import { FaArrowLeft, FaEdit, FaPlus, FaTrash } from 'react-icons/fa';
+import { Link, useNavigate } from 'react-router-dom';
+import { adminApi } from '../../services/adminApi';
+import { api, Destination } from '../../services/api';
+import { supabase } from '../../services/supabase';
+
+const Destinations = () => {
+  const [destinations, setDestinations] = useState<Destination[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [editingDestination, setEditingDestination] = useState<Destination | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    location: '',
+    img: '',
+    featured: false,
+  });
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    checkAuth();
+    loadDestinations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const checkAuth = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) navigate('/admin/login');
+  };
+
+  const loadDestinations = async () => {
+    try {
+      const data = await api.getDestinations();
+      setDestinations(data);
+    } catch (error) {
+      console.error('Error loading destinations:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (editingDestination) {
+        await adminApi.destinations.update(editingDestination.id, formData);
+      } else {
+        await adminApi.destinations.create(formData);
+      }
+      setShowModal(false);
+      setEditingDestination(null);
+      resetForm();
+      loadDestinations();
+    } catch (error: any) {
+      alert('Error: ' + error.message);
+    }
+  };
+
+  const handleEdit = (destination: Destination) => {
+    setEditingDestination(destination);
+    setFormData({
+      name: destination.name,
+      location: destination.location,
+      img: destination.img,
+      featured: destination.featured || false,
+    });
+    setShowModal(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this destination?')) return;
+    try {
+      await adminApi.destinations.delete(id);
+      loadDestinations();
+    } catch (error: any) {
+      alert('Error: ' + error.message);
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({ name: '', location: '', img: '', featured: false });
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link to="/admin/dashboard" className="text-gray-600 hover:text-gray-900">
+              <FaArrowLeft size={20} />
+            </Link>
+            <h1 className="text-3xl font-bold text-gray-900">Destinations Management</h1>
+          </div>
+          <button
+            onClick={() => {
+              resetForm();
+              setEditingDestination(null);
+              setShowModal(true);
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+          >
+            <FaPlus />
+            Add Destination
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {destinations.map((destination) => (
+            <div key={destination.id} className="bg-white rounded-lg shadow overflow-hidden">
+              <img
+                src={destination.img}
+                alt={destination.name}
+                className="w-full h-48 object-cover"
+              />
+              <div className="p-4">
+                <h3 className="text-lg font-semibold text-gray-900">{destination.name}</h3>
+                <p className="text-sm text-gray-600">{destination.location}</p>
+                {destination.featured && (
+                  <span className="inline-block mt-2 px-2 py-1 text-xs bg-indigo-100 text-indigo-800 rounded">
+                    Featured
+                  </span>
+                )}
+                <div className="mt-4 flex gap-2">
+                  <button
+                    onClick={() => handleEdit(destination)}
+                    className="flex-1 px-3 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                  >
+                    <FaEdit className="inline mr-2" />
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(destination.id)}
+                    className="px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                  >
+                    <FaTrash />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {showModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-2xl w-full p-6">
+              <h2 className="text-2xl font-bold mb-4">
+                {editingDestination ? 'Edit Destination' : 'Add New Destination'}
+              </h2>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Location *</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.location}
+                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Image URL *</label>
+                  <input
+                    type="url"
+                    required
+                    value={formData.img}
+                    onChange={(e) => setFormData({ ...formData, img: e.target.value })}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={formData.featured}
+                      onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
+                      className="mr-2"
+                    />
+                    <span className="text-sm font-medium text-gray-700">Featured</span>
+                  </label>
+                </div>
+                <div className="flex justify-end gap-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowModal(false);
+                      setEditingDestination(null);
+                      resetForm();
+                    }}
+                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                  >
+                    {editingDestination ? 'Update' : 'Create'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default Destinations;
+

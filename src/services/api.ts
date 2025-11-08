@@ -274,16 +274,17 @@ export const api = {
   // About Content
   getAboutContent: async (): Promise<AboutContent> => {
     // Fetch about content
-    const { data: aboutData, error: aboutError } = await supabase
+    const { data: aboutDataArray, error: aboutError } = await supabase
       .from('about_content')
       .select('*')
-      .limit(1)
-      .single();
+      .limit(1);
 
     if (aboutError) {
       console.error('Error fetching about content:', aboutError);
       throw new Error(aboutError.message);
     }
+
+    const aboutData = aboutDataArray && aboutDataArray.length > 0 ? aboutDataArray[0] : null;
 
     // Fetch values
     const { data: valuesData, error: valuesError } = await supabase
@@ -293,7 +294,7 @@ export const api = {
 
     if (valuesError) {
       console.error('Error fetching about values:', valuesError);
-      throw new Error(valuesError.message);
+      // Don't throw, just use empty array
     }
 
     // Fetch milestones
@@ -304,7 +305,7 @@ export const api = {
 
     if (milestonesError) {
       console.error('Error fetching about milestones:', milestonesError);
-      throw new Error(milestonesError.message);
+      // Don't throw, just use empty array
     }
 
     return {
@@ -336,16 +337,17 @@ export const api = {
   // Contact Info
   getContactInfo: async (): Promise<ContactInfo> => {
     // Fetch contact info
-    const { data: contactData, error: contactError } = await supabase
+    const { data: contactDataArray, error: contactError } = await supabase
       .from('contact_info')
       .select('*')
-      .limit(1)
-      .single();
+      .limit(1);
 
     if (contactError) {
       console.error('Error fetching contact info:', contactError);
       throw new Error(contactError.message);
     }
+
+    const contactData = contactDataArray && contactDataArray.length > 0 ? contactDataArray[0] : null;
 
     // Fetch social links
     const { data: socialData, error: socialError } = await supabase
@@ -355,7 +357,7 @@ export const api = {
 
     if (socialError) {
       console.error('Error fetching social links:', socialError);
-      throw new Error(socialError.message);
+      // Don't throw error for social links, just use empty array
     }
 
     return {
@@ -374,16 +376,17 @@ export const api = {
   // Site Config
   getSiteConfig: async (): Promise<SiteConfig> => {
     // Fetch site config
-    const { data: configData, error: configError } = await supabase
+    const { data: configDataArray, error: configError } = await supabase
       .from('site_config')
       .select('*')
-      .limit(1)
-      .single();
+      .limit(1);
 
     if (configError) {
       console.error('Error fetching site config:', configError);
       throw new Error(configError.message);
     }
+
+    const configData = configDataArray && configDataArray.length > 0 ? configDataArray[0] : null;
 
     // Fetch navigation links
     const { data: navData, error: navError } = await supabase
@@ -393,7 +396,7 @@ export const api = {
 
     if (navError) {
       console.error('Error fetching navigation links:', navError);
-      throw new Error(navError.message);
+      // Don't throw, just use empty array
     }
 
     return {
@@ -416,16 +419,17 @@ export const api = {
   // Home Content
   getHomeContent: async (): Promise<HomeContent> => {
     // Fetch home content
-    const { data: homeData, error: homeError } = await supabase
+    const { data: homeDataArray, error: homeError } = await supabase
       .from('home_content')
       .select('*')
-      .limit(1)
-      .single();
+      .limit(1);
 
     if (homeError) {
       console.error('Error fetching home content:', homeError);
       throw new Error(homeError.message);
     }
+
+    const homeData = homeDataArray && homeDataArray.length > 0 ? homeDataArray[0] : null;
 
     // Fetch hero categories
     const { data: heroCategoriesData, error: heroCategoriesError } = await supabase
@@ -435,7 +439,7 @@ export const api = {
 
     if (heroCategoriesError) {
       console.error('Error fetching hero categories:', heroCategoriesError);
-      throw new Error(heroCategoriesError.message);
+      // Don't throw, just use empty array
     }
 
     // Fetch home categories
@@ -446,7 +450,7 @@ export const api = {
 
     if (homeCategoriesError) {
       console.error('Error fetching home categories:', homeCategoriesError);
-      throw new Error(homeCategoriesError.message);
+      // Don't throw, just use empty array
     }
 
     // Fetch CTA buttons
@@ -457,11 +461,17 @@ export const api = {
 
     if (ctaButtonsError) {
       console.error('Error fetching CTA buttons:', ctaButtonsError);
-      throw new Error(ctaButtonsError.message);
+      // Don't throw, just use empty array
     }
 
     // Fetch featured events
-    const featuredEvents = await api.getEvents({ featured: true, limit: 3 });
+    let featuredEvents: Event[] = [];
+    try {
+      featuredEvents = await api.getEvents({ featured: true, limit: 3 });
+    } catch (error) {
+      console.error('Error fetching featured events:', error);
+      // Don't throw, just use empty array
+    }
 
     return {
       hero: {

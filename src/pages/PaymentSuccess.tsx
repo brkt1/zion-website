@@ -127,7 +127,7 @@ const PaymentSuccess = () => {
   };
 
   // Get ticket quantity - from URL param or calculate from amount/price, default to 1
-  const getTicketQuantity = () => {
+  const ticketQuantity = useMemo(() => {
     if (quantityParam) {
       const qty = parseInt(quantityParam, 10);
       if (!isNaN(qty) && qty > 0) return qty;
@@ -135,9 +135,7 @@ const PaymentSuccess = () => {
     // If no quantity param, try to calculate from amount
     // For now, default to 1 (can be enhanced later with event price info)
     return 1;
-  };
-
-  const ticketQuantity = useMemo(() => getTicketQuantity(), [quantityParam]);
+  }, [quantityParam]);
 
   // Generate QR code data with payment information including quantity
   const qrCodeData = useMemo(() => {
