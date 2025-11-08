@@ -7,30 +7,47 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // YENEGE Primary Colors
+        'yenege-yellow': '#FFD447',      // Yenege Sunrise Yellow - Brand Happiness
+        'indigo-deep': '#1C2951',        // Deep Indigo Blue - Professional + Futuristic
+        
+        // YENEGE Secondary Colors
+        'coral-orange': '#FF6F5E',       // Vibrant Coral Orange - Energy, fun, movement
+        'purple-electric': '#7B5CFF',    // Electric Purple - Futuristic, youth culture
+        'teal-breeze': '#3CCFCF',        // Teal Breeze - Travel, calming balance
+        
+        // YENEGE Neutral Colors
+        'soft-white': '#F7F7F9',         // Soft White - Clean, minimal, futuristic
+        'space-grey': '#202124',         // Space Grey - Contrast & elegance
+        
+        // Legacy colors (kept for backward compatibility)
         'black-primary': '#0a0a0a',
         'black-secondary': '#1a1a1a',
         'gray-dark': '#2a2a2a',
         'gray-medium': '#3a3a3a',
         'gray-light': '#6a6a6a',
-        'gold-primary': '#ffd700',
-        'gold-secondary': '#ffed4e',
-        'blue-primary': '#3b82f6',
-        'blue-secondary': '#1d4ed8',
+        'gold-primary': '#FFD447',       // Mapped to Yenege Yellow
+        'gold-secondary': '#FFD447',
+        'blue-primary': '#1C2951',       // Mapped to Deep Indigo
+        'blue-secondary': '#1C2951',
         'green-primary': '#10b981',
         'green-secondary': '#059669',
         'red-primary': '#ef4444',
         'red-secondary': '#dc2626',
-        'purple-primary': '#8b5cf6',
-        'purple-secondary': '#7c3aed',
+        'purple-primary': '#7B5CFF',     // Mapped to Electric Purple
+        'purple-secondary': '#7B5CFF',
         'pink-primary': '#ec4899',
         'pink-secondary': '#db2777',
-        'orange-primary': '#f97316',
-        'orange-secondary': '#ea580c',
-        'yellow-primary': '#eab308',
-        'yellow-secondary': '#ca8a04'
+        'orange-primary': '#FF6F5E',     // Mapped to Coral Orange
+        'orange-secondary': '#FF6F5E',
+        'yellow-primary': '#FFD447',     // Mapped to Yenege Yellow
+        'yellow-secondary': '#FFD447'
       },
       fontFamily: {
-        'sans': ['Inter', 'system-ui', 'sans-serif'],
+        'sans': ['Inter', 'Nunito', 'system-ui', 'sans-serif'],
+        'heading': ['Poppins', 'Manrope', 'system-ui', 'sans-serif'],
+        'display': ['Outfit', 'Space Grotesk', 'system-ui', 'sans-serif'],
+        'body': ['Inter', 'Nunito', 'system-ui', 'sans-serif'],
         'mono': ['JetBrains Mono', 'monospace']
       },
       fontSize: {
@@ -56,13 +73,22 @@ module.exports = {
       },
       borderRadius: {
         '4xl': '2rem',
-        '5xl': '2.5rem'
+        '5xl': '2.5rem',
+        'futuristic': '30px',            // Rounded UI for futuristic look
+        'card': '30px'                   // Card border radius
       },
       boxShadow: {
-        'glow': '0 0 20px rgba(255, 215, 0, 0.3)',
-        'glow-lg': '0 0 40px rgba(255, 215, 0, 0.4)',
-        'inner-glow': 'inset 0 0 20px rgba(255, 215, 0, 0.2)',
-        'neon': '0 0 5px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 215, 0, 0.3), 0 0 15px rgba(255, 215, 0, 0.1)'
+        'glow': '0 0 20px rgba(255, 212, 71, 0.3)',
+        'glow-lg': '0 0 40px rgba(255, 212, 71, 0.4)',
+        'glow-purple': '0 0 20px rgba(123, 92, 255, 0.3)',
+        'glow-purple-lg': '0 0 40px rgba(123, 92, 255, 0.4)',
+        'glow-yellow': '0 0 20px rgba(255, 212, 71, 0.3)',
+        'glow-yellow-lg': '0 0 40px rgba(255, 212, 71, 0.4)',
+        'inner-glow': 'inset 0 0 20px rgba(255, 212, 71, 0.2)',
+        'neon': '0 0 5px rgba(255, 212, 71, 0.5), 0 0 10px rgba(255, 212, 71, 0.3), 0 0 15px rgba(255, 212, 71, 0.1)',
+        'neon-purple': '0 0 5px rgba(123, 92, 255, 0.5), 0 0 10px rgba(123, 92, 255, 0.3), 0 0 15px rgba(123, 92, 255, 0.1)',
+        'soft': '0 4px 20px rgba(0, 0, 0, 0.1), 0 0 20px rgba(123, 92, 255, 0.1)',
+        'soft-yellow': '0 4px 20px rgba(0, 0, 0, 0.1), 0 0 20px rgba(255, 212, 71, 0.1)'
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
@@ -81,10 +107,12 @@ module.exports = {
         'ping-slow': 'ping 3s cubic-bezier(0, 0, 0.2, 1) infinite',
         'float': 'float 3s ease-in-out infinite',
         'glow': 'glow 2s ease-in-out infinite alternate',
+        'glow-purple': 'glow-purple 2s ease-in-out infinite alternate',
         'shimmer': 'shimmer 2s linear infinite',
         'gradient': 'gradient 3s ease infinite',
         'tilt': 'tilt 10s infinite linear',
-        'wiggle': 'wiggle 1s ease-in-out infinite'
+        'wiggle': 'wiggle 1s ease-in-out infinite',
+        'slide-up': 'slide-up 0.3s ease-out'
       },
       keyframes: {
         fadeIn: {
@@ -138,8 +166,16 @@ module.exports = {
           '50%': { transform: 'translateY(-10px)' }
         },
         glow: {
-          '0%': { boxShadow: '0 0 5px rgba(255, 215, 0, 0.5)' },
-          '100%': { boxShadow: '0 0 20px rgba(255, 215, 0, 0.8), 0 0 30px rgba(255, 215, 0, 0.6)' }
+          '0%': { boxShadow: '0 0 5px rgba(255, 212, 71, 0.5)' },
+          '100%': { boxShadow: '0 0 20px rgba(255, 212, 71, 0.8), 0 0 30px rgba(255, 212, 71, 0.6)' }
+        },
+        'glow-purple': {
+          '0%': { boxShadow: '0 0 5px rgba(123, 92, 255, 0.5)' },
+          '100%': { boxShadow: '0 0 20px rgba(123, 92, 255, 0.8), 0 0 30px rgba(123, 92, 255, 0.6)' }
+        },
+        'slide-up': {
+          '0%': { transform: 'translateY(10px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' }
         },
         shimmer: {
           '0%': { transform: 'translateX(-100%)' },
@@ -162,15 +198,21 @@ module.exports = {
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
-        'gradient-mesh': 'linear-gradient(45deg, #ffd700, #ffed4e, #ffd700)',
-        'gradient-fire': 'linear-gradient(45deg, #ff6b35, #f7931e, #ffd700)',
-        'gradient-ocean': 'linear-gradient(45deg, #667eea, #764ba2, #f093fb)',
-        'gradient-sunset': 'linear-gradient(45deg, #fa709a, #fee140, #ffd700)',
-        'gradient-aurora': 'linear-gradient(45deg, #a8edea, #fed6e3, #ffd700)',
-        'gradient-cosmic': 'linear-gradient(45deg, #ff9a9e, #fecfef, #fecfef)',
-        'gradient-forest': 'linear-gradient(45deg, #56ab2f, #a8e6cf, #ffd700)',
-        'gradient-sky': 'linear-gradient(45deg, #89f7fe, #66a6ff, #ffd700)',
-        'gradient-sunrise': 'linear-gradient(45deg, #ffecd2, #fcb69f, #ffd700)'
+        // YENEGE Futuristic Gradients
+        'yenege-energy': 'linear-gradient(135deg, #FFD447 0%, #FF6F5E 50%, #7B5CFF 100%)',
+        'travel-adventure': 'linear-gradient(135deg, #3CCFCF 0%, #FFD447 100%)',
+        'night-event': 'linear-gradient(135deg, #1C2951 0%, #7B5CFF 100%)',
+        'playful-glow': 'linear-gradient(135deg, #FF6F5E 0%, #FFD447 50%, #3CCFCF 100%)',
+        // Legacy gradients (kept for backward compatibility)
+        'gradient-mesh': 'linear-gradient(45deg, #FFD447, #FFD447, #FFD447)',
+        'gradient-fire': 'linear-gradient(45deg, #FF6F5E, #FF6F5E, #FFD447)',
+        'gradient-ocean': 'linear-gradient(45deg, #3CCFCF, #7B5CFF, #7B5CFF)',
+        'gradient-sunset': 'linear-gradient(45deg, #FF6F5E, #FFD447, #FFD447)',
+        'gradient-aurora': 'linear-gradient(45deg, #3CCFCF, #7B5CFF, #FFD447)',
+        'gradient-cosmic': 'linear-gradient(45deg, #FF6F5E, #7B5CFF, #7B5CFF)',
+        'gradient-forest': 'linear-gradient(45deg, #3CCFCF, #3CCFCF, #FFD447)',
+        'gradient-sky': 'linear-gradient(45deg, #3CCFCF, #7B5CFF, #FFD447)',
+        'gradient-sunrise': 'linear-gradient(45deg, #FFD447, #FF6F5E, #FFD447)'
       },
       backdropBlur: {
         xs: '2px'

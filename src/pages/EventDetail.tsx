@@ -1,12 +1,17 @@
 import { useState } from "react";
 import { FaCalendarAlt, FaInstagram, FaMapMarkerAlt, FaSpinner, FaTelegram, FaUsers, FaWhatsapp } from "react-icons/fa";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { ErrorState } from "../Components/ui/ErrorState";
+import { LoadingState } from "../Components/ui/LoadingState";
 import { getAvailablePaymentMethods } from "../data/paymentMethods";
+import { useContactInfo, useEvent } from "../hooks/useApi";
 import { initializePayment } from "../services/payment";
 import { PaymentRequest } from "../types";
 
 const EventDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const { event, isLoading, isError, mutate: refetchEvent } = useEvent(id);
+  const { contactInfo } = useContactInfo();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentStep, setPaymentStep] = useState<'form' | 'methods'>('form');
@@ -18,30 +23,25 @@ const EventDetail = () => {
     phone_number: "",
   });
 
-  // Sample event data - replace with API call
-  const event = {
-    id: id || "1",
-    title: "Friday Game Night",
-    date: "2024-02-15",
-    time: "6:00 PM",
-    location: "Addis Ababa, Ethiopia",
-    category: "game",
-    description: `Join us for an unforgettable evening of fun, games, and laughter! Our Friday Game Night is the perfect way to unwind after a long week and meet amazing people in the community.
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="pt-24 pb-8 md:pt-28 md:pb-12">
+          <LoadingState message="Loading event details..." />
+        </div>
+      </div>
+    );
+  }
 
-What to expect:
-• Board games for all skill levels
-• Trivia challenges with prizes
-• Interactive group activities
-• Delicious snacks and refreshments
-• Great music and atmosphere
-
-Whether you're a game enthusiast or just looking to have a good time, everyone is welcome!`,
-    image: "/api/placeholder/800/400",
-    attendees: 25,
-    maxAttendees: 50,
-    price: "500",
-    currency: "ETB",
-  };
+  if (isError || !event) {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="pt-24 pb-8 md:pt-28 md:pb-12">
+          <ErrorState message="Failed to load event. Please try again later." onRetry={() => refetchEvent()} />
+        </div>
+      </div>
+    );
+  }
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -147,81 +147,103 @@ Whether you're a game enthusiast or just looking to have a good time, everyone i
   const shareText = `Check out this event: ${event.title}`;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Image */}
-      <div className="h-64 md:h-96 bg-gradient-to-br from-amber-400 to-orange-500 relative">
-        <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-        <div className="container mx-auto px-4 relative h-full flex items-end pb-8">
-          <div>
-            <div className="inline-block bg-white px-4 py-2 rounded-full text-sm font-semibold text-amber-600 mb-4">
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <section className="pt-24 pb-8 md:pt-28 md:pb-12 relative bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-6">
+            <span className="text-sm text-gray-500 uppercase tracking-wide">
               {event.category.charAt(0).toUpperCase() + event.category.slice(1)} Event
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">{event.title}</h1>
+            </span>
           </div>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-semibold mb-4 text-gray-900">
+            {event.title}
+          </h1>
         </div>
-      </div>
+      </section>
 
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid lg:grid-cols-3 gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid lg:grid-cols-3 gap-12">
           {/* Main Content */}
           <div className="lg:col-span-2">
-            {/* Event Info Cards */}
-            <div className="grid md:grid-cols-3 gap-4 mb-8">
-              <div className="bg-white rounded-xl p-6 shadow-md">
-                <FaCalendarAlt className="text-amber-600 text-2xl mb-3" />
-                <div className="text-sm text-gray-600 mb-1">Date & Time</div>
-                <div className="font-semibold text-gray-900">{formatDate(event.date)}</div>
-                <div className="text-sm text-gray-600">{event.time}</div>
-              </div>
-              <div className="bg-white rounded-xl p-6 shadow-md">
-                <FaMapMarkerAlt className="text-amber-600 text-2xl mb-3" />
-                <div className="text-sm text-gray-600 mb-1">Location</div>
-                <div className="font-semibold text-gray-900">{event.location}</div>
-              </div>
-              <div className="bg-white rounded-xl p-6 shadow-md">
-                <FaUsers className="text-amber-600 text-2xl mb-3" />
-                <div className="text-sm text-gray-600 mb-1">Attendees</div>
-                <div className="font-semibold text-gray-900">
-                  {event.attendees} / {event.maxAttendees}
+            {/* Event Info */}
+            <div className="grid md:grid-cols-3 gap-8 mb-12 pb-12 border-b border-gray-200">
+              <div>
+                <div className="flex items-center gap-3 mb-2">
+                  <FaCalendarAlt className="text-gray-400" size={18} />
+                  <span className="text-sm text-gray-500 uppercase tracking-wide">Date & Time</span>
                 </div>
+                <div className="font-medium text-gray-900">{formatDate(event.date)}</div>
+                {event.time && <div className="text-sm text-gray-600 mt-1">{event.time}</div>}
+              </div>
+              <div>
+                <div className="flex items-center gap-3 mb-2">
+                  <FaMapMarkerAlt className="text-gray-400" size={18} />
+                  <span className="text-sm text-gray-500 uppercase tracking-wide">Location</span>
+                </div>
+                <div className="font-medium text-gray-900">{event.location}</div>
+              </div>
+              <div>
+                <div className="flex items-center gap-3 mb-2">
+                  <FaUsers className="text-gray-400" size={18} />
+                  <span className="text-sm text-gray-500 uppercase tracking-wide">Attendees</span>
+                </div>
+                <div className="font-medium text-gray-900">
+                  {event.attendees || 0} {event.maxAttendees ? `/ ${event.maxAttendees}` : ''}
+                </div>
+                {event.maxAttendees && (
+                  <div className="text-sm text-gray-600 mt-1">
+                    {event.maxAttendees - (event.attendees || 0)} spots remaining
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Description */}
-            <div className="bg-white rounded-xl p-8 shadow-md mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">About This Event</h2>
-              <div className="prose max-w-none text-gray-700 whitespace-pre-line">
+            <div className="mb-12">
+              <h2 className="text-2xl font-semibold text-gray-900 mb-6">About This Event</h2>
+              <div className="prose max-w-none text-gray-700 whitespace-pre-line leading-relaxed">
                 {event.description}
               </div>
             </div>
 
-            {/* Gallery Placeholder */}
-            <div className="bg-white rounded-xl p-8 shadow-md">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Event Gallery</h2>
-              <div className="grid grid-cols-3 gap-4">
-                {[1, 2, 3, 4, 5, 6].map((item) => (
-                  <div
-                    key={item}
-                    className="aspect-square bg-gradient-to-br from-amber-200 to-orange-300 rounded-lg"
-                  ></div>
-                ))}
+            {/* Gallery */}
+            {event.gallery && event.gallery.length > 0 && (
+              <div>
+                <h2 className="text-2xl font-semibold text-gray-900 mb-6">Event Gallery</h2>
+                <div className="grid grid-cols-3 gap-4">
+                  {event.gallery.map((image, index) => (
+                    <div
+                      key={index}
+                      className="aspect-square bg-gray-100 rounded-lg overflow-hidden"
+                    >
+                      <img
+                        src={image}
+                        alt={`${event.title} - Gallery ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Sidebar */}
           <div className="lg:col-span-1">
-            <div className="sticky top-8">
+            <div className="sticky top-24">
               {/* Reserve Spot Card */}
-              <div className="bg-white rounded-xl p-8 shadow-lg mb-6">
-                <div className="text-3xl font-bold text-amber-600 mb-2">
-                  {event.price === "Free" ? "Free" : `${event.price} ${event.currency}`}
+              <div className="border border-gray-200 rounded-lg p-8 mb-6">
+                <div className="mb-8">
+                  <div className="text-4xl font-semibold text-gray-900 mb-1">
+                    {event.price === "Free" ? "Free" : `${event.price} ${event.currency}`}
+                  </div>
+                  <div className="text-sm text-gray-600">per person</div>
                 </div>
-                <div className="text-gray-600 mb-6">per person</div>
                 
                 <button 
                   onClick={() => event.price === "Free" ? alert("This is a free event! Registration coming soon.") : setShowPaymentModal(true)}
-                  className="w-full bg-amber-600 text-white py-4 rounded-lg font-semibold hover:bg-amber-700 transition-all mb-4 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-gray-900 text-white py-4 rounded-lg font-medium hover:bg-gray-800 transition-colors mb-6 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={isProcessing}
                 >
                   {isProcessing ? (
@@ -233,19 +255,18 @@ Whether you're a game enthusiast or just looking to have a good time, everyone i
                     "Reserve Your Spot"
                   )}
                 </button>
-                
-                <div className="text-center text-sm text-gray-600 mb-6">
-                  {event.maxAttendees - event.attendees} spots remaining
-                </div>
 
-                <div className="border-t pt-6">
-                  <div className="text-sm font-semibold text-gray-900 mb-4">Share this event</div>
+                <div className="border-t border-gray-200 pt-6">
+                  <div className="text-sm font-medium text-gray-900 mb-4">Share this event</div>
                   <div className="flex gap-3">
                     <a
                       href={`https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 bg-green-500 text-white p-3 rounded-lg hover:bg-green-600 transition-all text-center"
+                      className="flex-1 text-white p-3 rounded-lg transition-all text-center hover:opacity-90"
+                      style={{
+                        background: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)",
+                      }}
                       aria-label="Share on WhatsApp"
                     >
                       <FaWhatsapp className="mx-auto text-xl" />
@@ -254,7 +275,7 @@ Whether you're a game enthusiast or just looking to have a good time, everyone i
                       href={`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600 transition-all text-center"
+                      className="flex-1 bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600 transition-colors text-center"
                       aria-label="Share on Telegram"
                     >
                       <FaTelegram className="mx-auto text-xl" />
@@ -263,7 +284,7 @@ Whether you're a game enthusiast or just looking to have a good time, everyone i
                       href={`https://www.instagram.com/`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 bg-pink-500 text-white p-3 rounded-lg hover:bg-pink-600 transition-all text-center"
+                      className="flex-1 bg-pink-500 text-white p-3 rounded-lg hover:bg-pink-600 transition-colors text-center"
                       aria-label="Share on Instagram"
                     >
                       <FaInstagram className="mx-auto text-xl" />
@@ -273,17 +294,23 @@ Whether you're a game enthusiast or just looking to have a good time, everyone i
               </div>
 
               {/* Contact Info */}
-              <div className="bg-gray-100 rounded-xl p-6">
-                <h3 className="font-semibold text-gray-900 mb-3">Questions?</h3>
+              <div className="bg-gray-50 rounded-lg p-6">
+                <h3 className="font-medium text-gray-900 mb-2">Questions?</h3>
                 <p className="text-sm text-gray-600 mb-4">
                   Have questions about this event? Get in touch with us!
                 </p>
-                <Link
-                  to="/contact"
-                  className="text-amber-600 font-semibold hover:text-amber-700 text-sm"
+                <a
+                  href={`https://wa.me/${contactInfo?.phone?.replace(/\D/g, '') || '251978639887'}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm text-white transition-all duration-300 hover:opacity-90"
+                  style={{
+                    background: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)",
+                  }}
                 >
-                  Contact Us →
-                </Link>
+                  <FaWhatsapp size={16} />
+                  Contact via WhatsApp
+                </a>
               </div>
             </div>
           </div>
@@ -293,8 +320,8 @@ Whether you're a game enthusiast or just looking to have a good time, everyone i
       {/* Payment Modal */}
       {showPaymentModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 md:p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 md:p-8">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-6">
               {paymentStep === 'form' ? 'Complete Your Registration' : 'Choose Payment Method'}
             </h2>
             
@@ -311,7 +338,7 @@ Whether you're a game enthusiast or just looking to have a good time, everyone i
                   required
                   value={paymentForm.first_name}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border-b border-gray-300 bg-transparent focus:outline-none focus:border-gray-900 transition-colors"
                   placeholder="John"
                 />
               </div>
@@ -327,7 +354,7 @@ Whether you're a game enthusiast or just looking to have a good time, everyone i
                   required
                   value={paymentForm.last_name}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border-b border-gray-300 bg-transparent focus:outline-none focus:border-gray-900 transition-colors"
                   placeholder="Doe"
                 />
               </div>
@@ -343,7 +370,7 @@ Whether you're a game enthusiast or just looking to have a good time, everyone i
                   required
                   value={paymentForm.email}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border-b border-gray-300 bg-transparent focus:outline-none focus:border-gray-900 transition-colors"
                   placeholder="john@example.com"
                 />
               </div>
@@ -359,15 +386,15 @@ Whether you're a game enthusiast or just looking to have a good time, everyone i
                   required
                   value={paymentForm.phone_number}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border-b border-gray-300 bg-transparent focus:outline-none focus:border-gray-900 transition-colors"
                   placeholder="0911121314"
                 />
               </div>
 
-              <div className="pt-4 border-t">
-                <div className="flex justify-between items-center mb-4">
+              <div className="pt-6 border-t border-gray-200">
+                <div className="flex justify-between items-center mb-6">
                   <span className="text-gray-700">Total Amount:</span>
-                  <span className="text-2xl font-bold text-amber-600">
+                  <span className="text-2xl font-semibold text-gray-900">
                     {event.price} {event.currency}
                   </span>
                 </div>
@@ -382,13 +409,13 @@ Whether you're a game enthusiast or just looking to have a good time, everyone i
                     setPaymentStep('form');
                     setSelectedPaymentMethod(null);
                   }}
-                  className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-all"
+                  className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-3 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-3 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Continue to Payment Methods
                 </button>
@@ -408,8 +435,8 @@ Whether you're a game enthusiast or just looking to have a good time, everyone i
                       onClick={() => setSelectedPaymentMethod(method.id)}
                       className={`p-4 border-2 rounded-lg text-left transition-all ${
                         selectedPaymentMethod === method.id
-                          ? 'border-amber-600 bg-amber-50'
-                          : 'border-gray-200 hover:border-amber-300 hover:bg-gray-50'
+                          ? 'border-gray-900 bg-gray-50'
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                       }`}
                     >
                       <div className="flex items-start gap-3">
@@ -424,17 +451,17 @@ Whether you're a game enthusiast or just looking to have a good time, everyone i
                           )}
                         </div>
                         {selectedPaymentMethod === method.id && (
-                          <span className="text-amber-600">✓</span>
+                          <span className="text-gray-900">✓</span>
                         )}
                       </div>
                     </button>
                   ))}
                 </div>
 
-                <div className="pt-4 border-t">
-                  <div className="flex justify-between items-center mb-4">
+                <div className="pt-6 border-t border-gray-200">
+                  <div className="flex justify-between items-center mb-6">
                     <span className="text-gray-700">Total Amount:</span>
-                    <span className="text-2xl font-bold text-amber-600">
+                    <span className="text-2xl font-semibold text-gray-900">
                       {event.price} {event.currency}
                     </span>
                   </div>
@@ -444,14 +471,14 @@ Whether you're a game enthusiast or just looking to have a good time, everyone i
                   <button
                     type="button"
                     onClick={() => setPaymentStep('form')}
-                    className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-all"
+                    className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
                   >
                     Back
                   </button>
                   <button
                     type="button"
                     onClick={handlePayment}
-                    className="flex-1 px-4 py-3 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 px-4 py-3 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={isProcessing || !selectedPaymentMethod}
                   >
                     {isProcessing ? (

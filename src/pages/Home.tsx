@@ -1,191 +1,528 @@
-import { FaArrowRight, FaCalendarAlt, FaMapMarkerAlt } from "react-icons/fa";
+import { FaArrowRight, FaCalendarAlt, FaMapMarkerAlt, FaWhatsapp } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import Gallery from "../Components/Gallery";
+import Hero from "../Components/Hero";
+import { LoadingState } from "../Components/ui/LoadingState";
+import { useContactInfo, useEvents, useHomeContent } from "../hooks/useApi";
+
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
 
 const Home = () => {
+  const { content: homeContent, isLoading: homeContentLoading } = useHomeContent();
+  const { events: featuredEvents, isLoading: eventsLoading } = useEvents({ featured: true, limit: 3 });
+  const { contactInfo } = useContactInfo();
+
+  if (homeContentLoading || eventsLoading) {
+    return (
+      <div className="min-h-screen">
+        <LoadingState message="Loading..." />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 py-20 md:py-32">
-        <div className="absolute inset-0 opacity-40" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f59e0b' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-        }}></div>
-        
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center mb-6 px-4 py-2 rounded-full bg-amber-100 border border-amber-200">
-              <span className="text-amber-800 font-medium text-sm">🌍 YENEGE</span>
-            </div>
-            
-            <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6">
-              Bringing Happiness
-              <span className="block text-amber-600 mt-2">to Life</span>
-            </h1>
-            
-            <p className="text-xl md:text-2xl text-gray-700 mb-8 max-w-2xl mx-auto">
-              Discover events, join adventures, and connect with a community that celebrates life's beautiful moments.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                to="/events"
-                className="inline-flex items-center justify-center px-8 py-4 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-              >
-                Explore Events
-                <FaArrowRight className="ml-2" />
-              </Link>
-              <Link
-                to="/community"
-                className="inline-flex items-center justify-center px-8 py-4 bg-white text-amber-600 border-2 border-amber-600 rounded-lg font-semibold hover:bg-amber-50 transition-all"
-              >
-                Join Community
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Hero Section with Auto-Changing Destinations */}
+      <Hero />
+
+      {/* Gallery Section */}
+      <Gallery />
 
       {/* Event Categories */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">What We Offer</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              From game nights to travel adventures, we create experiences that bring people together
+      <section className="py-12 md:py-16 lg:py-24 relative overflow-hidden bg-white">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12 md:mb-16 lg:mb-20">
+            <div className="inline-block mb-4 md:mb-6">
+              <div 
+                className="h-1 w-16 md:w-20 mx-auto mb-3 md:mb-4 rounded-full"
+                style={{
+                  background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                }}
+              ></div>
+            </div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 tracking-tight px-4">
+              <span 
+                className="block"
+                style={{
+                  background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                What We Offer
+              </span>
+            </h2>
+            <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed px-4">
+              From events to travel adventures, we create experiences that bring people together
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {/* Game Nights */}
-            <div className="group bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-8 hover:shadow-2xl transition-all transform hover:-translate-y-2 border border-purple-100">
-              <div className="w-16 h-16 bg-purple-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <span className="text-3xl">🎮</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-7xl mx-auto">
+            {/* Dynamic Categories from API */}
+            {homeContent?.categories && homeContent.categories.length > 0 ? (
+              homeContent.categories.map((category, index) => (
+                <Link
+                  key={category.id || index}
+                  to={category.link}
+              className="group relative overflow-hidden rounded-2xl md:rounded-3xl p-6 sm:p-8 md:p-10 transition-all duration-700 cursor-pointer border border-gray-100 hover:border-transparent"
+              style={{
+                background: "linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%)",
+                boxShadow: "0 4px 24px rgba(0, 0, 0, 0.06)",
+              }}
+              onMouseEnter={(e) => {
+                if (window.innerWidth >= 768) {
+                  e.currentTarget.style.transform = "translateY(-8px)";
+                  e.currentTarget.style.boxShadow = "0 20px 40px rgba(255, 111, 94, 0.15)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "0 4px 24px rgba(0, 0, 0, 0.06)";
+              }}
+            >
+              {/* Abstract shape background */}
+              <div 
+                className="absolute top-0 right-0 w-24 h-24 md:w-32 md:h-32 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-3xl"
+                style={{
+                  background: "linear-gradient(135deg, rgba(255, 212, 71, 0.3) 0%, rgba(255, 111, 94, 0.3) 100%)",
+                  transform: "translate(30%, -30%)",
+                }}
+              ></div>
+              
+              {/* Number indicator */}
+              <div className="absolute top-4 left-4 md:top-6 md:left-6">
+                <div 
+                  className="text-4xl md:text-5xl lg:text-6xl font-black opacity-5 group-hover:opacity-10 transition-opacity duration-700"
+                  style={{
+                    background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                    lineHeight: 1,
+                  }}
+                >
+                  {category.number || String(index + 1).padStart(2, '0')}
+                </div>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">Game Nights</h3>
-              <p className="text-gray-600 mb-6">
-                Fun-filled evenings with board games, trivia, and interactive challenges. Perfect for making new friends!
-              </p>
-              <Link
-                to="/events?category=game"
-                className="inline-flex items-center text-purple-600 font-semibold hover:text-purple-700"
-              >
-                Explore Game Nights
-                <FaArrowRight className="ml-2" />
-              </Link>
-            </div>
 
-            {/* Travel & Adventures */}
-            <div className="group bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-8 hover:shadow-2xl transition-all transform hover:-translate-y-2 border border-blue-100">
-              <div className="w-16 h-16 bg-blue-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <span className="text-3xl">✈️</span>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">Travel & Adventures</h3>
-              <p className="text-gray-600 mb-6">
-                Weekend getaways, day trips, and exciting adventures. Explore new places with amazing people.
-              </p>
-              <Link
-                to="/travel"
-                className="inline-flex items-center text-blue-600 font-semibold hover:text-blue-700"
-              >
-                Discover Adventures
-                <FaArrowRight className="ml-2" />
-              </Link>
-            </div>
+              <div className="relative z-10 pt-6 md:pt-8">
+                {/* Decorative line */}
+                <div 
+                  className="h-1 w-12 md:w-16 mb-6 md:mb-8 rounded-full transition-all duration-700 group-hover:w-20 md:group-hover:w-24"
+                  style={{
+                    background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                  }}
+                ></div>
 
-            {/* Community */}
-            <div className="group bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8 hover:shadow-2xl transition-all transform hover:-translate-y-2 border border-green-100">
-              <div className="w-16 h-16 bg-green-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <span className="text-3xl">💚</span>
+                <h3 
+                  className="text-2xl md:text-3xl font-bold mb-3 md:mb-4 tracking-tight"
+                  style={{
+                    background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                  }}
+                >
+                  {category.title}
+                </h3>
+                <p className="text-gray-600 mb-6 md:mb-8 leading-relaxed text-sm md:text-base">
+                  {category.description}
+                </p>
+                <div className="flex items-center">
+                  <span 
+                    className="text-sm font-semibold tracking-wide uppercase mr-3 transition-all duration-300 group-hover:mr-4"
+                    style={{
+                      color: "#FF6F5E",
+                    }}
+                  >
+                    Learn More
+                  </span>
+                  <div 
+                    className="w-8 h-0.5 transition-all duration-300 group-hover:w-12"
+                    style={{
+                      background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                    }}
+                  ></div>
+                  <FaArrowRight 
+                    className="ml-2 transition-all duration-300 group-hover:translate-x-2" 
+                    style={{ color: "#FF6F5E" }}
+                    size={14}
+                  />
+                </div>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">Community</h3>
-              <p className="text-gray-600 mb-6">
-                Join a vibrant community of happy people. Share stories, connect, and build lasting friendships.
-              </p>
-              <Link
-                to="/community"
-                className="inline-flex items-center text-green-600 font-semibold hover:text-green-700"
-              >
-                Join Us
-                <FaArrowRight className="ml-2" />
-              </Link>
-            </div>
+            </Link>
+              ))
+            ) : (
+              // Fallback to hardcoded categories if API doesn't return any
+              <>
+                <Link to="/events?category=game" className="group relative overflow-hidden rounded-2xl md:rounded-3xl p-6 sm:p-8 md:p-10 transition-all duration-700 cursor-pointer border border-gray-100 hover:border-transparent" style={{ background: "linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%)", boxShadow: "0 4px 24px rgba(0, 0, 0, 0.06)" }} onMouseEnter={(e) => { if (window.innerWidth >= 768) { e.currentTarget.style.transform = "translateY(-8px)"; e.currentTarget.style.boxShadow = "0 20px 40px rgba(255, 111, 94, 0.15)"; } }} onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 24px rgba(0, 0, 0, 0.06)"; }}>
+                  <div className="relative z-10 pt-6 md:pt-8">
+                    <div className="h-1 w-12 md:w-16 mb-6 md:mb-8 rounded-full transition-all duration-700 group-hover:w-20 md:group-hover:w-24" style={{ background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)" }}></div>
+                    <h3 className="text-2xl md:text-3xl font-bold mb-3 md:mb-4 tracking-tight" style={{ background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Events</h3>
+                    <p className="text-gray-600 mb-6 md:mb-8 leading-relaxed text-sm md:text-base">Fun-filled evenings with board games, trivia, and interactive challenges. Perfect for making new friends!</p>
+                    <div className="flex items-center">
+                      <span className="text-sm font-semibold tracking-wide uppercase mr-3 transition-all duration-300 group-hover:mr-4" style={{ color: "#FF6F5E" }}>Explore Events</span>
+                      <div className="w-8 h-0.5 transition-all duration-300 group-hover:w-12" style={{ background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)" }}></div>
+                      <FaArrowRight className="ml-2 transition-all duration-300 group-hover:translate-x-2" style={{ color: "#FF6F5E" }} size={14} />
+                    </div>
+                  </div>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </section>
 
       {/* Featured Events Carousel */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Upcoming Events</h2>
-            <p className="text-xl text-gray-600">Don't miss out on these exciting experiences</p>
+      <section className="py-12 md:py-16 lg:py-24 relative overflow-hidden bg-gray-50">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12 md:mb-16 lg:mb-20">
+            <div className="inline-block mb-4 md:mb-6">
+              <div 
+                className="h-1 w-16 md:w-20 mx-auto mb-3 md:mb-4 rounded-full"
+                style={{
+                  background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                }}
+              ></div>
+            </div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 tracking-tight px-4">
+              <span 
+                className="block"
+                style={{
+                  background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                Upcoming Events
+              </span>
+            </h2>
+            <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed px-4">
+              Don't miss out on these exciting experiences
+            </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {/* Sample Event Cards */}
-            {[1, 2, 3].map((item) => (
-              <div key={item} className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-1">
-                <div className="h-48 bg-gradient-to-br from-amber-400 to-orange-500 relative">
-                  <div className="absolute top-4 right-4 bg-white px-3 py-1 rounded-full text-sm font-semibold text-amber-600">
-                    Coming Soon
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-7xl mx-auto">
+            {/* Featured Events from API */}
+            {featuredEvents.length > 0 ? (
+              featuredEvents.map((event, index) => (
+                <Link
+                  key={event.id}
+                  to={`/events/${event.id}`}
+                className="group relative overflow-hidden rounded-2xl md:rounded-3xl bg-white transition-all duration-700 cursor-pointer border border-gray-100 hover:border-transparent"
+                style={{
+                  boxShadow: "0 4px 24px rgba(0, 0, 0, 0.06)",
+                }}
+                onMouseEnter={(e) => {
+                  if (window.innerWidth >= 768) {
+                    e.currentTarget.style.transform = "translateY(-8px)";
+                    e.currentTarget.style.boxShadow = "0 20px 40px rgba(255, 111, 94, 0.15)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 4px 24px rgba(0, 0, 0, 0.06)";
+                }}
+              >
+                {/* Abstract gradient header */}
+                <div 
+                  className="h-40 sm:h-48 relative overflow-hidden"
+                  style={{
+                    background: `linear-gradient(135deg, ${index % 3 === 0 ? 'rgba(255, 212, 71, 0.15)' : index % 3 === 1 ? 'rgba(255, 111, 94, 0.15)' : 'rgba(255, 212, 71, 0.2)'} 0%, ${index % 3 === 0 ? 'rgba(255, 111, 94, 0.15)' : index % 3 === 1 ? 'rgba(255, 212, 71, 0.15)' : 'rgba(255, 111, 94, 0.2)'} 100%)`,
+                  }}
+                >
+                  {/* Abstract shapes */}
+                  <div 
+                    className="absolute top-0 right-0 w-24 h-24 md:w-32 md:h-32 rounded-full opacity-30 group-hover:opacity-50 transition-opacity duration-700 blur-2xl"
+                    style={{
+                      background: `linear-gradient(135deg, ${index % 3 === 0 ? 'rgba(255, 212, 71, 0.4)' : index % 3 === 1 ? 'rgba(255, 111, 94, 0.4)' : 'rgba(255, 212, 71, 0.5)'} 0%, ${index % 3 === 0 ? 'rgba(255, 111, 94, 0.4)' : index % 3 === 1 ? 'rgba(255, 212, 71, 0.4)' : 'rgba(255, 111, 94, 0.5)'} 100%)`,
+                      transform: "translate(20%, -20%)",
+                    }}
+                  ></div>
+                  <div 
+                    className="absolute bottom-0 left-0 w-20 h-20 md:w-24 md:h-24 rounded-full opacity-20 group-hover:opacity-40 transition-opacity duration-700 blur-xl"
+                    style={{
+                      background: `linear-gradient(135deg, ${index % 3 === 0 ? 'rgba(255, 111, 94, 0.3)' : index % 3 === 1 ? 'rgba(255, 212, 71, 0.3)' : 'rgba(255, 212, 71, 0.4)'} 0%, ${index % 3 === 0 ? 'rgba(255, 212, 71, 0.3)' : index % 3 === 1 ? 'rgba(255, 111, 94, 0.3)' : 'rgba(255, 111, 94, 0.4)'} 100%)`,
+                      transform: "translate(-20%, 20%)",
+                    }}
+                  ></div>
+                  
+                  {/* Badge */}
+                  <div className="absolute top-4 right-4 md:top-6 md:right-6">
+                    <div 
+                      className="px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs font-semibold tracking-wide uppercase backdrop-blur-md transition-all duration-300 group-hover:scale-110"
+                      style={{
+                        background: "rgba(255, 255, 255, 0.9)",
+                        color: "#FF6F5E",
+                        border: "1px solid rgba(255, 111, 94, 0.2)",
+                      }}
+                    >
+                      Coming Soon
+                    </div>
+                  </div>
+
+                  {/* Event number */}
+                  <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6">
+                    <div 
+                      className="text-4xl md:text-5xl font-black opacity-5 group-hover:opacity-10 transition-opacity duration-700"
+                      style={{
+                        background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text",
+                        lineHeight: 1,
+                      }}
+                    >
+                      {String(index + 1).padStart(2, '0')}
+                    </div>
                   </div>
                 </div>
-                <div className="p-6">
-                  <div className="flex items-center text-gray-500 text-sm mb-2">
-                    <FaCalendarAlt className="mr-2" />
-                    <span>Date TBA</span>
-                    <FaMapMarkerAlt className="ml-4 mr-2" />
-                    <span>Addis Ababa</span>
+
+                <div className="p-6 md:p-8">
+                  {/* Decorative line */}
+                  <div 
+                    className="h-0.5 w-10 md:w-12 mb-4 md:mb-6 rounded-full transition-all duration-700 group-hover:w-16 md:group-hover:w-20"
+                    style={{
+                      background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                    }}
+                  ></div>
+
+                  {/* Date and Location */}
+                  <div className="flex flex-wrap items-center gap-3 md:gap-4 text-gray-500 text-xs md:text-sm mb-3 md:mb-4">
+                    <div className="flex items-center">
+                      <FaCalendarAlt className="mr-1.5 md:mr-2" size={12} />
+                      <span>{formatDate(event.date)}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <FaMapMarkerAlt className="mr-1.5 md:mr-2" size={12} />
+                      <span>{event.location}</span>
+                    </div>
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Amazing Event {item}</h3>
-                  <p className="text-gray-600 mb-4">
-                    Join us for an unforgettable experience filled with fun, laughter, and great memories.
-                  </p>
-                  <Link
-                    to="/events"
-                    className="inline-flex items-center text-amber-600 font-semibold hover:text-amber-700"
+
+                  <h3 
+                    className="text-xl md:text-2xl font-bold mb-3 md:mb-4 tracking-tight"
+                    style={{
+                      background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      backgroundClip: "text",
+                    }}
                   >
-                    Learn More
-                    <FaArrowRight className="ml-2" />
-                  </Link>
+                    {event.title}
+                  </h3>
+                  <p className="text-gray-600 mb-5 md:mb-6 leading-relaxed text-sm md:text-base">
+                    {event.description}
+                  </p>
+                  
+                  <div className="flex items-center">
+                    <span 
+                      className="text-sm font-semibold tracking-wide uppercase mr-3 transition-all duration-300 group-hover:mr-4"
+                      style={{
+                        color: "#FF6F5E",
+                      }}
+                    >
+                      Learn More
+                    </span>
+                    <div 
+                      className="w-8 h-0.5 transition-all duration-300 group-hover:w-12"
+                      style={{
+                        background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                      }}
+                    ></div>
+                    <FaArrowRight 
+                      className="ml-2 transition-all duration-300 group-hover:translate-x-2" 
+                      style={{ color: "#FF6F5E" }}
+                      size={14}
+                    />
+                  </div>
                 </div>
+              </Link>
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12">
+                <p className="text-gray-600">No featured events at the moment. Check back soon!</p>
               </div>
-            ))}
+            )}
           </div>
 
-          <div className="text-center mt-12">
+          <div className="text-center mt-12 md:mt-16">
             <Link
               to="/events"
-              className="inline-flex items-center px-8 py-4 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 transition-all shadow-lg hover:shadow-xl"
+              className="group inline-flex items-center px-6 md:px-10 py-3 md:py-4 rounded-full font-semibold transition-all duration-500 relative overflow-hidden text-sm md:text-base"
+              style={{
+                background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
+                color: "#1C2951",
+                boxShadow: "0 4px 20px rgba(255, 111, 94, 0.3)",
+              }}
+              onMouseEnter={(e) => {
+                if (window.innerWidth >= 768) {
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow = "0 8px 30px rgba(255, 111, 94, 0.4)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "0 4px 20px rgba(255, 111, 94, 0.3)";
+              }}
             >
-              View All Events
-              <FaArrowRight className="ml-2" />
+              <span className="relative z-10">View All Events</span>
+              <FaArrowRight 
+                className="ml-2 md:ml-3 relative z-10 transition-all duration-300 group-hover:translate-x-1" 
+                size={14}
+              />
             </Link>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-amber-600 to-orange-600 text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">Ready to Join the Fun?</h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90">
-            Be part of a community that celebrates life, creates memories, and brings happiness to every moment.
+      <section className="relative py-16 md:py-20 lg:py-24 text-white overflow-hidden" style={{ minHeight: "400px" }}>
+        {/* Hero-style background */}
+        <div className="absolute inset-0 z-0">
+          <div 
+            className="absolute top-1/2 left-1/2 w-[200vw] h-[200vw] md:w-[180vw] md:h-[180vw] -translate-x-1/2 -translate-y-1/2"
+            style={{
+              backgroundImage: "url(https://cdn.pixabay.com/photo/2021/11/26/17/26/dubai-desert-safari-6826298_1280.jpg)",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              filter: "brightness(0.6)",
+              animation: "ctaRotate 20s linear infinite",
+            }}
+          ></div>
+          <div 
+            className="absolute top-1/2 left-1/2 w-[200vw] h-[200vw] md:w-[180vw] md:h-[180vw] -translate-x-1/2 -translate-y-1/2"
+            style={{
+              backgroundImage: "url(https://cdn.pixabay.com/photo/2017/01/20/00/30/maldives-1993704_1280.jpg)",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              filter: "brightness(0.6)",
+              clipPath: "circle(23%)",
+              animation: "ctaRotate 20s linear infinite",
+              animationDelay: "0.2s",
+            }}
+          ></div>
+          <div 
+            className="absolute top-1/2 left-1/2 w-[200vw] h-[200vw] md:w-[180vw] md:h-[180vw] -translate-x-1/2 -translate-y-1/2"
+            style={{
+              backgroundImage: "url(https://cdn.pixabay.com/photo/2020/03/29/09/24/pale-di-san-martino-4979964_1280.jpg)",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              filter: "brightness(0.6)",
+              clipPath: "circle(13%)",
+              animation: "ctaRotate 20s linear infinite",
+              animationDelay: "0.4s",
+            }}
+          ></div>
+          {/* Dark overlay */}
+          <div 
+            className="absolute inset-0"
+            style={{
+              background: "linear-gradient(to bottom, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.4) 50%, rgba(0, 0, 0, 0.5) 100%)",
+            }}
+          ></div>
+        </div>
+
+        <div className="container mx-auto px-4 sm:px-6 text-center relative z-10">
+          <h2 
+            className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 md:mb-6 px-4"
+            style={{
+              textShadow: "2px 2px 8px rgba(0, 0, 0, 0.5)",
+            }}
+          >
+            {homeContent?.cta?.title || "Ready to Join the Fun?"}
+          </h2>
+          <p 
+            className="text-base sm:text-lg md:text-xl mb-8 md:mb-12 max-w-2xl mx-auto opacity-95 px-4"
+            style={{
+              textShadow: "1px 1px 4px rgba(0, 0, 0, 0.5)",
+            }}
+          >
+            {homeContent?.cta?.description || "Be part of a community that celebrates life, creates memories, and brings happiness to every moment."}
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to="/events"
-              className="inline-flex items-center justify-center px-8 py-4 bg-white text-amber-600 rounded-lg font-semibold hover:bg-gray-100 transition-all shadow-lg"
-            >
-              Explore Events
-            </Link>
-            <Link
-              to="/contact"
-              className="inline-flex items-center justify-center px-8 py-4 bg-transparent border-2 border-white text-white rounded-lg font-semibold hover:bg-white hover:text-amber-600 transition-all"
-            >
-              Get in Touch
-            </Link>
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center px-4">
+            {homeContent?.cta?.buttons && homeContent.cta.buttons.length > 0 ? (
+              homeContent.cta.buttons.map((button, index) => (
+                button.type === 'primary' ? (
+                  <Link
+                    key={index}
+                    to={button.link}
+                    className="inline-flex items-center justify-center px-6 md:px-8 py-3 md:py-4 text-sm md:text-base rounded-[50px] font-semibold hover:scale-105 transition-all duration-500 shadow-lg hover:shadow-xl"
+                    style={{
+                      background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
+                      color: "#1C2951",
+                    }}
+                  >
+                    {button.text}
+                  </Link>
+                ) : (
+                  <a
+                    key={index}
+                    href={button.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 px-6 md:px-8 py-3 md:py-4 text-sm md:text-base text-white rounded-[50px] font-semibold hover:scale-105 transition-all duration-500 shadow-lg hover:shadow-xl"
+                    style={{
+                      background: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)",
+                      boxShadow: "0 4px 20px rgba(37, 211, 102, 0.3)",
+                      textShadow: "1px 1px 4px rgba(0, 0, 0, 0.2)",
+                    }}
+                  >
+                    <FaWhatsapp size={18} />
+                    {button.text}
+                  </a>
+                )
+              ))
+            ) : (
+              <>
+                <Link
+                  to="/events"
+                  className="inline-flex items-center justify-center px-6 md:px-8 py-3 md:py-4 text-sm md:text-base rounded-[50px] font-semibold hover:scale-105 transition-all duration-500 shadow-lg hover:shadow-xl"
+                  style={{
+                    background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
+                    color: "#1C2951",
+                  }}
+                >
+                  Explore Events
+                </Link>
+                <a
+                  href={`https://wa.me/${contactInfo?.phone?.replace(/\D/g, '') || '251978639887'}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 px-6 md:px-8 py-3 md:py-4 text-sm md:text-base text-white rounded-[50px] font-semibold hover:scale-105 transition-all duration-500 shadow-lg hover:shadow-xl"
+                  style={{
+                    background: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)",
+                    boxShadow: "0 4px 20px rgba(37, 211, 102, 0.3)",
+                    textShadow: "1px 1px 4px rgba(0, 0, 0, 0.2)",
+                  }}
+                >
+                  <FaWhatsapp size={18} />
+                  Contact via WhatsApp
+                </a>
+              </>
+            )}
           </div>
         </div>
+
+        <style>{`
+          @keyframes ctaRotate {
+            0% {
+              transform: translate(-50%, -50%) rotate(0deg);
+            }
+            100% {
+              transform: translate(-50%, -50%) rotate(360deg);
+            }
+          }
+        `}</style>
       </section>
     </div>
   );

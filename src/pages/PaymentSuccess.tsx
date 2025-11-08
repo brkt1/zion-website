@@ -1,14 +1,19 @@
-import { useEffect, useState } from "react";
-import { FaCheckCircle, FaSpinner } from "react-icons/fa";
+import html2canvas from "html2canvas";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { FaCheckCircle, FaDownload, FaSpinner } from "react-icons/fa";
+import QRCode from "react-qr-code";
 import { Link, useSearchParams } from "react-router-dom";
 import { verifyPayment } from "../services/payment";
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
   const txRef = searchParams.get("tx_ref");
+  const quantityParam = searchParams.get("quantity");
   const [verificationStatus, setVerificationStatus] = useState<"loading" | "success" | "failed" | "pending">("loading");
   const [paymentData, setPaymentData] = useState<any>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const ticketRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const verify = async (attempt: number = 0) => {
@@ -81,11 +86,85 @@ const PaymentSuccess = () => {
     verify();
   }, [txRef, retryCount]);
 
+  // Format amount for display
+  const formatAmount = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  };
+
+  // Format date for display
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return new Date().toLocaleDateString();
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  // Format time for display
+  const formatTime = (dateString?: string) => {
+    if (!dateString) return new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    return new Date(dateString).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  };
+
+  // Get short transaction reference (first 6 chars)
+  const getShortTxRef = (ref?: string) => {
+    if (!ref) return "N/A";
+    return ref.substring(0, 6).toUpperCase();
+  };
+
+
+  // Get amount value - handle both string and number formats
+  const getAmount = () => {
+    if (!paymentData) return 0;
+    if (typeof paymentData.amount === 'string') {
+      return parseFloat(paymentData.amount) / 100;
+    }
+    return paymentData.amount / 100;
+  };
+
+  // Get ticket quantity - from URL param or calculate from amount/price, default to 1
+  const getTicketQuantity = () => {
+    if (quantityParam) {
+      const qty = parseInt(quantityParam, 10);
+      if (!isNaN(qty) && qty > 0) return qty;
+    }
+    // If no quantity param, try to calculate from amount
+    // For now, default to 1 (can be enhanced later with event price info)
+    return 1;
+  };
+
+  const ticketQuantity = useMemo(() => getTicketQuantity(), [quantityParam]);
+
+  // Generate QR code data with payment information including quantity
+  const qrCodeData = useMemo(() => {
+    if (!paymentData) return "";
+    
+    const qrData = {
+      tx_ref: paymentData.tx_ref || txRef || "",
+      amount: paymentData.amount ? (typeof paymentData.amount === 'string' ? parseFloat(paymentData.amount) / 100 : paymentData.amount / 100) : 0,
+      currency: paymentData.currency || "ETB",
+      date: paymentData.created_at || new Date().toISOString(),
+      status: paymentData.status || "success",
+      reference: paymentData.reference || paymentData.tx_ref || txRef || "",
+      quantity: ticketQuantity,
+      email: paymentData.email || "",
+      name: paymentData.first_name && paymentData.last_name 
+        ? `${paymentData.first_name} ${paymentData.last_name}` 
+        : paymentData.first_name || paymentData.last_name || ""
+    };
+    
+    return JSON.stringify(qrData);
+  }, [paymentData, txRef, ticketQuantity]);
+
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center">
-        {(verificationStatus === "loading" || verificationStatus === "pending") && (
-          <>
+    <div className="payment-success-container">
+      {(verificationStatus === "loading" || verificationStatus === "pending") && (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+          <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center">
             <FaSpinner className="mx-auto text-5xl text-amber-600 animate-spin mb-4" />
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
               {verificationStatus === "pending" ? "Payment Processing..." : "Verifying Payment..."}
@@ -98,55 +177,169 @@ const PaymentSuccess = () => {
             {txRef && (
               <p className="text-sm text-gray-500 mt-2 font-mono">{txRef}</p>
             )}
-          </>
-        )}
+          </div>
+        </div>
+      )}
 
-        {verificationStatus === "success" && (
-          <>
-            <FaCheckCircle className="mx-auto text-5xl text-green-500 mb-4" />
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Payment Successful!</h1>
-            <p className="text-gray-600 mb-6">
-              Thank you for your payment. Your registration has been confirmed.
-            </p>
-            
-            {paymentData && (
-              <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Transaction Reference:</span>
-                    <span className="font-semibold">{paymentData.tx_ref}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Amount:</span>
-                    <span className="font-semibold">{paymentData.amount} {paymentData.currency}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Status:</span>
-                    <span className="font-semibold text-green-600 capitalize">{paymentData.status}</span>
-                  </div>
+      {verificationStatus === "success" && (
+        <div className="bg-white flex flex-col justify-center items-center min-h-screen px-4 py-8 payment-success-body">
+          {/* Download Button */}
+          <div className="w-full max-w-sm sm:max-w-4xl mb-6 flex justify-end">
+            <button
+              onClick={async () => {
+                if (!ticketRef.current || isDownloading) return;
+                setIsDownloading(true);
+                try {
+                  const canvas = await html2canvas(ticketRef.current, {
+                    backgroundColor: '#ffffff',
+                    scale: 2,
+                    logging: false,
+                    useCORS: true,
+                  });
+                  const link = document.createElement('a');
+                  link.download = `ticket-${getShortTxRef(paymentData?.tx_ref || txRef)}-${Date.now()}.png`;
+                  link.href = canvas.toDataURL('image/png');
+                  link.click();
+                } catch (error) {
+                  console.error('Error downloading ticket:', error);
+                  alert('Failed to download ticket. Please try again.');
+                } finally {
+                  setIsDownloading(false);
+                }
+              }}
+              disabled={isDownloading}
+              className="flex items-center gap-2 bg-cyan-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-cyan-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+            >
+              <FaDownload className={isDownloading ? "animate-bounce" : ""} />
+              {isDownloading ? "Downloading..." : "Download Ticket"}
+            </button>
+          </div>
+
+          <main ref={ticketRef} className="text-gray-400 font-thin w-full max-w-sm sm:max-w-4xl grid sm:grid-cols-[4fr_1fr] payment-success-main bg-white">
+            {/* boarding pass */}
+            <div className="py-6 px-6 sm:px-10 space-y-6 sm:space-y-12 relative payment-success-pass">
+              <section className="w-full grid grid-cols-3 gap-x-4 sm:px-8 isolate overflow-hidden payment-success-header">
+                <h2 className="animate-in" style={{ "--d": "500ms" } as React.CSSProperties}>PAY</h2>
+                <div>
+                  <span id="plane-1" style={{ "--d": "2000ms" } as React.CSSProperties} className="payment-icon">
+                    <FaCheckCircle className="text-cyan-400" />
+                  </span>
                 </div>
+                <h2 className="animate-in" style={{ "--d": "1000ms" } as React.CSSProperties}>SUCCESS</h2>
+                <p className="animate-in" style={{ "--d": "500ms" } as React.CSSProperties}>Payment</p>
+                <span></span>
+                <p className="animate-in" style={{ "--d": "1000ms" } as React.CSSProperties}>Confirmed</p>
+              </section>
+
+              <section className="grid grid-cols-2 sm:grid-cols-5 gap-4 py-3 px-6 bg-cyan-100 font-thin whitespace-nowrap text-sm sm:text-base payment-success-details">
+                <div className="animate-in-X" style={{ "--d": "1200ms" } as React.CSSProperties}>
+                  <h3>Amount</h3>
+                  <time>{paymentData ? `${formatAmount(getAmount())} ${paymentData.currency || 'ETB'}` : 'N/A'}</time>
+                </div>
+                <div className="animate-in-X" style={{ "--d": "1500ms" } as React.CSSProperties}>
+                  <h3>Date</h3>
+                  <time>{paymentData ? formatDate(paymentData.created_at) : formatDate()}</time>
+                </div>
+                <div className="animate-in-X" style={{ "--d": "1800ms" } as React.CSSProperties}>
+                  <h3>Time</h3>
+                  <time>{paymentData ? formatTime(paymentData.created_at) : formatTime()}</time>
+                </div>
+                <div className="animate-in-X" style={{ "--d": "2100ms" } as React.CSSProperties}>
+                  <h3>Quantity</h3>
+                  <time>{ticketQuantity}</time>
+                </div>
+                <div className="animate-in-X" style={{ "--d": "2400ms" } as React.CSSProperties}>
+                  <h3>Ticket No.</h3>
+                  <time>{getShortTxRef(paymentData?.tx_ref || txRef)}</time>
+                </div>
+              </section>
+
+              <p className="text-xs">
+                Thank you for your payment! Your transaction has been <strong>successfully processed</strong>. 
+                A confirmation email has been sent to your registered email address. 
+                Please keep this <strong>transaction reference</strong> for your records: <strong>{paymentData?.tx_ref || txRef}</strong>.
+                <br /><br />
+                <strong>Note:</strong> Please download your ticket and present the QR code at the event entrance. The QR code contains all your payment and ticket information for verification.
+              </p>
+
+              <div className="space-y-3 pt-4">
+                <Link
+                  to="/events"
+                  className="block w-full bg-cyan-400 text-white py-3 rounded-lg font-semibold hover:bg-cyan-500 transition-all text-center"
+                >
+                  Browse More Events
+                </Link>
+                <Link
+                  to="/"
+                  className="block w-full border border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-all text-center"
+                >
+                  Go to Home
+                </Link>
               </div>
-            )}
-
-            <div className="space-y-3">
-              <Link
-                to="/events"
-                className="block w-full bg-amber-600 text-white py-3 rounded-lg font-semibold hover:bg-amber-700 transition-all"
-              >
-                Browse More Events
-              </Link>
-              <Link
-                to="/"
-                className="block w-full border border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-all"
-              >
-                Go to Home
-              </Link>
             </div>
-          </>
-        )}
 
-        {verificationStatus === "failed" && (
-          <>
+            {/* stub */}
+            <div className="grid place-content-center p-0 payment-success-stub">
+              <div className="py-6 sm:py-0 sm:-rotate-90 w-full grid place-content-center gap-4">
+                <section className="w-full grid grid-cols-3 gap-x-2 px-4 payment-success-stub-header">
+                  <h2>PAY</h2>
+                  <div>
+                    <span className="payment-icon-stub">
+                      <FaCheckCircle className="text-cyan-400 text-2xl" />
+                    </span>
+                  </div>
+                  <h2>SUCCESS</h2>
+                  <p>Payment</p>
+                  <span></span>
+                  <p>Confirmed</p>
+                </section>
+
+                <section className="flex justify-between gap-2 sm:gap-4 font-thin text-xs sm:text-sm whitespace-nowrap payment-success-stub-details">
+                  <div>
+                    <h3>Amount</h3>
+                    <time>{paymentData ? `${formatAmount(getAmount())} ${paymentData.currency || 'ETB'}` : 'N/A'}</time>
+                  </div>
+                  <div>
+                    <h3>Date</h3>
+                    <time>{paymentData ? formatDate(paymentData.created_at) : formatDate()}</time>
+                  </div>
+                  <div>
+                    <h3>Time</h3>
+                    <time>{paymentData ? formatTime(paymentData.created_at) : formatTime()}</time>
+                  </div>
+                  <div>
+                    <h3>Qty</h3>
+                    <time>{ticketQuantity}</time>
+                  </div>
+                  <div>
+                    <h3>Ticket No.</h3>
+                    <time>{getShortTxRef(paymentData?.tx_ref || txRef)}</time>
+                  </div>
+                </section>
+
+                {/* QR Code */}
+                {qrCodeData && (
+                  <div className="flex justify-center items-center p-2 sm:p-4 bg-white rounded">
+                    {/* eslint-disable-next-line react/jsx-no-undef */}
+                    <QRCode
+                      value={qrCodeData}
+                      size={180}
+                      level="M"
+                      fgColor="#164E63"
+                      bgColor="#ffffff"
+                      className="max-w-full h-auto"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          </main>
+        </div>
+      )}
+
+      {verificationStatus === "failed" && (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+          <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center">
             <div className="mx-auto text-5xl text-red-500 mb-4">✕</div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Payment Verification Failed</h1>
             <p className="text-gray-600 mb-6">
@@ -216,9 +409,9 @@ const PaymentSuccess = () => {
                 Back to Events
               </Link>
             </div>
-          </>
-        )}
-      </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

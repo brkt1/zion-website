@@ -1,154 +1,495 @@
-import { FaHandshake, FaHeart, FaRocket, FaUsers } from "react-icons/fa";
+import { FaArrowRight, FaWhatsapp } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { ErrorState } from "../Components/ui/ErrorState";
+import { LoadingState } from "../Components/ui/LoadingState";
+import { useAboutContent, useContactInfo } from "../hooks/useApi";
 
 const About = () => {
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white py-20">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">Our Story</h1>
-          <p className="text-xl md:text-2xl max-w-3xl mx-auto opacity-90">
-            Building a community where happiness, connection, and unforgettable experiences come together
-          </p>
-        </div>
+  const { content, isLoading, isError, mutate: refetchContent } = useAboutContent();
+  const { contactInfo } = useContactInfo();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <LoadingState message="Loading..." />
       </div>
+    );
+  }
 
-      <div className="container mx-auto px-4 py-16">
-        {/* Story Section */}
-        <section className="max-w-4xl mx-auto mb-20">
-          <div className="bg-white rounded-2xl p-8 md:p-12 shadow-lg">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">The Yenege Dream</h2>
-            <div className="prose prose-lg max-w-none text-gray-700 space-y-4">
-              <p>
-                Yenege was born from a simple yet powerful vision: to bring happiness to life through meaningful connections and unforgettable experiences.
-              </p>
-              <p>
-                We believe that life's greatest moments happen when people come together—whether it's over a board game, on a weekend adventure, or simply sharing stories in a welcoming community space.
-              </p>
-              <p>
-                What started as a dream to create a space where people could escape the daily grind and truly connect has grown into a vibrant community of individuals who value joy, friendship, and living life to the fullest.
-              </p>
-              <p>
-                Every event we organize, every trip we plan, and every gathering we host is designed with one goal in mind: to bring a little more happiness into your life.
-              </p>
+  if (isError || !content) {
+    return (
+      <div className="min-h-screen bg-white">
+        <ErrorState message="Failed to load content. Please try again later." onRetry={() => refetchContent()} />
+      </div>
+    );
+  }
+
+  const values = content.values || [];
+  const milestones = content.milestones || [];
+
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <section className="py-12 md:py-16 lg:py-24 relative overflow-hidden bg-white">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12 md:mb-16">
+            <div className="inline-block mb-4 md:mb-6">
+              <div 
+                className="h-1 w-16 md:w-20 mx-auto mb-3 md:mb-4 rounded-full"
+                style={{
+                  background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                }}
+              ></div>
+            </div>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 tracking-tight px-4">
+              <span 
+                className="block"
+                style={{
+                  background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                Our Story
+              </span>
+            </h1>
+            <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed px-4">
+              Building a community where happiness, connection, and unforgettable experiences come together
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Story Section */}
+      <section className="py-12 md:py-16 lg:py-24 relative overflow-hidden bg-gray-50">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="max-w-4xl mx-auto">
+            <div className="group relative overflow-hidden rounded-2xl md:rounded-3xl p-8 md:p-12 bg-white border border-gray-100 transition-all duration-700"
+              style={{
+                boxShadow: "0 4px 24px rgba(0, 0, 0, 0.06)",
+              }}
+              onMouseEnter={(e) => {
+                if (window.innerWidth >= 768) {
+                  e.currentTarget.style.boxShadow = "0 20px 40px rgba(255, 111, 94, 0.1)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = "0 4px 24px rgba(0, 0, 0, 0.06)";
+              }}
+            >
+              {/* Abstract shape background */}
+              <div 
+                className="absolute top-0 right-0 w-40 h-40 md:w-64 md:h-64 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-3xl"
+                style={{
+                  background: "linear-gradient(135deg, rgba(255, 212, 71, 0.2) 0%, rgba(255, 111, 94, 0.2) 100%)",
+                  transform: "translate(30%, -30%)",
+                }}
+              ></div>
+
+              <div className="relative z-10">
+                {/* Decorative line */}
+                <div 
+                  className="h-1 w-16 md:w-20 mb-6 md:mb-8 rounded-full"
+                  style={{
+                    background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                  }}
+                ></div>
+
+                <h2 
+                  className="text-3xl md:text-4xl font-bold mb-6 md:mb-8 tracking-tight"
+                  style={{
+                    background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                  }}
+                >
+                  {content.story?.title || "The Yenege Dream"}
+                </h2>
+                <div className="space-y-4 md:space-y-6 text-gray-700 text-base md:text-lg leading-relaxed whitespace-pre-line">
+                  {content.story?.content || "Yenege was born from a simple yet powerful vision: to bring happiness to life through meaningful connections and unforgettable experiences."}
+                </div>
+              </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Values Section */}
-        <section className="mb-20">
-          <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-12">Our Values</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white rounded-xl p-8 text-center shadow-md hover:shadow-xl transition-all">
-              <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FaHeart className="text-amber-600 text-2xl" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Happiness First</h3>
-              <p className="text-gray-600">
-                Everything we do is centered around bringing joy and positivity into people's lives.
-              </p>
+      {/* Values Section */}
+      <section className="py-12 md:py-16 lg:py-24 relative overflow-hidden bg-white">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12 md:mb-16 lg:mb-20">
+            <div className="inline-block mb-4 md:mb-6">
+              <div 
+                className="h-1 w-16 md:w-20 mx-auto mb-3 md:mb-4 rounded-full"
+                style={{
+                  background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                }}
+              ></div>
             </div>
-
-            <div className="bg-white rounded-xl p-8 text-center shadow-md hover:shadow-xl transition-all">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FaUsers className="text-blue-600 text-2xl" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Community</h3>
-              <p className="text-gray-600">
-                We believe in the power of connection and building lasting friendships.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-xl p-8 text-center shadow-md hover:shadow-xl transition-all">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FaRocket className="text-green-600 text-2xl" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Adventure</h3>
-              <p className="text-gray-600">
-                Life is meant to be explored. We encourage stepping out of comfort zones.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-xl p-8 text-center shadow-md hover:shadow-xl transition-all">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FaHandshake className="text-purple-600 text-2xl" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Inclusivity</h3>
-              <p className="text-gray-600">
-                Everyone is welcome. We celebrate diversity and create safe spaces for all.
-              </p>
-            </div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 tracking-tight px-4">
+              <span 
+                className="block"
+                style={{
+                  background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                Our Values
+              </span>
+            </h2>
           </div>
-        </section>
 
-        {/* Mission & Vision */}
-        <section className="max-w-4xl mx-auto mb-20">
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-8 shadow-lg">
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Our Mission</h3>
-              <p className="text-gray-700">
-                To create a vibrant community platform that brings people together through engaging events, 
-                exciting adventures, and meaningful connections, making happiness accessible to everyone.
-              </p>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-7xl mx-auto">
+            {values.map((value, index) => (
+              <div
+                key={index}
+                className="group relative overflow-hidden rounded-2xl md:rounded-3xl p-6 sm:p-8 transition-all duration-700 cursor-pointer border border-gray-100 hover:border-transparent"
+                style={{
+                  background: "linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%)",
+                  boxShadow: "0 4px 24px rgba(0, 0, 0, 0.06)",
+                }}
+                onMouseEnter={(e) => {
+                  if (window.innerWidth >= 768) {
+                    e.currentTarget.style.transform = "translateY(-8px)";
+                    e.currentTarget.style.boxShadow = "0 20px 40px rgba(255, 111, 94, 0.15)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 4px 24px rgba(0, 0, 0, 0.06)";
+                }}
+              >
+                {/* Abstract shape background */}
+                <div 
+                  className="absolute top-0 right-0 w-24 h-24 md:w-32 md:h-32 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-3xl"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(255, 212, 71, 0.3) 0%, rgba(255, 111, 94, 0.3) 100%)",
+                    transform: "translate(30%, -30%)",
+                  }}
+                ></div>
 
-            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-8 shadow-lg">
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Our Vision</h3>
-              <p className="text-gray-700">
-                To become the leading lifestyle and events platform in Ethiopia, known for creating 
-                unforgettable experiences and building a community where every member feels valued and happy.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Milestones */}
-        <section className="max-w-4xl mx-auto mb-20">
-          <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-12">Our Journey</h2>
-          <div className="space-y-8">
-            {[
-              { year: "2024", title: "Launch", description: "Yenege officially launched with our first community events" },
-              { year: "2024", title: "Growth", description: "Expanded to include travel adventures and corporate events" },
-              { year: "Future", title: "Expansion", description: "Building towards becoming Ethiopia's premier lifestyle platform" },
-            ].map((milestone, index) => (
-              <div key={index} className="flex gap-6">
-                <div className="flex-shrink-0">
-                  <div className="w-16 h-16 bg-amber-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                    {milestone.year.slice(-2)}
+                {/* Number indicator */}
+                <div className="absolute top-4 left-4 md:top-6 md:left-6">
+                  <div 
+                    className="text-4xl md:text-5xl lg:text-6xl font-black opacity-5 group-hover:opacity-10 transition-opacity duration-700"
+                    style={{
+                      background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      backgroundClip: "text",
+                      lineHeight: 1,
+                    }}
+                  >
+                    {value.number}
                   </div>
                 </div>
-                <div className="flex-grow bg-white rounded-xl p-6 shadow-md">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{milestone.title}</h3>
-                  <p className="text-gray-600">{milestone.description}</p>
+
+                <div className="relative z-10 pt-6 md:pt-8">
+                  {/* Decorative line */}
+                  <div 
+                    className="h-1 w-12 md:w-16 mb-6 md:mb-8 rounded-full transition-all duration-700 group-hover:w-20 md:group-hover:w-24"
+                    style={{
+                      background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                    }}
+                  ></div>
+
+                  <h3 
+                    className="text-xl md:text-2xl font-bold mb-3 md:mb-4 tracking-tight"
+                    style={{
+                      background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      backgroundClip: "text",
+                    }}
+                  >
+                    {value.title}
+                  </h3>
+                  <p className="text-gray-600 leading-relaxed text-sm md:text-base">
+                    {value.description}
+                  </p>
                 </div>
               </div>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* CTA Section */}
-        <section className="max-w-4xl mx-auto text-center bg-gradient-to-r from-amber-600 to-orange-600 rounded-2xl p-12 text-white">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Join Us on This Journey</h2>
-          <p className="text-xl mb-8 opacity-90">
-            Be part of a community that's making life more joyful, one event at a time.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to="/events"
-              className="inline-flex items-center justify-center px-8 py-4 bg-white text-amber-600 rounded-lg font-semibold hover:bg-gray-100 transition-all shadow-lg"
-            >
-              Explore Events
-            </Link>
-            <Link
-              to="/contact"
-              className="inline-flex items-center justify-center px-8 py-4 bg-transparent border-2 border-white text-white rounded-lg font-semibold hover:bg-white hover:text-amber-600 transition-all"
-            >
-              Get in Touch
-            </Link>
+      {/* Mission & Vision */}
+      <section className="py-12 md:py-16 lg:py-24 relative overflow-hidden bg-gray-50">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+              {/* Mission */}
+              <div className="group relative overflow-hidden rounded-2xl md:rounded-3xl p-8 md:p-10 transition-all duration-700 border border-gray-100 hover:border-transparent"
+                style={{
+                  background: "linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%)",
+                  boxShadow: "0 4px 24px rgba(0, 0, 0, 0.06)",
+                }}
+                onMouseEnter={(e) => {
+                  if (window.innerWidth >= 768) {
+                    e.currentTarget.style.transform = "translateY(-4px)";
+                    e.currentTarget.style.boxShadow = "0 20px 40px rgba(255, 111, 94, 0.15)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 4px 24px rgba(0, 0, 0, 0.06)";
+                }}
+              >
+                {/* Abstract shape */}
+                <div 
+                  className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-3xl"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(255, 212, 71, 0.3) 0%, rgba(255, 111, 94, 0.3) 100%)",
+                    transform: "translate(30%, -30%)",
+                  }}
+                ></div>
+
+                <div className="relative z-10">
+                  <div 
+                    className="h-1 w-12 md:w-16 mb-6 rounded-full"
+                    style={{
+                      background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                    }}
+                  ></div>
+                  <h3 
+                    className="text-2xl md:text-3xl font-bold mb-4 tracking-tight"
+                    style={{
+                      background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      backgroundClip: "text",
+                    }}
+                  >
+                    {content.mission?.title || "Our Mission"}
+                  </h3>
+                  <p className="text-gray-700 leading-relaxed text-base md:text-lg">
+                    {content.mission?.content || "To create a vibrant community platform that brings people together through engaging events, exciting adventures, and meaningful connections, making happiness accessible to everyone."}
+                  </p>
+                </div>
+              </div>
+
+              {/* Vision */}
+              <div className="group relative overflow-hidden rounded-2xl md:rounded-3xl p-8 md:p-10 transition-all duration-700 border border-gray-100 hover:border-transparent"
+                style={{
+                  background: "linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%)",
+                  boxShadow: "0 4px 24px rgba(0, 0, 0, 0.06)",
+                }}
+                onMouseEnter={(e) => {
+                  if (window.innerWidth >= 768) {
+                    e.currentTarget.style.transform = "translateY(-4px)";
+                    e.currentTarget.style.boxShadow = "0 20px 40px rgba(255, 111, 94, 0.15)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 4px 24px rgba(0, 0, 0, 0.06)";
+                }}
+              >
+                {/* Abstract shape */}
+                <div 
+                  className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-3xl"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(255, 212, 71, 0.3) 0%, rgba(255, 111, 94, 0.3) 100%)",
+                    transform: "translate(30%, -30%)",
+                  }}
+                ></div>
+
+                <div className="relative z-10">
+                  <div 
+                    className="h-1 w-12 md:w-16 mb-6 rounded-full"
+                    style={{
+                      background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                    }}
+                  ></div>
+                  <h3 
+                    className="text-2xl md:text-3xl font-bold mb-4 tracking-tight"
+                    style={{
+                      background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      backgroundClip: "text",
+                    }}
+                  >
+                    {content.vision?.title || "Our Vision"}
+                  </h3>
+                  <p className="text-gray-700 leading-relaxed text-base md:text-lg">
+                    {content.vision?.content || "To become the leading lifestyle and events platform in Ethiopia, known for creating unforgettable experiences and building a community where every member feels valued and happy."}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
+
+      {/* Milestones */}
+      <section className="py-12 md:py-16 lg:py-24 relative overflow-hidden bg-white">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12 md:mb-16 lg:mb-20">
+            <div className="inline-block mb-4 md:mb-6">
+              <div 
+                className="h-1 w-16 md:w-20 mx-auto mb-3 md:mb-4 rounded-full"
+                style={{
+                  background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                }}
+              ></div>
+            </div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 tracking-tight px-4">
+              <span 
+                className="block"
+                style={{
+                  background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                Our Journey
+              </span>
+            </h2>
+          </div>
+
+          <div className="max-w-4xl mx-auto space-y-6 md:space-y-8">
+            {milestones.map((milestone, index) => (
+              <div 
+                key={index}
+                className="group relative overflow-hidden rounded-2xl md:rounded-3xl p-6 md:p-8 transition-all duration-700 border border-gray-100 hover:border-transparent"
+                style={{
+                  background: "linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%)",
+                  boxShadow: "0 4px 24px rgba(0, 0, 0, 0.06)",
+                }}
+                onMouseEnter={(e) => {
+                  if (window.innerWidth >= 768) {
+                    e.currentTarget.style.transform = "translateX(8px)";
+                    e.currentTarget.style.boxShadow = "0 20px 40px rgba(255, 111, 94, 0.15)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateX(0)";
+                  e.currentTarget.style.boxShadow = "0 4px 24px rgba(0, 0, 0, 0.06)";
+                }}
+              >
+                <div className="flex flex-col sm:flex-row gap-4 md:gap-6 items-start">
+                  {/* Year indicator */}
+                  <div className="flex-shrink-0">
+                    <div 
+                      className="w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center font-bold text-lg md:text-xl transition-all duration-300 group-hover:scale-110"
+                      style={{
+                        background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
+                        color: "#1C2951",
+                        boxShadow: "0 4px 15px rgba(255, 111, 94, 0.3)",
+                      }}
+                    >
+                      {milestone.year === "Future" ? "∞" : milestone.year.slice(-2)}
+                    </div>
+                  </div>
+                  
+                  {/* Content */}
+                  <div className="flex-grow">
+                    <h3 
+                      className="text-xl md:text-2xl font-bold mb-2 md:mb-3 tracking-tight"
+                      style={{
+                        background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text",
+                      }}
+                    >
+                      {milestone.title}
+                    </h3>
+                    <p className="text-gray-600 text-sm md:text-base leading-relaxed">
+                      {milestone.description}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-12 md:py-16 lg:py-24 relative overflow-hidden bg-gray-50">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="max-w-4xl mx-auto text-center">
+            <div 
+              className="h-1 w-16 md:w-20 mx-auto mb-6 rounded-full"
+              style={{
+                background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+              }}
+            ></div>
+            <h2 
+              className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 md:mb-6 tracking-tight"
+              style={{
+                background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              Join Us on This Journey
+            </h2>
+            <p className="text-base sm:text-lg md:text-xl text-gray-600 mb-8 md:mb-12 max-w-2xl mx-auto leading-relaxed">
+              Be part of a community that's making life more joyful, one event at a time.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
+              <Link
+                to="/events"
+                className="group inline-flex items-center justify-center px-6 md:px-10 py-3 md:py-4 rounded-full font-semibold transition-all duration-500 relative overflow-hidden text-sm md:text-base"
+                style={{
+                  background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
+                  color: "#1C2951",
+                  boxShadow: "0 4px 20px rgba(255, 111, 94, 0.3)",
+                }}
+                onMouseEnter={(e) => {
+                  if (window.innerWidth >= 768) {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = "0 8px 30px rgba(255, 111, 94, 0.4)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 4px 20px rgba(255, 111, 94, 0.3)";
+                }}
+              >
+                <span className="relative z-10">Explore Events</span>
+                <FaArrowRight 
+                  className="ml-2 md:ml-3 relative z-10 transition-all duration-300 group-hover:translate-x-1" 
+                  size={14}
+                />
+              </Link>
+              <a
+                href={`https://wa.me/${contactInfo?.phone?.replace(/\D/g, '') || '251978639887'}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group inline-flex items-center justify-center gap-2 px-6 md:px-10 py-3 md:py-4 rounded-full font-semibold transition-all duration-500 text-sm md:text-base text-white"
+                style={{
+                  background: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)",
+                  boxShadow: "0 4px 20px rgba(37, 211, 102, 0.3)",
+                }}
+                onMouseEnter={(e) => {
+                  if (window.innerWidth >= 768) {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = "0 8px 30px rgba(37, 211, 102, 0.4)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 4px 20px rgba(37, 211, 102, 0.3)";
+                }}
+              >
+                <FaWhatsapp size={16} />
+                <span>Contact via WhatsApp</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };

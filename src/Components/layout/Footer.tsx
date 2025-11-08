@@ -1,142 +1,237 @@
-import { FaEnvelope, FaInstagram, FaPhone, FaTelegram, FaTiktok, FaYoutube } from "react-icons/fa";
+import { FaArrowRight, FaEnvelope, FaInstagram, FaTelegram, FaTiktok, FaWhatsapp, FaYoutube } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { useContactInfo, useSiteConfig } from "../../hooks/useApi";
 
 const Footer = () => {
+  const { config } = useSiteConfig();
+  const { contactInfo } = useContactInfo();
   const currentYear = new Date().getFullYear();
 
+  // Icon mapping for social links
+  const iconMap: { [key: string]: any } = {
+    instagram: FaInstagram,
+    telegram: FaTelegram,
+    tiktok: FaTiktok,
+    youtube: FaYoutube,
+    whatsapp: FaWhatsapp,
+  };
+
+  const socialLinks = contactInfo?.socialLinks?.map(link => {
+    const Icon = iconMap[link.platform.toLowerCase()] || FaInstagram;
+    return {
+      icon: Icon,
+      href: link.url,
+      label: link.platform,
+    };
+  }) || [];
+
+  const quickLinks = config?.footer?.quickLinks || [
+    { path: "/", label: "Home" },
+    { path: "/events", label: "Events" },
+    { path: "/about", label: "About" },
+    { path: "/contact", label: "Contact" },
+  ];
+
   return (
-    <footer className="bg-gray-900 text-gray-300">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid md:grid-cols-4 gap-8">
+    <footer className="relative bg-gray-900 text-white overflow-hidden">
+      {/* Decorative gradient overlay */}
+      <div 
+        className="absolute top-0 left-0 right-0 h-px opacity-50"
+        style={{
+          background: "linear-gradient(90deg, transparent 0%, #FFD447 50%, transparent 100%)",
+        }}
+      />
+      
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-24">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-10">
           {/* Brand */}
-          <div>
-            <div className="flex items-center space-x-2 mb-4">
-              <span className="text-2xl">🌍</span>
-              <span className="text-xl font-bold text-white">YENEGE</span>
-            </div>
-            <p className="text-sm mb-4">
-              Bringing happiness to life through events, adventures, and community connections.
+          <div className="lg:col-span-1">
+            <Link to="/" className="inline-block mb-6 group">
+              <img 
+                src="/logo.png" 
+                alt="YENEGE Logo" 
+                className="h-14 w-auto brightness-0 invert transition-transform duration-300 group-hover:scale-105" 
+              />
+            </Link>
+            <p className="text-sm text-gray-400 leading-relaxed mb-8 max-w-xs">
+              {config?.footer?.description || "Bringing happiness to life through events, adventures, and community connections."}
             </p>
-            <div className="flex space-x-4">
-              <a
-                href="https://instagram.com/yenege"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-400 hover:text-pink-500 transition-colors"
-                aria-label="Instagram"
-              >
-                <FaInstagram size={20} />
-              </a>
-              <a
-                href="https://t.me/yenege"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-400 hover:text-blue-400 transition-colors"
-                aria-label="Telegram"
-              >
-                <FaTelegram size={20} />
-              </a>
-              <a
-                href="https://tiktok.com/@yenege"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-400 hover:text-white transition-colors"
-                aria-label="TikTok"
-              >
-                <FaTiktok size={20} />
-              </a>
-              <a
-                href="https://youtube.com/@yenege"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-400 hover:text-red-500 transition-colors"
-                aria-label="YouTube"
-              >
-                <FaYoutube size={20} />
-              </a>
-            </div>
+            
+            {/* Social Links */}
+            {socialLinks.length > 0 && (
+              <div className="flex items-center gap-3">
+                {socialLinks.map((social, index) => {
+                  const Icon = social.icon;
+                  return (
+                    <a
+                      key={index}
+                      href={social.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group relative w-10 h-10 rounded-lg bg-white/5 hover:bg-gradient-to-br hover:from-[#25D366] hover:to-[#128C7E] flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-[#25D366]/25"
+                      aria-label={social.label}
+                    >
+                      <Icon size={17} className="relative z-10 group-hover:text-white transition-colors" />
+                    </a>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-white font-semibold mb-4">Quick Links</h3>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link to="/" className="hover:text-amber-400 transition-colors">
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link to="/events" className="hover:text-amber-400 transition-colors">
-                  Events
-                </Link>
-              </li>
-              <li>
-                <Link to="/about" className="hover:text-amber-400 transition-colors">
-                  About
-                </Link>
-              </li>
-              <li>
-                <Link to="/contact" className="hover:text-amber-400 transition-colors">
-                  Contact
-                </Link>
-              </li>
+            <div className="flex items-center gap-3 mb-6">
+              <div 
+                className="h-0.5 w-8 rounded-full"
+                style={{
+                  background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                }}
+              />
+              <h3 className="text-white font-bold text-sm tracking-wider uppercase">
+                Quick Links
+              </h3>
+            </div>
+            <ul className="space-y-3.5">
+              {quickLinks.map((link) => (
+                <li key={link.path}>
+                  <Link 
+                    to={link.path} 
+                    className="group flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-all duration-300"
+                  >
+                    <span 
+                      className="w-0 h-0.5 rounded-full transition-all duration-300 group-hover:w-3"
+                      style={{
+                        background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                      }}
+                    />
+                    <span className="group-hover:translate-x-1 transition-transform duration-300">
+                      {link.label}
+                    </span>
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
           {/* Contact Info */}
           <div>
-            <h3 className="text-white font-semibold mb-4">Contact</h3>
-            <ul className="space-y-2 text-sm">
-              <li className="flex items-center">
-                <FaEnvelope className="mr-2 text-amber-400" />
+            <div className="flex items-center gap-3 mb-6">
+              <div 
+                className="h-0.5 w-8 rounded-full"
+                style={{
+                  background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                }}
+              />
+              <h3 className="text-white font-bold text-sm tracking-wider uppercase">
+                Contact
+              </h3>
+            </div>
+            <ul className="space-y-5">
+              <li>
                 <a
-                  href="mailto:bereketyosef49@gmail.com"
-                  className="hover:text-amber-400 transition-colors"
+                  href={`mailto:${contactInfo?.email || "bereketyosef49@gmail.com"}`}
+                  className="group flex items-start gap-3 text-sm text-gray-400 hover:text-white transition-all duration-300"
                 >
-                  bereketyosef49@gmail.com
+                  <div className="mt-0.5 p-2 rounded-lg bg-white/5 group-hover:bg-gradient-to-br group-hover:from-[#FFD447] group-hover:to-[#FF6F5E] transition-all duration-300 flex-shrink-0">
+                    <FaEnvelope size={14} className="group-hover:text-white transition-colors" />
+                  </div>
+                  <span className="break-all pt-1.5">{contactInfo?.email || "bereketyosef49@gmail.com"}</span>
                 </a>
               </li>
-              <li className="flex items-center">
-                <FaPhone className="mr-2 text-amber-400" />
+              <li>
                 <a
-                  href="tel:+251978639887"
-                  className="hover:text-amber-400 transition-colors"
+                  href={`https://wa.me/${contactInfo?.phone?.replace(/\D/g, '') || '251978639887'}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center gap-3 text-sm text-gray-400 hover:text-white transition-all duration-300"
                 >
-                  +251 978 639 887
+                  <div className="p-2 rounded-lg bg-white/5 group-hover:bg-gradient-to-br group-hover:from-[#25D366] group-hover:to-[#128C7E] transition-all duration-300 flex-shrink-0">
+                    <FaWhatsapp size={14} className="group-hover:text-white transition-colors" />
+                  </div>
+                  <span className="pt-1.5">WhatsApp: {contactInfo?.phoneFormatted || contactInfo?.phone || "+251 978 639 887"}</span>
                 </a>
               </li>
-              <li className="flex items-start">
-                <span className="mr-2 text-amber-400">📍</span>
-                <span>Addis Ababa, Ethiopia</span>
+              <li className="flex items-start gap-3 text-sm text-gray-400">
+                <div className="p-2 rounded-lg bg-white/5 flex-shrink-0">
+                  <span className="text-base">📍</span>
+                </div>
+                <span className="pt-1.5">{contactInfo?.location || "Addis Ababa, Ethiopia"}</span>
               </li>
             </ul>
           </div>
 
           {/* Newsletter */}
           <div>
-            <h3 className="text-white font-semibold mb-4">Stay Updated</h3>
-            <p className="text-sm mb-4">
+            <div className="flex items-center gap-3 mb-6">
+              <div 
+                className="h-0.5 w-8 rounded-full"
+                style={{
+                  background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                }}
+              />
+              <h3 className="text-white font-bold text-sm tracking-wider uppercase">
+                Stay Updated
+              </h3>
+            </div>
+            <p className="text-sm text-gray-400 mb-6 leading-relaxed">
               Subscribe to get notified about upcoming events and adventures.
             </p>
-            <form className="flex flex-col space-y-2">
-              <input
-                type="email"
-                placeholder="Your email"
-                className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
-              />
+            <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
+              <div className="relative">
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 text-sm focus:outline-none focus:border-[#FFD447] focus:ring-2 focus:ring-[#FFD447]/20 transition-all duration-300"
+                />
+              </div>
               <button
                 type="submit"
-                className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-semibold"
+                className="group w-full px-6 py-3.5 text-sm font-semibold text-gray-900 rounded-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg hover:shadow-[#FFD447]/25 flex items-center justify-center gap-2"
+                style={{
+                  background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
+                }}
               >
-                Subscribe
+                <span>Subscribe</span>
+                <FaArrowRight size={12} className="group-hover:translate-x-1 transition-transform duration-300" />
               </button>
             </form>
           </div>
         </div>
 
-        <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm">
-          <p>© {currentYear} YENEGE. All rights reserved.</p>
+        {/* Bottom Bar */}
+        <div className="border-t border-white/10 mt-20 pt-8">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-sm text-gray-500">
+              © {currentYear} <span className="font-semibold text-gray-400">{config?.siteName || "YENEGE"}</span>. All rights reserved.
+            </p>
+            <div className="flex items-center gap-6 text-sm">
+              <Link 
+                to="/about" 
+                className="text-gray-500 hover:text-white transition-colors duration-300 relative group"
+              >
+                Privacy Policy
+                <span 
+                  className="absolute -bottom-1 left-0 w-0 h-0.5 rounded-full group-hover:w-full transition-all duration-300"
+                  style={{
+                    background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                  }}
+                />
+              </Link>
+              <Link 
+                to="/contact" 
+                className="text-gray-500 hover:text-white transition-colors duration-300 relative group"
+              >
+                Terms of Service
+                <span 
+                  className="absolute -bottom-1 left-0 w-0 h-0.5 rounded-full group-hover:w-full transition-all duration-300"
+                  style={{
+                    background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                  }}
+                />
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </footer>

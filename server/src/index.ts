@@ -2,6 +2,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
 import path from 'path';
+import contentRoutes from './routes/content';
 import paymentRoutes from './routes/payment';
 
 // Load .env file from server directory
@@ -23,6 +24,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/api/payments', paymentRoutes);
+app.use('/api', contentRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

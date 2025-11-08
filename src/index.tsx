@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { SWRConfig } from 'swr';
 import App from './App';
 import './index.css';
 
@@ -9,6 +10,16 @@ const root = ReactDOM.createRoot(
 
 root.render(
   <React.StrictMode>
-    <App />
+    <SWRConfig
+      value={{
+        revalidateOnFocus: false,
+        revalidateOnReconnect: true,
+        shouldRetryOnError: true,
+        errorRetryCount: 3,
+        errorRetryInterval: 5000,
+      }}
+    >
+      <App />
+    </SWRConfig>
   </React.StrictMode>
 );

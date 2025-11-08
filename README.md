@@ -1,4 +1,4 @@
-# 🌍 YENEGE Website
+# Website
 
 A modern lifestyle & events platform built with React and TypeScript.
 

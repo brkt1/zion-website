@@ -2,8 +2,13 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
-/* Custom Fonts */
+/* Custom Fonts - YENEGE Futuristic Typography */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 /* Base Styles */
@@ -13,11 +18,16 @@
   }
 
   body {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Inter', 'Nunito', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: #0a0a0a;
-    color: #ffffff;
+    background-color: #f8f9fa;
+    color: #1a1a1a;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', 'Manrope', system-ui, sans-serif;
+    font-weight: 700;
   }
 
   * {
@@ -30,50 +40,50 @@
   }
 
   ::-webkit-scrollbar-track {
-    background: #1a1a1a;
+    background: #e5e7eb;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #ffd700;
+    background: #d1d5db;
     border-radius: 4px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #ffed4e;
+    background: #9ca3af;
   }
 
   /* Selection */
   ::selection {
-    background: #ffd700;
-    color: #0a0a0a;
+    background: #FFD447;
+    color: #1C2951;
   }
 
   ::-moz-selection {
-    background: #ffd700;
-    color: #0a0a0a;
+    background: #FFD447;
+    color: #1C2951;
   }
 }
 
 /* Component Styles */
 @layer components {
   .btn-primary {
-    @apply px-6 py-3 bg-gradient-to-r from-gold-primary to-gold-secondary text-black-primary font-bold rounded-lg hover:from-gold-secondary hover:to-gold-primary transition-all duration-200 transform hover:scale-105 active:scale-95;
+    @apply px-6 py-3 bg-gradient-to-r from-yenege-yellow to-coral-orange text-indigo-deep font-bold rounded-futuristic hover:from-coral-orange hover:to-purple-electric transition-all duration-200 transform hover:scale-105 hover:shadow-glow-yellow active:scale-95;
   }
 
   .btn-secondary {
-    @apply px-6 py-3 bg-gray-dark text-white font-medium rounded-lg hover:bg-gray-medium transition-colors transform hover:scale-105 active:scale-95;
+    @apply px-6 py-3 bg-space-grey text-soft-white font-medium rounded-futuristic hover:bg-indigo-deep transition-colors transform hover:scale-105 hover:shadow-glow-purple active:scale-95;
   }
 
   .btn-outline {
-    @apply px-6 py-3 border-2 border-gold-primary text-gold-primary font-medium rounded-lg hover:bg-gold-primary hover:text-black-primary transition-all duration-200 transform hover:scale-105 active:scale-95;
+    @apply px-6 py-3 border-2 border-yenege-yellow text-yenege-yellow font-medium rounded-futuristic hover:bg-yenege-yellow hover:text-indigo-deep transition-all duration-200 transform hover:scale-105 hover:shadow-glow-yellow active:scale-95;
   }
 
   .card {
-    @apply bg-black-secondary rounded-xl border border-gray-dark p-6 hover:border-gold-primary/50 transition-all duration-200;
+    @apply bg-black-secondary rounded-card border border-gray-dark p-6 hover:border-yenege-yellow/50 hover:shadow-soft-yellow transition-all duration-300 transform hover:-translate-y-1;
   }
 
   .input-field {
-    @apply w-full px-4 py-3 bg-black-secondary border border-gray-dark rounded-lg text-white placeholder-gray-light focus:border-gold-primary focus:outline-none transition-colors;
+    @apply w-full px-4 py-3 bg-black-secondary border border-gray-dark rounded-futuristic text-white placeholder-gray-light focus:border-yenege-yellow focus:outline-none focus:shadow-glow-yellow transition-all;
   }
 
   .modal-overlay {
@@ -85,19 +95,31 @@
   }
 
   .gradient-text {
-    @apply bg-gradient-to-r from-gold-primary to-gold-secondary bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-yenege-yellow via-coral-orange to-purple-electric bg-clip-text text-transparent;
   }
 
   .glass-effect {
-    @apply bg-white/10 backdrop-blur-md border border-white/20;
+    @apply bg-white/10 backdrop-blur-md border border-white/20 rounded-futuristic;
+  }
+
+  .glass-effect-strong {
+    @apply bg-white/15 backdrop-blur-lg border border-white/30 rounded-futuristic shadow-soft;
   }
 
   .neon-glow {
     @apply shadow-glow hover:shadow-glow-lg transition-shadow duration-300;
   }
 
+  .neon-glow-purple {
+    @apply shadow-glow-purple hover:shadow-glow-purple-lg transition-shadow duration-300;
+  }
+
   .floating {
     @apply animate-float;
+  }
+
+  .floating-lift {
+    @apply transition-transform duration-300 hover:-translate-y-2;
   }
 
   .shimmer {
@@ -218,11 +240,11 @@
 
   /* Game-specific Utilities */
   .game-card {
-    @apply card hover:shadow-glow cursor-pointer transform hover:scale-105 transition-all duration-300;
+    @apply card hover:shadow-glow-yellow cursor-pointer transform hover:scale-105 transition-all duration-300;
   }
 
   .score-display {
-    @apply text-4xl md:text-6xl font-bold text-gold-primary text-shadow-lg;
+    @apply text-4xl md:text-6xl font-bold text-yenege-yellow text-shadow-lg;
   }
 
   .timer-display {
@@ -234,7 +256,7 @@
   }
 
   .progress-fill {
-    @apply h-full bg-gradient-to-r from-gold-primary to-gold-secondary transition-all duration-500 ease-out;
+    @apply h-full bg-gradient-to-r from-yenege-yellow via-coral-orange to-purple-electric transition-all duration-500 ease-out;
   }
 
   .status-badge {
@@ -276,11 +298,28 @@
 
   /* Focus States */
   .focus-ring {
-    @apply focus:outline-none focus:ring-2 focus:ring-gold-primary focus:ring-offset-2 focus:ring-offset-black-primary;
+    @apply focus:outline-none focus:ring-2 focus:ring-yenege-yellow focus:ring-offset-2 focus:ring-offset-black-primary;
   }
 
   .focus-visible-ring {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-primary focus-visible:ring-offset-2 focus-visible:ring-offset-black-primary;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yenege-yellow focus-visible:ring-offset-2 focus-visible:ring-offset-black-primary;
+  }
+
+  /* YENEGE Futuristic Utility Classes */
+  .event-card {
+    @apply card rounded-card hover:shadow-soft-yellow transition-all duration-300 transform hover:-translate-y-2;
+  }
+
+  .badge-event {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-coral-orange/20 text-coral-orange border border-coral-orange/30;
+  }
+
+  .badge-travel {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-teal-breeze/20 text-teal-breeze border border-teal-breeze/30;
+  }
+
+  .badge-nightlife {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-electric/20 text-purple-electric border border-purple-electric/30;
   }
 }
 
