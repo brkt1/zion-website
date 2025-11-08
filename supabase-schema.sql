@@ -171,6 +171,34 @@ CREATE TABLE IF NOT EXISTS hero_categories (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Tickets Table
+CREATE TABLE IF NOT EXISTS tickets (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  tx_ref TEXT NOT NULL UNIQUE,
+  event_id UUID REFERENCES events(id) ON DELETE SET NULL,
+  event_title TEXT,
+  customer_name TEXT,
+  customer_email TEXT NOT NULL,
+  customer_phone TEXT,
+  amount NUMERIC NOT NULL,
+  currency TEXT NOT NULL DEFAULT 'ETB',
+  quantity INTEGER NOT NULL DEFAULT 1,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'success', 'failed', 'cancelled')),
+  chapa_reference TEXT,
+  qr_code_data JSONB,
+  payment_date TIMESTAMP WITH TIME ZONE,
+  verified_at TIMESTAMP WITH TIME ZONE,
+  verified_by UUID,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create index on tx_ref for faster lookups
+CREATE INDEX IF NOT EXISTS idx_tickets_tx_ref ON tickets(tx_ref);
+CREATE INDEX IF NOT EXISTS idx_tickets_event_id ON tickets(event_id);
+CREATE INDEX IF NOT EXISTS idx_tickets_customer_email ON tickets(customer_email);
+CREATE INDEX IF NOT EXISTS idx_tickets_status ON tickets(status);
+
 -- Enable Row Level Security (RLS)
 ALTER TABLE events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
@@ -187,23 +215,56 @@ ALTER TABLE home_content ENABLE ROW LEVEL SECURITY;
 ALTER TABLE home_categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE home_cta_buttons ENABLE ROW LEVEL SECURITY;
 ALTER TABLE hero_categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tickets ENABLE ROW LEVEL SECURITY;
 
 -- Create policies to allow public read access
+DROP POLICY IF EXISTS "Allow public read access on events" ON events;
 CREATE POLICY "Allow public read access on events" ON events FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow public read access on categories" ON categories;
 CREATE POLICY "Allow public read access on categories" ON categories FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow public read access on destinations" ON destinations;
 CREATE POLICY "Allow public read access on destinations" ON destinations FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow public read access on gallery" ON gallery;
 CREATE POLICY "Allow public read access on gallery" ON gallery FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow public read access on about_content" ON about_content;
 CREATE POLICY "Allow public read access on about_content" ON about_content FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow public read access on about_values" ON about_values;
 CREATE POLICY "Allow public read access on about_values" ON about_values FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow public read access on about_milestones" ON about_milestones;
 CREATE POLICY "Allow public read access on about_milestones" ON about_milestones FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow public read access on contact_info" ON contact_info;
 CREATE POLICY "Allow public read access on contact_info" ON contact_info FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow public read access on social_links" ON social_links;
 CREATE POLICY "Allow public read access on social_links" ON social_links FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow public read access on site_config" ON site_config;
 CREATE POLICY "Allow public read access on site_config" ON site_config FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow public read access on navigation_links" ON navigation_links;
 CREATE POLICY "Allow public read access on navigation_links" ON navigation_links FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow public read access on home_content" ON home_content;
 CREATE POLICY "Allow public read access on home_content" ON home_content FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow public read access on home_categories" ON home_categories;
 CREATE POLICY "Allow public read access on home_categories" ON home_categories FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow public read access on home_cta_buttons" ON home_cta_buttons;
 CREATE POLICY "Allow public read access on home_cta_buttons" ON home_cta_buttons FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow public read access on hero_categories" ON hero_categories;
 CREATE POLICY "Allow public read access on hero_categories" ON hero_categories FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow public read access on tickets" ON tickets;
+CREATE POLICY "Allow public read access on tickets" ON tickets FOR SELECT USING (true);
 
 -- Insert sample data
 -- Categories

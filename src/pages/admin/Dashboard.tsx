@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';
-import { FaCalendarAlt, FaImages, FaMapMarkerAlt, FaNewspaper, FaCog, FaHome, FaInfoCircle, FaEnvelope, FaSignOutAlt } from 'react-icons/fa';
+import { FaCalendarAlt, FaCog, FaEnvelope, FaHome, FaImages, FaInfoCircle, FaMapMarkerAlt, FaNewspaper, FaQrcode, FaSignOutAlt } from 'react-icons/fa';
+import { Link, useNavigate } from 'react-router-dom';
+import { isAdmin } from '../../services/auth';
 import { supabase } from '../../services/supabase';
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [isUserAdmin, setIsUserAdmin] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -17,6 +19,7 @@ const Dashboard = () => {
         navigate('/admin/login');
       } else {
         setUser(session.user);
+        checkAdminStatus(session.user.id);
       }
     });
 
@@ -24,13 +27,28 @@ const Dashboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
+  const checkAdminStatus = async (userId: string) => {
+    const admin = await isAdmin();
+    if (!admin) {
+      // User is not an admin, redirect to login
+      await supabase.auth.signOut();
+      navigate('/admin/login?error=unauthorized');
+      return;
+    }
+    setIsUserAdmin(true);
+    setCheckingAuth(false);
+  };
+
   const checkUser = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       navigate('/admin/login');
-    } else {
-      setUser(session.user);
+      setCheckingAuth(false);
+      return;
     }
+    
+    setUser(session.user);
+    await checkAdminStatus(session.user.id);
   };
 
   const handleLogout = async () => {
@@ -39,6 +57,7 @@ const Dashboard = () => {
   };
 
   const menuItems = [
+    { icon: FaQrcode, label: 'Verify Tickets', path: '/admin/verify', color: 'bg-cyan-500' },
     { icon: FaCalendarAlt, label: 'Events', path: '/admin/events', color: 'bg-blue-500' },
     { icon: FaNewspaper, label: 'Categories', path: '/admin/categories', color: 'bg-green-500' },
     { icon: FaMapMarkerAlt, label: 'Destinations', path: '/admin/destinations', color: 'bg-purple-500' },
@@ -48,17 +67,6 @@ const Dashboard = () => {
     { icon: FaEnvelope, label: 'Contact Info', path: '/admin/contact', color: 'bg-red-500' },
     { icon: FaCog, label: 'Site Settings', path: '/admin/settings', color: 'bg-gray-500' },
   ];
-
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -71,14 +79,20 @@ const Dashboard = () => {
               <p className="text-sm text-gray-600">Manage your website content</p>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">{user.email}</span>
-              <button
-                onClick={handleLogout}
-                className="inline-flex items-center gap-2 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-              >
-                <FaSignOutAlt />
-                Logout
-              </button>
+              {checkingAuth ? (
+                <div className="animate-pulse h-4 w-32 bg-gray-200 rounded"></div>
+              ) : (
+                <>
+                  <span className="text-sm text-gray-600">{user?.email || ''}</span>
+                  <button
+                    onClick={handleLogout}
+                    className="inline-flex items-center gap-2 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  >
+                    <FaSignOutAlt />
+                    Logout
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -87,14 +87,6 @@ const Settings = () => {
     setFormData({ ...formData, navigation: updated });
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -105,7 +97,19 @@ const Settings = () => {
           <h1 className="text-3xl font-bold text-gray-900">Site Settings</h1>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white shadow rounded-lg p-6 space-y-6">
+        {loading ? (
+          <div className="bg-white shadow rounded-lg p-6 space-y-6 animate-pulse">
+            <div className="space-y-2">
+              <div className="h-4 bg-gray-200 rounded w-24"></div>
+              <div className="h-10 bg-gray-200 rounded"></div>
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 bg-gray-200 rounded w-24"></div>
+              <div className="h-10 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="bg-white shadow rounded-lg p-6 space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700">Site Name *</label>
             <input
@@ -188,6 +192,7 @@ const Settings = () => {
             </button>
           </div>
         </form>
+        )}
       </div>
     </div>
   );

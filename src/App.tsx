@@ -18,6 +18,7 @@ import AdminGallery from "./pages/admin/Gallery";
 import AdminHome from "./pages/admin/Home";
 import AdminLogin from "./pages/admin/Login";
 import AdminSettings from "./pages/admin/Settings";
+import VerifyTicket from "./pages/admin/VerifyTicket";
 
 function App() {
   return (
@@ -55,6 +56,7 @@ function App() {
         <Route path="/admin/home" element={<AdminHome />} />
         <Route path="/admin/contact" element={<AdminContact />} />
         <Route path="/admin/settings" element={<AdminSettings />} />
+        <Route path="/admin/verify" element={<VerifyTicket />} />
       </Routes>
     </Router>
   );

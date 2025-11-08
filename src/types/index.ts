@@ -59,3 +59,61 @@ export interface PaymentVerification {
   };
   message?: string;
 }
+
+// Ticket types
+export interface Ticket {
+  id: string;
+  tx_ref: string;
+  event_id?: string;
+  event_title?: string;
+  customer_name?: string;
+  customer_email: string;
+  customer_phone?: string;
+  amount: number;
+  currency: string;
+  quantity: number;
+  status: 'pending' | 'success' | 'failed' | 'cancelled';
+  chapa_reference?: string;
+  qr_code_data?: {
+    tx_ref: string;
+    amount: number;
+    currency: string;
+    date: string;
+    status: string;
+    reference: string;
+    quantity: number;
+    email: string;
+    name: string;
+  };
+  payment_date?: string;
+  verified_at?: string;
+  verified_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateTicketData {
+  tx_ref: string;
+  event_id?: string;
+  event_title?: string;
+  customer_name?: string;
+  customer_email: string;
+  customer_phone?: string;
+  amount: number;
+  currency: string;
+  quantity: number;
+  status?: 'pending' | 'success' | 'failed' | 'cancelled';
+  chapa_reference?: string;
+  qr_code_data?: {
+    tx_ref: string;
+    amount: number;
+    currency: string;
+    date: string;
+    status: string;
+    reference: string;
+    quantity: number;
+    email: string;
+    name: string;
+  };
+  payment_date?: string;
+}

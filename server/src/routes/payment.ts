@@ -66,7 +66,15 @@ router.post('/initialize', async (req: Request, res: Response) => {
     // Remove trailing slash if present
     const baseUrl = frontendUrl.replace(/\/$/, '');
     const callbackUrl = callback_url || `${baseUrl}/payment/callback`;
-    const returnUrl = return_url || `${baseUrl}/payment/success?tx_ref=${encodeURIComponent(transactionRef)}`;
+    
+    // Build return URL with all necessary parameters
+    let returnUrlParams = new URLSearchParams();
+    returnUrlParams.set('tx_ref', transactionRef);
+    if (event_id) returnUrlParams.set('event_id', event_id);
+    if (event_title) returnUrlParams.set('event_title', event_title);
+    // Note: quantity should be calculated on frontend or passed separately
+    
+    const returnUrl = return_url || `${baseUrl}/payment/success?${returnUrlParams.toString()}`;
 
     // Validate URLs are properly formatted
     try {
@@ -464,6 +472,13 @@ router.post('/webhook', async (req: Request, res: Response) => {
       // - Send confirmation email to customer
       // - Update event registration
       // - Trigger other business logic
+      
+      // Note: Tickets are automatically saved to Supabase by the frontend
+      // after successful payment verification on the PaymentSuccess page.
+      // If you want to also save tickets server-side here, you would need to:
+      // 1. Install @supabase/supabase-js in the server
+      // 2. Set up Supabase client with service role key
+      // 3. Call saveTicket service here when status is 'success'
       
       // TODO: Add your business logic here based on verification.data.status
     }

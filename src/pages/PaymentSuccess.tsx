@@ -4,16 +4,88 @@ import { FaCheckCircle, FaDownload, FaSpinner } from "react-icons/fa";
 import QRCode from "react-qr-code";
 import { Link, useSearchParams } from "react-router-dom";
 import { verifyPayment } from "../services/payment";
+import { getTicketByTxRef, saveTicket } from "../services/ticket";
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
   const txRef = searchParams.get("tx_ref");
   const quantityParam = searchParams.get("quantity");
+  const eventIdParam = searchParams.get("event_id");
+  const eventTitleParam = searchParams.get("event_title");
   const [verificationStatus, setVerificationStatus] = useState<"loading" | "success" | "failed" | "pending">("loading");
   const [paymentData, setPaymentData] = useState<any>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [ticketSaved, setTicketSaved] = useState(false);
   const ticketRef = useRef<HTMLDivElement>(null);
+
+  // Function to save ticket to database
+  const saveTicketToDatabase = async (paymentData: any, txRef: string | null) => {
+    if (!txRef || ticketSaved) return; // Don't save twice
+
+    try {
+      // Check if ticket already exists
+      const existingTicket = await getTicketByTxRef(txRef);
+      if (existingTicket) {
+        console.log('Ticket already exists in database');
+        setTicketSaved(true);
+        return;
+      }
+
+      // Get amount value
+      const amount = paymentData.amount 
+        ? (typeof paymentData.amount === 'string' ? parseFloat(paymentData.amount) / 100 : paymentData.amount / 100)
+        : 0;
+
+      // Get customer name
+      const customerName = paymentData.first_name && paymentData.last_name
+        ? `${paymentData.first_name} ${paymentData.last_name}`
+        : paymentData.first_name || paymentData.last_name || '';
+
+      // Get quantity
+      let quantity = 1;
+      if (quantityParam) {
+        const qty = parseInt(quantityParam, 10);
+        if (!isNaN(qty) && qty > 0) quantity = qty;
+      }
+
+      // Prepare QR code data
+      const qrData = {
+        tx_ref: paymentData.tx_ref || txRef || "",
+        amount: amount,
+        currency: paymentData.currency || "ETB",
+        date: paymentData.created_at || new Date().toISOString(),
+        status: paymentData.status || "success",
+        reference: paymentData.reference || paymentData.tx_ref || txRef || "",
+        quantity: quantity,
+        email: paymentData.email || "",
+        name: customerName
+      };
+
+      // Save ticket
+      await saveTicket({
+        tx_ref: txRef,
+        event_id: eventIdParam || undefined,
+        event_title: eventTitleParam || undefined,
+        customer_name: customerName || undefined,
+        customer_email: paymentData.email || '',
+        customer_phone: paymentData.phone_number || undefined,
+        amount: amount,
+        currency: paymentData.currency || 'ETB',
+        quantity: quantity,
+        status: 'success',
+        chapa_reference: paymentData.reference || undefined,
+        qr_code_data: qrData,
+        payment_date: paymentData.created_at || new Date().toISOString(),
+      });
+
+      console.log('Ticket saved to database successfully');
+      setTicketSaved(true);
+    } catch (error: any) {
+      console.error('Error saving ticket to database:', error);
+      // Don't show error to user, ticket display will still work
+    }
+  };
 
   useEffect(() => {
     const verify = async (attempt: number = 0) => {
@@ -32,6 +104,8 @@ const PaymentSuccess = () => {
           const status = response.data.status?.toLowerCase();
           if (status === "success" || status === "successful" || status === "completed") {
             setVerificationStatus("success");
+            // Save ticket to database
+            saveTicketToDatabase(response.data, txRef);
           } else if (status === "failed" || status === "cancelled" || status === "canceled") {
             setVerificationStatus("failed");
           } else if (status === "pending" || status === "processing") {

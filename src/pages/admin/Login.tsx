@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { isAdmin } from '../../services/auth';
 import { supabase } from '../../services/supabase';
 
 const Login = () => {
@@ -8,6 +9,15 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    // Check for error in URL params
+    const errorParam = searchParams.get('error');
+    if (errorParam === 'unauthorized') {
+      setError('You do not have admin access. Please contact an administrator.');
+    }
+  }, [searchParams]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,6 +33,14 @@ const Login = () => {
       if (error) throw error;
 
       if (data.user) {
+        // Check if user is admin
+        const admin = await isAdmin();
+        if (!admin) {
+          await supabase.auth.signOut();
+          setError('You do not have admin access. Please contact an administrator.');
+          setLoading(false);
+          return;
+        }
         navigate('/admin/dashboard');
       }
     } catch (err: any) {

@@ -85,14 +85,6 @@ const Contact = () => {
     setFormData({ ...formData, socialLinks: updated });
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -103,7 +95,19 @@ const Contact = () => {
           <h1 className="text-3xl font-bold text-gray-900">Contact Information</h1>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white shadow rounded-lg p-6 space-y-6">
+        {loading ? (
+          <div className="bg-white shadow rounded-lg p-6 space-y-6 animate-pulse">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="space-y-2">
+                  <div className="h-4 bg-gray-200 rounded w-24"></div>
+                  <div className="h-10 bg-gray-200 rounded"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="bg-white shadow rounded-lg p-6 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700">Email *</label>
@@ -198,6 +202,7 @@ const Contact = () => {
             </button>
           </div>
         </form>
+        )}
       </div>
     </div>
   );

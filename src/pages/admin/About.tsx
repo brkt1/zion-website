@@ -103,14 +103,6 @@ const About = () => {
     setFormData({ ...formData, milestones: updated });
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -121,7 +113,16 @@ const About = () => {
           <h1 className="text-3xl font-bold text-gray-900">About Content Management</h1>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        {loading ? (
+          <div className="space-y-8 animate-pulse">
+            <div className="bg-white shadow rounded-lg p-6 space-y-4">
+              <div className="h-6 bg-gray-200 rounded w-32"></div>
+              <div className="h-10 bg-gray-200 rounded"></div>
+              <div className="h-24 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-8">
           {/* Story Section */}
           <div className="bg-white shadow rounded-lg p-6">
             <h2 className="text-xl font-bold mb-4">Story Section</h2>
@@ -347,6 +348,7 @@ const About = () => {
             </button>
           </div>
         </form>
+        )}
       </div>
     </div>
   );
