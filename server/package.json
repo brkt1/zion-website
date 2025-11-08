@@ -1,28 +1,29 @@
 {
-  "name": "yenege-server",
+  "name": "yenege-backend",
   "version": "1.0.0",
-  "description": "Yenege GameHub Backend Server",
-  "main": "index.js",
-  "type": "commonjs",
+  "description": "Backend server for Yenege website with Chapa payment integration",
+  "main": "dist/index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js",
-    "test": "jest"
+    "start": "node dist/index.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "build": "tsc",
+    "type-check": "tsc --noEmit",
+    "ngrok": "node start-ngrok.js",
+    "test-chapa": "node test-chapa-key.js",
+    "test-payment": "node test-payment-init.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.49.1",
+    "chapa-nodejs": "^1.0.0",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
-    "jsonwebtoken": "^9.0.2",
-    "pg": "^8.16.3",
-    "uuid": "^11.1.0"
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2"
   },
   "devDependencies": {
-    "@types/jest": "^30.0.0",
-    "@types/supertest": "^6.0.3",
-    "jest": "^30.0.4",
-    "nodemon": "^3.0.2",
-    "supertest": "^7.1.1"
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.8.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.1.0"
   }
 }
+
