@@ -100,10 +100,13 @@ const EventDetail = () => {
         preferred_payment_method: selectedPaymentMethod || undefined,
       };
 
-      console.log('Sending payment data to server:', {
-        ...paymentData,
+      console.log('📤 Sending payment data to server:', {
         amount: totalAmount,
         quantity: quantity,
+        pricePerTicket: pricePerTicket,
+        calculatedTotal: totalAmount,
+        currency: event.currency,
+        note: `Total should be ${pricePerTicket} × ${quantity} = ${totalAmount}`,
       });
 
       const response = await initializePayment(paymentData);

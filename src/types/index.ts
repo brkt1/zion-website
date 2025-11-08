@@ -145,3 +145,37 @@ export interface CreateReminderData {
   reminder_time?: string;
   notes?: string;
 }
+
+// Commission Seller types
+export interface CommissionSeller {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  commission_rate: number;
+  commission_type: 'percentage' | 'fixed';
+  is_active: boolean;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateCommissionSellerData {
+  name: string;
+  email: string;
+  phone?: string;
+  commission_rate: number;
+  commission_type: 'percentage' | 'fixed';
+  is_active?: boolean;
+  notes?: string;
+}
+
+export interface UpdateCommissionSellerData {
+  name?: string;
+  email?: string;
+  phone?: string;
+  commission_rate?: number;
+  commission_type?: 'percentage' | 'fixed';
+  is_active?: boolean;
+  notes?: string;
+}

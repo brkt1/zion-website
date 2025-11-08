@@ -11,6 +11,7 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import AdminAbout from "./pages/admin/About";
 import AdminRedirect from "./pages/admin/AdminRedirect";
 import AdminCategories from "./pages/admin/Categories";
+import CommissionSellers from "./pages/admin/CommissionSellers";
 import AdminContact from "./pages/admin/Contact";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminDestinations from "./pages/admin/Destinations";
@@ -59,6 +60,7 @@ function App() {
         <Route path="/admin/contact" element={<AdminContact />} />
         <Route path="/admin/settings" element={<AdminSettings />} />
         <Route path="/admin/verify" element={<VerifyTicket />} />
+        <Route path="/admin/commission-sellers" element={<CommissionSellers />} />
       </Routes>
     </Router>
   );

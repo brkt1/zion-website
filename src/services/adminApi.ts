@@ -1,3 +1,4 @@
+import { CommissionSeller, CreateCommissionSellerData, UpdateCommissionSellerData } from '../types';
 import { AboutContent, Category, ContactInfo, Destination, Event, GalleryItem, HomeContent, SiteConfig } from './api';
 import { supabase } from './supabase';
 
@@ -736,6 +737,94 @@ export const adminApi = {
         .eq('id', reminderId);
 
       if (error) throw error;
+    },
+  },
+
+  // Commission Sellers - Manage commission ticket sellers
+  commissionSellers: {
+    getAll: async () => {
+      const { data, error } = await supabase
+        .from('commission_sellers')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data as CommissionSeller[];
+    },
+
+    getById: async (id: string) => {
+      const { data, error } = await supabase
+        .from('commission_sellers')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      return data as CommissionSeller;
+    },
+
+    getActive: async () => {
+      const { data, error } = await supabase
+        .from('commission_sellers')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data as CommissionSeller[];
+    },
+
+    create: async (sellerData: CreateCommissionSellerData) => {
+      const { data, error } = await supabase
+        .from('commission_sellers')
+        .insert([{
+          name: sellerData.name,
+          email: sellerData.email,
+          phone: sellerData.phone || null,
+          commission_rate: sellerData.commission_rate,
+          commission_type: sellerData.commission_type,
+          is_active: sellerData.is_active !== undefined ? sellerData.is_active : true,
+          notes: sellerData.notes || null,
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as CommissionSeller;
+    },
+
+    update: async (id: string, sellerData: UpdateCommissionSellerData) => {
+      const updateData: any = {
+        updated_at: new Date().toISOString(),
+      };
+
+      if (sellerData.name !== undefined) updateData.name = sellerData.name;
+      if (sellerData.email !== undefined) updateData.email = sellerData.email;
+      if (sellerData.phone !== undefined) updateData.phone = sellerData.phone || null;
+      if (sellerData.commission_rate !== undefined) updateData.commission_rate = sellerData.commission_rate;
+      if (sellerData.commission_type !== undefined) updateData.commission_type = sellerData.commission_type;
+      if (sellerData.is_active !== undefined) updateData.is_active = sellerData.is_active;
+      if (sellerData.notes !== undefined) updateData.notes = sellerData.notes || null;
+
+      const { data, error } = await supabase
+        .from('commission_sellers')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as CommissionSeller;
+    },
+
+    delete: async (id: string) => {
+      const { error } = await supabase
+        .from('commission_sellers')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return { success: true };
     },
   },
 };

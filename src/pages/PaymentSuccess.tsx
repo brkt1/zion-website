@@ -55,12 +55,30 @@ const PaymentSuccess = () => {
         ? `${paymentData.first_name} ${paymentData.last_name}`
         : paymentData.first_name || paymentData.last_name || '';
 
-      // Get quantity
+      // Get quantity from URL params
       let quantity = 1;
       if (quantityParam) {
         const qty = parseInt(quantityParam, 10);
-        if (!isNaN(qty) && qty > 0) quantity = qty;
+        if (!isNaN(qty) && qty > 0) {
+          quantity = qty;
+        } else {
+          console.warn('⚠️ Invalid quantity param:', quantityParam, 'defaulting to 1');
+        }
+      } else {
+        console.warn('⚠️ No quantity param in URL, defaulting to 1. Available params:', {
+          tx_ref: txRef,
+          event_id: eventIdParam,
+          event_title: eventTitleParam,
+          quantity: quantityParam,
+        });
       }
+      
+      console.log('📊 Quantity info:', {
+        quantityParam,
+        parsedQuantity: quantity,
+        amount: amount,
+        note: 'Quantity should match the number of tickets purchased'
+      });
 
       // Prepare QR code data
       const qrData = {
@@ -75,7 +93,15 @@ const PaymentSuccess = () => {
         name: customerName
       };
 
-      // Save ticket
+      // Save ticket with quantity
+      console.log('Saving ticket with data:', {
+        tx_ref: txRef,
+        amount,
+        quantity,
+        currency: paymentData.currency || 'ETB',
+        event_title: eventTitleParam,
+      });
+
       await saveTicket({
         tx_ref: txRef,
         event_id: eventIdParam || undefined,
@@ -85,7 +111,7 @@ const PaymentSuccess = () => {
         customer_phone: paymentData.phone_number || undefined,
         amount: amount,
         currency: paymentData.currency || 'ETB',
-        quantity: quantity,
+        quantity: quantity, // This should be the actual quantity purchased
         status: 'success',
         chapa_reference: paymentData.reference || undefined,
         qr_code_data: qrData,
