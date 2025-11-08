@@ -7,7 +7,6 @@ import { supabase } from '../../services/supabase';
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
-  const [isUserAdmin, setIsUserAdmin] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -35,7 +34,6 @@ const Dashboard = () => {
       navigate('/admin/login?error=unauthorized');
       return;
     }
-    setIsUserAdmin(true);
     setCheckingAuth(false);
   };
 

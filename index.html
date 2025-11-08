@@ -1,79 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <link rel="icon" href="/logo.png" type="image/png" sizes="192x192" />
-    <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#4A90E2" />
-
-    <!-- Primary Meta Tags -->
-    <title>Yenege</title>
-    <meta name="title" content="Yenege - premium connection" />
-    <meta
-      name="description"
-      content="Yenege is a premium connection that offers a variety of features and services."
-    />
-
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#FFD447" />
+    <meta name="description" content="Yenege - Building a community where happiness, connection, and unforgettable experiences come together. Join us for exciting events, travel adventures, and meaningful connections." />
     
-
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://yenege.com/" />
-    <meta property="og:title" content="Yenege - premium connection" />
-    <meta
-      property="og:description"
-      content="Yenege is a premium connection that offers a variety of features and services."
-    />
-    <meta property="og:image" content="/social-preview.png" />
+    <meta property="og:title" content="Yenege - Events & Travel Experiences" />
+    <meta property="og:description" content="Building a community where happiness, connection, and unforgettable experiences come together." />
+    <meta property="og:image" content="%PUBLIC_URL%/social-preview.png" />
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content="https://yenege.com/" />
-    <meta property="twitter:title" content="Yenege - premium connection" />
-    <meta
-      property="twitter:description"
-      content="Yenege is a premium connection that offers a variety of features and services."
-    />
-    <meta property="twitter:image" content="/social-preview.png" />
+    <meta property="twitter:title" content="Yenege - Events & Travel Experiences" />
+    <meta property="twitter:description" content="Building a community where happiness, connection, and unforgettable experiences come together." />
+    <meta property="twitter:image" content="%PUBLIC_URL%/social-preview.png" />
 
-    <!-- PWA Configuration -->
-    <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta
-      name="apple-mobile-web-app-status-bar-style"
-      content="black-translucent"
-    />
-    <meta name="apple-mobile-web-app-title" content="Yenege" />
-    <link
-      rel="apple-touch-startup-image"
-      href="/splash.png"
-      media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)"
-    />
+    <!-- PWA -->
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
 
-    <!-- Preconnect and Preload -->
-
-    <meta
-      http-equiv="Permissions-Policy"
-      content="camera=(self), storage-access=(self)"
-    />
-
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <title>Yenege - Events & Travel Experiences</title>
   </head>
   <body>
-    <noscript>
-      <strong
-        >We're sorry but Yenege doesn't work properly without JavaScript
-        enabled. Please enable it to continue.</strong
-      >
-    </noscript>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
-    <!-- Async Script Loading -->
-    <script type="module" src="/src/main-v3.jsx" async></script>
-
-    <!-- Service Worker Registration with Version Control -->
-    <script src="/src/service-worker-registration.js"></script>
   </body>
 </html>

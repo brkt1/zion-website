@@ -1,5 +1,5 @@
 import html2canvas from "html2canvas";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FaCheckCircle, FaDownload, FaSpinner } from "react-icons/fa";
 import QRCode from "react-qr-code";
 import { Link, useSearchParams } from "react-router-dom";
@@ -20,7 +20,7 @@ const PaymentSuccess = () => {
   const ticketRef = useRef<HTMLDivElement>(null);
 
   // Function to save ticket to database
-  const saveTicketToDatabase = async (paymentData: any, txRef: string | null) => {
+  const saveTicketToDatabase = useCallback(async (paymentData: any, txRef: string | null) => {
     if (!txRef || ticketSaved) return; // Don't save twice
 
     try {
@@ -85,7 +85,7 @@ const PaymentSuccess = () => {
       console.error('Error saving ticket to database:', error);
       // Don't show error to user, ticket display will still work
     }
-  };
+  }, [quantityParam, eventIdParam, eventTitleParam, ticketSaved]);
 
   useEffect(() => {
     const verify = async (attempt: number = 0) => {
@@ -158,7 +158,7 @@ const PaymentSuccess = () => {
     };
 
     verify();
-  }, [txRef, retryCount]);
+  }, [txRef, retryCount, saveTicketToDatabase]);
 
   // Format amount for display
   const formatAmount = (amount: number) => {

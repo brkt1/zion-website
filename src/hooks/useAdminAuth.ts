@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { isAdmin } from '../services/auth';
 import { supabase } from '../services/supabase';
@@ -9,11 +9,7 @@ export const useAdminAuth = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       
@@ -41,7 +37,11 @@ export const useAdminAuth = () => {
       navigate('/admin/login');
       setLoading(false);
     }
-  };
+  }, [navigate]);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   return { isAuthenticated, isAdminUser, loading };
 };
