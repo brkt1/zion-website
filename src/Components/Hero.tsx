@@ -91,7 +91,6 @@ const Hero = () => {
     bodyElement.classList.add("body--animated");
 
     setTimeout(() => {
-      const currentIdx = currentIndexRef.current;
       // Move to the next destination (which was previously the "next")
       const newCurrentIndex = nextIndexRef.current;
       setCurrentIndex(newCurrentIndex);
