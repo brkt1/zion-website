@@ -2,6 +2,7 @@ import { Suspense, lazy } from "react";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import AdminRoute from "./Components/admin/AdminRoute";
 import Layout from "./Components/layout/Layout";
+import ScrollToTop from "./Components/ScrollToTop";
 import { LoadingState } from "./Components/ui/LoadingState";
 
 // Use React 18's startTransition for non-urgent updates
@@ -40,6 +41,7 @@ function App() {
         v7_relativeSplatPath: true,
       }}
     >
+      <ScrollToTop />
       <Routes>
         {/* Public Routes */}
         <Route path="/*" element={

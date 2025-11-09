@@ -36,14 +36,29 @@ const Hero = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [nextIndex, setNextIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileImageIndex, setMobileImageIndex] = useState(0);
   const rootRef = useRef<HTMLDivElement>(null);
   const autoChangeIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const initialTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const mobileChangeIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isAnimatingRef = useRef(false);
   const currentIndexRef = useRef(0);
   const nextIndexRef = useRef(0);
   const destinationsRef = useRef(destinations);
   const hasInitializedRef = useRef(false);
+
+  // Detect mobile devices
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Keep refs in sync with state and destinations
   useEffect(() => {
@@ -254,8 +269,50 @@ const Hero = () => {
     }
   }, [destinations.length]);
 
-  // Auto-change functionality - only depends on destinations length
+  // Mobile carousel - simple image cycling
   useEffect(() => {
+    if (!isMobile || destinations.length <= 1) {
+      if (mobileChangeIntervalRef.current) {
+        clearInterval(mobileChangeIntervalRef.current);
+        mobileChangeIntervalRef.current = null;
+      }
+      return;
+    }
+
+    // Clear any existing interval
+    if (mobileChangeIntervalRef.current) {
+      clearInterval(mobileChangeIntervalRef.current);
+    }
+
+    // Start cycling through destinations on mobile (change every 5 seconds)
+    mobileChangeIntervalRef.current = setInterval(() => {
+      setMobileImageIndex((prev) => (prev + 1) % destinations.length);
+    }, 5000);
+
+    return () => {
+      if (mobileChangeIntervalRef.current) {
+        clearInterval(mobileChangeIntervalRef.current);
+        mobileChangeIntervalRef.current = null;
+      }
+    };
+  }, [isMobile, destinations.length]);
+
+  // Auto-change functionality - only depends on destinations length
+  // Disable on mobile for better performance
+  useEffect(() => {
+    // Disable animation on mobile
+    if (isMobile) {
+      if (autoChangeIntervalRef.current) {
+        clearInterval(autoChangeIntervalRef.current);
+        autoChangeIntervalRef.current = null;
+      }
+      if (initialTimeoutRef.current) {
+        clearTimeout(initialTimeoutRef.current);
+        initialTimeoutRef.current = null;
+      }
+      return;
+    }
+
     // Only set up auto-change if we have more than 1 destination
     if (destinations.length <= 1) {
       // Clear any existing intervals
@@ -302,14 +359,51 @@ const Hero = () => {
         autoChangeIntervalRef.current = null;
       }
     };
-  }, [destinations.length]);
+  }, [destinations.length, isMobile]);
+
+  // Get destinations for mobile carousel
+  const getMobileDestination = (offset: number) => {
+    const index = (mobileImageIndex + offset) % destinations.length;
+    return destinations[index] || destinations[0];
+  };
+
+  const mobileDest1 = getMobileDestination(0);
+  const mobileDest2 = getMobileDestination(1);
+  const mobileDest3 = getMobileDestination(2);
 
   return (
-    <div ref={rootRef} className="hero-container">
+    <div ref={rootRef} className={`hero-container ${isMobile ? 'hero-mobile' : ''}`}>
       <main>
-        <div className="background"></div>
-        <div className="background background--2"></div>
-        <div className="background background--3"></div>
+        {isMobile ? (
+          /* Mobile: Simple changing background similar to CTA section */
+          <>
+            <div 
+              className="hero-mobile-background hero-mobile-bg-1"
+              style={{
+                backgroundImage: mobileDest1 ? `url(${optimizeImageUrl(mobileDest1.img, { width: 1920, quality: 55, format: 'auto' })})` : undefined,
+              }}
+            ></div>
+            <div 
+              className="hero-mobile-background hero-mobile-background--2 hero-mobile-bg-2"
+              style={{
+                backgroundImage: mobileDest2 ? `url(${optimizeImageUrl(mobileDest2.img, { width: 1920, quality: 55, format: 'auto' })})` : undefined,
+              }}
+            ></div>
+            <div 
+              className="hero-mobile-background hero-mobile-background--3 hero-mobile-bg-3"
+              style={{
+                backgroundImage: mobileDest3 ? `url(${optimizeImageUrl(mobileDest3.img, { width: 1920, quality: 55, format: 'auto' })})` : undefined,
+              }}
+            ></div>
+          </>
+        ) : (
+          /* Desktop: Animated backgrounds */
+          <>
+            <div className="background"></div>
+            <div className="background background--2"></div>
+            <div className="background background--3"></div>
+          </>
+        )}
         
         {/* Hero Content Overlay */}
         <div className="hero-content-overlay">

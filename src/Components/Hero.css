@@ -477,8 +477,66 @@
   border-color: rgba(255, 255, 255, 0.8);
 }
 
-/* Responsive adjustments */
+/* Mobile Background - Simple changing design similar to CTA section */
+.hero-mobile-background {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 200vw;
+  height: 100vh;
+  min-height: 100vh;
+  transform: translateX(-50%);
+  background-size: cover;
+  background-position: center;
+  filter: brightness(0.6);
+  transition: background-image 1.5s ease-in-out;
+}
+
+.hero-mobile-background--2 {
+  clip-path: circle(23%);
+  filter: brightness(0.5);
+  top: 50%;
+  transform: translateX(-50%) translateY(-50%);
+}
+
+.hero-mobile-background--3 {
+  clip-path: circle(13%);
+  filter: brightness(0.4);
+  top: 50%;
+  transform: translateX(-50%) translateY(-50%);
+  animation: heroMobileRotate 20s linear infinite;
+}
+
+/* Smooth fade transitions for mobile background changes */
+.hero-mobile-bg-1,
+.hero-mobile-bg-2,
+.hero-mobile-bg-3 {
+  opacity: 1;
+  will-change: background-image, transform;
+}
+
+/* Rotating animation for mobile hero backgrounds */
+@keyframes heroMobileRotate {
+  0% {
+    transform: translateX(-50%) translateY(-50%) rotate(0deg);
+  }
+  100% {
+    transform: translateX(-50%) translateY(-50%) rotate(360deg);
+  }
+}
+
+/* Disable complex animations on mobile */
 @media (max-width: 768px) {
+  .hero-mobile .background,
+  .hero-mobile .background--2,
+  .hero-mobile .background--3 {
+    display: none;
+  }
+
+  .hero-mobile .body--animated {
+    animation: none !important;
+  }
+
   .hero-content-overlay {
     padding: 1rem;
     justify-content: flex-start;

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FaSnowflake, FaSun, FaTint, FaTree, FaWalking } from "react-icons/fa";
 import { useGalleryItems } from "../hooks/useApi";
 import { optimizeImageUrl, preloadOptimizedImage } from "../utils/imageOptimizer";
@@ -61,9 +61,6 @@ const Gallery = () => {
   const { galleryItems: apiGalleryItems } = useGalleryItems();
   const [activeIndex, setActiveIndex] = useState(0);
   const [imagesLoaded, setImagesLoaded] = useState<{ [key: string]: boolean }>({});
-  const [isMobile, setIsMobile] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-  const pauseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const galleryItems = useMemo(() => {
     const items = apiGalleryItems.length > 0 ? apiGalleryItems : fallbackGalleryItems;
@@ -73,49 +70,10 @@ const Gallery = () => {
     }));
   }, [apiGalleryItems]);
 
-  // Detect mobile mode
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
-    return () => {
-      window.removeEventListener('resize', checkMobile);
-      if (pauseTimeoutRef.current) {
-        clearTimeout(pauseTimeoutRef.current);
-      }
-    };
-  }, []);
 
-  // Auto-scroll on mobile
-  useEffect(() => {
-    if (!isMobile || galleryItems.length <= 1 || isPaused) return;
-
-    const interval = setInterval(() => {
-      setActiveIndex((prevIndex) => (prevIndex + 1) % galleryItems.length);
-    }, 3000); // Change image every 3 seconds
-
-    return () => clearInterval(interval);
-  }, [isMobile, galleryItems.length, isPaused]);
-
-  // Handle manual click - pause auto-scroll temporarily
+  // Handle manual click
   const handleItemClick = (index: number) => {
     setActiveIndex(index);
-    if (isMobile) {
-      setIsPaused(true);
-      // Clear any existing timeout
-      if (pauseTimeoutRef.current) {
-        clearTimeout(pauseTimeoutRef.current);
-      }
-      // Resume auto-scroll after 5 seconds of inactivity
-      pauseTimeoutRef.current = setTimeout(() => {
-        setIsPaused(false);
-        pauseTimeoutRef.current = null;
-      }, 5000);
-    }
   };
 
   useEffect(() => {
