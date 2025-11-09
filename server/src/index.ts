@@ -50,7 +50,7 @@ const allowedOrigins = [
 ].filter(Boolean); // Remove undefined values
 
 app.use(cors({
-  origin: function (origin, callback) {
+  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
     // In production, block requests with no origin (except for health checks)
     if (!origin) {
       if (isProduction) {
@@ -126,7 +126,7 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api', contentRoutes);
 
 // Health check
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (req: express.Request, res: express.Response) => {
   res.json({ status: 'ok', message: 'Yenege Backend API is running' });
 });
 
