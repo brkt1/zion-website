@@ -184,7 +184,7 @@ const VerifyTicket = () => {
   // Redirect commission sellers
   useEffect(() => {
     if (!authLoading && !isAdminUser) {
-      window.location.href = '/admin/commission-sellers';
+      window.location.href = '/admin/seller-dashboard';
     }
   }, [authLoading, isAdminUser]);
 

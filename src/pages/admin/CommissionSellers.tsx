@@ -1,25 +1,26 @@
 import { useEffect, useState } from 'react';
 import {
-    FaBars,
-    FaCalendarAlt,
-    FaChartLine,
-    FaCheckCircle,
-    FaCog,
-    FaEdit,
-    FaEnvelope,
-    FaHome,
-    FaImages,
-    FaInfoCircle,
-    FaMapMarkerAlt,
-    FaNewspaper,
-    FaPlus,
-    FaQrcode,
-    FaSignOutAlt,
-    FaTicketAlt,
-    FaTimes,
-    FaTimesCircle,
-    FaTrash,
-    FaUser
+  FaBars,
+  FaCalendarAlt,
+  FaChartLine,
+  FaCheckCircle,
+  FaCog,
+  FaEdit,
+  FaEnvelope,
+  FaExclamationTriangle,
+  FaHome,
+  FaImages,
+  FaInfoCircle,
+  FaMapMarkerAlt,
+  FaNewspaper,
+  FaPlus,
+  FaQrcode,
+  FaSignOutAlt,
+  FaTicketAlt,
+  FaTimes,
+  FaTimesCircle,
+  FaTrash,
+  FaUser
 } from 'react-icons/fa';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
@@ -28,7 +29,7 @@ import { supabase } from '../../services/supabase';
 import { CommissionSeller } from '../../types';
 
 const CommissionSellers = () => {
-  const { loading: authLoading, isAdminUser, isSeller } = useAdminAuth();
+  const { loading: authLoading, isAdminUser } = useAdminAuth();
   const [sellers, setSellers] = useState<CommissionSeller[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -60,29 +61,21 @@ const CommissionSellers = () => {
 
   useEffect(() => {
     if (!authLoading) {
+      // Redirect non-admins to seller dashboard immediately
+      if (!isAdminUser) {
+        navigate('/admin/seller-dashboard', { replace: true });
+        return;
+      }
       loadSellers();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authLoading, isAdminUser, isSeller]);
+  }, [authLoading, isAdminUser, navigate]);
 
   const loadSellers = async () => {
     try {
-      // If user is a commission seller (not admin), only show their own data
-      if (isSeller && !isAdminUser) {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user?.email) {
-          const data = await adminApi.commissionSellers.getAll();
-          // Filter to only show the seller's own record
-          const sellerData = data.filter(s => s.email.toLowerCase() === session.user.email?.toLowerCase());
-          setSellers(sellerData);
-        } else {
-          setSellers([]);
-        }
-      } else {
-        // Admin can see all sellers
-        const data = await adminApi.commissionSellers.getAll();
-        setSellers(data);
-      }
+      // Admin can see all sellers
+      const data = await adminApi.commissionSellers.getAll();
+      setSellers(data);
     } catch (error) {
       console.error('Error loading commission sellers:', error);
     } finally {
@@ -199,11 +192,15 @@ const CommissionSellers = () => {
     );
   }
 
+  // Don't render anything if user is not an admin - show access denied
+  if (!isAdminUser) {
+    return <AccessDeniedMessage />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar - Only show for admins */}
-      {isAdminUser && (
-        <aside
+      {/* Sidebar */}
+      <aside
           className={`${
             sidebarOpen ? 'w-64' : 'w-20'
           } bg-white border-r border-gray-200 fixed left-0 top-0 h-screen z-30 transition-all duration-300 ease-in-out hidden lg:block`}
@@ -283,31 +280,26 @@ const CommissionSellers = () => {
             </div>
           </div>
         </aside>
-      )}
 
       {/* Main Content */}
-      <div className={`flex-1 ${isAdminUser && sidebarOpen ? 'lg:ml-64' : isAdminUser ? 'lg:ml-20' : ''} transition-all duration-300`}>
+      <div className={`flex-1 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-20'} transition-all duration-300`}>
         {/* Top Header */}
         <header className="bg-white border-b border-gray-200 sticky top-0 z-20">
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center gap-4">
-                {isAdminUser && (
-                  <button
-                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                    className="lg:hidden p-2 rounded-lg hover:bg-gray-100 text-gray-600"
-                  >
-                    <FaBars size={20} />
-                  </button>
-                )}
+                <button
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className="lg:hidden p-2 rounded-lg hover:bg-gray-100 text-gray-600"
+                >
+                  <FaBars size={20} />
+                </button>
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">
-                    {isAdminUser ? 'Commission Ticket Sellers' : 'My Commission Information'}
+                    Commission Ticket Sellers
                   </h1>
                   <p className="text-sm text-gray-500">
-                    {isAdminUser 
-                      ? 'Manage commission rates for ticket sellers'
-                      : 'View your commission rate and seller information'}
+                    Manage commission rates for ticket sellers
                   </p>
                 </div>
               </div>
@@ -331,7 +323,7 @@ const CommissionSellers = () => {
         </header>
 
         {/* Mobile Sidebar */}
-        {isAdminUser && mobileMenuOpen && (
+        {mobileMenuOpen && (
           <div className="lg:hidden fixed inset-0 z-40 bg-black bg-opacity-50" onClick={() => setMobileMenuOpen(false)}>
             <div className="fixed inset-y-0 left-0 w-64 bg-white shadow-xl" onClick={(e) => e.stopPropagation()}>
               <div className="flex flex-col h-full">
@@ -396,21 +388,19 @@ const CommissionSellers = () => {
         {/* Main Content Area */}
         <main className="p-4 sm:p-6 lg:p-8">
           {/* Action Bar */}
-          {isAdminUser && (
-            <div className="mb-6 flex justify-end">
-              <button
-                onClick={() => {
-                  resetForm();
-                  setEditingSeller(null);
-                  setShowModal(true);
-                }}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors shadow-sm"
-              >
-                <FaPlus />
-                Add Seller
-              </button>
-            </div>
-          )}
+          <div className="mb-6 flex justify-end">
+            <button
+              onClick={() => {
+                resetForm();
+                setEditingSeller(null);
+                setShowModal(true);
+              }}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors shadow-sm"
+            >
+              <FaPlus />
+              Add Seller
+            </button>
+          </div>
 
           {/* Content Card */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200">
@@ -432,23 +422,19 @@ const CommissionSellers = () => {
                 <FaTicketAlt className="mx-auto mb-4 text-gray-300" size={64} />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No commission sellers found</h3>
                 <p className="text-sm text-gray-500 mb-6">
-                  {isAdminUser 
-                    ? 'Get started by adding your first commission seller.'
-                    : 'You are not registered as a commission seller.'}
+                  Get started by adding your first commission seller.
                 </p>
-                {isAdminUser && (
-                  <button
-                    onClick={() => {
-                      resetForm();
-                      setEditingSeller(null);
-                      setShowModal(true);
-                    }}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
-                  >
-                    <FaPlus />
-                    Add Your First Seller
-                  </button>
-                )}
+                <button
+                  onClick={() => {
+                    resetForm();
+                    setEditingSeller(null);
+                    setShowModal(true);
+                  }}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                >
+                  <FaPlus />
+                  Add Your First Seller
+                </button>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -517,69 +503,44 @@ const CommissionSellers = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          {isAdminUser ? (
-                            <button
-                              onClick={() => toggleActive(seller)}
-                              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border transition-colors ${
-                                seller.is_active
-                                  ? 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200'
-                                  : 'bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200'
-                              }`}
-                            >
-                              {seller.is_active ? (
-                                <>
-                                  <FaCheckCircle />
-                                  Active
-                                </>
-                              ) : (
-                                <>
-                                  <FaTimesCircle />
-                                  Inactive
-                                </>
-                              )}
-                            </button>
-                          ) : (
-                            <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                          <button
+                            onClick={() => toggleActive(seller)}
+                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border transition-colors ${
                               seller.is_active
-                                ? 'bg-green-100 text-green-800 border-green-200'
-                                : 'bg-gray-100 text-gray-800 border-gray-200'
-                            }`}>
-                              {seller.is_active ? (
-                                <>
-                                  <FaCheckCircle />
-                                  Active
-                                </>
-                              ) : (
-                                <>
-                                  <FaTimesCircle />
-                                  Inactive
-                                </>
-                              )}
-                            </span>
-                          )}
+                                ? 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200'
+                                : 'bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200'
+                            }`}
+                          >
+                            {seller.is_active ? (
+                              <>
+                                <FaCheckCircle />
+                                Active
+                              </>
+                            ) : (
+                              <>
+                                <FaTimesCircle />
+                                Inactive
+                              </>
+                            )}
+                          </button>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          {isAdminUser && (
-                            <div className="flex items-center gap-3">
-                              <button
-                                onClick={() => handleEdit(seller)}
-                                className="text-indigo-600 hover:text-indigo-900 transition-colors"
-                                title="Edit seller"
-                              >
-                                <FaEdit size={16} />
-                              </button>
-                              <button
-                                onClick={() => handleDelete(seller.id)}
-                                className="text-red-600 hover:text-red-900 transition-colors"
-                                title="Delete seller"
-                              >
-                                <FaTrash size={16} />
-                              </button>
-                            </div>
-                          )}
-                          {!isAdminUser && (
-                            <span className="text-gray-400 text-xs font-normal">Read-only</span>
-                          )}
+                          <div className="flex items-center gap-3">
+                            <button
+                              onClick={() => handleEdit(seller)}
+                              className="text-indigo-600 hover:text-indigo-900 transition-colors"
+                              title="Edit seller"
+                            >
+                              <FaEdit size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(seller.id)}
+                              className="text-red-600 hover:text-red-900 transition-colors"
+                              title="Delete seller"
+                            >
+                              <FaTrash size={16} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -588,11 +549,12 @@ const CommissionSellers = () => {
               </div>
             )}
           </div>
+
         </main>
       </div>
 
       {/* Modal */}
-      {showModal && isAdminUser && (
+      {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto shadow-xl">
             <div className="flex items-center justify-between mb-6">
@@ -723,6 +685,58 @@ const CommissionSellers = () => {
           </div>
         </div>
       )}
+    </div>
+  );
+};
+
+/**
+ * Access Denied component for commission sellers trying to access admin pages
+ */
+const AccessDeniedMessage = () => {
+  const navigate = useNavigate();
+
+  const handleGoToDashboard = () => {
+    navigate('/admin/seller-dashboard', { replace: true });
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/admin/login');
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+        <div className="mb-6">
+          <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4">
+            <FaExclamationTriangle className="h-8 w-8 text-red-600" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
+          <p className="text-gray-600 mb-1">
+            You don't have permission to access this page.
+          </p>
+          <p className="text-sm text-gray-500">
+            This area is restricted to administrators only.
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          <button
+            onClick={handleGoToDashboard}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors font-medium"
+          >
+            <FaHome />
+            Go to My Dashboard
+          </button>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors font-medium"
+          >
+            <FaSignOutAlt />
+            Logout
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

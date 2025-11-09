@@ -27,7 +27,7 @@ const Home = () => {
   useEffect(() => {
     if (!authLoading) {
       if (!isAdminUser) {
-        window.location.href = '/admin/commission-sellers';
+        window.location.href = '/admin/seller-dashboard';
         return;
       }
       loadContent();

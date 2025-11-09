@@ -36,6 +36,9 @@ interface Stats {
   pendingTickets: number;
   failedTickets: number;
   totalRevenue: number;
+  totalCommissionPaid: number;
+  totalVATCollected: number;
+  netCommissionPaid: number;
 }
 
 const Dashboard = () => {
@@ -51,6 +54,9 @@ const Dashboard = () => {
     pendingTickets: 0,
     failedTickets: 0,
     totalRevenue: 0,
+    totalCommissionPaid: 0,
+    totalVATCollected: 0,
+    netCommissionPaid: 0,
   });
   const [loadingStats, setLoadingStats] = useState(true);
   const [ticketFilter, setTicketFilter] = useState<'all' | 'success' | 'pending' | 'failed'>('all');
@@ -87,7 +93,37 @@ const Dashboard = () => {
       
       const totalRevenue = allTickets
         ?.filter(t => t.status === 'success')
-        .reduce((sum, t) => sum + (parseFloat(t.amount.toString()) * t.quantity), 0) || 0;
+        .reduce((sum, t) => {
+          // Ensure amount is treated as a number (handle both numeric and string)
+          const amount = typeof t.amount === 'number' ? t.amount : parseFloat(t.amount.toString()) || 0;
+          return sum + (amount * t.quantity);
+        }, 0) || 0;
+
+      // Calculate commission seller earnings
+      const ticketsWithCommission = allTickets?.filter(t => t.status === 'success' && t.commission_seller_id) || [];
+      let totalCommissionPaid = 0;
+      
+      // Get all commission sellers to calculate commissions
+      const sellers = await adminApi.commissionSellers.getAll();
+      
+      ticketsWithCommission.forEach(ticket => {
+        const seller = sellers.find(s => s.id === ticket.commission_seller_id);
+        if (seller) {
+          const amount = typeof ticket.amount === 'number' ? ticket.amount : parseFloat(ticket.amount.toString()) || 0;
+          const ticketTotal = amount * ticket.quantity;
+          let commission = 0;
+          if (seller.commission_type === 'percentage') {
+            commission = (ticketTotal * seller.commission_rate) / 100;
+          } else {
+            commission = seller.commission_rate * ticket.quantity;
+          }
+          totalCommissionPaid += commission;
+        }
+      });
+
+      // Calculate VAT (15% of commission)
+      const totalVATCollected = (totalCommissionPaid * 15) / 100;
+      const netCommissionPaid = totalCommissionPaid - totalVATCollected;
 
       setStats({
         totalEvents: events.count || 0,
@@ -99,6 +135,9 @@ const Dashboard = () => {
         pendingTickets,
         failedTickets,
         totalRevenue,
+        totalCommissionPaid,
+        totalVATCollected,
+        netCommissionPaid,
       });
     } catch (error) {
       console.error('Error loading stats:', error);
@@ -261,6 +300,39 @@ const Dashboard = () => {
               <p className="text-orange-100 text-sm">Unique customers</p>
             </div>
           </div>
+
+          {/* Commission Seller Earnings Section */}
+          {stats.totalCommissionPaid > 0 && (
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-8">
+              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <FaUsers className="text-orange-600" />
+                Commission Seller Earnings
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
+                  <p className="text-sm text-gray-600 mb-1">Gross Commission Paid</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {formatCurrency(stats.totalCommissionPaid, 'ETB')}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">Total before VAT</p>
+                </div>
+                <div className="p-4 bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg border border-amber-100">
+                  <p className="text-sm text-gray-600 mb-1">VAT Collected (15%)</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {formatCurrency(stats.totalVATCollected, 'ETB')}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">Tax collected</p>
+                </div>
+                <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg border border-green-100">
+                  <p className="text-sm text-gray-600 mb-1">Net Commission Paid</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {formatCurrency(stats.netCommissionPaid, 'ETB')}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">After VAT deduction</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Secondary Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -521,7 +593,29 @@ const Dashboard = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm font-medium text-gray-900">
-                              {ticket.currency} {parseFloat(ticket.amount.toString()).toFixed(2)}
+                              {(() => {
+                                // Ensure amount is correctly formatted
+                                // Handle both numeric and string types
+                                let amount: number;
+                                if (typeof ticket.amount === 'number') {
+                                  amount = ticket.amount;
+                                } else if (typeof ticket.amount === 'string') {
+                                  amount = parseFloat(ticket.amount) || 0;
+                                } else {
+                                  amount = 0;
+                                }
+                                
+                                // Fix: If amount is suspiciously small (less than 10), it might have been incorrectly divided
+                                // Check if multiplying by 100 makes it more reasonable (e.g., 3.99 -> 399.00)
+                                // This handles cases where amounts were incorrectly divided when they were already in base currency
+                                if (amount > 0 && amount < 10 && amount * 100 > 50) {
+                                  // Likely incorrectly stored - multiply by 100 to correct
+                                  amount = amount * 100;
+                                }
+                                
+                                // Format with 2 decimal places
+                                return `${ticket.currency} ${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                              })()}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">

@@ -15,6 +15,7 @@ const Events = lazy(() => import("./pages/Events"));
 const EventDetail = lazy(() => import("./pages/EventDetail"));
 const About = lazy(() => import("./pages/About"));
 const Contact = lazy(() => import("./pages/Contact"));
+const Apply = lazy(() => import("./pages/Apply"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const PaymentCallback = lazy(() => import("./pages/PaymentCallback"));
 const PaymentFailed = lazy(() => import("./pages/PaymentFailed"));
@@ -23,6 +24,12 @@ const PaymentFailed = lazy(() => import("./pages/PaymentFailed"));
 const AdminRedirect = lazy(() => import("./pages/admin/AdminRedirect"));
 const AdminLogin = lazy(() => import("./pages/admin/Login"));
 const CommissionSellers = lazy(() => import("./pages/admin/CommissionSellers"));
+const SellerDashboard = lazy(() => import("./pages/admin/SellerDashboard"));
+const SellerSales = lazy(() => import("./pages/admin/SellerSales"));
+const SellerGoals = lazy(() => import("./pages/admin/SellerGoals"));
+const SellerProfile = lazy(() => import("./pages/admin/SellerProfile"));
+const ScannerDashboard = lazy(() => import("./pages/admin/ScannerDashboard"));
+const TicketScanners = lazy(() => import("./pages/admin/TicketScanners"));
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
 const AdminEvents = lazy(() => import("./pages/admin/Events"));
 const AdminCategories = lazy(() => import("./pages/admin/Categories"));
@@ -33,6 +40,7 @@ const AdminHome = lazy(() => import("./pages/admin/Home"));
 const AdminContact = lazy(() => import("./pages/admin/Contact"));
 const AdminSettings = lazy(() => import("./pages/admin/Settings"));
 const VerifyTicket = lazy(() => import("./pages/admin/VerifyTicket"));
+const Applications = lazy(() => import("./pages/admin/Applications"));
 
 function App() {
   return (
@@ -55,6 +63,7 @@ function App() {
                 <Route path="/events/:id" element={<EventDetail />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/contact" element={<Contact />} />
+                <Route path="/apply" element={<Apply />} />
                 <Route path="/payment/success" element={<PaymentSuccess />} />
                 <Route path="/payment/callback" element={<PaymentCallback />} />
                 <Route path="/payment/failed" element={<PaymentFailed />} />
@@ -81,16 +90,64 @@ function App() {
           } 
         />
         <Route 
-          path="/admin/commission-sellers" 
+          path="/admin/seller-dashboard" 
           element={
             <Suspense fallback={<LoadingState message="Loading..." />}>
-              <CommissionSellers />
+              <SellerDashboard />
+            </Suspense>
+          } 
+        />
+        <Route 
+          path="/admin/seller-sales" 
+          element={
+            <Suspense fallback={<LoadingState message="Loading..." />}>
+              <SellerSales />
+            </Suspense>
+          } 
+        />
+        <Route 
+          path="/admin/seller-goals" 
+          element={
+            <Suspense fallback={<LoadingState message="Loading..." />}>
+              <SellerGoals />
+            </Suspense>
+          } 
+        />
+        <Route 
+          path="/admin/seller-profile" 
+          element={
+            <Suspense fallback={<LoadingState message="Loading..." />}>
+              <SellerProfile />
+            </Suspense>
+          } 
+        />
+        <Route 
+          path="/admin/scanner-dashboard" 
+          element={
+            <Suspense fallback={<LoadingState message="Loading..." />}>
+              <ScannerDashboard />
             </Suspense>
           } 
         />
         
         {/* Admin-only routes - protected by AdminRoute */}
         <Route element={<AdminRoute />}>
+          <Route 
+            path="/admin/commission-sellers" 
+            element={
+              <Suspense fallback={<LoadingState message="Loading..." />}>
+                <CommissionSellers />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="/admin/ticket-scanners" 
+            element={
+              <Suspense fallback={<LoadingState message="Loading..." />}>
+                <TicketScanners />
+              </Suspense>
+            } 
+          />
           <Route 
             path="/admin/dashboard" 
             element={
@@ -168,6 +225,14 @@ function App() {
             element={
               <Suspense fallback={<LoadingState message="Loading..." />}>
                 <VerifyTicket />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="/admin/applications" 
+            element={
+              <Suspense fallback={<LoadingState message="Loading..." />}>
+                <Applications />
               </Suspense>
             } 
           />

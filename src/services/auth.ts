@@ -134,10 +134,12 @@ export const isCommissionSeller = async (): Promise<boolean> => {
     }
 
     // Check if user's email exists in commission_sellers table and is active
+    // Use case-insensitive comparison by converting both to lowercase
+    const normalizedEmail = userEmail.toLowerCase().trim();
     const { data, error } = await supabase
       .from('commission_sellers')
       .select('id, email, is_active')
-      .eq('email', userEmail.toLowerCase())
+      .eq('email', normalizedEmail)
       .eq('is_active', true)
       .maybeSingle();
 
@@ -149,6 +151,68 @@ export const isCommissionSeller = async (): Promise<boolean> => {
     return !!data;
   } catch (error) {
     console.error('Error checking commission seller status:', error);
+    return false;
+  }
+};
+
+/**
+ * Check if the current user is a ticket scanner
+ * Ticket scanners are identified by matching their email with ticket_scanners table
+ */
+export const isTicketScanner = async (): Promise<boolean> => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session?.user) {
+      return false;
+    }
+
+    const userEmail = session.user.email;
+
+    if (!userEmail) {
+      return false;
+    }
+
+    // Check if user's email exists in ticket_scanners table and is active
+    // Use case-insensitive comparison by converting both to lowercase
+    const normalizedEmail = userEmail.toLowerCase().trim();
+    
+    // Try to find the user in ticket_scanners table
+    // First try exact match, then try case-insensitive match
+    let { data, error } = await supabase
+      .from('ticket_scanners')
+      .select('id, email, is_active')
+      .eq('email', normalizedEmail)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    // If not found with exact match, try case-insensitive search
+    if (!data && !error) {
+      const { data: allScanners } = await supabase
+        .from('ticket_scanners')
+        .select('id, email, is_active');
+      
+      if (allScanners) {
+        data = allScanners.find(
+          scanner => scanner.email?.toLowerCase().trim() === normalizedEmail && scanner.is_active
+        ) || null;
+      }
+    }
+
+    if (error) {
+      console.error('Error checking ticket scanner status:', error);
+      return false;
+    }
+
+    if (data) {
+      console.log('Ticket scanner found:', data);
+    } else {
+      console.log('Ticket scanner not found for email:', normalizedEmail);
+    }
+
+    return !!data;
+  } catch (error) {
+    console.error('Error checking ticket scanner status:', error);
     return false;
   }
 };

@@ -39,7 +39,7 @@ const Events = () => {
     if (!authLoading) {
       if (!isAdminUser) {
         // Commission sellers should not access this page
-        window.location.href = '/admin/commission-sellers';
+        window.location.href = '/admin/seller-dashboard';
         return;
       }
       loadEvents();

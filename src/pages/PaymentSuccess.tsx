@@ -39,18 +39,29 @@ const PaymentSuccess = () => {
       }
 
       // Get amount value
-      // Chapa returns amounts in cents, so we divide by 100
-      // But if the amount is already in base currency (from our calculation), we use it as is
+      // Chapa returns amounts in cents, so we need to check if it's in cents or base currency
+      // Amounts > 100 are likely in cents (e.g., 39900 = 399.00 ETB)
+      // Amounts < 100 might already be in base currency
       let amount = 0;
       if (paymentData.amount) {
         if (typeof paymentData.amount === 'string') {
           const parsed = parseFloat(paymentData.amount);
-          // If amount is > 10000, it's likely in cents (e.g., 10000 = 100.00 ETB)
-          // If amount is < 10000, it might be in base currency already
-          // Chapa typically returns in cents, so we divide by 100
-          amount = parsed / 100;
+          // If amount is >= 100, it's likely in cents (e.g., 39900 = 399.00 ETB)
+          // If amount is < 100, it might already be in base currency (e.g., 399.00)
+          // Chapa typically returns in cents, so we divide by 100 only if it seems to be in cents
+          if (parsed >= 100) {
+            amount = parsed / 100;
+          } else {
+            // Already in base currency, use as is
+            amount = parsed;
+          }
         } else {
-          amount = paymentData.amount / 100;
+          // For numeric values, apply same logic
+          if (paymentData.amount >= 100) {
+            amount = paymentData.amount / 100;
+          } else {
+            amount = paymentData.amount;
+          }
         }
       }
 
@@ -138,9 +149,17 @@ const PaymentSuccess = () => {
       if (paymentData.amount) {
         if (typeof paymentData.amount === 'string') {
           const parsed = parseFloat(paymentData.amount);
-          amount = parsed / 100;
+          if (parsed >= 100) {
+            amount = parsed / 100;
+          } else {
+            amount = parsed;
+          }
         } else {
-          amount = paymentData.amount / 100;
+          if (paymentData.amount >= 100) {
+            amount = paymentData.amount / 100;
+          } else {
+            amount = paymentData.amount;
+          }
         }
       }
 
@@ -287,7 +306,7 @@ const PaymentSuccess = () => {
 
 
   // Get amount value - handle both string and number formats
-  // Chapa returns amounts in cents, so we divide by 100
+  // Chapa returns amounts in cents, so we need to check if it's in cents or base currency
   const getAmount = () => {
     if (!paymentData || !paymentData.amount) return 0;
     
@@ -298,10 +317,15 @@ const PaymentSuccess = () => {
       amountValue = paymentData.amount;
     }
     
-    // Chapa returns amounts in cents (smallest currency unit)
-    // So we divide by 100 to get the base currency value
-    // Example: 10000 cents = 100.00 ETB
-    return amountValue / 100;
+    // If amount is >= 100, it's likely in cents (e.g., 39900 = 399.00 ETB)
+    // If amount is < 100, it might already be in base currency (e.g., 399.00)
+    // Chapa typically returns in cents, so we divide by 100 only if it seems to be in cents
+    if (amountValue >= 100) {
+      return amountValue / 100;
+    } else {
+      // Already in base currency, use as is
+      return amountValue;
+    }
   };
 
   // Get ticket quantity - from URL param or calculate from amount/price, default to 1
@@ -321,7 +345,11 @@ const PaymentSuccess = () => {
     
     const qrData = {
       tx_ref: paymentData.tx_ref || txRef || "",
-      amount: paymentData.amount ? (typeof paymentData.amount === 'string' ? parseFloat(paymentData.amount) / 100 : paymentData.amount / 100) : 0,
+      amount: paymentData.amount ? (() => {
+        const amt = typeof paymentData.amount === 'string' ? parseFloat(paymentData.amount) : paymentData.amount;
+        // Only divide by 100 if amount is >= 100 (likely in cents)
+        return amt >= 100 ? amt / 100 : amt;
+      })() : 0,
       currency: paymentData.currency || "ETB",
       date: paymentData.created_at || new Date().toISOString(),
       status: paymentData.status || "success",

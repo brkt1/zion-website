@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
-import { FaArrowUp, FaCalendarAlt, FaEnvelope, FaHome, FaInfoCircle, FaWhatsapp } from "react-icons/fa";
+import { FaArrowUp, FaBriefcase, FaCalendarAlt, FaEnvelope, FaHome, FaInfoCircle } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
-import { useContactInfo } from "../../hooks/useApi";
 
 const MobileBottomNav = () => {
   const location = useLocation();
-  const { contactInfo } = useContactInfo();
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   // Show scroll to top button when scrolled down
@@ -30,6 +28,7 @@ const MobileBottomNav = () => {
     { path: "/events", label: "Events", icon: FaCalendarAlt },
     { path: "/about", label: "About", icon: FaInfoCircle },
     { path: "/contact", label: "Contact", icon: FaEnvelope },
+    { path: "/apply", label: "Apply", icon: FaBriefcase },
   ];
 
   const isActive = (path: string) => {
@@ -173,60 +172,6 @@ const MobileBottomNav = () => {
               </Link>
             );
           })}
-          
-          {/* WhatsApp Floating Action Button */}
-          <a
-            href={`https://wa.me/${contactInfo?.phone?.replace(/\D/g, '') || '251978639887'}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex flex-col items-center justify-center relative group"
-            aria-label="Contact via WhatsApp"
-            style={{ flex: '0 0 auto' }}
-          >
-            {/* Multiple pulse rings */}
-            <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
-              <span 
-                className="absolute inset-0 w-14 h-14 rounded-full animate-ping opacity-20"
-                style={{
-                  background: "#25D366",
-                  animation: "ping 2s cubic-bezier(0, 0, 0.2, 1) infinite",
-                }}
-              />
-              <span 
-                className="absolute inset-0 w-14 h-14 rounded-full animate-ping opacity-10"
-                style={{
-                  background: "#25D366",
-                  animation: "ping 2s cubic-bezier(0, 0, 0.2, 1) infinite 0.5s",
-                }}
-              />
-            </div>
-            
-            {/* Icon container */}
-            <div 
-              className="relative mb-1 transition-all duration-300 group-active:scale-90"
-              style={{
-                animation: "float-icon 2.5s ease-in-out infinite 0.3s",
-              }}
-            >
-              <div 
-                className="w-14 h-14 rounded-full flex items-center justify-center shadow-xl"
-                style={{
-                  background: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)",
-                  boxShadow: "0 8px 24px rgba(37, 211, 102, 0.5), 0 0 0 3px rgba(37, 211, 102, 0.1)",
-                }}
-              >
-                <FaWhatsapp 
-                  size={24} 
-                  className="text-white"
-                />
-              </div>
-            </div>
-            
-            {/* Label */}
-            <span className="text-[9px] font-bold text-[#25D366] transition-all duration-300">
-              Chat
-            </span>
-          </a>
         </div>
       </nav>
 

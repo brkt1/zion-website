@@ -1,4 +1,4 @@
-import { CommissionSeller, CreateCommissionSellerData, UpdateCommissionSellerData } from '../types';
+import { Application, CommissionSeller, CreateApplicationData, CreateCommissionSellerData, CreateTicketScannerData, TicketScanner, UpdateApplicationData, UpdateCommissionSellerData, UpdateTicketScannerData } from '../types';
 import { AboutContent, Category, ContactInfo, Destination, Event, GalleryItem, HomeContent, SiteConfig } from './api';
 import { supabase } from './supabase';
 
@@ -653,6 +653,17 @@ export const adminApi = {
       if (error) throw error;
       return data;
     },
+
+    getByCommissionSeller: async (commissionSellerId: string) => {
+      const { data, error } = await supabase
+        .from('tickets')
+        .select('*')
+        .eq('commission_seller_id', commissionSellerId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
   },
 
   // Reminders - Manage call reminders for customers
@@ -824,6 +835,163 @@ export const adminApi = {
     delete: async (id: string) => {
       const { error } = await supabase
         .from('commission_sellers')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return { success: true };
+    },
+  },
+
+  // Ticket Scanners - Manage ticket scanners
+  ticketScanners: {
+    getAll: async () => {
+      const { data, error } = await supabase
+        .from('ticket_scanners')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data as TicketScanner[];
+    },
+
+    getById: async (id: string) => {
+      const { data, error } = await supabase
+        .from('ticket_scanners')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      return data as TicketScanner;
+    },
+
+    getActive: async () => {
+      const { data, error } = await supabase
+        .from('ticket_scanners')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data as TicketScanner[];
+    },
+
+    create: async (scannerData: CreateTicketScannerData) => {
+      const { data, error } = await supabase
+        .from('ticket_scanners')
+        .insert([{
+          name: scannerData.name,
+          email: scannerData.email,
+          phone: scannerData.phone || null,
+          is_active: scannerData.is_active !== undefined ? scannerData.is_active : true,
+          notes: scannerData.notes || null,
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as TicketScanner;
+    },
+
+    update: async (id: string, scannerData: UpdateTicketScannerData) => {
+      const updateData: any = {
+        updated_at: new Date().toISOString(),
+      };
+
+      if (scannerData.name !== undefined) updateData.name = scannerData.name;
+      if (scannerData.email !== undefined) updateData.email = scannerData.email;
+      if (scannerData.phone !== undefined) updateData.phone = scannerData.phone || null;
+      if (scannerData.is_active !== undefined) updateData.is_active = scannerData.is_active;
+      if (scannerData.notes !== undefined) updateData.notes = scannerData.notes || null;
+
+      const { data, error } = await supabase
+        .from('ticket_scanners')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as TicketScanner;
+    },
+
+    delete: async (id: string) => {
+      const { error } = await supabase
+        .from('ticket_scanners')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return { success: true };
+    },
+  },
+
+  // Applications - Manage internship/volunteer applications
+  applications: {
+    getAll: async () => {
+      const { data, error } = await supabase
+        .from('applications')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data as Application[];
+    },
+
+    getById: async (id: string) => {
+      const { data, error } = await supabase
+        .from('applications')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      return data as Application;
+    },
+
+    create: async (applicationData: CreateApplicationData) => {
+      const { data, error } = await supabase
+        .from('applications')
+        .insert([{
+          name: applicationData.name,
+          email: applicationData.email,
+          phone: applicationData.phone,
+          type: applicationData.type,
+          position: applicationData.position || null,
+          experience: applicationData.experience || null,
+          motivation: applicationData.motivation,
+          availability: applicationData.availability || null,
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as Application;
+    },
+
+    update: async (id: string, applicationData: UpdateApplicationData) => {
+      const updateData: any = {
+        updated_at: new Date().toISOString(),
+      };
+
+      if (applicationData.status !== undefined) updateData.status = applicationData.status;
+      if (applicationData.notes !== undefined) updateData.notes = applicationData.notes || null;
+
+      const { data, error } = await supabase
+        .from('applications')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as Application;
+    },
+
+    delete: async (id: string) => {
+      const { error } = await supabase
+        .from('applications')
         .delete()
         .eq('id', id);
 

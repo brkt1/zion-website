@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { isAdmin, isCommissionSeller } from '../../services/auth';
+import { isAdmin, isCommissionSeller, isTicketScanner } from '../../services/auth';
 import { supabase } from '../../services/supabase';
 
 const AdminRedirect = () => {
@@ -18,21 +18,24 @@ const AdminRedirect = () => {
           return;
         }
 
-        // Check if user is admin or commission seller
+        // Check if user is admin, commission seller, or ticket scanner
         const admin = await isAdmin();
         const seller = await isCommissionSeller();
+        const scanner = await isTicketScanner();
         
-        if (!admin && !seller) {
+        if (!admin && !seller && !scanner) {
           setRedirectTo('/admin/login?error=unauthorized');
           setLoading(false);
           return;
         }
 
-        // Redirect based on role
+        // Redirect based on role (priority: admin > seller > scanner)
         if (admin) {
           setRedirectTo('/admin/dashboard');
         } else if (seller) {
-          setRedirectTo('/admin/commission-sellers');
+          setRedirectTo('/admin/seller-dashboard');
+        } else if (scanner) {
+          setRedirectTo('/admin/scanner-dashboard');
         }
         setLoading(false);
       } catch (error) {

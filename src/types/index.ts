@@ -71,10 +71,10 @@ export interface Ticket {
   customer_name?: string;
   customer_email: string;
   customer_phone?: string;
-  amount: number;
+  amount: number | string;
   currency: string;
   quantity: number;
-  status: 'pending' | 'success' | 'failed' | 'cancelled';
+  status: 'pending' | 'success' | 'failed' | 'cancelled' | 'used';
   chapa_reference?: string;
   commission_seller_id?: string;
   commission_seller_name?: string;
@@ -182,5 +182,65 @@ export interface UpdateCommissionSellerData {
   commission_rate?: number;
   commission_type?: 'percentage' | 'fixed';
   is_active?: boolean;
+  notes?: string;
+}
+
+export interface TicketScanner {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  is_active: boolean;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateTicketScannerData {
+  name: string;
+  email: string;
+  phone?: string;
+  is_active?: boolean;
+  notes?: string;
+}
+
+export interface UpdateTicketScannerData {
+  name?: string;
+  email?: string;
+  phone?: string;
+  is_active?: boolean;
+  notes?: string;
+}
+
+// Application types
+export interface Application {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  type: 'internship' | 'volunteer';
+  position?: string;
+  experience?: string;
+  motivation: string;
+  availability?: string;
+  status: 'pending' | 'reviewed' | 'accepted' | 'rejected';
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateApplicationData {
+  name: string;
+  email: string;
+  phone: string;
+  type: 'internship' | 'volunteer';
+  position?: string;
+  experience?: string;
+  motivation: string;
+  availability?: string;
+}
+
+export interface UpdateApplicationData {
+  status?: 'pending' | 'reviewed' | 'accepted' | 'rejected';
   notes?: string;
 }

@@ -1,20 +1,21 @@
 import { useEffect, useState } from 'react';
 import {
-    FaBars,
-    FaCalendarAlt,
-    FaChartLine,
-    FaCog,
-    FaEnvelope,
-    FaHome,
-    FaImages,
-    FaInfoCircle,
-    FaMapMarkerAlt,
-    FaNewspaper,
-    FaQrcode,
-    FaSignOutAlt,
-    FaTicketAlt,
-    FaTimes,
-    FaUser
+  FaBars,
+  FaBriefcase,
+  FaCalendarAlt,
+  FaChartLine,
+  FaCog,
+  FaEnvelope,
+  FaHome,
+  FaImages,
+  FaInfoCircle,
+  FaMapMarkerAlt,
+  FaNewspaper,
+  FaQrcode,
+  FaSignOutAlt,
+  FaTicketAlt,
+  FaTimes,
+  FaUser
 } from 'react-icons/fa';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { isAdmin, isCommissionSeller } from '../../services/auth';
@@ -60,10 +61,10 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
       navigate('/admin/login?error=unauthorized');
       return;
     }
-    // If user is only a commission seller (not admin), redirect to commission sellers page
+    // If user is only a commission seller (not admin), redirect to seller dashboard
     // unless they're already on that page
-    if (seller && !admin && location.pathname !== '/admin/commission-sellers') {
-      navigate('/admin/commission-sellers');
+    if (seller && !admin && location.pathname !== '/admin/seller-dashboard') {
+      navigate('/admin/seller-dashboard');
       return;
     }
     setCheckingAuth(false);
@@ -96,6 +97,8 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
     { icon: FaInfoCircle, label: 'About Content', path: '/admin/about', color: 'text-indigo-600 bg-indigo-50' },
     { icon: FaEnvelope, label: 'Contact Info', path: '/admin/contact', color: 'text-red-600 bg-red-50' },
     { icon: FaTicketAlt, label: 'Commission Sellers', path: '/admin/commission-sellers', color: 'text-orange-600 bg-orange-50' },
+    { icon: FaQrcode, label: 'Ticket Scanners', path: '/admin/ticket-scanners', color: 'text-blue-600 bg-blue-50' },
+    { icon: FaBriefcase, label: 'Applications', path: '/admin/applications', color: 'text-teal-600 bg-teal-50' },
     { icon: FaCog, label: 'Site Settings', path: '/admin/settings', color: 'text-gray-600 bg-gray-50' },
   ];
 

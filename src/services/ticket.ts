@@ -45,7 +45,7 @@ export const saveTicket = async (ticketData: CreateTicketData): Promise<Ticket> 
  */
 export const updateTicketStatus = async (
   txRef: string,
-  status: 'pending' | 'success' | 'failed' | 'cancelled',
+  status: 'pending' | 'success' | 'failed' | 'cancelled' | 'used',
   chapaReference?: string
 ): Promise<Ticket> => {
   try {
@@ -77,6 +77,43 @@ export const updateTicketStatus = async (
     return data as Ticket;
   } catch (error: any) {
     console.error('Error in updateTicketStatus:', error);
+    throw error;
+  }
+};
+
+/**
+ * Mark a ticket as used (verified and scanned)
+ */
+export const markTicketAsUsed = async (
+  txRef: string,
+  verifiedBy: string
+): Promise<Ticket> => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    const verifierId = session?.user?.id || verifiedBy;
+
+    const updateData: any = {
+      status: 'used',
+      verified_at: new Date().toISOString(),
+      verified_by: verifierId,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data, error } = await supabase
+      .from('tickets')
+      .update(updateData)
+      .eq('tx_ref', txRef)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error marking ticket as used:', error);
+      throw new Error(error.message || 'Failed to mark ticket as used');
+    }
+
+    return data as Ticket;
+  } catch (error: any) {
+    console.error('Error in markTicketAsUsed:', error);
     throw error;
   }
 };
