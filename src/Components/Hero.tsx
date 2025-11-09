@@ -134,10 +134,6 @@ const Hero = () => {
     };
   }, [getNextDestinationIndex]);
 
-  const displayNextContent = useCallback(() => {
-    displayNextContentRef.current();
-  }, []);
-
   // Preload destination images
   useEffect(() => {
     if (destinations.length > 0) {
