@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node dist/index.js",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "prebuild": "NODE_ENV=development npm install || npm install",
     "build": "tsc",
     "type-check": "tsc --noEmit",
     "ngrok": "node start-ngrok.js",
