@@ -1,0 +1,39 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'server/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./server
+        run: npm ci
+
+      - name: Build
+        working-directory: ./server
+        run: npm run build
+
+      - name: Deploy to Railway
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "Backend deployment triggered"
+          echo "Configure Railway to auto-deploy from GitHub for automatic deployments"
+          echo "Or use Railway CLI: railway up"
+
