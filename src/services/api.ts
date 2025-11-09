@@ -325,15 +325,23 @@ export const api = {
       // Don't throw, just use empty array
     }
 
-    // Fetch CEO social links
-    const { data: ceoSocialData, error: ceoSocialError } = await supabase
-      .from('ceo_social_links')
-      .select('*')
-      .order('display_order', { ascending: true });
-
-    if (ceoSocialError) {
-      console.error('Error fetching CEO social links:', ceoSocialError);
-      // Don't throw, just use empty array
+    // Fetch CEO social links (table may not exist, handle gracefully)
+    let ceoSocialData = null;
+    try {
+      const { data, error: ceoSocialError } = await supabase
+        .from('ceo_social_links')
+        .select('*')
+        .order('display_order', { ascending: true });
+      
+      if (!ceoSocialError) {
+        ceoSocialData = data;
+      } else if (ceoSocialError.code !== 'PGRST205') {
+        // Only log if it's not a "table not found" error
+        console.warn('Error fetching CEO social links:', ceoSocialError.message);
+      }
+    } catch (error) {
+      // Silently handle missing table
+      ceoSocialData = null;
     }
 
     const result: AboutContent = {
