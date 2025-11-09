@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: yenege-backend
+    env: node
+    plan: free
+    region: oregon
+    buildCommand: cd server && npm install && npm run build
+    startCommand: cd server && npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        value: https://yenege.com
+      # CHAPA_SECRET_KEY should be set manually in Render dashboard for security
+      # Go to: Render Dashboard → Your Service → Environment → Add Variable
