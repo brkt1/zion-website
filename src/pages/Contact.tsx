@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { FaEnvelope, FaInstagram, FaMapMarkerAlt, FaPhone, FaTelegram, FaTiktok, FaWhatsapp, FaYoutube } from "react-icons/fa";
 import { ErrorState } from "../Components/ui/ErrorState";
-import { LoadingState } from "../Components/ui/LoadingState";
 import { useContactInfo } from "../hooks/useApi";
 
 const Contact = () => {
-  const { contactInfo, isLoading, isError, mutate: refetchContactInfo } = useContactInfo();
+  const { contactInfo, isError, mutate: refetchContactInfo } = useContactInfo();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -14,14 +13,6 @@ const Contact = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-white">
-        <LoadingState message="Loading contact information..." />
-      </div>
-    );
-  }
 
   if (isError || !contactInfo) {
     return (

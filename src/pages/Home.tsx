@@ -2,7 +2,6 @@ import { FaArrowRight, FaCalendarAlt, FaMapMarkerAlt, FaWhatsapp } from "react-i
 import { Link } from "react-router-dom";
 import Gallery from "../Components/Gallery";
 import Hero from "../Components/Hero";
-import { LoadingState } from "../Components/ui/LoadingState";
 import { useContactInfo, useEvents, useHomeContent } from "../hooks/useApi";
 
 const formatDate = (dateString: string) => {
@@ -16,17 +15,9 @@ const formatDate = (dateString: string) => {
 };
 
 const Home = () => {
-  const { content: homeContent, isLoading: homeContentLoading } = useHomeContent();
-  const { events: featuredEvents, isLoading: eventsLoading } = useEvents({ featured: true, limit: 3 });
+  const { content: homeContent } = useHomeContent();
+  const { events: featuredEvents } = useEvents({ featured: true, limit: 3 });
   const { contactInfo } = useContactInfo();
-
-  if (homeContentLoading || eventsLoading) {
-    return (
-      <div className="min-h-screen">
-        <LoadingState message="Loading..." />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen">

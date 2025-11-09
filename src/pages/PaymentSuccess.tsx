@@ -7,6 +7,7 @@ import { adminApi } from "../services/adminApi";
 import { verifyPayment } from "../services/payment";
 import { getTicketByTxRef, saveTicket } from "../services/ticket";
 import { sendWhatsAppThankYou } from "../services/whatsapp";
+import { logger } from "../utils/logger";
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
@@ -31,7 +32,7 @@ const PaymentSuccess = () => {
       // Check if ticket already exists
       const existingTicket = await getTicketByTxRef(txRef);
       if (existingTicket) {
-        console.log('Ticket already exists in database');
+        logger.log('Ticket already exists in database');
         setTicketSaved(true);
         return;
       }
@@ -64,23 +65,13 @@ const PaymentSuccess = () => {
         if (!isNaN(qty) && qty > 0) {
           quantity = qty;
         } else {
-          console.warn('⚠️ Invalid quantity param:', quantityParam, 'defaulting to 1');
+          logger.warn('⚠️ Invalid quantity param:', quantityParam, 'defaulting to 1');
         }
       } else {
-        console.warn('⚠️ No quantity param in URL, defaulting to 1. Available params:', {
-          tx_ref: txRef,
-          event_id: eventIdParam,
-          event_title: eventTitleParam,
-          quantity: quantityParam,
-        });
+        logger.warn('⚠️ No quantity param in URL, defaulting to 1');
       }
       
-      console.log('📊 Quantity info:', {
-        quantityParam,
-        parsedQuantity: quantity,
-        amount: amount,
-        note: 'Quantity should match the number of tickets purchased'
-      });
+      logger.log('Quantity info:', { quantityParam, parsedQuantity: quantity, amount });
 
       // Prepare QR code data
       const qrData = {
@@ -108,14 +99,7 @@ const PaymentSuccess = () => {
       }
 
       // Save ticket with quantity
-      console.log('Saving ticket with data:', {
-        tx_ref: txRef,
-        amount,
-        quantity,
-        currency: paymentData.currency || 'ETB',
-        event_title: eventTitleParam,
-        commission_seller_id: commissionSellerIdParam,
-      });
+      logger.log('Saving ticket with data:', { tx_ref: txRef, amount, quantity });
 
       await saveTicket({
         tx_ref: txRef,
@@ -135,7 +119,7 @@ const PaymentSuccess = () => {
         payment_date: paymentData.created_at || new Date().toISOString(),
       });
 
-      console.log('Ticket saved to database successfully');
+      logger.log('Ticket saved to database successfully');
       setTicketSaved(true);
     } catch (error: any) {
       console.error('Error saving ticket to database:', error);
@@ -183,10 +167,10 @@ const PaymentSuccess = () => {
       });
 
       if (result.success) {
-        console.log('✅ WhatsApp thank you message sent successfully:', result.messageId);
+        logger.log('✅ WhatsApp thank you message sent successfully');
         setWhatsappSent(true);
       } else {
-        console.warn('⚠️  Failed to send WhatsApp message:', result.error);
+        logger.warn('⚠️  Failed to send WhatsApp message:', result.error);
         // Don't show error to user, it's not critical
       }
     } catch (error: any) {
@@ -204,7 +188,7 @@ const PaymentSuccess = () => {
 
       try {
         const response = await verifyPayment(txRef);
-        console.log("Verification response (attempt " + (attempt + 1) + "):", response);
+        logger.log("Verification response (attempt " + (attempt + 1) + ")");
         
         if (response.success && response.data) {
           setPaymentData(response.data);
@@ -221,25 +205,25 @@ const PaymentSuccess = () => {
           } else if (status === "pending" || status === "processing") {
             // Retry for pending payments (up to 3 times with delay)
             if (attempt < 3) {
-              console.log(`Payment is pending, retrying in ${(attempt + 1) * 2} seconds...`);
+              logger.log(`Payment is pending, retrying in ${(attempt + 1) * 2} seconds...`);
               setTimeout(() => {
                 setRetryCount(attempt + 1);
                 verify(attempt + 1);
               }, (attempt + 1) * 2000); // 2s, 4s, 6s delays
               setVerificationStatus("pending");
             } else {
-              console.warn("Payment still pending after retries");
+              logger.warn("Payment still pending after retries");
               setVerificationStatus("failed");
             }
           } else {
             // Unknown status - show the data but mark as failed
-            console.warn("Unknown payment status:", status, response.data);
+            logger.warn("Unknown payment status:", status);
             setVerificationStatus("failed");
           }
         } else {
           // If verification fails but we have a tx_ref, it might be pending
           if (attempt < 2) {
-            console.log("Verification failed, retrying...");
+            logger.log("Verification failed, retrying...");
             setTimeout(() => {
               setRetryCount(attempt + 1);
               verify(attempt + 1);

@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { supabase } from './supabase';
 
 /**
@@ -14,7 +15,7 @@ export const uploadImage = async (
 ): Promise<string> => {
   try {
     // Check if user is authenticated
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       throw new Error('You must be logged in to upload images. Please log in and try again.');
     }
@@ -23,7 +24,7 @@ export const uploadImage = async (
     const fileExt = file.name.split('.').pop();
     const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
 
-    console.log(`Attempting to upload to bucket: ${bucket}, path: ${fileName}`);
+    logger.log(`Attempting to upload to bucket: ${bucket}, path: ${fileName}`);
 
     // Upload the file
     const { data, error } = await supabase.storage
@@ -95,7 +96,7 @@ export const uploadImage = async (
       .from(bucket)
       .getPublicUrl(data.path);
 
-    console.log('Upload successful, public URL:', urlData.publicUrl);
+    logger.log('Upload successful, public URL:', urlData.publicUrl);
     return urlData.publicUrl;
   } catch (error: any) {
     console.error('Error uploading image:', error);

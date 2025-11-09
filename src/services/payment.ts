@@ -1,6 +1,12 @@
 import { PaymentRequest, PaymentResponse, PaymentVerification } from '../types';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL;
+
+if (!API_BASE_URL) {
+  throw new Error(
+    'Missing API configuration. Please set REACT_APP_API_URL environment variable.'
+  );
+}
 
 export const initializePayment = async (paymentData: PaymentRequest): Promise<PaymentResponse> => {
   try {

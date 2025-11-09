@@ -1,20 +1,11 @@
 import { FaArrowRight, FaEnvelope, FaFacebook, FaInstagram, FaLinkedin, FaTwitter, FaWhatsapp } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { ErrorState } from "../Components/ui/ErrorState";
-import { LoadingState } from "../Components/ui/LoadingState";
 import { useAboutContent, useContactInfo } from "../hooks/useApi";
 
 const About = () => {
-  const { content, isLoading, isError, mutate: refetchContent } = useAboutContent();
+  const { content, isError, mutate: refetchContent } = useAboutContent();
   const { contactInfo } = useContactInfo();
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-white">
-        <LoadingState message="Loading..." />
-      </div>
-    );
-  }
 
   if (isError || !content) {
     return (

@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { FaCalendarAlt, FaInstagram, FaMapMarkerAlt, FaSpinner, FaTelegram, FaUsers, FaWhatsapp } from "react-icons/fa";
 import { useParams, useSearchParams } from "react-router-dom";
 import { ErrorState } from "../Components/ui/ErrorState";
-import { LoadingState } from "../Components/ui/LoadingState";
 import { getAvailablePaymentMethods } from "../data/paymentMethods";
 import { useContactInfo, useEvent } from "../hooks/useApi";
 import { adminApi } from "../services/adminApi";
@@ -12,14 +11,13 @@ import { CommissionSeller, PaymentRequest } from "../types";
 const EventDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
-  const { event, isLoading, isError, mutate: refetchEvent } = useEvent(id);
+  const { event, isError, mutate: refetchEvent } = useEvent(id);
   const { contactInfo } = useContactInfo();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentStep, setPaymentStep] = useState<'form' | 'methods'>('form');
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
   const [commissionSellers, setCommissionSellers] = useState<CommissionSeller[]>([]);
-  const [loadingSellers, setLoadingSellers] = useState(false);
   const [paymentForm, setPaymentForm] = useState({
     first_name: "",
     last_name: "",
@@ -35,7 +33,6 @@ const EventDetail = () => {
     const loadSellers = async () => {
       if (!event) return;
       
-      setLoadingSellers(true);
       try {
         const allSellers = await adminApi.commissionSellers.getActive();
         
@@ -52,24 +49,12 @@ const EventDetail = () => {
         }
       } catch (error) {
         console.error('Error loading commission sellers:', error);
-        // Don't show error to user, just c montinue without sellers
-      } finally {
-        setLoadingSellers(false);
+        // Don't show error to user, just continue without sellers
       }
     };
     
     loadSellers();
   }, [event]);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-white">
-        <div className="pt-24 pb-8 md:pt-28 md:pb-12">
-          <LoadingState message="Loading event details..." />
-        </div>
-      </div>
-    );
-  }
 
   if (isError || !event) {
     return (
@@ -116,13 +101,7 @@ const EventDetail = () => {
         return;
       }
 
-      console.log('Payment calculation:', {
-        originalPrice: event.price,
-        pricePerTicket,
-        quantity,
-        totalAmount,
-        currency: event.currency,
-      });
+      // Payment calculation logged for debugging
 
       const paymentData: PaymentRequest = {
         first_name: paymentForm.first_name,
@@ -138,14 +117,7 @@ const EventDetail = () => {
         commission_seller_id: paymentForm.commission_seller_id || undefined,
       };
 
-      console.log('📤 Sending payment data to server:', {
-        amount: totalAmount,
-        quantity: quantity,
-        pricePerTicket: pricePerTicket,
-        calculatedTotal: totalAmount,
-        currency: event.currency,
-        note: `Total should be ${pricePerTicket} × ${quantity} = ${totalAmount}`,
-      });
+      // Payment data prepared for server
 
       const response = await initializePayment(paymentData);
 

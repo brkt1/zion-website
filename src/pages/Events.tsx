@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { FaArrowRight, FaCalendarAlt, FaMapMarkerAlt, FaSearch, FaUsers, FaWhatsapp } from "react-icons/fa";
 import { Link, useSearchParams } from "react-router-dom";
 import { ErrorState } from "../Components/ui/ErrorState";
-import { LoadingState } from "../Components/ui/LoadingState";
 import { useCategories, useEvents } from "../hooks/useApi";
 
 const Events = () => {
@@ -12,11 +11,11 @@ const Events = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   // Fetch events and categories from API
-  const { events, isLoading: eventsLoading, isError: eventsError, mutate: refetchEvents } = useEvents({
+  const { events, isError: eventsError, mutate: refetchEvents } = useEvents({
     category: selectedCategory === "all" ? undefined : selectedCategory as any,
   });
   
-  const { categories: apiCategories, isLoading: categoriesLoading } = useCategories();
+  const { categories: apiCategories } = useCategories();
 
   // Build categories list with "All Events" option
   const categories = useMemo(() => {
@@ -58,16 +57,6 @@ const Events = () => {
       setSearchParams({ category: categoryId });
     }
   };
-
-  if (eventsLoading || categoriesLoading) {
-    return (
-      <div className="min-h-screen bg-white">
-        <div className="pt-24 pb-8 md:pt-28 md:pb-12">
-          <LoadingState message="Loading events..." />
-        </div>
-      </div>
-    );
-  }
 
   if (eventsError) {
     return (

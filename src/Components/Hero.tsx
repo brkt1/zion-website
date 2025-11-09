@@ -33,13 +33,13 @@ const Hero = () => {
   const destinations = apiDestinations.length > 0 ? apiDestinations : fallbackDestinations;
   
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [nextIndex, setNextIndex] = useState(1);
+  const [nextIndex, setNextIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const autoChangeIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isAnimatingRef = useRef(false);
   const currentIndexRef = useRef(0);
-  const nextIndexRef = useRef(1);
+  const nextIndexRef = useRef(0);
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -48,12 +48,25 @@ const Hero = () => {
     nextIndexRef.current = nextIndex;
   }, [isAnimating, currentIndex, nextIndex]);
 
-  const getRandomDestination = useCallback((excludeIndex?: number): number => {
-    let randomId = Math.floor(Math.random() * destinations.length);
-    while (randomId === excludeIndex) {
-      randomId = Math.floor(Math.random() * destinations.length);
+  // Initialize next index when destinations change
+  useEffect(() => {
+    if (destinations.length > 1) {
+      const initialNext = 1;
+      setNextIndex(initialNext);
+      nextIndexRef.current = initialNext;
+    } else if (destinations.length === 1) {
+      setNextIndex(0);
+      nextIndexRef.current = 0;
     }
-    return randomId;
+  }, [destinations.length]);
+
+  const getNextDestinationIndex = useCallback((excludeIndex: number): number => {
+    if (destinations.length === 0) return 0;
+    if (destinations.length === 1) return 0;
+    
+    // Cycle to next index, wrapping around
+    const next = (excludeIndex + 1) % destinations.length;
+    return next;
   }, [destinations]);
 
   const updateCSSVariables = useCallback((current: Destination, next: Destination) => {
@@ -68,6 +81,8 @@ const Hero = () => {
   }, []);
 
   const displayNextContent = useCallback(() => {
+    // Don't animate if no destinations or only one destination
+    if (destinations.length === 0 || destinations.length === 1) return;
     if (isAnimatingRef.current) return;
 
     isAnimatingRef.current = true;
@@ -77,17 +92,24 @@ const Hero = () => {
 
     setTimeout(() => {
       const currentIdx = currentIndexRef.current;
-      const nextDestinationIndex = getRandomDestination(currentIdx);
-      setCurrentIndex(nextDestinationIndex);
-      currentIndexRef.current = nextDestinationIndex;
-      updateCSSVariables(destinations[nextDestinationIndex], destinations[nextIndexRef.current]);
+      // Move to the next destination (which was previously the "next")
+      const newCurrentIndex = nextIndexRef.current;
+      setCurrentIndex(newCurrentIndex);
+      currentIndexRef.current = newCurrentIndex;
+      
+      // Calculate the new next destination
+      const newNextIndex = getNextDestinationIndex(newCurrentIndex);
+      setNextIndex(newNextIndex);
+      nextIndexRef.current = newNextIndex;
+      
+      const currentDest = destinations[newCurrentIndex];
+      const nextDest = destinations[newNextIndex];
+      if (currentDest && nextDest) {
+        updateCSSVariables(currentDest, nextDest);
+      }
 
       setTimeout(() => {
         bodyElement.classList.remove("body--animated");
-        const newNextIndex = getRandomDestination(nextDestinationIndex);
-        setNextIndex(newNextIndex);
-        nextIndexRef.current = newNextIndex;
-        updateCSSVariables(destinations[nextDestinationIndex], destinations[newNextIndex]);
 
         setTimeout(() => {
           isAnimatingRef.current = false;
@@ -95,17 +117,24 @@ const Hero = () => {
         }, 1000);
       }, 1000);
     }, 1000);
-  }, [updateCSSVariables, destinations, getRandomDestination]);
+  }, [updateCSSVariables, destinations, getNextDestinationIndex]);
 
-  // Initialize CSS variables on mount
+  // Initialize CSS variables on mount or when destinations change
   useEffect(() => {
-    if (rootRef.current) {
-      updateCSSVariables(destinations[currentIndex], destinations[nextIndex]);
+    if (rootRef.current && destinations.length > 0) {
+      const current = destinations[currentIndex];
+      const next = destinations[nextIndex] || destinations[0];
+      if (current && next) {
+        updateCSSVariables(current, next);
+      }
     }
-  }, [updateCSSVariables, currentIndex, destinations, nextIndex]);
+  }, [updateCSSVariables, currentIndex, nextIndex, destinations]);
 
   // Auto-change functionality
   useEffect(() => {
+    // Only set up auto-change if we have more than 1 destination
+    if (destinations.length <= 1) return;
+
     // Initial animation after component mounts
     const initialTimeout = setTimeout(() => {
       displayNextContent();
@@ -122,7 +151,7 @@ const Hero = () => {
         clearInterval(autoChangeIntervalRef.current);
       }
     };
-  }, [displayNextContent]);
+  }, [displayNextContent, destinations.length]);
 
   return (
     <div ref={rootRef} className="hero-container">

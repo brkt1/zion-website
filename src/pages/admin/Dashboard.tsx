@@ -19,7 +19,7 @@ import {
   FaUser,
   FaUsers
 } from 'react-icons/fa';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import ReminderModal from '../../Components/admin/ReminderModal';
 import { adminApi } from '../../services/adminApi';
@@ -62,7 +62,6 @@ const Dashboard = () => {
     ticketId?: string;
   } | null>(null);
   const [expandedCustomerId, setExpandedCustomerId] = useState<string | null>(null);
-  const location = useLocation();
 
   useEffect(() => {
     loadStats();
@@ -571,7 +570,7 @@ const Dashboard = () => {
           customerPhone={selectedCustomer.phone}
           ticketId={selectedCustomer.ticketId}
           onSuccess={() => {
-            console.log('Reminder scheduled successfully');
+            // Reminder scheduled successfully
           }}
         />
       )}
