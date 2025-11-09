@@ -2,12 +2,14 @@
 
 # Script to update REACT_APP_API_URL in Vercel
 # Usage: ./update-backend-url.sh https://your-backend-url.com
+# Example: ./update-backend-url.sh https://yenege-backend.onrender.com
 
 if [ -z "$1" ]; then
     echo "❌ Error: Please provide your backend URL"
     echo "Usage: ./update-backend-url.sh https://your-backend-url.com"
     echo ""
-    echo "Example:"
+    echo "Examples:"
+    echo "  ./update-backend-url.sh https://yenege-backend.onrender.com"
     echo "  ./update-backend-url.sh https://yenege-backend.railway.app"
     exit 1
 fi

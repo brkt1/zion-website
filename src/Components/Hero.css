@@ -109,7 +109,6 @@
   aspect-ratio: 1/1;
   transform: translate(-50%, -50%);
   filter: brightness(0.8);
-  background-color: #1a1a2e; /* Fallback color while images load */
 }
 
 .hero-container .background::before,
@@ -119,27 +118,17 @@
   inset: 0;
   background-size: max(110vw, 110vh) max(110vw, 110vh);
   background-position: 50%;
-  background-repeat: no-repeat;
   transition: all 1.5s;
   transition-timing-function: ease-in-out;
-  opacity: 0;
 }
 
 .hero-container .background::before {
   background-image: var(--img-current);
-  opacity: 0;
-  background-color: #1a1a2e; /* Fallback color */
-  transition: opacity 0.8s ease-in-out;
-}
-
-.hero-container.images-loaded .background::before {
-  opacity: 1;
 }
 
 .hero-container .background::after {
   background-image: var(--img-next);
   opacity: 0;
-  background-color: #1a1a2e; /* Fallback color */
 }
 
 .hero-container .background--2::after {

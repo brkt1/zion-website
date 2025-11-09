@@ -27,24 +27,6 @@ const fallbackDestinations = [
   },
 ];
 
-// Helper function to preload an image
-const preloadImage = (src: string): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve();
-    img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
-    img.src = src;
-  });
-};
-
-// Preload all destination images
-const preloadDestinationImages = async (destinations: Destination[]): Promise<void> => {
-  // Get unique image URLs to avoid duplicate preloads
-  const uniqueImageUrls = Array.from(new Set(destinations.map(dest => dest.img).filter(Boolean)));
-  const imagePromises = uniqueImageUrls.map(url => preloadImage(url));
-  await Promise.allSettled(imagePromises);
-};
-
 const Hero = () => {
   const { destinations: apiDestinations } = useDestinations();
   const { content: homeContent } = useHomeContent();
@@ -53,7 +35,6 @@ const Hero = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [nextIndex, setNextIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [imagesLoaded, setImagesLoaded] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const autoChangeIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isAnimatingRef = useRef(false);
@@ -66,25 +47,6 @@ const Hero = () => {
     currentIndexRef.current = currentIndex;
     nextIndexRef.current = nextIndex;
   }, [isAnimating, currentIndex, nextIndex]);
-
-  // Preload images when destinations change
-  useEffect(() => {
-    if (destinations.length === 0) {
-      setImagesLoaded(false);
-      return;
-    }
-
-    setImagesLoaded(false);
-    preloadDestinationImages(destinations)
-      .then(() => {
-        setImagesLoaded(true);
-      })
-      .catch((error) => {
-        console.error("Error preloading images:", error);
-        // Still set images loaded to true to show fallback/default images
-        setImagesLoaded(true);
-      });
-  }, [destinations]);
 
   // Initialize next index when destinations change
   useEffect(() => {
@@ -156,23 +118,23 @@ const Hero = () => {
     }, 1000);
   }, [updateCSSVariables, destinations, getNextDestinationIndex]);
 
-  // Initialize CSS variables on mount or when destinations change (only after images are loaded)
+  // Initialize CSS variables on mount or when destinations change
   useEffect(() => {
-    if (rootRef.current && destinations.length > 0 && imagesLoaded) {
+    if (rootRef.current && destinations.length > 0) {
       const current = destinations[currentIndex];
       const next = destinations[nextIndex] || destinations[0];
       if (current && next) {
         updateCSSVariables(current, next);
       }
     }
-  }, [updateCSSVariables, currentIndex, nextIndex, destinations, imagesLoaded]);
+  }, [updateCSSVariables, currentIndex, nextIndex, destinations]);
 
-  // Auto-change functionality (only start after images are loaded)
+  // Auto-change functionality
   useEffect(() => {
-    // Only set up auto-change if we have more than 1 destination and images are loaded
-    if (destinations.length <= 1 || !imagesLoaded) return;
+    // Only set up auto-change if we have more than 1 destination
+    if (destinations.length <= 1) return;
 
-    // Initial animation after component mounts and images are loaded
+    // Initial animation after component mounts
     const initialTimeout = setTimeout(() => {
       displayNextContent();
     }, 2000);
@@ -188,10 +150,10 @@ const Hero = () => {
         clearInterval(autoChangeIntervalRef.current);
       }
     };
-  }, [displayNextContent, destinations.length, imagesLoaded]);
+  }, [displayNextContent, destinations.length]);
 
   return (
-    <div ref={rootRef} className={`hero-container ${imagesLoaded ? 'images-loaded' : 'images-loading'}`}>
+    <div ref={rootRef} className="hero-container">
       <main>
         <div className="background"></div>
         <div className="background background--2"></div>

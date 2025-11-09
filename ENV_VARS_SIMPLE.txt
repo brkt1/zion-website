@@ -1,0 +1,34 @@
+==========================================
+RENDER BACKEND ENVIRONMENT VARIABLES
+==========================================
+
+Copy these into Render Dashboard → Environment tab:
+
+FRONTEND_URL=https://www.yenege.com
+
+CHAPA_SECRET_KEY=(paste your Chapa secret key here)
+
+NODE_ENV=production
+
+
+==========================================
+VERCEL FRONTEND ENVIRONMENT VARIABLES
+==========================================
+
+Copy these into Vercel Dashboard → Settings → Environment Variables:
+
+REACT_APP_SUPABASE_URL=https://zjhnvtegoarvdqakqqkd.supabase.co
+
+REACT_APP_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqaG52dGVnb2FydmRxYWtxcWtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI1OTEwNjcsImV4cCI6MjA3ODE2NzA2N30.psUwlT7mj-N9p4JN2DByHLnayrIkoeBdI81lcQWgmII
+
+REACT_APP_API_URL=https://yenege-backend.onrender.com/api
+
+
+==========================================
+IMPORTANT NOTES
+==========================================
+
+1. Replace (paste your Chapa secret key here) with your actual key from server/.env
+2. Update REACT_APP_API_URL in Vercel AFTER deploying to Render with your actual backend URL
+3. After adding variables, redeploy your services
+
