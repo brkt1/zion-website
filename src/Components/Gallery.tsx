@@ -70,8 +70,10 @@ const Gallery = () => {
   }, [apiGalleryItems]);
 
   useEffect(() => {
-    // Preload images
-    const imagePromises = galleryItems.map((item) => {
+    // Preload only the first 2 images (visible + next) for faster initial load
+    // Other images will load on demand when they become visible
+    const imagesToPreload = galleryItems.slice(0, 2);
+    const imagePromises = imagesToPreload.map((item) => {
       return new Promise<void>((resolve) => {
         const img = new Image();
         img.onload = () => {
@@ -87,6 +89,58 @@ const Gallery = () => {
     });
 
     Promise.all(imagePromises);
+
+    // Lazy load remaining images when they become visible
+    // Use setTimeout to ensure DOM is ready
+    let observer: IntersectionObserver | null = null;
+    const timeoutId = setTimeout(() => {
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const itemId = entry.target.getAttribute('data-item-id');
+              if (itemId) {
+                const item = galleryItems.find((g) => g.id === itemId);
+                if (item) {
+                  // Check if already loaded to avoid duplicate loads
+                  const img = new Image();
+                  img.onload = () => {
+                    setImagesLoaded((prev) => {
+                      if (!prev[item.id]) {
+                        return { ...prev, [item.id]: true };
+                      }
+                      return prev;
+                    });
+                  };
+                  img.onerror = () => {
+                    setImagesLoaded((prev) => {
+                      if (prev[item.id] === undefined) {
+                        return { ...prev, [item.id]: false };
+                      }
+                      return prev;
+                    });
+                  };
+                  img.src = item.image;
+                  observer?.unobserve(entry.target);
+                }
+              }
+            }
+          });
+        },
+        { rootMargin: '50px' }
+      );
+
+      // Observe gallery items for lazy loading
+      const galleryElements = document.querySelectorAll('[data-gallery-item]');
+      galleryElements.forEach((el) => observer?.observe(el));
+    }, 100);
+
+    return () => {
+      clearTimeout(timeoutId);
+      if (observer) {
+        observer.disconnect();
+      }
+    };
   }, [galleryItems]);
 
   return (
@@ -116,6 +170,8 @@ const Gallery = () => {
                     "--defaultBackground": item.defaultColor,
                   } as React.CSSProperties}
                   onClick={() => setActiveIndex(index)}
+                  data-gallery-item
+                  data-item-id={item.id}
                 >
                   <div className="gallery-shadow"></div>
                   <div className="gallery-label">

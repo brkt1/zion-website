@@ -110,26 +110,11 @@ npm run build
 
 ## 💳 Payment Integration
 
-Chapa payment integration is now fully implemented! See [PAYMENT_SETUP.md](./PAYMENT_SETUP.md) for detailed setup instructions.
+Chapa payment integration is fully implemented with reCAPTCHA v3 security protection.
 
-### Quick Start
+### Environment Variables
 
-1. **Backend Setup:**
-   ```bash
-   cd server
-   npm install
-   cp .env.example .env
-   # Add your Chapa secret key to .env
-   npm run dev
-   ```
-
-2. **Frontend Setup:**
-   ```bash
-   # In root directory
-   cp env.example .env
-   # Add REACT_APP_API_URL=http://localhost:5000/api
-   npm start
-   ```
+See `env.example` for required environment variables. Never commit `.env` files to version control.
 
 ## 📝 Next Steps
 

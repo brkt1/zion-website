@@ -18,6 +18,7 @@ interface InitializePaymentRequest {
   event_id?: string;
   event_title?: string;
   commission_seller_id?: string;
+  recaptcha_token?: string;
 }
 
 // Initialize payment
@@ -45,6 +46,7 @@ router.post('/initialize', async (req: Request, res: Response) => {
       event_id,
       event_title,
       commission_seller_id,
+      recaptcha_token,
     }: InitializePaymentRequest = req.body;
 
     // Validate required fields (tx_ref is optional, will be generated if not provided)
@@ -52,6 +54,102 @@ router.post('/initialize', async (req: Request, res: Response) => {
       return res.status(400).json({
         success: false,
         message: 'Missing required fields: email, currency, amount',
+      });
+    }
+
+    // SECURITY: Verify reCAPTCHA token (REQUIRED)
+    const recaptchaSecretKey = process.env.RECAPTCHA_SECRET_KEY;
+    
+    // Check if reCAPTCHA is configured
+    if (!recaptchaSecretKey) {
+      console.error('SECURITY WARNING: RECAPTCHA_SECRET_KEY is not configured!');
+      return res.status(500).json({
+        success: false,
+        message: 'Security verification is not properly configured. Please contact support.',
+        error: 'RECAPTCHA_NOT_CONFIGURED',
+      });
+    }
+
+    // Require reCAPTCHA token
+    if (!recaptcha_token || recaptcha_token.trim() === '') {
+      console.warn('SECURITY: Payment request rejected - no reCAPTCHA token provided');
+      return res.status(400).json({
+        success: false,
+        message: 'Security verification required. Please refresh the page and try again.',
+        error: 'RECAPTCHA_TOKEN_MISSING',
+      });
+    }
+
+    // Verify reCAPTCHA token with Google
+    try {
+      const verifyUrl = 'https://www.google.com/recaptcha/api/siteverify';
+      const verifyResponse = await fetch(verifyUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `secret=${recaptchaSecretKey}&response=${recaptcha_token}`,
+      });
+
+      if (!verifyResponse.ok) {
+        console.error('reCAPTCHA API error:', verifyResponse.status, verifyResponse.statusText);
+        return res.status(400).json({
+          success: false,
+          message: 'Security verification service unavailable. Please try again.',
+          error: 'RECAPTCHA_SERVICE_ERROR',
+        });
+      }
+
+      const verifyData = await verifyResponse.json();
+
+      // Check if verification was successful
+      if (!verifyData.success) {
+        console.warn('SECURITY: reCAPTCHA verification failed:', {
+          'error-codes': verifyData['error-codes'],
+          timestamp: new Date().toISOString(),
+        });
+        return res.status(400).json({
+          success: false,
+          message: 'Security verification failed. Please refresh the page and try again.',
+          error: 'RECAPTCHA_VERIFICATION_FAILED',
+          suggestion: 'If this problem persists, please try clearing your browser cache.',
+        });
+      }
+
+      // Check score threshold (0.0 to 1.0, higher is more likely human)
+      // Score below 0.5 indicates suspicious activity
+      const score = verifyData.score !== undefined ? verifyData.score : 1.0;
+      const SCORE_THRESHOLD = 0.5; // Adjust this value based on your security needs (0.0-1.0)
+
+      if (score < SCORE_THRESHOLD) {
+        console.warn('SECURITY: reCAPTCHA score too low (suspicious activity detected):', {
+          score,
+          threshold: SCORE_THRESHOLD,
+          action: verifyData.action,
+          timestamp: new Date().toISOString(),
+        });
+        return res.status(400).json({
+          success: false,
+          message: 'Security verification failed. Please try again.',
+          error: 'RECAPTCHA_SCORE_TOO_LOW',
+          suggestion: 'If you believe this is an error, please contact support.',
+        });
+      }
+
+      // Log successful verification (without sensitive data)
+      console.log('✅ reCAPTCHA verified successfully:', {
+        score: score.toFixed(2),
+        action: verifyData.action,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error('SECURITY ERROR: reCAPTCHA verification failed:', error);
+      // Fail securely - reject payment if verification cannot be completed
+      return res.status(400).json({
+        success: false,
+        message: 'Security verification failed. Please try again.',
+        error: 'RECAPTCHA_VERIFICATION_ERROR',
+        suggestion: 'If this problem persists, please contact support.',
       });
     }
 

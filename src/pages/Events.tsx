@@ -196,6 +196,8 @@ const Events = () => {
                         src={event.image}
                         alt={event.title}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                        loading="lazy"
+                        decoding="async"
                         onError={(e) => {
                           // Fallback to gradient if image fails to load
                           (e.target as HTMLImageElement).style.display = 'none';

@@ -2,9 +2,11 @@ import { useState } from "react";
 import { FaEnvelope, FaInstagram, FaMapMarkerAlt, FaPhone, FaTelegram, FaTiktok, FaWhatsapp, FaYoutube } from "react-icons/fa";
 import { ErrorState } from "../Components/ui/ErrorState";
 import { useContactInfo } from "../hooks/useApi";
+import { useReCaptcha } from "../hooks/useReCaptcha";
 
 const Contact = () => {
   const { contactInfo, isError, mutate: refetchContactInfo } = useContactInfo();
+  const { verifyCaptcha } = useReCaptcha();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -26,26 +28,51 @@ const Contact = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Format the message with form data
-    const whatsappMessage = `Hello! I'm ${formData.name}.\n\n` +
-      `Email: ${formData.email}\n` +
-      (formData.phone ? `Phone: ${formData.phone}\n` : '') +
-      `\nMessage:\n${formData.message}`;
-    
-    // Create WhatsApp URL (phone number without + or spaces)
-    const phoneNumber = contactInfo?.phone?.replace(/\D/g, '') || "251978639887";
-    const encodedMessage = encodeURIComponent(whatsappMessage);
-    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
-    
-    // Open WhatsApp in a new tab
-    window.open(whatsappUrl, '_blank');
-    
-    // Reset form and show success message
-    setIsSubmitting(false);
-    setSubmitStatus("success");
-    setFormData({ name: "", email: "", phone: "", message: "" });
-    
-    setTimeout(() => setSubmitStatus("idle"), 5000);
+    try {
+      // SECURITY: Verify reCAPTCHA (REQUIRED)
+      const recaptchaToken = await verifyCaptcha('contact_form');
+      
+      if (!recaptchaToken) {
+        setSubmitStatus("error");
+        setIsSubmitting(false);
+        // Show user-friendly error message
+        alert(
+          '⚠️ Security Verification Required\n\n' +
+          'Unable to complete security verification. Please:\n' +
+          '1. Refresh the page\n' +
+          '2. Ensure JavaScript is enabled\n' +
+          '3. Try again'
+        );
+        setTimeout(() => setSubmitStatus("idle"), 5000);
+        return;
+      }
+      
+      // Format the message with form data
+      const whatsappMessage = `Hello! I'm ${formData.name}.\n\n` +
+        `Email: ${formData.email}\n` +
+        (formData.phone ? `Phone: ${formData.phone}\n` : '') +
+        `\nMessage:\n${formData.message}`;
+      
+      // Create WhatsApp URL (phone number without + or spaces)
+      const phoneNumber = contactInfo?.phone?.replace(/\D/g, '') || "251978639887";
+      const encodedMessage = encodeURIComponent(whatsappMessage);
+      const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+      
+      // Open WhatsApp in a new tab
+      window.open(whatsappUrl, '_blank');
+      
+      // Reset form and show success message
+      setIsSubmitting(false);
+      setSubmitStatus("success");
+      setFormData({ name: "", email: "", phone: "", message: "" });
+      
+      setTimeout(() => setSubmitStatus("idle"), 5000);
+    } catch (error) {
+      console.error('Form submission error:', error);
+      setSubmitStatus("error");
+      setIsSubmitting(false);
+      setTimeout(() => setSubmitStatus("idle"), 5000);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {

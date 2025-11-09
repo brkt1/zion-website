@@ -16,6 +16,7 @@ export interface PaymentRequest {
   event_title?: string;
   preferred_payment_method?: string; // Optional: preferred payment method
   commission_seller_id?: string; // Optional: commission seller who sold the ticket
+  recaptcha_token?: string; // Optional: reCAPTCHA token for bot verification
 }
 
 export interface PaymentMethod {

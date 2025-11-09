@@ -1,3 +1,4 @@
+import { CommissionSeller } from '../types';
 import { supabase } from './supabase';
 
 // Types (keeping the same interfaces)
@@ -183,7 +184,7 @@ export const api = {
       currency: event.currency,
       gallery: event.gallery || [],
       featured: event.featured,
-      allowed_commission_seller_ids: event.allowed_commission_seller_ids || [],
+      allowed_commission_seller_ids: event.allowed_commission_seller_ids ?? undefined,
     }));
   },
 
@@ -218,7 +219,7 @@ export const api = {
       currency: data.currency,
       gallery: data.gallery || [],
       featured: data.featured,
-      allowed_commission_seller_ids: data.allowed_commission_seller_ids || [],
+      allowed_commission_seller_ids: data.allowed_commission_seller_ids ?? undefined,
     };
   },
 
@@ -554,6 +555,23 @@ export const api = {
         })),
       },
     };
+  },
+
+  // Commission Sellers - Public access to active sellers for ticket purchase
+  getActiveCommissionSellers: async (): Promise<CommissionSeller[]> => {
+    const { data, error } = await supabase
+      .from('commission_sellers')
+      .select('*')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching active commission sellers:', error);
+      // Return empty array instead of throwing to allow form to work without sellers
+      return [];
+    }
+
+    return (data || []) as CommissionSeller[];
   },
 };
 

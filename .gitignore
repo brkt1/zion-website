@@ -21,6 +21,38 @@ build
 .env.development.local
 .env.test.local
 .env.production.local
+ENV_VARS_SIMPLE.txt
+*_ENV*.txt
+*_SECRET*.txt
+*_KEY*.txt
+
+# Sensitive files
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+credentials/
+
+# Test files
+test-*.js
+*-test.js
+*.test.js
+*.spec.js
+
+# Setup scripts (may contain sensitive info)
+setup-*.sh
+*-setup.sh
+set-*.sh
+show-*.sh
+verify-*.sh
+update-*.sh
+
+# Documentation (keep only README.md and docs/)
+*.md
+!README.md
+!server/README.md
+!docs/**/*.md
 
 # Editor directories and files
 .vscode/*

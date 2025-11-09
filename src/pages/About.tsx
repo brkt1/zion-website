@@ -476,6 +476,8 @@ const About = () => {
                               src={content.ceo.image} 
                               alt={content.ceo.name}
                               className="w-full h-full object-cover"
+                              loading="lazy"
+                              decoding="async"
                             />
                           ) : (
                             <div 
