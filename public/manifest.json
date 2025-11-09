@@ -1,31 +1,28 @@
 {
   "short_name": "Yenege",
-  "name": "Yenege Game App",
-  "description": "A comprehensive social gaming platform that combines QR code access, multiplayer gaming, and a sophisticated reward system for cafés and special events.",
+  "name": "Yenege - Events & Travel Experiences",
+  "description": "Building a community where happiness, connection, and unforgettable experiences come together. Join us for exciting events, travel adventures, and meaningful connections.",
   "icons": [
     {
-      "src": "favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "logo.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any"
     },
     {
       "src": "logo.png",
       "type": "image/png",
-      "sizes": "192x192"
-    },
-    {
-      "src": "maskable_icon.png",
-      "type": "image/png",
       "sizes": "512x512",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
-  "theme_color": "#ffd700",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "theme_color": "#FFD447",
   "background_color": "#0a0a0a",
-  "orientation": "portrait-primary",
-  "categories": ["games", "entertainment", "social"],
+  "orientation": "any",
+  "categories": ["travel", "entertainment", "lifestyle", "social"],
   "lang": "en",
   "dir": "ltr",
   "scope": "/",
@@ -33,10 +30,10 @@
   "related_applications": [],
   "shortcuts": [
     {
-      "name": "Play Games",
-      "short_name": "Games",
-      "description": "Start playing games immediately",
-      "url": "/game-selection",
+      "name": "Events",
+      "short_name": "Events",
+      "description": "Browse upcoming events",
+      "url": "/events",
       "icons": [
         {
           "src": "logo.png",
@@ -45,10 +42,10 @@
       ]
     },
     {
-      "name": "Leaderboard",
-      "short_name": "Leaderboard",
-      "description": "View global leaderboards",
-      "url": "/leaderboard",
+      "name": "About",
+      "short_name": "About",
+      "description": "Learn about Yenege",
+      "url": "/about",
       "icons": [
         {
           "src": "logo.png",
@@ -57,10 +54,10 @@
       ]
     },
     {
-      "name": "Rewards",
-      "short_name": "Rewards",
-      "description": "Browse and redeem rewards",
-      "url": "/rewards",
+      "name": "Contact",
+      "short_name": "Contact",
+      "description": "Get in touch with us",
+      "url": "/contact",
       "icons": [
         {
           "src": "logo.png",
@@ -68,5 +65,17 @@
         }
       ]
     }
-  ]
+  ],
+  "screenshots": [],
+  "iarc_rating_id": "",
+  "share_target": {
+    "action": "/",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
 }
