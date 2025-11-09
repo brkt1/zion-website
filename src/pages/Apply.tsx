@@ -2,7 +2,7 @@ import { useState } from "react";
 import { FaBriefcase, FaHandsHelping, FaSpinner } from "react-icons/fa";
 import { ErrorState } from "../Components/ui/ErrorState";
 import { useContactInfo } from "../hooks/useApi";
-import { adminApi } from "../services/adminApi";
+import { supabase } from "../services/supabase";
 
 const Apply = () => {
   const { contactInfo, isError, mutate: refetchContactInfo } = useContactInfo();
@@ -32,17 +32,25 @@ const Apply = () => {
     setIsSubmitting(true);
     
     try {
-      // Save application to database
-      await adminApi.applications.create({
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        type: formData.type,
-        position: formData.position || undefined,
-        experience: formData.experience || undefined,
-        motivation: formData.motivation,
-        availability: formData.availability || undefined,
-      });
+      // Save application to database using supabase client directly (for public access)
+      const { data, error: insertError } = await supabase
+        .from('applications')
+        .insert([{
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          type: formData.type,
+          position: formData.position || null,
+          experience: formData.experience || null,
+          motivation: formData.motivation,
+          availability: formData.availability || null,
+        }])
+        .select()
+        .single();
+
+      if (insertError) {
+        throw insertError;
+      }
 
       // Format the message with form data for WhatsApp
       const whatsappMessage = `Hello! I'm ${formData.name}.\n\n` +

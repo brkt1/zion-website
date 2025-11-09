@@ -42,7 +42,6 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 DROP POLICY IF EXISTS "Allow public insert on applications" ON applications;
 CREATE POLICY "Allow public insert on applications" ON applications
   FOR INSERT
-  TO anon, authenticated
   WITH CHECK (true);
 
 -- Allow admins to read all applications
