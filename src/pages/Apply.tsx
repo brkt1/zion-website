@@ -33,7 +33,7 @@ const Apply = () => {
     
     try {
       // Save application to database using supabase client directly (for public access)
-      const { data, error: insertError } = await supabase
+      const { error: insertError } = await supabase
         .from('applications')
         .insert([{
           name: formData.name,

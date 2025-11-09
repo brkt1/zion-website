@@ -12,6 +12,8 @@ const STATIC_ASSETS = [
   '/',
   '/offline.html',
   '/logo.png',
+  '/icon-192x192.png',
+  '/icon-512x512.png',
   '/social-preview.png',
   '/manifest.json',
 ];

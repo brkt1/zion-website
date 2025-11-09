@@ -4,7 +4,7 @@ import SellerLayout from '../../Components/admin/SellerLayout';
 import { useSellerData } from '../../hooks/useSellerData';
 
 const SellerSales = () => {
-  const { seller, user, tickets, loading, loadingTickets, salesStats } = useSellerData();
+  const { seller, user, tickets, loading, loadingTickets } = useSellerData();
 
   if (loading || !seller) {
     return (

@@ -4,13 +4,13 @@
   "description": "Building a community where happiness, connection, and unforgettable experiences come together. Join us for exciting events, travel adventures, and meaningful connections.",
   "icons": [
     {
-      "src": "logo.png",
+      "src": "icon-192x192.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "any"
     },
     {
-      "src": "logo.png",
+      "src": "icon-512x512.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any maskable"
@@ -19,8 +19,8 @@
   "start_url": "/",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
-  "theme_color": "#FFD447",
-  "background_color": "#0a0a0a",
+  "theme_color": "#FFFFFF",
+  "background_color": "#F7F7F9",
   "orientation": "any",
   "categories": ["travel", "entertainment", "lifestyle", "social"],
   "lang": "en",
@@ -36,7 +36,7 @@
       "url": "/events",
       "icons": [
         {
-          "src": "logo.png",
+          "src": "icon-192x192.png",
           "sizes": "192x192"
         }
       ]
@@ -48,7 +48,7 @@
       "url": "/about",
       "icons": [
         {
-          "src": "logo.png",
+          "src": "icon-192x192.png",
           "sizes": "192x192"
         }
       ]
@@ -60,7 +60,7 @@
       "url": "/contact",
       "icons": [
         {
-          "src": "logo.png",
+          "src": "icon-192x192.png",
           "sizes": "192x192"
         }
       ]
