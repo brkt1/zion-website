@@ -52,7 +52,7 @@ const EventDetail = () => {
         }
       } catch (error) {
         console.error('Error loading commission sellers:', error);
-        // Don't show error to user, just continue without sellers
+        // Don't show error to user, just c montinue without sellers
       } finally {
         setLoadingSellers(false);
       }
