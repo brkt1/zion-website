@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { FaSpinner, FaTimes, FaUpload } from 'react-icons/fa';
 import { uploadImage } from '../../services/upload';
 
@@ -21,11 +21,11 @@ export const ImageUpload = ({
 }: ImageUploadProps) => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropZoneRef = useRef<HTMLDivElement>(null);
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
+  const validateAndUpload = async (file: File) => {
     // Validate file type
     if (!file.type.startsWith('image/')) {
       alert(`${file.name} is not an image file`);
@@ -53,9 +53,38 @@ export const ImageUpload = ({
       setUploadProgress('');
     } finally {
       setUploading(false);
-      // Clear the file input
-      event.target.value = '';
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    await validateAndUpload(file);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+    await validateAndUpload(file);
   };
 
   return (
@@ -64,40 +93,50 @@ export const ImageUpload = ({
         {label} {required && '*'}
       </label>
 
-      {/* Upload button */}
+      {/* Upload button with drag & drop */}
       <div className="mb-2">
-        <label className="cursor-pointer">
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            disabled={uploading}
-            className="hidden"
-          />
-          <div
-            className={`flex items-center justify-center gap-2 px-4 py-2 border-2 border-dashed rounded-md transition-colors ${
-              uploading
-                ? 'border-gray-300 bg-gray-50 cursor-not-allowed'
-                : 'border-indigo-300 bg-indigo-50 hover:bg-indigo-100 hover:border-indigo-400'
-            }`}
-          >
-            {uploading ? (
-              <>
-                <FaSpinner className="animate-spin text-indigo-600" />
-                <span className="text-sm text-gray-600">{uploadProgress}</span>
-              </>
-            ) : (
-              <>
-                <FaUpload className="text-indigo-600" />
-                <span className="text-sm text-indigo-600 font-medium">Upload Image</span>
-              </>
-            )}
-          </div>
-        </label>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleImageUpload}
+          disabled={uploading}
+          className="hidden"
+        />
+        <div
+          ref={dropZoneRef}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onClick={() => !uploading && fileInputRef.current?.click()}
+          className={`flex flex-col items-center justify-center gap-2 px-4 py-6 border-2 border-dashed rounded-lg transition-all cursor-pointer ${
+            uploading
+              ? 'border-gray-300 bg-gray-50 cursor-not-allowed'
+              : isDragging
+              ? 'border-indigo-500 bg-indigo-100 scale-105'
+              : 'border-indigo-300 bg-indigo-50 hover:bg-indigo-100 hover:border-indigo-400'
+          }`}
+        >
+          {uploading ? (
+            <>
+              <FaSpinner className="animate-spin text-indigo-600" size={24} />
+              <span className="text-sm text-gray-600">{uploadProgress}</span>
+            </>
+          ) : (
+            <>
+              <FaUpload className="text-indigo-600" size={24} />
+              <div className="text-center">
+                <span className="text-sm text-indigo-600 font-medium block">
+                  {isDragging ? 'Drop image here' : 'Click to upload or drag and drop'}
+                </span>
+                <span className="text-xs text-gray-500 mt-1 block">PNG, JPG, GIF up to 5MB</span>
+              </div>
+            </>
+          )}
+        </div>
         {uploadProgress && !uploading && (
-          <p className="mt-1 text-xs text-green-600">{uploadProgress}</p>
+          <p className="mt-1 text-xs text-green-600 text-center">{uploadProgress}</p>
         )}
-        <p className="mt-1 text-xs text-gray-500">Max size: 5MB</p>
       </div>
 
       {/* URL input */}

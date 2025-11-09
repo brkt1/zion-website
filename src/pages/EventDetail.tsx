@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { FaCalendarAlt, FaInstagram, FaMapMarkerAlt, FaSpinner, FaTelegram, FaUsers, FaWhatsapp } from "react-icons/fa";
 import { useParams, useSearchParams } from "react-router-dom";
 import { ErrorState } from "../Components/ui/ErrorState";
+import { LocationButton } from "../Components/ui/LocationButton";
 import { getAvailablePaymentMethods } from "../data/paymentMethods";
 import { useContactInfo, useEvent } from "../hooks/useApi";
 import { adminApi } from "../services/adminApi";
@@ -268,7 +269,9 @@ const EventDetail = () => {
                   <FaMapMarkerAlt className="text-gray-400" size={18} />
                   <span className="text-sm text-gray-500 uppercase tracking-wide">Location</span>
                 </div>
-                <div className="font-medium text-gray-900">{event.location}</div>
+                <div className="font-medium">
+                  <LocationButton location={event.location} className="text-gray-900" />
+                </div>
               </div>
               <div>
                 <div className="flex items-center gap-3 mb-2">

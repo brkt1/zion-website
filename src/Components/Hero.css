@@ -132,12 +132,31 @@
   opacity: 0;
 }
 
+/* Dynamic delays based on layer index using CSS custom properties */
+.hero-container .background::after {
+  transition-delay: calc(0.2s * var(--layer-index, 0));
+}
+
 .hero-container .background--2::after {
   transition-delay: 0.2s;
 }
 
 .hero-container .background--3::after {
   transition-delay: 0.4s;
+}
+
+.hero-container .background--4::after {
+  transition-delay: 0.6s;
+}
+
+.hero-container .background--5::after {
+  transition-delay: 0.8s;
+}
+
+/* Dynamic clip-paths based on layer index using CSS custom properties */
+.hero-container .background::before,
+.hero-container .background::after {
+  clip-path: circle(var(--clip-size, 100%));
 }
 
 .hero-container .background--2::before,
@@ -148,7 +167,17 @@
 
 .hero-container .background--3::before,
 .hero-container .background--3::after {
-  clip-path: circle(13%);
+  clip-path: circle(16%);
+}
+
+.hero-container .background--4::before,
+.hero-container .background--4::after {
+  clip-path: circle(9%);
+}
+
+.hero-container .background--5::before,
+.hero-container .background--5::after {
+  clip-path: circle(5%);
 }
 
 .body--animated .hero-container .background::before,
@@ -156,6 +185,13 @@
   animation: rotate ease-in-out 1s forwards;
   animation-delay: 0.4s;
   transition-delay: 0.4s;
+}
+
+/* Dynamic animation delays based on layer index using CSS custom properties */
+.body--animated .hero-container .background::before,
+.body--animated .hero-container .background::after {
+  animation-delay: calc(0.4s - 0.2s * var(--layer-index, 0));
+  transition-delay: calc(0.4s - 0.2s * var(--layer-index, 0));
 }
 
 .body--animated .hero-container .background--2::before,
@@ -168,6 +204,18 @@
 .body--animated .hero-container .background--3::after {
   animation-delay: 0s;
   transition-delay: 0s;
+}
+
+.body--animated .hero-container .background--4::before,
+.body--animated .hero-container .background--4::after {
+  animation-delay: -0.2s;
+  transition-delay: -0.2s;
+}
+
+.body--animated .hero-container .background--5::before,
+.body--animated .hero-container .background--5::after {
+  animation-delay: -0.4s;
+  transition-delay: -0.4s;
 }
 
 .body--animated .hero-container .background::after {

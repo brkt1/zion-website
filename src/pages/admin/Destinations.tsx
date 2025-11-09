@@ -203,8 +203,26 @@ const Destinations = () => {
                     required
                     value={formData.location}
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    placeholder="Enter location name or paste Google Maps link"
                     className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
                   />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Enter location name (e.g., "Addis Ababa") or paste a Google Maps link. Users can click to view on Google Maps.
+                  </p>
+                  {formData.location && (
+                    <a
+                      href={
+                        formData.location.includes('maps.google.com') || formData.location.includes('goo.gl/maps') || formData.location.includes('maps.app.goo.gl')
+                          ? formData.location
+                          : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(formData.location)}`
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-1 text-xs text-blue-600 hover:text-blue-800 inline-flex items-center gap-1"
+                    >
+                      Preview on Google Maps →
+                    </a>
+                  )}
                 </div>
                 <div>
                   <ImageUpload

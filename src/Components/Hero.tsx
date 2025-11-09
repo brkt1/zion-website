@@ -27,6 +27,19 @@ const fallbackDestinations = [
   },
 ];
 
+// Maximum number of background layers for performance (can be adjusted)
+const MAX_BACKGROUND_LAYERS = 5;
+
+// Helper function to preload images
+const preloadImage = (src: string): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve();
+    img.onerror = reject;
+    img.src = src;
+  });
+};
+
 const Hero = () => {
   const { destinations: apiDestinations } = useDestinations();
   const { content: homeContent } = useHomeContent();
@@ -35,11 +48,15 @@ const Hero = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [nextIndex, setNextIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [imagesLoaded, setImagesLoaded] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const autoChangeIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isAnimatingRef = useRef(false);
   const currentIndexRef = useRef(0);
   const nextIndexRef = useRef(0);
+  
+  // Calculate number of background layers (max 5 for performance)
+  const numBackgrounds = Math.min(destinations.length, MAX_BACKGROUND_LAYERS);
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -118,16 +135,54 @@ const Hero = () => {
     }, 1000);
   }, [updateCSSVariables, destinations, getNextDestinationIndex]);
 
+  // Preload images for faster loading
+  useEffect(() => {
+    if (destinations.length === 0) return;
+    
+    const preloadImages = async () => {
+      try {
+        // Preload all destination images
+        const imagePromises = destinations.slice(0, MAX_BACKGROUND_LAYERS).map(dest => 
+          preloadImage(dest.img).catch(err => {
+            console.warn(`Failed to preload image: ${dest.img}`, err);
+          })
+        );
+        
+        await Promise.all(imagePromises);
+        setImagesLoaded(true);
+      } catch (error) {
+        console.error('Error preloading images:', error);
+        // Still set loaded to true to prevent blocking
+        setImagesLoaded(true);
+      }
+    };
+    
+    preloadImages();
+  }, [destinations]);
+
   // Initialize CSS variables on mount or when destinations change
   useEffect(() => {
-    if (rootRef.current && destinations.length > 0) {
+    if (rootRef.current && destinations.length > 0 && imagesLoaded) {
       const current = destinations[currentIndex];
       const next = destinations[nextIndex] || destinations[0];
       if (current && next) {
         updateCSSVariables(current, next);
       }
+      
+      // Set CSS variable for number of backgrounds
+      rootRef.current.style.setProperty("--num-backgrounds", String(numBackgrounds));
+      
+      // Set CSS variables for each background layer
+      const backgroundElements = rootRef.current.querySelectorAll('.background');
+      backgroundElements.forEach((bg, index) => {
+        const bgElement = bg as HTMLElement;
+        bgElement.style.setProperty("--layer-index", String(index));
+        // Calculate clip-path size based on layer index (smaller for higher indices)
+        const clipSize = Math.max(13, 30 - index * 7);
+        bgElement.style.setProperty("--clip-size", `${clipSize}%`);
+      });
     }
-  }, [updateCSSVariables, currentIndex, nextIndex, destinations]);
+  }, [updateCSSVariables, currentIndex, nextIndex, destinations, imagesLoaded, numBackgrounds]);
 
   // Auto-change functionality
   useEffect(() => {
@@ -153,11 +208,26 @@ const Hero = () => {
   }, [displayNextContent, destinations.length]);
 
   return (
-    <div ref={rootRef} className="hero-container">
+    <div 
+      ref={rootRef} 
+      className={`hero-container ${imagesLoaded ? 'images-loaded' : 'images-loading'}`}
+      style={{ '--num-backgrounds': numBackgrounds } as React.CSSProperties}
+    >
       <main>
-        <div className="background"></div>
-        <div className="background background--2"></div>
-        <div className="background background--3"></div>
+        {/* Dynamically generate background layers based on number of destinations */}
+        {Array.from({ length: numBackgrounds }, (_, index) => {
+          const clipSize = Math.max(13, 30 - index * 7);
+          return (
+            <div 
+              key={index} 
+              className={`background ${index > 0 ? `background--${index + 1}` : ''}`}
+              style={{ 
+                '--layer-index': index,
+                '--clip-size': `${clipSize}%`
+              } as React.CSSProperties}
+            />
+          );
+        })}
         
         {/* Hero Content Overlay */}
         <div className="hero-content-overlay">

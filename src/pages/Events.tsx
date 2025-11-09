@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { FaArrowRight, FaCalendarAlt, FaMapMarkerAlt, FaSearch, FaUsers, FaWhatsapp } from "react-icons/fa";
 import { Link, useSearchParams } from "react-router-dom";
 import { ErrorState } from "../Components/ui/ErrorState";
+import { LocationButton } from "../Components/ui/LocationButton";
 import { useCategories, useEvents } from "../hooks/useApi";
 
 const Events = () => {
@@ -290,7 +291,7 @@ const Events = () => {
                       </div>
                       <div className="flex items-center text-gray-600 text-xs md:text-sm">
                         <FaMapMarkerAlt className="mr-2" size={12} />
-                        <span>{event.location}</span>
+                        <LocationButton location={event.location} className="text-gray-600 text-xs md:text-sm" showIcon={false} />
                       </div>
                       {event.attendees && (
                         <div className="flex items-center text-gray-600 text-xs md:text-sm">

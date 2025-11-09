@@ -2,6 +2,7 @@ import { FaArrowRight, FaCalendarAlt, FaMapMarkerAlt, FaWhatsapp } from "react-i
 import { Link } from "react-router-dom";
 import Gallery from "../Components/Gallery";
 import Hero from "../Components/Hero";
+import { LocationButton } from "../Components/ui/LocationButton";
 import { useContactInfo, useEvents, useHomeContent } from "../hooks/useApi";
 
 const formatDate = (dateString: string) => {
@@ -10,6 +11,14 @@ const formatDate = (dateString: string) => {
     weekday: "long",
     year: "numeric",
     month: "long",
+    day: "numeric",
+  });
+};
+
+const formatDateShort = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-US", {
+    month: "short",
     day: "numeric",
   });
 };
@@ -227,7 +236,7 @@ const Home = () => {
               >
                 {/* Event Image */}
                 <div 
-                  className="h-40 sm:h-48 relative overflow-hidden"
+                  className="h-32 sm:h-36 relative overflow-hidden"
                   style={{
                     background: `linear-gradient(135deg, ${index % 3 === 0 ? 'rgba(255, 212, 71, 0.15)' : index % 3 === 1 ? 'rgba(255, 111, 94, 0.15)' : 'rgba(255, 212, 71, 0.2)'} 0%, ${index % 3 === 0 ? 'rgba(255, 111, 94, 0.15)' : index % 3 === 1 ? 'rgba(255, 212, 71, 0.15)' : 'rgba(255, 111, 94, 0.2)'} 100%)`,
                   }}
@@ -304,29 +313,29 @@ const Home = () => {
                   </div>
                 </div>
 
-                <div className="p-6 md:p-8">
+                <div className="p-4 md:p-5">
                   {/* Decorative line */}
                   <div 
-                    className="h-0.5 w-10 md:w-12 mb-4 md:mb-6 rounded-full transition-all duration-700 group-hover:w-16 md:group-hover:w-20"
+                    className="h-0.5 w-8 md:w-10 mb-2 md:mb-3 rounded-full transition-all duration-700 group-hover:w-12 md:group-hover:w-14"
                     style={{
                       background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
                     }}
                   ></div>
 
                   {/* Date and Location */}
-                  <div className="flex flex-wrap items-center gap-3 md:gap-4 text-gray-500 text-xs md:text-sm mb-3 md:mb-4">
+                  <div className="flex flex-wrap items-center gap-2 md:gap-2.5 text-gray-500 text-xs mb-2">
                     <div className="flex items-center">
-                      <FaCalendarAlt className="mr-1.5 md:mr-2" size={12} />
-                      <span>{formatDate(event.date)}</span>
+                      <FaCalendarAlt className="mr-1" size={10} />
+                      <span>{formatDateShort(event.date)}</span>
                     </div>
                     <div className="flex items-center">
-                      <FaMapMarkerAlt className="mr-1.5 md:mr-2" size={12} />
-                      <span>{event.location}</span>
+                      <FaMapMarkerAlt className="mr-1" size={10} />
+                      <LocationButton location={event.location} className="truncate max-w-[120px] text-gray-500 text-xs" showIcon={false} />
                     </div>
                   </div>
 
                   <h3 
-                    className="text-xl md:text-2xl font-bold mb-3 md:mb-4 tracking-tight"
+                    className="text-lg md:text-xl font-bold mb-2 tracking-tight"
                     style={{
                       background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)",
                       WebkitBackgroundClip: "text",
@@ -336,13 +345,13 @@ const Home = () => {
                   >
                     {event.title}
                   </h3>
-                  <p className="text-gray-600 mb-5 md:mb-6 leading-relaxed text-sm md:text-base">
+                  <p className="text-gray-600 mb-3 md:mb-4 leading-relaxed text-xs md:text-sm line-clamp-2">
                     {event.description}
                   </p>
                   
                   <div className="flex items-center">
                     <span 
-                      className="text-sm font-semibold tracking-wide uppercase mr-3 transition-all duration-300 group-hover:mr-4"
+                      className="text-xs font-semibold tracking-wide uppercase mr-2 transition-all duration-300 group-hover:mr-3"
                       style={{
                         color: "#FF6F5E",
                       }}
@@ -350,15 +359,15 @@ const Home = () => {
                       Learn More
                     </span>
                     <div 
-                      className="w-8 h-0.5 transition-all duration-300 group-hover:w-12"
+                      className="w-6 h-0.5 transition-all duration-300 group-hover:w-10"
                       style={{
                         background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
                       }}
                     ></div>
                     <FaArrowRight 
-                      className="ml-2 transition-all duration-300 group-hover:translate-x-2" 
+                      className="ml-1.5 transition-all duration-300 group-hover:translate-x-2" 
                       style={{ color: "#FF6F5E" }}
-                      size={14}
+                      size={12}
                     />
                   </div>
                 </div>
