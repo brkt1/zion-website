@@ -1,6 +1,6 @@
 import { PaymentRequest, PaymentResponse, PaymentVerification } from '../types';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://yenege-backend.onrender.com/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://zion-website-yy1v.onrender.com/api';
 
 if (!API_BASE_URL) {
   throw new Error(
