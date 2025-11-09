@@ -25,6 +25,15 @@
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
 
+    <!-- Resource Hints for Performance -->
+    <link rel="dns-prefetch" href="https://www.google.com" />
+    <link rel="dns-prefetch" href="https://www.gstatic.com" />
+    <link rel="preconnect" href="https://www.google.com" crossorigin />
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" as="image" href="%PUBLIC_URL%/logo.png" fetchpriority="high" />
+    
     <!-- Fonts - Using system fonts to avoid 503 errors -->
     <!-- <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

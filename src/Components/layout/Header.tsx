@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { FaBars, FaEnvelope, FaTimes, FaWhatsapp } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
 import { useContactInfo, useSiteConfig } from "../../hooks/useApi";
+import { handleLinkHover } from "../../utils/prefetch";
 
 const Header = () => {
   const { config } = useSiteConfig();
@@ -68,6 +69,7 @@ const Header = () => {
               <Link
                 key={link.path}
                 to={link.path}
+                onMouseEnter={() => handleLinkHover(link.path)}
                 className={`relative text-sm font-semibold tracking-wide transition-all duration-300 ${
                   isHomePage && !isScrolled
                     ? isActive(link.path)
@@ -157,6 +159,7 @@ const Header = () => {
               <Link
                 key={link.path}
                 to={link.path}
+                onMouseEnter={() => handleLinkHover(link.path)}
                 onClick={() => setIsMenuOpen(false)}
                 className={`block px-4 py-3 text-base font-semibold rounded-lg transition-all duration-300 ${
                   isHomePage && !isScrolled

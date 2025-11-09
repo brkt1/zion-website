@@ -4,6 +4,7 @@ import Gallery from "../Components/Gallery";
 import Hero from "../Components/Hero";
 import { LocationButton } from "../Components/ui/LocationButton";
 import { useContactInfo, useEvents, useHomeContent } from "../hooks/useApi";
+import { handleLinkHover } from "../utils/prefetch";
 
 const formatDateShort = (dateString: string) => {
   const date = new Date(dateString);
@@ -69,6 +70,7 @@ const Home = () => {
                 boxShadow: "0 4px 24px rgba(0, 0, 0, 0.06)",
               }}
               onMouseEnter={(e) => {
+                handleLinkHover(category.link);
                 if (window.innerWidth >= 768) {
                   e.currentTarget.style.transform = "translateY(-8px)";
                   e.currentTarget.style.boxShadow = "0 20px 40px rgba(255, 111, 94, 0.15)";
@@ -214,6 +216,7 @@ const Home = () => {
                   boxShadow: "0 4px 24px rgba(0, 0, 0, 0.06)",
                 }}
                 onMouseEnter={(e) => {
+                  handleLinkHover('/events');
                   if (window.innerWidth >= 768) {
                     e.currentTarget.style.transform = "translateY(-8px)";
                     e.currentTarget.style.boxShadow = "0 20px 40px rgba(255, 111, 94, 0.15)";
@@ -239,6 +242,7 @@ const Home = () => {
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                       loading="lazy"
                       decoding="async"
+                      fetchPriority="low"
                       onError={(e) => {
                         // Fallback to gradient if image fails to load
                         (e.target as HTMLImageElement).style.display = 'none';
@@ -382,6 +386,7 @@ const Home = () => {
                 boxShadow: "0 4px 20px rgba(255, 111, 94, 0.3)",
               }}
               onMouseEnter={(e) => {
+                handleLinkHover('/events');
                 if (window.innerWidth >= 768) {
                   e.currentTarget.style.transform = "translateY(-2px)";
                   e.currentTarget.style.boxShadow = "0 8px 30px rgba(255, 111, 94, 0.4)";
@@ -470,10 +475,11 @@ const Home = () => {
             {homeContent?.cta?.buttons && homeContent.cta.buttons.length > 0 ? (
               homeContent.cta.buttons.map((button, index) => (
                 button.type === 'primary' ? (
-                  <Link
-                    key={index}
-                    to={button.link}
-                    className="inline-flex items-center justify-center px-6 md:px-8 py-3 md:py-4 text-sm md:text-base rounded-[50px] font-semibold hover:scale-105 transition-all duration-500 shadow-lg hover:shadow-xl"
+                <Link
+                  key={index}
+                  to={button.link}
+                  onMouseEnter={() => handleLinkHover(button.link)}
+                  className="inline-flex items-center justify-center px-6 md:px-8 py-3 md:py-4 text-sm md:text-base rounded-[50px] font-semibold hover:scale-105 transition-all duration-500 shadow-lg hover:shadow-xl"
                     style={{
                       background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
                       color: "#1C2951",
@@ -503,6 +509,7 @@ const Home = () => {
               <>
                 <Link
                   to="/events"
+                  onMouseEnter={() => handleLinkHover('/events')}
                   className="inline-flex items-center justify-center px-6 md:px-8 py-3 md:py-4 text-sm md:text-base rounded-[50px] font-semibold hover:scale-105 transition-all duration-500 shadow-lg hover:shadow-xl"
                   style={{
                     background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",

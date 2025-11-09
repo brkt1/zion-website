@@ -1,27 +1,33 @@
+import { Suspense, lazy } from "react";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import AdminRoute from "./Components/admin/AdminRoute";
 import Layout from "./Components/layout/Layout";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
-import EventDetail from "./pages/EventDetail";
-import Events from "./pages/Events";
-import Home from "./pages/Home";
-import PaymentCallback from "./pages/PaymentCallback";
-import PaymentFailed from "./pages/PaymentFailed";
-import PaymentSuccess from "./pages/PaymentSuccess";
-import AdminAbout from "./pages/admin/About";
-import AdminRedirect from "./pages/admin/AdminRedirect";
-import AdminCategories from "./pages/admin/Categories";
-import CommissionSellers from "./pages/admin/CommissionSellers";
-import AdminContact from "./pages/admin/Contact";
-import AdminDashboard from "./pages/admin/Dashboard";
-import AdminDestinations from "./pages/admin/Destinations";
-import AdminEvents from "./pages/admin/Events";
-import AdminGallery from "./pages/admin/Gallery";
-import AdminHome from "./pages/admin/Home";
-import AdminLogin from "./pages/admin/Login";
-import AdminSettings from "./pages/admin/Settings";
-import VerifyTicket from "./pages/admin/VerifyTicket";
+import { LoadingState } from "./Components/ui/LoadingState";
+
+// Lazy load all route components for code splitting and faster initial load
+const Home = lazy(() => import("./pages/Home"));
+const Events = lazy(() => import("./pages/Events"));
+const EventDetail = lazy(() => import("./pages/EventDetail"));
+const About = lazy(() => import("./pages/About"));
+const Contact = lazy(() => import("./pages/Contact"));
+const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
+const PaymentCallback = lazy(() => import("./pages/PaymentCallback"));
+const PaymentFailed = lazy(() => import("./pages/PaymentFailed"));
+
+// Admin pages - lazy loaded
+const AdminRedirect = lazy(() => import("./pages/admin/AdminRedirect"));
+const AdminLogin = lazy(() => import("./pages/admin/Login"));
+const CommissionSellers = lazy(() => import("./pages/admin/CommissionSellers"));
+const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
+const AdminEvents = lazy(() => import("./pages/admin/Events"));
+const AdminCategories = lazy(() => import("./pages/admin/Categories"));
+const AdminDestinations = lazy(() => import("./pages/admin/Destinations"));
+const AdminGallery = lazy(() => import("./pages/admin/Gallery"));
+const AdminAbout = lazy(() => import("./pages/admin/About"));
+const AdminHome = lazy(() => import("./pages/admin/Home"));
+const AdminContact = lazy(() => import("./pages/admin/Contact"));
+const AdminSettings = lazy(() => import("./pages/admin/Settings"));
+const VerifyTicket = lazy(() => import("./pages/admin/VerifyTicket"));
 
 function App() {
   return (
@@ -35,36 +41,129 @@ function App() {
         {/* Public Routes */}
         <Route path="/*" element={
           <Layout>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/events" element={<Events />} />
-              <Route path="/events/:id" element={<EventDetail />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/payment/success" element={<PaymentSuccess />} />
-              <Route path="/payment/callback" element={<PaymentCallback />} />
-              <Route path="/payment/failed" element={<PaymentFailed />} />
-            </Routes>
+            <Suspense fallback={<LoadingState message="Loading page..." />}>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/events" element={<Events />} />
+                <Route path="/events/:id" element={<EventDetail />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/payment/success" element={<PaymentSuccess />} />
+                <Route path="/payment/callback" element={<PaymentCallback />} />
+                <Route path="/payment/failed" element={<PaymentFailed />} />
+              </Routes>
+            </Suspense>
           </Layout>
         } />
         
         {/* Admin Routes */}
-        <Route path="/admin" element={<AdminRedirect />} />
-        <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/admin/commission-sellers" element={<CommissionSellers />} />
+        <Route 
+          path="/admin" 
+          element={
+            <Suspense fallback={<LoadingState message="Loading..." />}>
+              <AdminRedirect />
+            </Suspense>
+          } 
+        />
+        <Route 
+          path="/admin/login" 
+          element={
+            <Suspense fallback={<LoadingState message="Loading login..." />}>
+              <AdminLogin />
+            </Suspense>
+          } 
+        />
+        <Route 
+          path="/admin/commission-sellers" 
+          element={
+            <Suspense fallback={<LoadingState message="Loading..." />}>
+              <CommissionSellers />
+            </Suspense>
+          } 
+        />
         
         {/* Admin-only routes - protected by AdminRoute */}
         <Route element={<AdminRoute />}>
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/events" element={<AdminEvents />} />
-          <Route path="/admin/categories" element={<AdminCategories />} />
-          <Route path="/admin/destinations" element={<AdminDestinations />} />
-          <Route path="/admin/gallery" element={<AdminGallery />} />
-          <Route path="/admin/about" element={<AdminAbout />} />
-          <Route path="/admin/home" element={<AdminHome />} />
-          <Route path="/admin/contact" element={<AdminContact />} />
-          <Route path="/admin/settings" element={<AdminSettings />} />
-          <Route path="/admin/verify" element={<VerifyTicket />} />
+          <Route 
+            path="/admin/dashboard" 
+            element={
+              <Suspense fallback={<LoadingState message="Loading dashboard..." />}>
+                <AdminDashboard />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="/admin/events" 
+            element={
+              <Suspense fallback={<LoadingState message="Loading events..." />}>
+                <AdminEvents />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="/admin/categories" 
+            element={
+              <Suspense fallback={<LoadingState message="Loading categories..." />}>
+                <AdminCategories />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="/admin/destinations" 
+            element={
+              <Suspense fallback={<LoadingState message="Loading destinations..." />}>
+                <AdminDestinations />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="/admin/gallery" 
+            element={
+              <Suspense fallback={<LoadingState message="Loading gallery..." />}>
+                <AdminGallery />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="/admin/about" 
+            element={
+              <Suspense fallback={<LoadingState message="Loading..." />}>
+                <AdminAbout />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="/admin/home" 
+            element={
+              <Suspense fallback={<LoadingState message="Loading..." />}>
+                <AdminHome />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="/admin/contact" 
+            element={
+              <Suspense fallback={<LoadingState message="Loading..." />}>
+                <AdminContact />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="/admin/settings" 
+            element={
+              <Suspense fallback={<LoadingState message="Loading settings..." />}>
+                <AdminSettings />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="/admin/verify" 
+            element={
+              <Suspense fallback={<LoadingState message="Loading..." />}>
+                <VerifyTicket />
+              </Suspense>
+            } 
+          />
         </Route>
       </Routes>
     </Router>

@@ -6,7 +6,6 @@ import { ErrorState } from "../Components/ui/ErrorState";
 import { LocationButton } from "../Components/ui/LocationButton";
 import { getAvailablePaymentMethods } from "../data/paymentMethods";
 import { useContactInfo, useEvent } from "../hooks/useApi";
-import { useReCaptcha } from "../hooks/useReCaptcha";
 import { api } from "../services/api";
 import { initializePayment } from "../services/payment";
 import { CommissionSeller, PaymentRequest } from "../types";
@@ -16,7 +15,6 @@ const EventDetail = () => {
   const [searchParams] = useSearchParams();
   const { event, isError, mutate: refetchEvent } = useEvent(id);
   const { contactInfo } = useContactInfo();
-  const { verifyCaptcha } = useReCaptcha();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentStep, setPaymentStep] = useState<'form' | 'methods'>('form');
@@ -131,22 +129,6 @@ const EventDetail = () => {
     setIsProcessing(true);
 
     try {
-      // SECURITY: Verify reCAPTCHA before processing payment (REQUIRED)
-      const recaptchaToken = await verifyCaptcha('payment_form');
-      
-      if (!recaptchaToken) {
-        alert(
-          '⚠️ Security Verification Required\n\n' +
-          'Unable to complete security verification. Please:\n' +
-          '1. Refresh the page\n' +
-          '2. Ensure JavaScript is enabled\n' +
-          '3. Try again\n\n' +
-          'If the problem persists, please contact support.'
-        );
-        setIsProcessing(false);
-        return;
-      }
-
       // Calculate total amount based on quantity
       // Handle "Free" price or parse numeric price
       let pricePerTicket = 0;
@@ -187,7 +169,6 @@ const EventDetail = () => {
         event_title: event.title,
         preferred_payment_method: selectedPaymentMethod || undefined,
         commission_seller_id: paymentForm.commission_seller_id || undefined,
-        recaptcha_token: recaptchaToken, // Include reCAPTCHA token for server-side verification
       };
 
       // Payment data prepared for server
@@ -201,17 +182,7 @@ const EventDetail = () => {
         // Show error message
         const errorMsg = response.message || "Failed to initialize payment";
         
-        // Handle reCAPTCHA-specific errors
-        if (response.error === 'RECAPTCHA_TOKEN_MISSING' || 
-            response.error === 'RECAPTCHA_VERIFICATION_FAILED' ||
-            response.error === 'RECAPTCHA_SCORE_TOO_LOW' ||
-            response.error === 'RECAPTCHA_NOT_CONFIGURED') {
-          alert(
-            "🔒 Security Verification Error\n\n" +
-            errorMsg + "\n\n" +
-            (response.suggestion || "Please refresh the page and try again. If the problem persists, contact support.")
-          );
-        } else if (response.error === 'LOCALHOST_URL_NOT_ALLOWED') {
+        if (response.error === 'LOCALHOST_URL_NOT_ALLOWED') {
           alert(
             "⚠️ URL Configuration Error\n\n" +
             errorMsg + "\n\n" +
@@ -233,20 +204,6 @@ const EventDetail = () => {
           "⏱️ Rate Limit Exceeded\n\n" +
           errorMsg + "\n\n" +
           (error.suggestion || "Please wait a moment and try again.")
-        );
-      }
-      // Check if it's a reCAPTCHA error
-      else if (errorType === 'RECAPTCHA_TOKEN_MISSING' || 
-               errorType === 'RECAPTCHA_VERIFICATION_FAILED' ||
-               errorType === 'RECAPTCHA_SCORE_TOO_LOW' ||
-               errorType === 'RECAPTCHA_NOT_CONFIGURED' ||
-               errorType === 'RECAPTCHA_VERIFICATION_ERROR' ||
-               errorMsg.includes("reCAPTCHA") || 
-               errorMsg.includes("Security verification")) {
-        alert(
-          "🔒 Security Verification Error\n\n" +
-          errorMsg + "\n\n" +
-          (error.suggestion || "Please refresh the page and try again. If the problem persists, contact support.")
         );
       }
       // Check if it's a validation error

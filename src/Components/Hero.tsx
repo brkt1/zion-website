@@ -118,13 +118,23 @@ const Hero = () => {
     }, 1000);
   }, [updateCSSVariables, destinations, getNextDestinationIndex]);
 
-  // Preload first destination image for faster initial load
+  // Preload first and second destination images for faster initial load and smooth transitions
   useEffect(() => {
     if (destinations.length > 0) {
+      // Preload first destination (current)
       const firstDestination = destinations[0];
       if (firstDestination?.img) {
         const img = new Image();
         img.src = firstDestination.img;
+      }
+      
+      // Preload second destination (next) if available
+      if (destinations.length > 1) {
+        const secondDestination = destinations[1];
+        if (secondDestination?.img) {
+          const img = new Image();
+          img.src = secondDestination.img;
+        }
       }
     }
   }, [destinations]);
