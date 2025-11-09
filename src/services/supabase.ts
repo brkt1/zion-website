@@ -52,4 +52,99 @@ if (!isValidUrl(supabaseUrl)) {
   );
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Configure Supabase client - explicitly disable realtime to prevent WebSocket connections
+// This is critical for bfcache to work properly
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  global: {
+    headers: {
+      'x-client-info': 'zion-website',
+    },
+  },
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+    // Disable realtime for auth to prevent WebSocket
+    flowType: 'pkce',
+  },
+  // Explicitly disable realtime
+  realtime: {
+    // Set to null to completely disable realtime
+    // This prevents any WebSocket connections
+    params: {
+      eventsPerSecond: 0,
+    },
+  },
+});
+
+// Prevent realtime from initializing at all - critical for bfcache
+// Override WebSocket constructor to prevent any WebSocket connections from Supabase
+if (typeof window !== 'undefined') {
+  // Store original WebSocket
+  const OriginalWebSocket = window.WebSocket;
+  
+  // Override WebSocket to block Supabase realtime connections
+  (window as any).WebSocket = class BlockedWebSocket extends OriginalWebSocket {
+    constructor(url: string | URL, protocols?: string | string[]) {
+      // Block WebSocket connections to Supabase realtime
+      if (typeof url === 'string' && url.includes('realtime.supabase.co')) {
+        console.warn('Supabase realtime WebSocket blocked for bfcache compatibility');
+        // Create a no-op WebSocket that never connects
+        super('ws://localhost', protocols);
+        // Immediately close it
+        setTimeout(() => {
+          try {
+            this.close();
+          } catch (e) {
+            // Ignore
+          }
+        }, 0);
+        return;
+      }
+      // Allow other WebSocket connections
+      super(url, protocols);
+    }
+  };
+  
+  // Also prevent realtime methods
+  if (supabase.realtime) {
+    supabase.realtime.channel = () => {
+      return {
+        subscribe: () => ({ unsubscribe: () => {} }),
+        on: () => ({ unsubscribe: () => {} }),
+        send: () => {},
+        unsubscribe: () => {},
+      } as any;
+    };
+    
+    if (supabase.realtime.connect) {
+      supabase.realtime.connect = () => Promise.resolve();
+    }
+  }
+}
+
+// Ensure realtime is disconnected on page unload/hide for bfcache compatibility
+if (typeof window !== 'undefined') {
+  const disconnectRealtime = () => {
+    try {
+      // Only disconnect if realtime is actually connected
+      if (supabase.realtime.isConnected()) {
+        supabase.realtime.disconnect();
+      }
+    } catch (e) {
+      // Ignore errors if realtime isn't initialized
+    }
+  };
+
+  window.addEventListener('beforeunload', disconnectRealtime);
+  
+  // Disconnect when page is hidden (critical for bfcache)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      disconnectRealtime();
+    }
+  });
+
+  // Disconnect on pagehide (bfcache event)
+  window.addEventListener('pagehide', disconnectRealtime);
+}

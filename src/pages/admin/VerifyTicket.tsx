@@ -1,8 +1,9 @@
-import { Html5Qrcode } from "html5-qrcode";
 import { useEffect, useRef, useState } from "react";
 import { FaCheckCircle, FaQrcode, FaTimesCircle, FaUpload } from "react-icons/fa";
 import AdminLayout from "../../Components/admin/AdminLayout";
 import { useAdminAuth } from "../../hooks/useAdminAuth";
+
+// Lazy load html5-qrcode to reduce initial bundle size (admin-only feature)
 
 interface TicketData {
   tx_ref: string;
@@ -23,7 +24,7 @@ const VerifyTicket = () => {
   const [error, setError] = useState<string | null>(null);
   const [manualInput, setManualInput] = useState("");
   const [showManualInput, setShowManualInput] = useState(false);
-  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const scannerRef = useRef<any>(null);
   const scanAreaRef = useRef<HTMLDivElement>(null);
 
   // Format date for display
@@ -84,8 +85,10 @@ const VerifyTicket = () => {
       setTicketData(null);
       setIsScanning(true);
 
+      // Lazy load html5-qrcode only when needed
+      const { Html5Qrcode: Html5QrcodeClass } = await import("html5-qrcode");
       const scannerId = "qr-reader";
-      const html5QrCode = new Html5Qrcode(scannerId);
+      const html5QrCode = new Html5QrcodeClass(scannerId);
 
       scannerRef.current = html5QrCode;
 
@@ -148,7 +151,9 @@ const VerifyTicket = () => {
       setError(null);
       setTicketData(null);
 
-      const html5QrCode = new Html5Qrcode("qr-reader");
+      // Lazy load html5-qrcode only when needed
+      const { Html5Qrcode: Html5QrcodeClass } = await import("html5-qrcode");
+      const html5QrCode = new Html5QrcodeClass("qr-reader");
       
       const decodedText = await html5QrCode.scanFile(file, false);
       handleQRScan(decodedText);

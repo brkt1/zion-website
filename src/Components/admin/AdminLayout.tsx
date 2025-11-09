@@ -36,7 +36,8 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
   useEffect(() => {
     checkUser();
     
-    // Listen for auth changes
+    // Listen for auth changes - onAuthStateChange doesn't use WebSocket
+    // It uses localStorage events, so it's safe for bfcache
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
         navigate('/admin/login');

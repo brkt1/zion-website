@@ -526,7 +526,7 @@ const About = () => {
                       <p 
                         className="text-lg md:text-xl mb-6 md:mb-8 font-semibold"
                         style={{
-                          color: "#FF6F5E",
+                          color: "#C73A26",
                         }}
                       >
                         {content.ceo.title}

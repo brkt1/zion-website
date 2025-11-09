@@ -62,11 +62,20 @@ export const LocationButton = ({ location, className = '', showIcon = true }: Lo
     <button
       onClick={handleClick}
       className={`inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline transition-colors ${className}`}
+      style={{ 
+        minHeight: '44px', 
+        minWidth: '44px', 
+        padding: '8px 12px',
+        display: 'inline-flex',
+        alignItems: 'center',
+        boxSizing: 'border-box'
+      }}
       title={`View location on Google Maps`}
+      aria-label={`View location on Google Maps: ${displayText}`}
     >
-      {showIcon && <FaMapMarkerAlt className="text-red-500" size={14} />}
-      <span>{displayText}</span>
-      <FaExternalLinkAlt size={10} className="opacity-70" />
+      {showIcon && <FaMapMarkerAlt className="text-red-500 flex-shrink-0" size={14} aria-hidden="true" />}
+      <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayText}</span>
+      <FaExternalLinkAlt size={10} className="opacity-70 flex-shrink-0" aria-hidden="true" />
     </button>
   );
 };

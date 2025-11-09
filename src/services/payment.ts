@@ -1,6 +1,37 @@
 import { PaymentRequest, PaymentResponse, PaymentVerification } from '../types';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://zion-website-yy1v.onrender.com/api';
+// Production API URL - always used in production
+const PRODUCTION_API_URL = 'https://zion-website-yy1v.onrender.com/api';
+
+// Get API URL - always use production URL in production, otherwise use env or fallback
+const getApiBaseUrl = () => {
+  // Always use production URL in production builds
+  if (process.env.NODE_ENV === 'production') {
+    return PRODUCTION_API_URL;
+  }
+  
+  // In development, check if we're on a production domain (deployed preview, etc.)
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    // If not localhost, assume production environment
+    if (hostname !== 'localhost' && hostname !== '127.0.0.1' && !hostname.startsWith('192.168.')) {
+      return PRODUCTION_API_URL;
+    }
+  }
+  
+  // In development on localhost, use env variable or fallback to production
+  const envUrl = process.env.REACT_APP_API_URL;
+  
+  // Check if the env URL is a placeholder or invalid
+  if (!envUrl || envUrl.includes('your-backend-url')) {
+    return PRODUCTION_API_URL;
+  }
+  
+  // Use env URL if it's valid
+  return envUrl;
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 if (!API_BASE_URL) {
   throw new Error(

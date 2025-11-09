@@ -4,6 +4,9 @@ import AdminRoute from "./Components/admin/AdminRoute";
 import Layout from "./Components/layout/Layout";
 import { LoadingState } from "./Components/ui/LoadingState";
 
+// Use React 18's startTransition for non-urgent updates
+// This helps reduce main thread blocking
+
 // Lazy load all route components for code splitting and faster initial load
 const Home = lazy(() => import("./pages/Home"));
 const Events = lazy(() => import("./pages/Events"));

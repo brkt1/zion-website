@@ -3,6 +3,7 @@ import { FaArrowRight, FaCalendarAlt, FaMapMarkerAlt, FaSearch, FaUsers, FaWhats
 import { Link, useSearchParams } from "react-router-dom";
 import { ErrorState } from "../Components/ui/ErrorState";
 import { LocationButton } from "../Components/ui/LocationButton";
+import OptimizedImage from "../Components/ui/OptimizedImage";
 import { useCategories, useEvents } from "../hooks/useApi";
 
 const Events = () => {
@@ -192,12 +193,15 @@ const Events = () => {
                   >
                     {/* Event Image */}
                     {event.image ? (
-                      <img
+                      <OptimizedImage
                         src={event.image}
                         alt={event.title}
+                        width={400}
+                        height={200}
+                        quality={55}
+                        priority="low"
+                        responsive={true}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                        loading="lazy"
-                        decoding="async"
                         onError={(e) => {
                           // Fallback to gradient if image fails to load
                           (e.target as HTMLImageElement).style.display = 'none';
@@ -238,9 +242,9 @@ const Events = () => {
                       <div 
                         className="px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs font-semibold tracking-wide uppercase backdrop-blur-md transition-all duration-300 group-hover:scale-110"
                         style={{
-                          background: "rgba(255, 255, 255, 0.9)",
-                          color: "#FF6F5E",
-                          border: "1px solid rgba(255, 111, 94, 0.2)",
+                          background: "#FF6F5E",
+                          color: "#FFFFFF",
+                          border: "1px solid rgba(255, 111, 94, 0.3)",
                         }}
                       >
                         {event.category.charAt(0).toUpperCase() + event.category.slice(1)}
@@ -288,16 +292,16 @@ const Events = () => {
                     {/* Date and Location */}
                     <div className="space-y-2 mb-4">
                       <div className="flex items-center text-gray-600 text-xs md:text-sm">
-                        <FaCalendarAlt className="mr-2" size={12} />
+                        <FaCalendarAlt className="mr-2 flex-shrink-0" size={12} aria-hidden="true" />
                         <span>{formatDate(event.date)}</span>
                       </div>
                       <div className="flex items-center text-gray-600 text-xs md:text-sm">
-                        <FaMapMarkerAlt className="mr-2" size={12} />
+                        <FaMapMarkerAlt className="mr-2 flex-shrink-0" size={12} aria-hidden="true" />
                         <LocationButton location={event.location} className="text-gray-600 text-xs md:text-sm" showIcon={false} />
                       </div>
                       {event.attendees && (
                         <div className="flex items-center text-gray-600 text-xs md:text-sm">
-                          <FaUsers className="mr-2" size={12} />
+                          <FaUsers className="mr-2 flex-shrink-0" size={12} aria-hidden="true" />
                           <span>{event.attendees} attending</span>
                         </div>
                       )}
@@ -311,7 +315,7 @@ const Events = () => {
                       <span 
                         className="text-sm font-semibold tracking-wide uppercase mr-3 transition-all duration-300 group-hover:mr-4"
                         style={{
-                          color: "#FF6F5E",
+                          color: "#C73A26",
                         }}
                       >
                         View Details
@@ -324,7 +328,7 @@ const Events = () => {
                       ></div>
                       <FaArrowRight 
                         className="ml-2 transition-all duration-300 group-hover:translate-x-2" 
-                        style={{ color: "#FF6F5E" }}
+                        style={{ color: "#C73A26" }}
                         size={14}
                       />
                     </div>

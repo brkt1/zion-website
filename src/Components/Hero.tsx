@@ -3,6 +3,7 @@ import { FaArrowRight } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { useDestinations, useHomeContent } from "../hooks/useApi";
 import { Destination } from "../services/api";
+import { optimizeImageUrl, preloadOptimizedImage } from "../utils/imageOptimizer";
 import "./Hero.css";
 
 // Fallback destinations if API fails
@@ -103,12 +104,49 @@ const Hero = () => {
       const nextDest = dests[newNextIndex];
       
       if (currentDest && nextDest) {
-        // Update CSS variables immediately, but only if not animating
+        // Optimize image URLs for better performance
+        // Use lower quality for better compression (reduced to 55/50)
+        const optimizedCurrentImg = optimizeImageUrl(currentDest.img, { width: 1920, quality: 55, format: 'auto' });
+        const optimizedNextImg = optimizeImageUrl(nextDest.img, { width: 1920, quality: 50, format: 'auto' });
+        
+        // Preload optimized next image before setting CSS variable to avoid layout shift
+        const preloadImg = new Image();
+        preloadImg.loading = 'eager';
+        preloadImg.fetchPriority = 'high';
+        preloadImg.crossOrigin = 'anonymous';
+        preloadImg.onload = () => {
+          // Only update CSS variables after image is loaded
+          if (rootRef.current) {
+            rootRef.current.style.setProperty("--img-current", `url(${optimizedCurrentImg})`);
+            rootRef.current.style.setProperty("--text-current-title", `"${currentDest.name}"`);
+            rootRef.current.style.setProperty("--text-current-subtitle", `"${currentDest.location}"`);
+            rootRef.current.style.setProperty("--img-next", `url(${optimizedNextImg})`);
+            rootRef.current.style.setProperty("--text-next-title", `"${nextDest.name}"`);
+            rootRef.current.style.setProperty("--text-next-subtitle", `"${nextDest.location}"`);
+          }
+        };
+        preloadImg.onerror = () => {
+          // Fallback: use optimized URLs (not original) to prevent direct pixabay connection
+          // Re-optimize in case the first optimization failed
+          const fallbackCurrent = optimizeImageUrl(currentDest.img, { width: 1920, quality: 55, format: 'auto' });
+          const fallbackNext = optimizeImageUrl(nextDest.img, { width: 1920, quality: 50, format: 'auto' });
+          if (rootRef.current) {
+            rootRef.current.style.setProperty("--img-current", `url(${fallbackCurrent})`);
+            rootRef.current.style.setProperty("--text-current-title", `"${currentDest.name}"`);
+            rootRef.current.style.setProperty("--text-current-subtitle", `"${currentDest.location}"`);
+            rootRef.current.style.setProperty("--img-next", `url(${fallbackNext})`);
+            rootRef.current.style.setProperty("--text-next-title", `"${nextDest.name}"`);
+            rootRef.current.style.setProperty("--text-next-subtitle", `"${nextDest.location}"`);
+          }
+        };
+        preloadImg.src = optimizedNextImg;
+        
+        // Update CSS variables immediately (image will load in background)
         if (rootRef.current) {
-          rootRef.current.style.setProperty("--img-current", `url(${currentDest.img})`);
+          rootRef.current.style.setProperty("--img-current", `url(${optimizedCurrentImg})`);
           rootRef.current.style.setProperty("--text-current-title", `"${currentDest.name}"`);
           rootRef.current.style.setProperty("--text-current-subtitle", `"${currentDest.location}"`);
-          rootRef.current.style.setProperty("--img-next", `url(${nextDest.img})`);
+          rootRef.current.style.setProperty("--img-next", `url(${optimizedNextImg})`);
           rootRef.current.style.setProperty("--text-next-title", `"${nextDest.name}"`);
           rootRef.current.style.setProperty("--text-next-subtitle", `"${nextDest.location}"`);
         }
@@ -134,27 +172,72 @@ const Hero = () => {
     };
   }, [getNextDestinationIndex]);
 
-  // Preload destination images
+  // Preload only the first destination image (LCP optimization)
+  // Automatically optimizes images to WebP/AVIF format
   useEffect(() => {
-    if (destinations.length > 0) {
-      // Preload all destination images
-      destinations.forEach((dest) => {
-        if (dest?.img) {
-          const img = new Image();
-          img.src = dest.img;
-        }
+    if (destinations.length > 0 && destinations[0]?.img) {
+      // Preload optimized first image for LCP with high priority
+      // Use lower quality (55) for better compression while maintaining visual quality
+      preloadOptimizedImage(destinations[0].img, {
+        width: 1920, // Full width for hero
+        quality: 55, // Reduced for better compression
+        priority: 'high',
+      }).catch((error) => {
+        console.warn('Failed to preload optimized image, using optimized fallback:', error);
+        // Fallback to optimized version (not original) to prevent direct pixabay connection
+        const optimizedFallback = optimizeImageUrl(destinations[0].img, { width: 1920, quality: 55, format: 'auto' });
+        const img = new Image();
+        img.loading = 'eager';
+        img.fetchPriority = 'high';
+        img.crossOrigin = 'anonymous';
+        img.src = optimizedFallback;
       });
+      
+      // Preload second image only (needed for animation transition)
+      // Other images will load on-demand when animation cycles to them
+      if (destinations.length > 1 && destinations[1]?.img) {
+        // Delay loading second image to prioritize first (LCP)
+        const timeoutId = setTimeout(() => {
+          preloadOptimizedImage(destinations[1].img, {
+            width: 1920,
+            quality: 50, // Lower quality for non-LCP images
+            priority: 'low',
+          }).catch(() => {
+            // Fallback to optimized version (not original) to prevent direct pixabay connection
+            const optimizedFallback = optimizeImageUrl(destinations[1].img, { width: 1920, quality: 50, format: 'auto' });
+            const secondImg = new Image();
+            secondImg.loading = 'lazy';
+            secondImg.fetchPriority = 'low';
+            secondImg.crossOrigin = 'anonymous';
+            secondImg.src = optimizedFallback;
+          });
+        }, 2000); // Increased delay to prioritize LCP image
+        
+        return () => clearTimeout(timeoutId);
+      }
     }
   }, [destinations]);
 
   // Initialize CSS variables and indices only once when destinations are loaded
+  // Use optimized image URLs for better performance
   useEffect(() => {
     if (rootRef.current && destinations.length > 0 && !hasInitializedRef.current) {
       const current = destinations[0];
       const next = destinations.length > 1 ? destinations[1] : destinations[0];
       
       if (current && next) {
-        updateCSSVariables(current, next);
+        // Optimize image URLs before setting CSS variables
+        // Use lower quality for better compression (reduced to 55/50)
+        const optimizedCurrent = {
+          ...current,
+          img: optimizeImageUrl(current.img, { width: 1920, quality: 55, format: 'auto' }),
+        };
+        const optimizedNext = {
+          ...next,
+          img: optimizeImageUrl(next.img, { width: 1920, quality: 50, format: 'auto' }),
+        };
+        
+        updateCSSVariables(optimizedCurrent, optimizedNext);
         setCurrentIndex(0);
         setNextIndex(destinations.length > 1 ? 1 : 0);
         currentIndexRef.current = 0;

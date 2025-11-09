@@ -1,13 +1,14 @@
-import html2canvas from "html2canvas";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FaCheckCircle, FaDownload, FaSpinner } from "react-icons/fa";
-import QRCode from "react-qr-code";
 import { Link, useSearchParams } from "react-router-dom";
 import { adminApi } from "../services/adminApi";
 import { verifyPayment } from "../services/payment";
 import { getTicketByTxRef, saveTicket } from "../services/ticket";
 import { sendWhatsAppThankYou } from "../services/whatsapp";
 import { logger } from "../utils/logger";
+
+// Lazy load QRCode component to reduce initial bundle size (only needed after payment)
+const QRCode = lazy(() => import("react-qr-code").then(module => ({ default: module.default })));
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
@@ -365,6 +366,8 @@ const PaymentSuccess = () => {
                 if (!ticketRef.current || isDownloading) return;
                 setIsDownloading(true);
                 try {
+                  // Lazy load html2canvas only when needed to reduce initial bundle size
+                  const html2canvas = (await import('html2canvas')).default;
                   const canvas = await html2canvas(ticketRef.current, {
                     backgroundColor: '#ffffff',
                     scale: 2,
@@ -480,15 +483,16 @@ const PaymentSuccess = () => {
                 {/* QR Code */}
                 {qrCodeData && (
                   <div className="flex justify-center items-center p-2 sm:p-4 bg-white rounded">
-                    {/* eslint-disable-next-line react/jsx-no-undef */}
-                    <QRCode
-                      value={qrCodeData}
-                      size={180}
-                      level="M"
-                      fgColor="#164E63"
-                      bgColor="#ffffff"
-                      className="max-w-full h-auto"
-                    />
+                    <Suspense fallback={<div className="w-[180px] h-[180px] flex items-center justify-center"><FaSpinner className="animate-spin" /></div>}>
+                      <QRCode
+                        value={qrCodeData}
+                        size={180}
+                        level="M"
+                        fgColor="#164E63"
+                        bgColor="#ffffff"
+                        className="max-w-full h-auto"
+                      />
+                    </Suspense>
                   </div>
                 )}
               </div>

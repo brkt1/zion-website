@@ -1,9 +1,12 @@
+import { useMemo } from "react";
 import { FaArrowRight, FaCalendarAlt, FaMapMarkerAlt, FaWhatsapp } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import Gallery from "../Components/Gallery";
 import Hero from "../Components/Hero";
 import { LocationButton } from "../Components/ui/LocationButton";
+import OptimizedImage from "../Components/ui/OptimizedImage";
 import { useContactInfo, useEvents, useHomeContent } from "../hooks/useApi";
+import { optimizeImageUrl } from "../utils/imageOptimizer";
 import { handleLinkHover } from "../utils/prefetch";
 
 const formatDateShort = (dateString: string) => {
@@ -17,6 +20,13 @@ const formatDateShort = (dateString: string) => {
 const Home = () => {
   const { content: homeContent } = useHomeContent();
   const { events: featuredEvents } = useEvents({ featured: true, limit: 3 });
+
+  // Optimize background images once on mount (static URLs)
+  const optimizedBgImages = useMemo(() => ({
+    dubai: optimizeImageUrl("https://cdn.pixabay.com/photo/2021/11/26/17/26/dubai-desert-safari-6826298_1280.jpg", { width: 1920, quality: 55, format: 'auto' }),
+    maldives: optimizeImageUrl("https://cdn.pixabay.com/photo/2017/01/20/00/30/maldives-1993704_1280.jpg", { width: 1920, quality: 55, format: 'auto' }),
+    dolomites: optimizeImageUrl("https://cdn.pixabay.com/photo/2020/03/29/09/24/pale-di-san-martino-4979964_1280.jpg", { width: 1920, quality: 55, format: 'auto' }),
+  }), []);
   const { contactInfo } = useContactInfo();
 
   return (
@@ -133,7 +143,7 @@ const Home = () => {
                   <span 
                     className="text-sm font-semibold tracking-wide uppercase mr-3 transition-all duration-300 group-hover:mr-4"
                     style={{
-                      color: "#FF6F5E",
+                      color: "#C73A26",
                     }}
                   >
                     Learn More
@@ -146,7 +156,7 @@ const Home = () => {
                   ></div>
                   <FaArrowRight 
                     className="ml-2 transition-all duration-300 group-hover:translate-x-2" 
-                    style={{ color: "#FF6F5E" }}
+                    style={{ color: "#C73A26" }}
                     size={14}
                   />
                 </div>
@@ -162,9 +172,9 @@ const Home = () => {
                     <h3 className="text-2xl md:text-3xl font-bold mb-3 md:mb-4 tracking-tight" style={{ background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Events</h3>
                     <p className="text-gray-600 mb-6 md:mb-8 leading-relaxed text-sm md:text-base">Fun-filled evenings with board games, trivia, and interactive challenges. Perfect for making new friends!</p>
                     <div className="flex items-center">
-                      <span className="text-sm font-semibold tracking-wide uppercase mr-3 transition-all duration-300 group-hover:mr-4" style={{ color: "#FF6F5E" }}>Explore Events</span>
+                      <span className="text-sm font-semibold tracking-wide uppercase mr-3 transition-all duration-300 group-hover:mr-4" style={{ color: "#C73A26" }}>Explore Events</span>
                       <div className="w-8 h-0.5 transition-all duration-300 group-hover:w-12" style={{ background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)" }}></div>
-                      <FaArrowRight className="ml-2 transition-all duration-300 group-hover:translate-x-2" style={{ color: "#FF6F5E" }} size={14} />
+                      <FaArrowRight className="ml-2 transition-all duration-300 group-hover:translate-x-2" style={{ color: "#C73A26" }} size={14} />
                     </div>
                   </div>
                 </Link>
@@ -234,15 +244,17 @@ const Home = () => {
                     background: `linear-gradient(135deg, ${index % 3 === 0 ? 'rgba(255, 212, 71, 0.15)' : index % 3 === 1 ? 'rgba(255, 111, 94, 0.15)' : 'rgba(255, 212, 71, 0.2)'} 0%, ${index % 3 === 0 ? 'rgba(255, 111, 94, 0.15)' : index % 3 === 1 ? 'rgba(255, 212, 71, 0.15)' : 'rgba(255, 111, 94, 0.2)'} 100%)`,
                   }}
                 >
-                  {/* Event Image */}
+                  {/* Event Image - Automatically Optimized */}
                   {event.image ? (
-                    <img
+                    <OptimizedImage
                       src={event.image}
                       alt={event.title}
+                      width={400}
+                      height={200}
+                      quality={70}
+                      priority="low"
+                      responsive={true}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                      loading="lazy"
-                      decoding="async"
-                      fetchPriority="low"
                       onError={(e) => {
                         // Fallback to gradient if image fails to load
                         (e.target as HTMLImageElement).style.display = 'none';
@@ -283,9 +295,9 @@ const Home = () => {
                     <div 
                       className="px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs font-semibold tracking-wide uppercase backdrop-blur-md transition-all duration-300 group-hover:scale-110"
                       style={{
-                        background: "rgba(255, 255, 255, 0.9)",
-                        color: "#FF6F5E",
-                        border: "1px solid rgba(255, 111, 94, 0.2)",
+                        background: "#FF6F5E",
+                        color: "#FFFFFF",
+                        border: "1px solid rgba(255, 111, 94, 0.3)",
                       }}
                     >
                       Coming Soon
@@ -321,12 +333,12 @@ const Home = () => {
                   {/* Date and Location */}
                   <div className="flex flex-wrap items-center gap-2 md:gap-2.5 text-gray-500 text-xs mb-2">
                     <div className="flex items-center">
-                      <FaCalendarAlt className="mr-1" size={10} />
+                      <FaCalendarAlt className="mr-1 flex-shrink-0" size={10} aria-hidden="true" />
                       <span>{formatDateShort(event.date)}</span>
                     </div>
                     <div className="flex items-center">
-                      <FaMapMarkerAlt className="mr-1" size={10} />
-                      <LocationButton location={event.location} className="truncate max-w-[120px] text-gray-500 text-xs" showIcon={false} />
+                      <FaMapMarkerAlt className="mr-1 flex-shrink-0" size={10} aria-hidden="true" />
+                      <LocationButton location={event.location} className="text-gray-500 text-xs" showIcon={false} />
                     </div>
                   </div>
 
@@ -349,7 +361,7 @@ const Home = () => {
                     <span 
                       className="text-xs font-semibold tracking-wide uppercase mr-2 transition-all duration-300 group-hover:mr-3"
                       style={{
-                        color: "#FF6F5E",
+                        color: "#C73A26",
                       }}
                     >
                       Learn More
@@ -362,7 +374,7 @@ const Home = () => {
                     ></div>
                     <FaArrowRight 
                       className="ml-1.5 transition-all duration-300 group-hover:translate-x-2" 
-                      style={{ color: "#FF6F5E" }}
+                      style={{ color: "#C73A26" }}
                       size={12}
                     />
                   </div>
@@ -411,10 +423,11 @@ const Home = () => {
       <section className="relative py-16 md:py-20 lg:py-24 text-white overflow-hidden" style={{ minHeight: "400px" }}>
         {/* Hero-style background */}
         <div className="absolute inset-0 z-0">
+          {/* Background images - loaded on demand via IntersectionObserver in Hero component */}
           <div 
             className="absolute top-1/2 left-1/2 w-[200vw] h-[200vw] md:w-[180vw] md:h-[180vw] -translate-x-1/2 -translate-y-1/2"
             style={{
-              backgroundImage: "url(https://cdn.pixabay.com/photo/2021/11/26/17/26/dubai-desert-safari-6826298_1280.jpg)",
+              backgroundImage: `url(${optimizedBgImages.dubai})`,
               backgroundSize: "cover",
               backgroundPosition: "center",
               filter: "brightness(0.6)",
@@ -424,7 +437,7 @@ const Home = () => {
           <div 
             className="absolute top-1/2 left-1/2 w-[200vw] h-[200vw] md:w-[180vw] md:h-[180vw] -translate-x-1/2 -translate-y-1/2"
             style={{
-              backgroundImage: "url(https://cdn.pixabay.com/photo/2017/01/20/00/30/maldives-1993704_1280.jpg)",
+              backgroundImage: `url(${optimizedBgImages.maldives})`,
               backgroundSize: "cover",
               backgroundPosition: "center",
               filter: "brightness(0.6)",
@@ -436,7 +449,7 @@ const Home = () => {
           <div 
             className="absolute top-1/2 left-1/2 w-[200vw] h-[200vw] md:w-[180vw] md:h-[180vw] -translate-x-1/2 -translate-y-1/2"
             style={{
-              backgroundImage: "url(https://cdn.pixabay.com/photo/2020/03/29/09/24/pale-di-san-martino-4979964_1280.jpg)",
+              backgroundImage: `url(${optimizedBgImages.dolomites})`,
               backgroundSize: "cover",
               backgroundPosition: "center",
               filter: "brightness(0.6)",

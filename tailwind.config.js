@@ -2,7 +2,15 @@
 module.exports = {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
-    "./public/index.html"
+    "./public/index.html",
+    "./index.html"
+  ],
+  // Tailwind v3+ automatically purges unused CSS in production builds
+  // Only include classes that are dynamically generated
+  safelist: [
+    {
+      pattern: /^(bg|text|border)-(yenege-yellow|coral-orange|purple-electric|teal-breeze|indigo-deep|space-grey|soft-white)/,
+    },
   ],
   theme: {
     extend: {

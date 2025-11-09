@@ -1,6 +1,7 @@
 import { FaArrowRight, FaEnvelope, FaInstagram, FaTelegram, FaTiktok, FaWhatsapp, FaYoutube } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { useContactInfo, useSiteConfig } from "../../hooks/useApi";
+import OptimizedImage from "../ui/OptimizedImage";
 
 const Footer = () => {
   const { config } = useSiteConfig();
@@ -47,10 +48,16 @@ const Footer = () => {
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link to="/" className="inline-block mb-6 group">
-              <img 
-                src="/logo.png" 
-                alt="YENEGE Logo" 
-                className="h-14 w-auto brightness-0 invert transition-transform duration-300 group-hover:scale-105" 
+              <OptimizedImage
+                src="/logo.png"
+                alt="YENEGE Logo"
+                width={200}
+                height={125}
+                quality={55}
+                priority="high"
+                responsive={true}
+                fallback="/logo.png"
+                className="h-14 w-auto brightness-0 invert transition-transform duration-300 group-hover:scale-105"
               />
             </Link>
             <p className="text-sm text-gray-400 leading-relaxed mb-8 max-w-xs">

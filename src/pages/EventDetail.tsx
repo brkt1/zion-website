@@ -4,6 +4,7 @@ import { useParams, useSearchParams } from "react-router-dom";
 import "../Components/Gallery.css";
 import { ErrorState } from "../Components/ui/ErrorState";
 import { LocationButton } from "../Components/ui/LocationButton";
+import OptimizedImage from "../Components/ui/OptimizedImage";
 import { getAvailablePaymentMethods } from "../data/paymentMethods";
 import { useContactInfo, useEvent } from "../hooks/useApi";
 import { api } from "../services/api";
@@ -297,13 +298,15 @@ const EventDetail = () => {
             {/* Event Image */}
             {event.image && (
               <div className="mb-4 sm:mb-6 md:mb-8 lg:mb-12 rounded-lg overflow-hidden bg-gray-100">
-                <img
+                <OptimizedImage
                   src={event.image}
                   alt={event.title}
+                  width={1200}
+                  height={600}
+                  quality={60}
+                  priority="high"
+                  responsive={true}
                   className="w-full h-40 sm:h-48 md:h-64 lg:h-80 xl:h-96 object-cover"
-                  loading="eager"
-                  fetchPriority="high"
-                  decoding="async"
                   style={{ maxWidth: '100%' }}
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;

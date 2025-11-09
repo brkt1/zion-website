@@ -2,8 +2,10 @@
 /* Commented out to avoid 503 errors - using system font fallback */
 
 .hero-container {
-  --img-current: url(https://cdn.pixabay.com/photo/2021/11/26/17/26/dubai-desert-safari-6826298_1280.jpg);
-  --img-next: url(https://cdn.pixabay.com/photo/2017/01/20/00/30/maldives-1993704_1280.jpg);
+  /* CSS variables will be set by JavaScript with optimized URLs */
+  /* Using optimized URLs as fallback for better performance */
+  --img-current: url(https://images.weserv.nl/?w=1920&q=55&output=webp&url=https%3A%2F%2Fcdn.pixabay.com%2Fphoto%2F2021%2F11%2F26%2F17%2F26%2Fdubai-desert-safari-6826298_1280.jpg);
+  --img-next: url(https://images.weserv.nl/?w=1920&q=50&output=webp&url=https%3A%2F%2Fcdn.pixabay.com%2Fphoto%2F2017%2F01%2F20%2F00%2F30%2Fmaldives-1993704_1280.jpg);
   --text-current-title: "Sahara";
   --text-next-title: "Maldives";
   --text-current-subtitle: "Marrakech";

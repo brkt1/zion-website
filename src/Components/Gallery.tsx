@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { FaSnowflake, FaSun, FaTint, FaTree, FaWalking } from "react-icons/fa";
 import { useGalleryItems } from "../hooks/useApi";
+import { optimizeImageUrl, preloadOptimizedImage } from "../utils/imageOptimizer";
 import "./Gallery.css";
 
 // Icon mapping for gallery items
@@ -70,28 +71,40 @@ const Gallery = () => {
   }, [apiGalleryItems]);
 
   useEffect(() => {
-    // Preload only the first 2 images (visible + next) for faster initial load
-    // Other images will load on demand when they become visible
-    const imagesToPreload = galleryItems.slice(0, 2);
-    const imagePromises = imagesToPreload.map((item) => {
-      return new Promise<void>((resolve) => {
-        const img = new Image();
-        img.onload = () => {
-          setImagesLoaded((prev) => ({ ...prev, [item.id]: true }));
-          resolve();
-        };
-        img.onerror = () => {
-          setImagesLoaded((prev) => ({ ...prev, [item.id]: false }));
-          resolve();
-        };
-        img.src = item.image;
-      });
-    });
+    // Only preload the first (active) image with high priority - automatically optimized
+    // All other images will be lazy loaded when they become visible or are clicked
+    if (galleryItems.length > 0) {
+      const firstItem = galleryItems[0];
+      // Only load if not already loaded
+      if (!imagesLoaded[firstItem.id]) {
+        // Use optimized image preloading with better compression
+        preloadOptimizedImage(firstItem.image, {
+          width: 1200,
+          quality: 55, // Reduced for better compression
+          priority: 'high',
+        })
+          .then(() => {
+            setImagesLoaded((prev) => ({ ...prev, [firstItem.id]: true }));
+          })
+          .catch(() => {
+            // Fallback to optimized version (not original) to prevent direct pixabay connection
+            const optimizedFallback = optimizeImageUrl(firstItem.image, { width: 1200, quality: 55, format: 'auto' });
+            const firstImg = new Image();
+            firstImg.crossOrigin = 'anonymous';
+            firstImg.loading = 'eager';
+            firstImg.fetchPriority = 'high';
+            firstImg.onload = () => {
+              setImagesLoaded((prev) => ({ ...prev, [firstItem.id]: true }));
+            };
+            firstImg.onerror = () => {
+              setImagesLoaded((prev) => ({ ...prev, [firstItem.id]: false }));
+            };
+            firstImg.src = optimizedFallback;
+          });
+      }
+    }
 
-    Promise.all(imagePromises);
-
-    // Lazy load remaining images when they become visible
-    // Use setTimeout to ensure DOM is ready
+    // Lazy load images when they become visible or when active
     let observer: IntersectionObserver | null = null;
     const timeoutId = setTimeout(() => {
       observer = new IntersectionObserver(
@@ -101,36 +114,54 @@ const Gallery = () => {
               const itemId = entry.target.getAttribute('data-item-id');
               if (itemId) {
                 const item = galleryItems.find((g) => g.id === itemId);
-                if (item) {
-                  // Check if already loaded to avoid duplicate loads
-                  const img = new Image();
-                  img.onload = () => {
-                    setImagesLoaded((prev) => {
-                      if (!prev[item.id]) {
-                        return { ...prev, [item.id]: true };
-                      }
-                      return prev;
+                if (item && !imagesLoaded[item.id]) {
+                  // Use optimized image loading with better compression
+                  preloadOptimizedImage(item.image, {
+                    width: 1200,
+                    quality: 50, // Lower quality for lazy-loaded images
+                    priority: 'low',
+                  })
+                    .then(() => {
+                      setImagesLoaded((prev) => {
+                        if (!prev[item.id]) {
+                          return { ...prev, [item.id]: true };
+                        }
+                        return prev;
+                      });
+                    })
+                    .catch(() => {
+                      // Fallback to optimized version (not original) to prevent direct pixabay connection
+                      const optimizedFallback = optimizeImageUrl(item.image, { width: 1200, quality: 55, format: 'auto' });
+                      const img = new Image();
+                      img.crossOrigin = 'anonymous';
+                      img.loading = 'lazy';
+                      img.fetchPriority = 'low';
+                      img.onload = () => {
+                        setImagesLoaded((prev) => {
+                          if (!prev[item.id]) {
+                            return { ...prev, [item.id]: true };
+                          }
+                          return prev;
+                        });
+                      };
+                      img.onerror = () => {
+                        setImagesLoaded((prev) => {
+                          if (prev[item.id] === undefined) {
+                            return { ...prev, [item.id]: false };
+                          }
+                          return prev;
+                        });
+                      };
+                      img.src = optimizedFallback;
                     });
-                  };
-                  img.onerror = () => {
-                    setImagesLoaded((prev) => {
-                      if (prev[item.id] === undefined) {
-                        return { ...prev, [item.id]: false };
-                      }
-                      return prev;
-                    });
-                  };
-                  img.src = item.image;
-                  observer?.unobserve(entry.target);
                 }
               }
             }
           });
         },
-        { rootMargin: '50px' }
+        { rootMargin: '100px' } // Start loading when 100px away
       );
 
-      // Observe gallery items for lazy loading
       const galleryElements = document.querySelectorAll('[data-gallery-item]');
       galleryElements.forEach((el) => observer?.observe(el));
     }, 100);
@@ -141,7 +172,37 @@ const Gallery = () => {
         observer.disconnect();
       }
     };
-  }, [galleryItems]);
+  }, [galleryItems, imagesLoaded]);
+
+  // Load image when item becomes active (clicked) - automatically optimized
+  useEffect(() => {
+    const activeItem = galleryItems[activeIndex];
+    if (activeItem && !imagesLoaded[activeItem.id]) {
+      preloadOptimizedImage(activeItem.image, {
+        width: 1200,
+        quality: 55, // Reduced for better compression
+        priority: 'high',
+      })
+        .then(() => {
+          setImagesLoaded((prev) => ({ ...prev, [activeItem.id]: true }));
+        })
+        .catch(() => {
+          // Fallback to optimized version (not original) to prevent direct pixabay connection
+          const optimizedFallback = optimizeImageUrl(activeItem.image, { width: 1200, quality: 55, format: 'auto' });
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.loading = 'eager';
+          img.fetchPriority = 'high';
+          img.onload = () => {
+            setImagesLoaded((prev) => ({ ...prev, [activeItem.id]: true }));
+          };
+          img.onerror = () => {
+            setImagesLoaded((prev) => ({ ...prev, [activeItem.id]: false }));
+          };
+          img.src = optimizedFallback;
+        });
+    }
+  }, [activeIndex, galleryItems, imagesLoaded]);
 
   return (
     <section className="gallery-section py-20 bg-gray-50">
@@ -156,9 +217,14 @@ const Gallery = () => {
         <div className="flex justify-center items-center min-h-[400px]">
           <div className="gallery-options">
             {galleryItems.map((item, index) => {
-              const isLoaded = imagesLoaded[item.id] !== false;
-              const backgroundStyle = isLoaded 
-                ? `url(${item.image})` 
+              const isLoaded = imagesLoaded[item.id] === true;
+              // Use optimized image URL if loaded, otherwise use gradient
+              // Lower quality for better compression
+              const optimizedImageUrl = isLoaded 
+                ? optimizeImageUrl(item.image, { width: 1200, quality: 55, format: 'auto' })
+                : null;
+              const backgroundStyle = optimizedImageUrl
+                ? `url(${optimizedImageUrl})` 
                 : `linear-gradient(135deg, ${item.defaultColor} 0%, ${item.defaultColor}dd 100%)`;
               
               return (

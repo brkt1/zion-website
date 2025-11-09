@@ -1,7 +1,9 @@
-import { ReactNode } from "react";
+import { lazy, ReactNode, Suspense } from "react";
 import { useLocation } from "react-router-dom";
-import Footer from "./Footer";
 import Header from "./Header";
+
+// Lazy load Footer since it's conditionally rendered and not needed on homepage
+const Footer = lazy(() => import("./Footer"));
 
 interface LayoutProps {
   children: ReactNode;
@@ -15,7 +17,11 @@ const Layout = ({ children }: LayoutProps) => {
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-grow">{children}</main>
-      {!isHomePage && <Footer />}
+      {!isHomePage && (
+        <Suspense fallback={<div className="h-24" />}>
+          <Footer />
+        </Suspense>
+      )}
     </div>
   );
 };

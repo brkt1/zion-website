@@ -3,6 +3,7 @@ import { FaBars, FaEnvelope, FaTimes, FaWhatsapp } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
 import { useContactInfo, useSiteConfig } from "../../hooks/useApi";
 import { handleLinkHover } from "../../utils/prefetch";
+import OptimizedImage from "../ui/OptimizedImage";
 
 const Header = () => {
   const { config } = useSiteConfig();
@@ -54,9 +55,16 @@ const Header = () => {
             to="/"
             className="flex items-center transition-transform duration-300 hover:scale-105"
           >
-            <img
+            <OptimizedImage
               src="/logo.png"
               alt="YENEGE Logo"
+              width={120}
+              height={75}
+              quality={55}
+              priority="high"
+              responsive={true}
+              sizes="(max-width: 768px) 48px, 56px"
+              fallback="/logo.png"
               className={`h-12 md:h-14 w-auto transition-all duration-500 ${
                 isHomePage && !isScrolled ? "brightness-0 invert" : ""
               }`}
@@ -114,8 +122,10 @@ const Header = () => {
                     ? "text-white/70 hover:text-white"
                     : "text-gray-600 hover:text-gray-900"
                 }`}
+                style={{ minHeight: '44px', minWidth: '44px', padding: '8px 12px' }}
+                aria-label={`Send email to ${contactInfo?.email || "bereketyosef49@gmail.com"}`}
               >
-                <FaEnvelope size={14} />
+                <FaEnvelope size={14} aria-hidden="true" />
                 <span className="hidden xl:inline">{contactInfo?.email || "bereketyosef49@gmail.com"}</span>
               </a>
               <a
@@ -127,8 +137,10 @@ const Header = () => {
                     ? "text-white/70 hover:text-white"
                     : "text-gray-600 hover:text-[#25D366]"
                 }`}
+                style={{ minHeight: '44px', minWidth: '44px', padding: '8px 12px' }}
+                aria-label="Contact via WhatsApp"
               >
-                <FaWhatsapp size={14} />
+                <FaWhatsapp size={14} aria-hidden="true" />
                 <span className="hidden xl:inline">WhatsApp</span>
               </a>
             </div>
@@ -136,14 +148,16 @@ const Header = () => {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className={`lg:hidden p-2 rounded-lg transition-all duration-300 ${
+              className={`lg:hidden rounded-lg transition-all duration-300 ${
                 isHomePage && !isScrolled
                   ? "text-white hover:bg-white/10"
                   : "text-gray-700 hover:bg-gray-100"
               }`}
+              style={{ minHeight: '44px', minWidth: '44px', padding: '10px' }}
               aria-label="Toggle menu"
+              aria-expanded={isMenuOpen}
             >
-              {isMenuOpen ? <FaTimes size={22} /> : <FaBars size={22} />}
+              {isMenuOpen ? <FaTimes size={22} aria-hidden="true" /> : <FaBars size={22} aria-hidden="true" />}
             </button>
           </div>
         </div>
@@ -161,7 +175,7 @@ const Header = () => {
                 to={link.path}
                 onMouseEnter={() => handleLinkHover(link.path)}
                 onClick={() => setIsMenuOpen(false)}
-                className={`block px-4 py-3 text-base font-semibold rounded-lg transition-all duration-300 ${
+                className={`block px-4 text-base font-semibold rounded-lg transition-all duration-300 ${
                   isHomePage && !isScrolled
                     ? isActive(link.path)
                       ? "text-white bg-white/10"
@@ -170,6 +184,7 @@ const Header = () => {
                     ? "text-gray-900 bg-gray-100"
                     : "text-gray-600 hover:bg-gray-50"
                 }`}
+                style={{ minHeight: '44px', paddingTop: '12px', paddingBottom: '12px' }}
               >
                 {link.label}
               </Link>
@@ -178,26 +193,30 @@ const Header = () => {
             <div className="pt-4 mt-4 space-y-3 border-t border-gray-200">
               <a
                 href={`mailto:${contactInfo?.email || "bereketyosef49@gmail.com"}`}
-                className={`flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-300 ${
+                className={`flex items-center gap-3 px-4 text-sm font-medium rounded-lg transition-all duration-300 ${
                   isHomePage && !isScrolled
                     ? "text-white/80 hover:bg-white/5"
                     : "text-gray-600 hover:bg-gray-50"
                 }`}
+                style={{ minHeight: '44px', paddingTop: '12px', paddingBottom: '12px' }}
+                aria-label={`Send email to ${contactInfo?.email || "bereketyosef49@gmail.com"}`}
               >
-                <FaEnvelope size={16} />
+                <FaEnvelope size={16} aria-hidden="true" />
                 <span>{contactInfo?.email || "bereketyosef49@gmail.com"}</span>
               </a>
               <a
                 href={`https://wa.me/${contactInfo?.phone?.replace(/\D/g, '') || '251978639887'}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-300 ${
+                className={`flex items-center gap-3 px-4 text-sm font-medium rounded-lg transition-all duration-300 ${
                   isHomePage && !isScrolled
                     ? "text-white/80 hover:bg-white/5"
                     : "text-gray-600 hover:bg-gray-50 hover:text-[#25D366]"
                 }`}
+                style={{ minHeight: '44px', paddingTop: '12px', paddingBottom: '12px' }}
+                aria-label="Contact via WhatsApp"
               >
-                <FaWhatsapp size={16} />
+                <FaWhatsapp size={16} aria-hidden="true" />
                 <span>WhatsApp</span>
               </a>
             </div>
