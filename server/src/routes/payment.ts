@@ -17,6 +17,7 @@ interface InitializePaymentRequest {
   return_url?: string;
   event_id?: string;
   event_title?: string;
+  commission_seller_id?: string;
 }
 
 // Initialize payment
@@ -43,6 +44,7 @@ router.post('/initialize', async (req: Request, res: Response) => {
       return_url,
       event_id,
       event_title,
+      commission_seller_id,
     }: InitializePaymentRequest = req.body;
 
     // Validate required fields (tx_ref is optional, will be generated if not provided)
@@ -76,6 +78,7 @@ router.post('/initialize', async (req: Request, res: Response) => {
     if (event_id) returnUrlParams.set('event_id', event_id);
     if (event_title) returnUrlParams.set('event_title', event_title);
     if (quantity) returnUrlParams.set('quantity', quantity.toString());
+    if (commission_seller_id) returnUrlParams.set('commission_seller_id', commission_seller_id);
     
     const returnUrl = return_url || `${baseUrl}/payment/success?${returnUrlParams.toString()}`;
 

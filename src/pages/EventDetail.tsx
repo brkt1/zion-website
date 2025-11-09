@@ -1,28 +1,65 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaCalendarAlt, FaInstagram, FaMapMarkerAlt, FaSpinner, FaTelegram, FaUsers, FaWhatsapp } from "react-icons/fa";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { ErrorState } from "../Components/ui/ErrorState";
 import { LoadingState } from "../Components/ui/LoadingState";
 import { getAvailablePaymentMethods } from "../data/paymentMethods";
 import { useContactInfo, useEvent } from "../hooks/useApi";
+import { adminApi } from "../services/adminApi";
 import { initializePayment } from "../services/payment";
-import { PaymentRequest } from "../types";
+import { CommissionSeller, PaymentRequest } from "../types";
 
 const EventDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const { event, isLoading, isError, mutate: refetchEvent } = useEvent(id);
   const { contactInfo } = useContactInfo();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentStep, setPaymentStep] = useState<'form' | 'methods'>('form');
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
+  const [commissionSellers, setCommissionSellers] = useState<CommissionSeller[]>([]);
+  const [loadingSellers, setLoadingSellers] = useState(false);
   const [paymentForm, setPaymentForm] = useState({
     first_name: "",
     last_name: "",
     email: "",
     phone_number: "",
     quantity: 1,
+    commission_seller_id: searchParams.get('seller') || "",
   });
+
+  // Load commission sellers - filter by event's allowed sellers if specified
+  // This hook must be called before any early returns
+  useEffect(() => {
+    const loadSellers = async () => {
+      if (!event) return;
+      
+      setLoadingSellers(true);
+      try {
+        const allSellers = await adminApi.commissionSellers.getActive();
+        
+        // If event has allowed_commission_seller_ids, filter to only those
+        // If empty or undefined, show all active sellers
+        if (event.allowed_commission_seller_ids && event.allowed_commission_seller_ids.length > 0) {
+          const allowedSellers = allSellers.filter(seller => 
+            event.allowed_commission_seller_ids!.includes(seller.id)
+          );
+          setCommissionSellers(allowedSellers);
+        } else {
+          // No restrictions - show all active sellers
+          setCommissionSellers(allSellers);
+        }
+      } catch (error) {
+        console.error('Error loading commission sellers:', error);
+        // Don't show error to user, just continue without sellers
+      } finally {
+        setLoadingSellers(false);
+      }
+    };
+    
+    loadSellers();
+  }, [event]);
 
   if (isLoading) {
     return (
@@ -98,6 +135,7 @@ const EventDetail = () => {
         event_id: event.id,
         event_title: event.title,
         preferred_payment_method: selectedPaymentMethod || undefined,
+        commission_seller_id: paymentForm.commission_seller_id || undefined,
       };
 
       console.log('📤 Sending payment data to server:', {
@@ -171,7 +209,7 @@ const EventDetail = () => {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const name = e.target.name;
     let value: string | number = e.target.value;
     
@@ -491,6 +529,31 @@ const EventDetail = () => {
                 )}
               </div>
 
+              {commissionSellers.length > 0 && (
+                <div>
+                  <label htmlFor="commission_seller_id" className="block text-sm font-medium text-gray-700 mb-1">
+                    Sold By (Optional)
+                  </label>
+                  <select
+                    id="commission_seller_id"
+                    name="commission_seller_id"
+                    value={paymentForm.commission_seller_id}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border-b border-gray-300 bg-transparent focus:outline-none focus:border-gray-900 transition-colors"
+                  >
+                    <option value="">Select a seller (optional)</option>
+                    {commissionSellers.map((seller) => (
+                      <option key={seller.id} value={seller.id}>
+                        {seller.name} {seller.email ? `(${seller.email})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-1 text-xs text-gray-500">
+                    If you were referred by a seller, please select them here
+                  </p>
+                </div>
+              )}
+
               <div className="pt-6 border-t border-gray-200">
                 <div className="space-y-2 mb-4">
                   <div className="flex justify-between items-center">
@@ -536,6 +599,7 @@ const EventDetail = () => {
                       email: "",
                       phone_number: "",
                       quantity: 1,
+                      commission_seller_id: searchParams.get('seller') || "",
                     });
                   }}
                   className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"

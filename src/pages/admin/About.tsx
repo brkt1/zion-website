@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
-import { FaArrowLeft, FaPlus, FaSave, FaTrash } from 'react-icons/fa';
-import { Link, useNavigate } from 'react-router-dom';
+import { FaPlus, FaSave, FaTrash } from 'react-icons/fa';
+import AdminLayout from '../../Components/admin/AdminLayout';
 import { ImageUpload } from '../../Components/admin/ImageUpload';
+import { useAdminAuth } from '../../hooks/useAdminAuth';
 import { adminApi } from '../../services/adminApi';
 import { AboutContent, api } from '../../services/api';
-import { supabase } from '../../services/supabase';
 
 const About = () => {
+  const { loading: authLoading, isAdminUser } = useAdminAuth();
   const [, setContent] = useState<AboutContent | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -25,18 +26,17 @@ const About = () => {
       socialLinks: [] as Array<{ platform: string; url: string; icon?: string }>,
     },
   });
-  const navigate = useNavigate();
 
   useEffect(() => {
-    checkAuth();
-    loadContent();
+    if (!authLoading) {
+      if (!isAdminUser) {
+        window.location.href = '/admin/commission-sellers';
+        return;
+      }
+      loadContent();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) navigate('/admin/login');
-  };
+  }, [authLoading, isAdminUser]);
 
   const loadContent = async () => {
     try {
@@ -153,14 +153,7 @@ const About = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6 flex items-center gap-4">
-          <Link to="/admin/dashboard" className="text-gray-600 hover:text-gray-900">
-            <FaArrowLeft size={20} />
-          </Link>
-          <h1 className="text-3xl font-bold text-gray-900">About Content Management</h1>
-        </div>
+    <AdminLayout title="About Content Management">
 
         {loading ? (
           <div className="space-y-8 animate-pulse">
@@ -523,8 +516,7 @@ const About = () => {
           </div>
         </form>
         )}
-      </div>
-    </div>
+    </AdminLayout>
   );
 };
 

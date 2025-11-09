@@ -1,6 +1,8 @@
 import { Html5Qrcode } from "html5-qrcode";
 import { useEffect, useRef, useState } from "react";
 import { FaCheckCircle, FaQrcode, FaTimesCircle, FaUpload } from "react-icons/fa";
+import AdminLayout from "../../Components/admin/AdminLayout";
+import { useAdminAuth } from "../../hooks/useAdminAuth";
 
 interface TicketData {
   tx_ref: string;
@@ -15,6 +17,7 @@ interface TicketData {
 }
 
 const VerifyTicket = () => {
+  const { loading: authLoading, isAdminUser } = useAdminAuth();
   const [isScanning, setIsScanning] = useState(false);
   const [ticketData, setTicketData] = useState<TicketData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -173,6 +176,13 @@ const VerifyTicket = () => {
     setManualInput("");
   };
 
+  // Redirect commission sellers
+  useEffect(() => {
+    if (!authLoading && !isAdminUser) {
+      window.location.href = '/admin/commission-sellers';
+    }
+  }, [authLoading, isAdminUser]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -195,10 +205,9 @@ const VerifyTicket = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
+    <AdminLayout title="Ticket Verification">
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Ticket Verification</h1>
           <p className="text-gray-600">Scan QR code from customer tickets to verify payment and entry</p>
         </div>
 
@@ -430,7 +439,7 @@ const VerifyTicket = () => {
           </div>
         )}
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 

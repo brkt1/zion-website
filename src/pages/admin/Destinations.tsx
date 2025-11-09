@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { FaArrowLeft, FaEdit, FaPlus, FaTrash } from 'react-icons/fa';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ImageUpload } from '../../Components/admin/ImageUpload';
+import { useAdminAuth } from '../../hooks/useAdminAuth';
 import { adminApi } from '../../services/adminApi';
 import { api, Destination } from '../../services/api';
-import { supabase } from '../../services/supabase';
+import { CommissionSeller } from '../../types';
 
 const Destinations = () => {
+  const { loading: authLoading, isAdminUser } = useAdminAuth();
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -16,18 +18,29 @@ const Destinations = () => {
     location: '',
     img: '',
     featured: false,
+    allowed_commission_seller_ids: [] as string[],
   });
-  const navigate = useNavigate();
+  const [commissionSellers, setCommissionSellers] = useState<CommissionSeller[]>([]);
 
   useEffect(() => {
-    checkAuth();
-    loadDestinations();
+    if (!authLoading) {
+      if (!isAdminUser) {
+        window.location.href = '/admin/commission-sellers';
+        return;
+      }
+      loadDestinations();
+      loadCommissionSellers();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [authLoading, isAdminUser]);
 
-  const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) navigate('/admin/login');
+  const loadCommissionSellers = async () => {
+    try {
+      const sellers = await adminApi.commissionSellers.getAll();
+      setCommissionSellers(sellers);
+    } catch (error) {
+      console.error('Error loading commission sellers:', error);
+    }
   };
 
   const loadDestinations = async () => {
@@ -65,6 +78,7 @@ const Destinations = () => {
       location: destination.location,
       img: destination.img,
       featured: destination.featured || false,
+      allowed_commission_seller_ids: destination.allowed_commission_seller_ids || [],
     });
     setShowModal(true);
   };
@@ -80,7 +94,16 @@ const Destinations = () => {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', location: '', img: '', featured: false });
+    setFormData({ name: '', location: '', img: '', featured: false, allowed_commission_seller_ids: [] });
+  };
+
+  const toggleCommissionSeller = (sellerId: string) => {
+    setFormData({
+      ...formData,
+      allowed_commission_seller_ids: formData.allowed_commission_seller_ids.includes(sellerId)
+        ? formData.allowed_commission_seller_ids.filter(id => id !== sellerId)
+        : [...formData.allowed_commission_seller_ids, sellerId],
+    });
   };
 
   return (
@@ -192,6 +215,45 @@ const Destinations = () => {
                     required
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Allowed Commission Sellers
+                  </label>
+                  <p className="text-xs text-gray-500 mb-3">
+                    Select which commission sellers can sell tickets for this destination. Leave empty to allow all sellers.
+                  </p>
+                  <div className="border border-gray-300 rounded-md p-3 max-h-48 overflow-y-auto">
+                    {commissionSellers.length === 0 ? (
+                      <p className="text-sm text-gray-500 italic">No commission sellers available</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {commissionSellers.map((seller) => (
+                          <label
+                            key={seller.id}
+                            className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={formData.allowed_commission_seller_ids.includes(seller.id)}
+                              onChange={() => toggleCommissionSeller(seller.id)}
+                              className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                            <span className="text-sm text-gray-700">
+                              {seller.name} {seller.email ? `(${seller.email})` : ''}
+                              {!seller.is_active && <span className="text-red-500 ml-1">(Inactive)</span>}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {formData.allowed_commission_seller_ids.length > 0 && (
+                    <p className="text-xs text-gray-500 mt-2">
+                      {formData.allowed_commission_seller_ids.length} seller(s) selected
+                    </p>
+                  )}
+                </div>
+
                 <div>
                   <label className="flex items-center">
                     <input

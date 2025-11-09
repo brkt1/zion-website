@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FaCheckCircle, FaDownload, FaSpinner } from "react-icons/fa";
 import QRCode from "react-qr-code";
 import { Link, useSearchParams } from "react-router-dom";
+import { adminApi } from "../services/adminApi";
 import { verifyPayment } from "../services/payment";
 import { getTicketByTxRef, saveTicket } from "../services/ticket";
 import { sendWhatsAppThankYou } from "../services/whatsapp";
@@ -13,6 +14,7 @@ const PaymentSuccess = () => {
   const quantityParam = searchParams.get("quantity");
   const eventIdParam = searchParams.get("event_id");
   const eventTitleParam = searchParams.get("event_title");
+  const commissionSellerIdParam = searchParams.get("commission_seller_id");
   const [verificationStatus, setVerificationStatus] = useState<"loading" | "success" | "failed" | "pending">("loading");
   const [paymentData, setPaymentData] = useState<any>(null);
   const [retryCount, setRetryCount] = useState(0);
@@ -93,6 +95,18 @@ const PaymentSuccess = () => {
         name: customerName
       };
 
+      // Get commission seller name if commission_seller_id is provided
+      let commissionSellerName: string | undefined = undefined;
+      if (commissionSellerIdParam) {
+        try {
+          const seller = await adminApi.commissionSellers.getById(commissionSellerIdParam);
+          commissionSellerName = seller.name;
+        } catch (error) {
+          console.error('Error fetching commission seller:', error);
+          // Continue without seller name
+        }
+      }
+
       // Save ticket with quantity
       console.log('Saving ticket with data:', {
         tx_ref: txRef,
@@ -100,6 +114,7 @@ const PaymentSuccess = () => {
         quantity,
         currency: paymentData.currency || 'ETB',
         event_title: eventTitleParam,
+        commission_seller_id: commissionSellerIdParam,
       });
 
       await saveTicket({
@@ -114,6 +129,8 @@ const PaymentSuccess = () => {
         quantity: quantity, // This should be the actual quantity purchased
         status: 'success',
         chapa_reference: paymentData.reference || undefined,
+        commission_seller_id: commissionSellerIdParam || undefined,
+        commission_seller_name: commissionSellerName,
         qr_code_data: qrData,
         payment_date: paymentData.created_at || new Date().toISOString(),
       });
@@ -124,7 +141,7 @@ const PaymentSuccess = () => {
       console.error('Error saving ticket to database:', error);
       // Don't show error to user, ticket display will still work
     }
-  }, [quantityParam, eventIdParam, eventTitleParam, ticketSaved]);
+  }, [quantityParam, eventIdParam, eventTitleParam, commissionSellerIdParam, ticketSaved]);
 
   // Function to send WhatsApp thank you message
   const sendWhatsAppMessage = useCallback(async (paymentData: any, txRef: string | null) => {

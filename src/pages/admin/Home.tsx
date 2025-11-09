@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { FaArrowLeft, FaPlus, FaSave, FaTrash } from 'react-icons/fa';
-import { Link, useNavigate } from 'react-router-dom';
+import { FaPlus, FaSave, FaTrash } from 'react-icons/fa';
+import AdminLayout from '../../Components/admin/AdminLayout';
+import { useAdminAuth } from '../../hooks/useAdminAuth';
 import { adminApi } from '../../services/adminApi';
 import { api, HomeContent } from '../../services/api';
-import { supabase } from '../../services/supabase';
 
 const Home = () => {
+  const { loading: authLoading, isAdminUser } = useAdminAuth();
   const [, setContent] = useState<HomeContent | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -22,18 +23,17 @@ const Home = () => {
       buttons: [] as Array<{ text: string; link: string; type: 'primary' | 'secondary' }>,
     },
   });
-  const navigate = useNavigate();
 
   useEffect(() => {
-    checkAuth();
-    loadContent();
+    if (!authLoading) {
+      if (!isAdminUser) {
+        window.location.href = '/admin/commission-sellers';
+        return;
+      }
+      loadContent();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) navigate('/admin/login');
-  };
+  }, [authLoading, isAdminUser]);
 
   const loadContent = async () => {
     try {
@@ -147,14 +147,7 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6 flex items-center gap-4">
-          <Link to="/admin/dashboard" className="text-gray-600 hover:text-gray-900">
-            <FaArrowLeft size={20} />
-          </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Home Content Management</h1>
-        </div>
+    <AdminLayout title="Home Content Management">
 
         {loading ? (
           <div className="space-y-8 animate-pulse">
@@ -393,8 +386,7 @@ const Home = () => {
           </div>
         </form>
         )}
-      </div>
-    </div>
+    </AdminLayout>
   );
 };
 

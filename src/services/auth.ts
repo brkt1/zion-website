@@ -116,6 +116,53 @@ export const getUserRole = async (): Promise<'admin' | 'user' | null> => {
 };
 
 /**
+ * Check if the current user is a commission seller
+ * Commission sellers are identified by matching their email with commission_sellers table
+ */
+export const isCommissionSeller = async (): Promise<boolean> => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session?.user) {
+      return false;
+    }
+
+    const userEmail = session.user.email;
+
+    if (!userEmail) {
+      return false;
+    }
+
+    // Check if user's email exists in commission_sellers table and is active
+    const { data, error } = await supabase
+      .from('commission_sellers')
+      .select('id, email, is_active')
+      .eq('email', userEmail.toLowerCase())
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error checking commission seller status:', error);
+      return false;
+    }
+
+    return !!data;
+  } catch (error) {
+    console.error('Error checking commission seller status:', error);
+    return false;
+  }
+};
+
+/**
+ * Check if user has any admin access (either full admin or commission seller)
+ */
+export const hasAdminAccess = async (): Promise<boolean> => {
+  const admin = await isAdmin();
+  const seller = await isCommissionSeller();
+  return admin || seller;
+};
+
+/**
  * Require admin access - redirects to login if not admin
  */
 export const requireAdmin = async (): Promise<boolean> => {

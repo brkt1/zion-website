@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
-import { FaArrowLeft, FaEdit, FaPlus, FaSpinner, FaTimes, FaTrash, FaUpload } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import { FaEdit, FaPlus, FaSpinner, FaTimes, FaTrash, FaUpload } from 'react-icons/fa';
+import AdminLayout from '../../Components/admin/AdminLayout';
 import { ImageUpload } from '../../Components/admin/ImageUpload';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 import { adminApi } from '../../services/adminApi';
 import { api, Event } from '../../services/api';
 import { uploadImage } from '../../services/upload';
+import { CommissionSeller } from '../../types';
 
 const Events = () => {
-  const { loading: authLoading } = useAdminAuth();
+  const { loading: authLoading, isAdminUser } = useAdminAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -27,17 +28,34 @@ const Events = () => {
     currency: 'ETB',
     featured: false,
     gallery: [] as string[],
+    allowed_commission_seller_ids: [] as string[],
   });
   const [newGalleryImage, setNewGalleryImage] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<string>('');
+  const [commissionSellers, setCommissionSellers] = useState<CommissionSeller[]>([]);
 
   useEffect(() => {
     if (!authLoading) {
+      if (!isAdminUser) {
+        // Commission sellers should not access this page
+        window.location.href = '/admin/commission-sellers';
+        return;
+      }
       loadEvents();
+      loadCommissionSellers();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authLoading]);
+  }, [authLoading, isAdminUser]);
+
+  const loadCommissionSellers = async () => {
+    try {
+      const sellers = await adminApi.commissionSellers.getAll();
+      setCommissionSellers(sellers);
+    } catch (error) {
+      console.error('Error loading commission sellers:', error);
+    }
+  };
 
   const loadEvents = async () => {
     try {
@@ -83,6 +101,7 @@ const Events = () => {
       currency: event.currency,
       featured: event.featured || false,
       gallery: event.gallery || [],
+      allowed_commission_seller_ids: event.allowed_commission_seller_ids || [],
     });
     setNewGalleryImage('');
     setUploading(false);
@@ -115,10 +134,20 @@ const Events = () => {
       currency: 'ETB',
       featured: false,
       gallery: [],
+      allowed_commission_seller_ids: [],
     });
     setNewGalleryImage('');
     setUploading(false);
     setUploadProgress('');
+  };
+
+  const toggleCommissionSeller = (sellerId: string) => {
+    setFormData({
+      ...formData,
+      allowed_commission_seller_ids: formData.allowed_commission_seller_ids.includes(sellerId)
+        ? formData.allowed_commission_seller_ids.filter(id => id !== sellerId)
+        : [...formData.allowed_commission_seller_ids, sellerId],
+    });
   };
 
   const addGalleryImage = () => {
@@ -205,30 +234,20 @@ const Events = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link
-              to="/admin/dashboard"
-              className="text-gray-600 hover:text-gray-900"
-            >
-              <FaArrowLeft size={20} />
-            </Link>
-            <h1 className="text-3xl font-bold text-gray-900">Events Management</h1>
-          </div>
-          <button
-            onClick={() => {
-              resetForm();
-              setEditingEvent(null);
-              setShowModal(true);
-            }}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-          >
-            <FaPlus />
-            Add Event
-          </button>
-        </div>
+    <AdminLayout title="Events Management">
+      <div className="mb-6 flex items-center justify-end">
+        <button
+          onClick={() => {
+            resetForm();
+            setEditingEvent(null);
+            setShowModal(true);
+          }}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+        >
+          <FaPlus />
+          Add Event
+        </button>
+      </div>
 
         {loading ? (
           <div className="bg-white shadow rounded-lg overflow-hidden">
@@ -530,6 +549,45 @@ const Events = () => {
                 </div>
 
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Allowed Commission Sellers
+                  </label>
+                  <p className="text-xs text-gray-500 mb-3">
+                    Select which commission sellers can sell tickets for this event. Leave empty to allow all sellers.
+                  </p>
+                  <div className="border border-gray-300 rounded-md p-3 max-h-48 overflow-y-auto">
+                    {commissionSellers.length === 0 ? (
+                      <p className="text-sm text-gray-500 italic">No commission sellers available</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {commissionSellers.map((seller) => (
+                          <label
+                            key={seller.id}
+                            className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={formData.allowed_commission_seller_ids.includes(seller.id)}
+                              onChange={() => toggleCommissionSeller(seller.id)}
+                              className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                            <span className="text-sm text-gray-700">
+                              {seller.name} {seller.email ? `(${seller.email})` : ''}
+                              {!seller.is_active && <span className="text-red-500 ml-1">(Inactive)</span>}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {formData.allowed_commission_seller_ids.length > 0 && (
+                    <p className="text-xs text-gray-500 mt-2">
+                      {formData.allowed_commission_seller_ids.length} seller(s) selected
+                    </p>
+                  )}
+                </div>
+
+                <div>
                   <label className="flex items-center">
                     <input
                       type="checkbox"
@@ -563,8 +621,7 @@ const Events = () => {
             </div>
           </div>
         )}
-      </div>
-    </div>
+    </AdminLayout>
   );
 };
 

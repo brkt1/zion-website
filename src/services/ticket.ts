@@ -20,6 +20,8 @@ export const saveTicket = async (ticketData: CreateTicketData): Promise<Ticket> 
         quantity: ticketData.quantity,
         status: ticketData.status || 'pending',
         chapa_reference: ticketData.chapa_reference || null,
+        commission_seller_id: ticketData.commission_seller_id || null,
+        commission_seller_name: ticketData.commission_seller_name || null,
         qr_code_data: ticketData.qr_code_data || null,
         payment_date: ticketData.payment_date || new Date().toISOString(),
       }])

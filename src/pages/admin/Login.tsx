@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { isAdmin } from '../../services/auth';
+import { isAdmin, isCommissionSeller } from '../../services/auth';
 import { supabase } from '../../services/supabase';
 
 const Login = () => {
@@ -15,7 +15,7 @@ const Login = () => {
     // Check for error in URL params
     const errorParam = searchParams.get('error');
     if (errorParam === 'unauthorized') {
-      setError('You do not have admin access. Please contact an administrator.');
+      setError('You do not have access to this page. Please contact an administrator.');
     }
   }, [searchParams]);
 
@@ -33,15 +33,24 @@ const Login = () => {
       if (error) throw error;
 
       if (data.user) {
-        // Check if user is admin
+        // Check if user is admin or commission seller
         const admin = await isAdmin();
-        if (!admin) {
+        const seller = await isCommissionSeller();
+        
+        if (!admin && !seller) {
           await supabase.auth.signOut();
-          setError('You do not have admin access. Please contact an administrator.');
+          setError('You do not have access. Please contact an administrator.');
           setLoading(false);
           return;
         }
-        navigate('/admin/dashboard');
+        
+        // Redirect based on role
+        if (admin) {
+          navigate('/admin/dashboard');
+        } else if (seller) {
+          // Commission sellers go to their commission page
+          navigate('/admin/commission-sellers');
+        }
       }
     } catch (err: any) {
       setError(err.message || 'Failed to login');

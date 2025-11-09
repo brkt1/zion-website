@@ -16,6 +16,7 @@ export interface Event {
   currency: string;
   gallery?: string[];
   featured?: boolean;
+  allowed_commission_seller_ids?: string[]; // Array of commission seller IDs allowed to sell tickets for this event
 }
 
 export interface Category {
@@ -32,6 +33,7 @@ export interface Destination {
   location: string;
   img: string;
   featured?: boolean;
+  allowed_commission_seller_ids?: string[]; // Array of commission seller IDs allowed to sell tickets for this destination
 }
 
 export interface GalleryItem {
@@ -181,6 +183,7 @@ export const api = {
       currency: event.currency,
       gallery: event.gallery || [],
       featured: event.featured,
+      allowed_commission_seller_ids: event.allowed_commission_seller_ids || [],
     }));
   },
 
@@ -215,6 +218,7 @@ export const api = {
       currency: data.currency,
       gallery: data.gallery || [],
       featured: data.featured,
+      allowed_commission_seller_ids: data.allowed_commission_seller_ids || [],
     };
   },
 
@@ -257,6 +261,7 @@ export const api = {
       location: dest.location,
       img: dest.img,
       featured: dest.featured,
+      allowed_commission_seller_ids: dest.allowed_commission_seller_ids || [],
     }));
   },
 

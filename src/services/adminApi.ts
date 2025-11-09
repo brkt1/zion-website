@@ -23,6 +23,7 @@ export const adminApi = {
           currency: event.currency,
           featured: event.featured || false,
           gallery: event.gallery || [],
+          allowed_commission_seller_ids: event.allowed_commission_seller_ids || [],
         })
         .select()
         .single();
@@ -48,6 +49,7 @@ export const adminApi = {
           currency: event.currency,
           featured: event.featured,
           gallery: event.gallery,
+          allowed_commission_seller_ids: event.allowed_commission_seller_ids !== undefined ? event.allowed_commission_seller_ids : undefined,
           updated_at: new Date().toISOString(),
         })
         .eq('id', id)
@@ -125,6 +127,7 @@ export const adminApi = {
           location: destination.location,
           img: destination.img,
           featured: destination.featured || false,
+          allowed_commission_seller_ids: destination.allowed_commission_seller_ids || [],
         })
         .select()
         .single();
@@ -141,6 +144,7 @@ export const adminApi = {
           location: destination.location,
           img: destination.img,
           featured: destination.featured,
+          allowed_commission_seller_ids: destination.allowed_commission_seller_ids !== undefined ? destination.allowed_commission_seller_ids : undefined,
         })
         .eq('id', id)
         .select()

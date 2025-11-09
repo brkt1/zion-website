@@ -1,48 +1,46 @@
 import { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
-import { isAdmin, isCommissionSeller } from '../../services/auth';
+import { Navigate, Outlet } from 'react-router-dom';
+import { isAdmin } from '../../services/auth';
 import { supabase } from '../../services/supabase';
 
-const AdminRedirect = () => {
+/**
+ * AdminRoute - A wrapper component that protects admin routes
+ * Only allows access to users with admin role (not commission sellers)
+ */
+const AdminRoute = () => {
   const [loading, setLoading] = useState(true);
-  const [redirectTo, setRedirectTo] = useState<string | null>(null);
+  const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkAdminAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!session) {
-          setRedirectTo('/admin/login');
+          setIsAuthorized(false);
           setLoading(false);
           return;
         }
 
-        // Check if user is admin or commission seller
+        // Check if user is admin (not just has admin access)
         const admin = await isAdmin();
-        const seller = await isCommissionSeller();
         
-        if (!admin && !seller) {
-          setRedirectTo('/admin/login?error=unauthorized');
+        if (!admin) {
+          setIsAuthorized(false);
           setLoading(false);
           return;
         }
 
-        // Redirect based on role
-        if (admin) {
-          setRedirectTo('/admin/dashboard');
-        } else if (seller) {
-          setRedirectTo('/admin/commission-sellers');
-        }
+        setIsAuthorized(true);
         setLoading(false);
       } catch (error) {
-        console.error('Auth check error:', error);
-        setRedirectTo('/admin/login');
+        console.error('Admin auth check error:', error);
+        setIsAuthorized(false);
         setLoading(false);
       }
     };
 
-    checkAuth();
+    checkAdminAuth();
   }, []);
 
   if (loading) {
@@ -56,12 +54,12 @@ const AdminRedirect = () => {
     );
   }
 
-  if (redirectTo) {
-    return <Navigate to={redirectTo} replace />;
+  if (!isAuthorized) {
+    return <Navigate to="/admin/login?error=unauthorized" replace />;
   }
 
-  return null;
+  return <Outlet />;
 };
 
-export default AdminRedirect;
+export default AdminRoute;
 

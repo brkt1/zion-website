@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
-import { FaArrowLeft, FaEdit, FaPlus, FaTrash } from 'react-icons/fa';
-import { Link, useNavigate } from 'react-router-dom';
+import { FaEdit, FaPlus, FaTrash } from 'react-icons/fa';
+import AdminLayout from '../../Components/admin/AdminLayout';
 import { ImageUpload } from '../../Components/admin/ImageUpload';
+import { useAdminAuth } from '../../hooks/useAdminAuth';
 import { adminApi } from '../../services/adminApi';
 import { api, GalleryItem } from '../../services/api';
-import { supabase } from '../../services/supabase';
 
 const Gallery = () => {
+  const { loading: authLoading, isAdminUser } = useAdminAuth();
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -19,18 +20,17 @@ const Gallery = () => {
     defaultColor: '#ED5565',
     category: '',
   });
-  const navigate = useNavigate();
 
   useEffect(() => {
-    checkAuth();
-    loadGallery();
+    if (!authLoading) {
+      if (!isAdminUser) {
+        window.location.href = '/admin/commission-sellers';
+        return;
+      }
+      loadGallery();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) navigate('/admin/login');
-  };
+  }, [authLoading, isAdminUser]);
 
   const loadGallery = async () => {
     try {
@@ -95,27 +95,20 @@ const Gallery = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link to="/admin/dashboard" className="text-gray-600 hover:text-gray-900">
-              <FaArrowLeft size={20} />
-            </Link>
-            <h1 className="text-3xl font-bold text-gray-900">Gallery Management</h1>
-          </div>
-          <button
-            onClick={() => {
-              resetForm();
-              setEditingItem(null);
-              setShowModal(true);
-            }}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-          >
-            <FaPlus />
-            Add Gallery Item
-          </button>
-        </div>
+    <AdminLayout title="Gallery Management">
+      <div className="mb-6 flex items-center justify-end">
+        <button
+          onClick={() => {
+            resetForm();
+            setEditingItem(null);
+            setShowModal(true);
+          }}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+        >
+          <FaPlus />
+          Add Gallery Item
+        </button>
+      </div>
 
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -240,8 +233,7 @@ const Gallery = () => {
             </div>
           </div>
         )}
-      </div>
-    </div>
+    </AdminLayout>
   );
 };
 

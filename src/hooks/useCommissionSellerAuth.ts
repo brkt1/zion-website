@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { isAdmin, isCommissionSeller } from '../services/auth';
 import { supabase } from '../services/supabase';
 
-export const useAdminAuth = () => {
+export const useCommissionSellerAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [isSeller, setIsSeller] = useState(false);
@@ -33,8 +33,8 @@ export const useAdminAuth = () => {
         return;
       }
 
-      setIsAdminUser(admin); // Only true if full admin
-      setIsSeller(seller && !admin); // True if seller but not admin
+      setIsAdminUser(admin);
+      setIsSeller(seller);
       setLoading(false);
     } catch (error) {
       console.error('Auth check error:', error);

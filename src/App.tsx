@@ -1,4 +1,5 @@
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import AdminRoute from "./Components/admin/AdminRoute";
 import Layout from "./Components/layout/Layout";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
@@ -50,17 +51,21 @@ function App() {
         {/* Admin Routes */}
         <Route path="/admin" element={<AdminRedirect />} />
         <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        <Route path="/admin/events" element={<AdminEvents />} />
-        <Route path="/admin/categories" element={<AdminCategories />} />
-        <Route path="/admin/destinations" element={<AdminDestinations />} />
-        <Route path="/admin/gallery" element={<AdminGallery />} />
-        <Route path="/admin/about" element={<AdminAbout />} />
-        <Route path="/admin/home" element={<AdminHome />} />
-        <Route path="/admin/contact" element={<AdminContact />} />
-        <Route path="/admin/settings" element={<AdminSettings />} />
-        <Route path="/admin/verify" element={<VerifyTicket />} />
         <Route path="/admin/commission-sellers" element={<CommissionSellers />} />
+        
+        {/* Admin-only routes - protected by AdminRoute */}
+        <Route element={<AdminRoute />}>
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/events" element={<AdminEvents />} />
+          <Route path="/admin/categories" element={<AdminCategories />} />
+          <Route path="/admin/destinations" element={<AdminDestinations />} />
+          <Route path="/admin/gallery" element={<AdminGallery />} />
+          <Route path="/admin/about" element={<AdminAbout />} />
+          <Route path="/admin/home" element={<AdminHome />} />
+          <Route path="/admin/contact" element={<AdminContact />} />
+          <Route path="/admin/settings" element={<AdminSettings />} />
+          <Route path="/admin/verify" element={<VerifyTicket />} />
+        </Route>
       </Routes>
     </Router>
   );

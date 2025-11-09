@@ -15,6 +15,7 @@ export interface PaymentRequest {
   event_id?: string;
   event_title?: string;
   preferred_payment_method?: string; // Optional: preferred payment method
+  commission_seller_id?: string; // Optional: commission seller who sold the ticket
 }
 
 export interface PaymentMethod {
@@ -75,6 +76,8 @@ export interface Ticket {
   quantity: number;
   status: 'pending' | 'success' | 'failed' | 'cancelled';
   chapa_reference?: string;
+  commission_seller_id?: string;
+  commission_seller_name?: string;
   qr_code_data?: {
     tx_ref: string;
     amount: number;
@@ -105,6 +108,8 @@ export interface CreateTicketData {
   quantity: number;
   status?: 'pending' | 'success' | 'failed' | 'cancelled';
   chapa_reference?: string;
+  commission_seller_id?: string;
+  commission_seller_name?: string;
   qr_code_data?: {
     tx_ref: string;
     amount: number;

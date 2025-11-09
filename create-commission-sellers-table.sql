@@ -22,9 +22,24 @@ CREATE INDEX IF NOT EXISTS idx_commission_sellers_is_active ON commission_seller
 ALTER TABLE commission_sellers ENABLE ROW LEVEL SECURITY;
 
 -- Create policies
--- Allow public read access (for verification purposes)
-DROP POLICY IF EXISTS "Allow public read access on commission_sellers" ON commission_sellers;
-CREATE POLICY "Allow public read access on commission_sellers" ON commission_sellers FOR SELECT USING (true);
+-- Allow commission sellers to read their own data
+DROP POLICY IF EXISTS "Allow commission sellers to read own data" ON commission_sellers;
+CREATE POLICY "Allow commission sellers to read own data" ON commission_sellers FOR SELECT 
+  USING (
+    -- Allow if user is admin
+    EXISTS (
+      SELECT 1 FROM user_roles 
+      WHERE user_roles.user_id = auth.uid() 
+      AND user_roles.role = 'admin'
+    )
+    OR
+    -- Allow if user's email matches a commission seller's email
+    EXISTS (
+      SELECT 1 FROM commission_sellers cs
+      WHERE cs.email = (SELECT email FROM auth.users WHERE id = auth.uid())
+      AND cs.is_active = true
+    )
+  );
 
 -- Only admins can insert, update, or delete
 DROP POLICY IF EXISTS "Allow admin insert on commission_sellers" ON commission_sellers;

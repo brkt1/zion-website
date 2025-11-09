@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
-import { FaArrowLeft, FaSave } from 'react-icons/fa';
-import { Link, useNavigate } from 'react-router-dom';
+import { FaSave } from 'react-icons/fa';
+import AdminLayout from '../../Components/admin/AdminLayout';
 import { ImageUpload } from '../../Components/admin/ImageUpload';
+import { useAdminAuth } from '../../hooks/useAdminAuth';
 import { adminApi } from '../../services/adminApi';
 import { api, SiteConfig } from '../../services/api';
-import { supabase } from '../../services/supabase';
 
 const Settings = () => {
+  const { loading: authLoading, isAdminUser } = useAdminAuth();
   const [, setConfig] = useState<SiteConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -16,18 +17,17 @@ const Settings = () => {
     footerDescription: '',
     navigation: [] as Array<{ path: string; label: string }>,
   });
-  const navigate = useNavigate();
 
   useEffect(() => {
-    checkAuth();
-    loadConfig();
+    if (!authLoading) {
+      if (!isAdminUser) {
+        window.location.href = '/admin/commission-sellers';
+        return;
+      }
+      loadConfig();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) navigate('/admin/login');
-  };
+  }, [authLoading, isAdminUser]);
 
   const loadConfig = async () => {
     try {
@@ -89,14 +89,7 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6 flex items-center gap-4">
-          <Link to="/admin/dashboard" className="text-gray-600 hover:text-gray-900">
-            <FaArrowLeft size={20} />
-          </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Site Settings</h1>
-        </div>
+    <AdminLayout title="Site Settings">
 
         {loading ? (
           <div className="bg-white shadow rounded-lg p-6 space-y-6 animate-pulse">
@@ -194,8 +187,7 @@ const Settings = () => {
           </div>
         </form>
         )}
-      </div>
-    </div>
+    </AdminLayout>
   );
 };
 

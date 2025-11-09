@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { FaArrowLeft, FaEdit, FaPlus, FaTrash } from 'react-icons/fa';
-import { Link, useNavigate } from 'react-router-dom';
+import { FaEdit, FaPlus, FaTrash } from 'react-icons/fa';
+import AdminLayout from '../../Components/admin/AdminLayout';
+import { useAdminAuth } from '../../hooks/useAdminAuth';
 import { adminApi } from '../../services/adminApi';
 import { api, Category } from '../../services/api';
-import { supabase } from '../../services/supabase';
 
 const Categories = () => {
+  const { loading: authLoading, isAdminUser } = useAdminAuth();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -16,18 +17,17 @@ const Categories = () => {
     slug: '',
     icon: '',
   });
-  const navigate = useNavigate();
 
   useEffect(() => {
-    checkAuth();
-    loadCategories();
+    if (!authLoading) {
+      if (!isAdminUser) {
+        window.location.href = '/admin/commission-sellers';
+        return;
+      }
+      loadCategories();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) navigate('/admin/login');
-  };
+  }, [authLoading, isAdminUser]);
 
   const loadCategories = async () => {
     try {
@@ -83,27 +83,20 @@ const Categories = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link to="/admin/dashboard" className="text-gray-600 hover:text-gray-900">
-              <FaArrowLeft size={20} />
-            </Link>
-            <h1 className="text-3xl font-bold text-gray-900">Categories Management</h1>
-          </div>
-          <button
-            onClick={() => {
-              resetForm();
-              setEditingCategory(null);
-              setShowModal(true);
-            }}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-          >
-            <FaPlus />
-            Add Category
-          </button>
-        </div>
+    <AdminLayout title="Categories Management">
+      <div className="mb-6 flex items-center justify-end">
+        <button
+          onClick={() => {
+            resetForm();
+            setEditingCategory(null);
+            setShowModal(true);
+          }}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+        >
+          <FaPlus />
+          Add Category
+        </button>
+      </div>
 
         {loading ? (
           <div className="bg-white shadow rounded-lg overflow-hidden">
@@ -231,8 +224,7 @@ const Categories = () => {
             </div>
           </div>
         )}
-      </div>
-    </div>
+    </AdminLayout>
   );
 };
 
