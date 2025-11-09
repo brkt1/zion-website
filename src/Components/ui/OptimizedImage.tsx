@@ -125,7 +125,7 @@ export const OptimizedImage = ({
       width={width}
       height={height}
       loading={loadingStrategy}
-      fetchPriority={fetchPriority}
+      {...(fetchPriority ? { fetchpriority: fetchPriority } : {})}
       className={className}
       onError={handleError}
       decoding="async"

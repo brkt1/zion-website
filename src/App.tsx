@@ -4,6 +4,7 @@ import AdminRoute from "./Components/admin/AdminRoute";
 import Layout from "./Components/layout/Layout";
 import ScrollToTop from "./Components/ScrollToTop";
 import { LoadingState } from "./Components/ui/LoadingState";
+import PWAInstallPrompt from "./Components/ui/PWAInstallPrompt";
 
 // Use React 18's startTransition for non-urgent updates
 // This helps reduce main thread blocking
@@ -42,6 +43,7 @@ function App() {
       }}
     >
       <ScrollToTop />
+      <PWAInstallPrompt />
       <Routes>
         {/* Public Routes */}
         <Route path="/*" element={

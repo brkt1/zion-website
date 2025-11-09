@@ -193,7 +193,6 @@ async function networkFirstWithOfflineFallback(request) {
         <body>
           <h1>You're Offline</h1>
           <p>Please check your internet connection and try again.</p>
-          <a href="/" style="color: #FFD447;">Go to Home</a>
         </body>
         </html>
         `,
