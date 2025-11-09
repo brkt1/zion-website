@@ -37,141 +37,193 @@ const Hero = () => {
   const [isAnimating, setIsAnimating] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const autoChangeIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const initialTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isAnimatingRef = useRef(false);
   const currentIndexRef = useRef(0);
   const nextIndexRef = useRef(0);
+  const destinationsRef = useRef(destinations);
+  const hasInitializedRef = useRef(false);
 
-  // Keep refs in sync with state
+  // Keep refs in sync with state and destinations
+  useEffect(() => {
+    destinationsRef.current = destinations;
+  }, [destinations]);
+
   useEffect(() => {
     isAnimatingRef.current = isAnimating;
     currentIndexRef.current = currentIndex;
     nextIndexRef.current = nextIndex;
   }, [isAnimating, currentIndex, nextIndex]);
 
-  // Initialize next index when destinations change
-  useEffect(() => {
-    if (destinations.length > 1) {
-      const initialNext = 1;
-      setNextIndex(initialNext);
-      nextIndexRef.current = initialNext;
-    } else if (destinations.length === 1) {
-      setNextIndex(0);
-      nextIndexRef.current = 0;
-    }
-  }, [destinations.length]);
-
   const getNextDestinationIndex = useCallback((excludeIndex: number): number => {
-    if (destinations.length === 0) return 0;
-    if (destinations.length === 1) return 0;
+    const dests = destinationsRef.current;
+    if (dests.length === 0) return 0;
+    if (dests.length === 1) return 0;
     
     // Cycle to next index, wrapping around
-    const next = (excludeIndex + 1) % destinations.length;
+    const next = (excludeIndex + 1) % dests.length;
     return next;
-  }, [destinations]);
+  }, []);
 
   const updateCSSVariables = useCallback((current: Destination, next: Destination) => {
-    if (rootRef.current) {
-      rootRef.current.style.setProperty("--img-current", `url(${current.img})`);
-      rootRef.current.style.setProperty("--text-current-title", `"${current.name}"`);
-      rootRef.current.style.setProperty("--text-current-subtitle", `"${current.location}"`);
-      rootRef.current.style.setProperty("--img-next", `url(${next.img})`);
-      rootRef.current.style.setProperty("--text-next-title", `"${next.name}"`);
-      rootRef.current.style.setProperty("--text-next-subtitle", `"${next.location}"`);
+    if (rootRef.current && !isAnimatingRef.current) {
+      // Use requestAnimationFrame for smoother updates
+      requestAnimationFrame(() => {
+        if (rootRef.current) {
+          rootRef.current.style.setProperty("--img-current", `url(${current.img})`);
+          rootRef.current.style.setProperty("--text-current-title", `"${current.name}"`);
+          rootRef.current.style.setProperty("--text-current-subtitle", `"${current.location}"`);
+          rootRef.current.style.setProperty("--img-next", `url(${next.img})`);
+          rootRef.current.style.setProperty("--text-next-title", `"${next.name}"`);
+          rootRef.current.style.setProperty("--text-next-subtitle", `"${next.location}"`);
+        }
+      });
     }
   }, []);
 
-  const displayNextContent = useCallback(() => {
-    // Don't animate if no destinations or only one destination
-    if (destinations.length === 0 || destinations.length === 1) return;
-    if (isAnimatingRef.current) return;
-
-    isAnimatingRef.current = true;
-    setIsAnimating(true);
-    const bodyElement = document.body;
-    bodyElement.classList.add("body--animated");
-
-    setTimeout(() => {
-      // Move to the next destination (which was previously the "next")
-      const newCurrentIndex = nextIndexRef.current;
-      setCurrentIndex(newCurrentIndex);
-      currentIndexRef.current = newCurrentIndex;
-      
-      // Calculate the new next destination
-      const newNextIndex = getNextDestinationIndex(newCurrentIndex);
-      setNextIndex(newNextIndex);
-      nextIndexRef.current = newNextIndex;
-      
-      const currentDest = destinations[newCurrentIndex];
-      const nextDest = destinations[newNextIndex];
-      if (currentDest && nextDest) {
-        updateCSSVariables(currentDest, nextDest);
-      }
-
-      setTimeout(() => {
-        bodyElement.classList.remove("body--animated");
-
-        setTimeout(() => {
-          isAnimatingRef.current = false;
-          setIsAnimating(false);
-        }, 1000);
-      }, 1000);
-    }, 1000);
-  }, [updateCSSVariables, destinations, getNextDestinationIndex]);
-
-  // Preload first and second destination images for faster initial load and smooth transitions
+  const displayNextContentRef = useRef<() => void>(() => {});
+  
+  // Update the ref callback whenever dependencies change
   useEffect(() => {
-    if (destinations.length > 0) {
-      // Preload first destination (current)
-      const firstDestination = destinations[0];
-      if (firstDestination?.img) {
-        const img = new Image();
-        img.src = firstDestination.img;
-      }
+    displayNextContentRef.current = () => {
+      const dests = destinationsRef.current;
+      // Don't animate if no destinations or only one destination
+      if (dests.length === 0 || dests.length === 1) return;
+      if (isAnimatingRef.current) return;
+
+      isAnimatingRef.current = true;
+      setIsAnimating(true);
+      const bodyElement = document.body;
+      bodyElement.classList.add("body--animated");
+
+      // Update CSS variables before animation starts
+      const newCurrentIndex = nextIndexRef.current;
+      const newNextIndex = getNextDestinationIndex(newCurrentIndex);
+      const currentDest = dests[newCurrentIndex];
+      const nextDest = dests[newNextIndex];
       
-      // Preload second destination (next) if available
-      if (destinations.length > 1) {
-        const secondDestination = destinations[1];
-        if (secondDestination?.img) {
-          const img = new Image();
-          img.src = secondDestination.img;
+      if (currentDest && nextDest) {
+        // Update CSS variables immediately, but only if not animating
+        if (rootRef.current) {
+          rootRef.current.style.setProperty("--img-current", `url(${currentDest.img})`);
+          rootRef.current.style.setProperty("--text-current-title", `"${currentDest.name}"`);
+          rootRef.current.style.setProperty("--text-current-subtitle", `"${currentDest.location}"`);
+          rootRef.current.style.setProperty("--img-next", `url(${nextDest.img})`);
+          rootRef.current.style.setProperty("--text-next-title", `"${nextDest.name}"`);
+          rootRef.current.style.setProperty("--text-next-subtitle", `"${nextDest.location}"`);
         }
       }
+
+      // Wait for animation to complete before updating state
+      setTimeout(() => {
+        setCurrentIndex(newCurrentIndex);
+        currentIndexRef.current = newCurrentIndex;
+        
+        setNextIndex(newNextIndex);
+        nextIndexRef.current = newNextIndex;
+
+        setTimeout(() => {
+          bodyElement.classList.remove("body--animated");
+
+          setTimeout(() => {
+            isAnimatingRef.current = false;
+            setIsAnimating(false);
+          }, 50); // Reduced delay for faster state reset
+        }, 50); // Reduced delay
+      }, 1000);
+    };
+  }, [getNextDestinationIndex]);
+
+  const displayNextContent = useCallback(() => {
+    displayNextContentRef.current();
+  }, []);
+
+  // Preload destination images
+  useEffect(() => {
+    if (destinations.length > 0) {
+      // Preload all destination images
+      destinations.forEach((dest) => {
+        if (dest?.img) {
+          const img = new Image();
+          img.src = dest.img;
+        }
+      });
     }
   }, [destinations]);
 
-  // Initialize CSS variables on mount or when destinations change
+  // Initialize CSS variables and indices only once when destinations are loaded
   useEffect(() => {
-    if (rootRef.current && destinations.length > 0) {
-      const current = destinations[currentIndex];
-      const next = destinations[nextIndex] || destinations[0];
+    if (rootRef.current && destinations.length > 0 && !hasInitializedRef.current) {
+      const current = destinations[0];
+      const next = destinations.length > 1 ? destinations[1] : destinations[0];
+      
       if (current && next) {
         updateCSSVariables(current, next);
+        setCurrentIndex(0);
+        setNextIndex(destinations.length > 1 ? 1 : 0);
+        currentIndexRef.current = 0;
+        nextIndexRef.current = destinations.length > 1 ? 1 : 0;
+        hasInitializedRef.current = true;
       }
     }
-  }, [updateCSSVariables, currentIndex, nextIndex, destinations]);
+  }, [destinations, updateCSSVariables]);
 
-  // Auto-change functionality
+  // Reset initialization flag when destinations change significantly
+  useEffect(() => {
+    if (destinations.length > 0 && destinationsRef.current.length !== destinations.length) {
+      hasInitializedRef.current = false;
+    }
+  }, [destinations.length]);
+
+  // Auto-change functionality - only depends on destinations length
   useEffect(() => {
     // Only set up auto-change if we have more than 1 destination
-    if (destinations.length <= 1) return;
+    if (destinations.length <= 1) {
+      // Clear any existing intervals
+      if (autoChangeIntervalRef.current) {
+        clearInterval(autoChangeIntervalRef.current);
+        autoChangeIntervalRef.current = null;
+      }
+      if (initialTimeoutRef.current) {
+        clearTimeout(initialTimeoutRef.current);
+        initialTimeoutRef.current = null;
+      }
+      return;
+    }
 
-    // Initial animation after component mounts
-    const initialTimeout = setTimeout(() => {
-      displayNextContent();
-    }, 2000);
+    // Clear any existing intervals/timeouts first
+    if (autoChangeIntervalRef.current) {
+      clearInterval(autoChangeIntervalRef.current);
+    }
+    if (initialTimeoutRef.current) {
+      clearTimeout(initialTimeoutRef.current);
+    }
+
+    // Wait a bit before starting to ensure initialization is complete
+    initialTimeoutRef.current = setTimeout(() => {
+      if (!isAnimatingRef.current && hasInitializedRef.current) {
+        displayNextContentRef.current?.();
+      }
+    }, 3000); // Increased initial delay
 
     // Set up auto-change interval (change every 8 seconds)
     autoChangeIntervalRef.current = setInterval(() => {
-      displayNextContent();
+      if (!isAnimatingRef.current) {
+        displayNextContentRef.current?.();
+      }
     }, 8000);
 
     return () => {
-      clearTimeout(initialTimeout);
+      if (initialTimeoutRef.current) {
+        clearTimeout(initialTimeoutRef.current);
+        initialTimeoutRef.current = null;
+      }
       if (autoChangeIntervalRef.current) {
         clearInterval(autoChangeIntervalRef.current);
+        autoChangeIntervalRef.current = null;
       }
     };
-  }, [displayNextContent, destinations.length]);
+  }, [destinations.length]);
 
   return (
     <div ref={rootRef} className="hero-container">
@@ -182,15 +234,6 @@ const Hero = () => {
         
         {/* Hero Content Overlay */}
         <div className="hero-content-overlay">
-          <div className="hero-logo">
-            <img 
-              src="/logo.png" 
-              alt="Zion Logo" 
-              loading="eager"
-              fetchPriority="high"
-              decoding="async"
-            />
-          </div>
           <div className="hero-text-content">
             <h1 className="hero-slogan">{homeContent?.hero?.slogan || "Bringing Happiness to Life"}</h1>
             
@@ -246,4 +289,5 @@ const Hero = () => {
 };
 
 export default Hero;
+
 
