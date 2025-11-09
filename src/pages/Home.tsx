@@ -5,16 +5,6 @@ import Hero from "../Components/Hero";
 import { LocationButton } from "../Components/ui/LocationButton";
 import { useContactInfo, useEvents, useHomeContent } from "../hooks/useApi";
 
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-};
-
 const formatDateShort = (dateString: string) => {
   const date = new Date(dateString);
   return date.toLocaleDateString("en-US", {
