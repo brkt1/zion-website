@@ -107,9 +107,8 @@ router.post('/initialize', async (req: Request, res: Response) => {
     });
 
     // Initialize payment
-    // Note: Chapa may require HTTPS URLs for production keys
-    // For localhost development, consider using a test key (CHASECK_TEST-)
-    // or a public URL service like ngrok
+    // Note: Chapa requires HTTPS URLs for production keys
+    // Ensure your FRONTEND_URL uses HTTPS in production
     try {
       // Prepare payment data - ensure amount is a string (Chapa expects string)
       // Chapa expects amount as a string in base currency (e.g., "100.00" for 100 ETB)
@@ -297,8 +296,15 @@ router.post('/initialize', async (req: Request, res: Response) => {
       });
       console.error('═══════════════════════════════════════════════════════');
 
-      const isTestKey = process.env.CHAPA_SECRET_KEY?.startsWith('CHASECK_TEST-');
+      // Check if using production key
+      const isProductionKey = process.env.CHAPA_SECRET_KEY?.startsWith('CHASECK-') && 
+                              !process.env.CHAPA_SECRET_KEY?.startsWith('CHASECK_TEST-');
       const isLocalhost = baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1');
+      
+      // Warn if using production key with localhost (should use HTTPS in production)
+      if (isProductionKey && isLocalhost) {
+        console.warn('⚠️  WARNING: Using production Chapa key with localhost. Production keys require HTTPS URLs.');
+      }
 
       // FIRST: Check for rate limiting errors (429)
       if (errorStatus === 429) {

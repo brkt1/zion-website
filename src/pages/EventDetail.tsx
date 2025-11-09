@@ -129,9 +129,9 @@ const EventDetail = () => {
         const errorMsg = response.message || "Failed to initialize payment";
         if (response.error === 'LOCALHOST_URL_NOT_ALLOWED') {
           alert(
-            "⚠️ Development Setup Required\n\n" +
+            "⚠️ URL Configuration Error\n\n" +
             errorMsg + "\n\n" +
-            (response.suggestion || "Please use a test key or ngrok for localhost development.")
+            (response.suggestion || "Production payments require HTTPS URLs. Please ensure your FRONTEND_URL is configured correctly.")
           );
         } else {
           alert(errorMsg);
@@ -170,9 +170,9 @@ const EventDetail = () => {
       // Check if it's a localhost URL error
       else if (errorMsg.includes("localhost") || errorType === "LOCALHOST_URL_NOT_ALLOWED" || errorType === "URL_VALIDATION_ERROR") {
         alert(
-          "⚠️ Development Setup Required\n\n" +
+          "⚠️ URL Configuration Error\n\n" +
           errorMsg + "\n\n" +
-          (error.suggestion || "Please use a test key or ngrok for localhost development.")
+          (error.suggestion || "Production payments require HTTPS URLs. Please ensure your FRONTEND_URL is configured correctly.")
         );
       } else {
         alert(errorMsg + (error.suggestion ? "\n\n" + error.suggestion : ""));

@@ -17,7 +17,8 @@ cp .env.example .env
 3. Add your Chapa secret key to `.env`:
 ```
 CHAPA_SECRET_KEY=your-chapa-secret-key-here
-FRONTEND_URL=http://localhost:3000
+FRONTEND_URL=http://localhost:3000  # For development
+# For production, use: FRONTEND_URL=https://yenege.com
 ```
 
 4. Set up ngrok for local development (required for Chapa payments):

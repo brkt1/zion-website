@@ -63,7 +63,7 @@ The backend server needs to be deployed separately. Options:
 4. Set root directory to `server`
 5. Add environment variables:
    - `CHAPA_SECRET_KEY`
-   - `FRONTEND_URL` (your frontend URL)
+   - `FRONTEND_URL=https://yenege.com`
    - `PORT` (optional, defaults to 5000)
 6. Railway will auto-deploy on push
 
@@ -98,7 +98,7 @@ REACT_APP_API_URL=https://your-backend-url.com/api
 ### Backend (server/.env)
 ```env
 CHAPA_SECRET_KEY=your_chapa_secret_key
-FRONTEND_URL=https://your-frontend-url.vercel.app
+FRONTEND_URL=https://yenege.com
 PORT=5000
 NODE_ENV=production
 ```

@@ -108,7 +108,7 @@ After deployment:
 - [ ] Visit the production URL
 - [ ] Check browser console for errors
 - [ ] Test authentication
-- [ ] Test payment flow (use test mode if available)
+- [ ] Test payment flow with production Chapa key (starts with CHASECK-, not CHASECK_TEST-)
 - [ ] Verify all API calls are working
 - [ ] Check error tracking dashboard
 - [ ] Monitor logs for any issues

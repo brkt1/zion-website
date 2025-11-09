@@ -47,7 +47,7 @@ REACT_APP_API_URL=https://your-backend-url.com/api
 4. Set root directory to `server`
 5. Add environment variables:
    - `CHAPA_SECRET_KEY=your_key`
-   - `FRONTEND_URL=https://your-frontend.vercel.app`
+   - `FRONTEND_URL=https://yenege.com`
    - `PORT=5000`
 6. Railway auto-deploys on push
 

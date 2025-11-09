@@ -142,9 +142,16 @@ CHAPA_SECRET_KEY=CHASECK_TEST-xxxxxxxxxxxxx
 ### Backend
 
 1. Set `NODE_ENV=production` in your `.env`
-2. Update `FRONTEND_URL` to your production frontend URL
-3. Use your production Chapa secret key
+2. Set `FRONTEND_URL=https://yenege.com` (must use HTTPS)
+3. **Use your production Chapa secret key** (starts with `CHASECK-`, NOT `CHASECK_TEST-`)
+   - Get your production key from Chapa dashboard → Settings → API Keys
+   - Production keys require HTTPS URLs
 4. Deploy to your hosting provider (Heroku, AWS, DigitalOcean, etc.)
+
+**Important:** 
+- Production keys start with `CHASECK-` (not `CHASECK_TEST-`)
+- Production keys require HTTPS URLs for callback and return URLs
+- Frontend URL is set to `https://yenege.com` for production
 
 ### Frontend
 
