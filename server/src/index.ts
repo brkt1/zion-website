@@ -1,6 +1,8 @@
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
 import path from 'path';
 import contentRoutes from './routes/content';
 import paymentRoutes from './routes/payment';
@@ -8,11 +10,14 @@ import paymentRoutes from './routes/payment';
 // Load .env file from server directory
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
-// Log environment status for debugging
+const isProduction = process.env.NODE_ENV === 'production';
+
+// Log environment status for debugging (without sensitive data)
 console.log('📋 Environment check:');
-console.log('  CHAPA_SECRET_KEY:', process.env.CHAPA_SECRET_KEY ? '✅ Set (' + process.env.CHAPA_SECRET_KEY.substring(0, 20) + '...)' : '❌ Not set');
+console.log('  CHAPA_SECRET_KEY:', process.env.CHAPA_SECRET_KEY ? '✅ Set' : '❌ Not set');
 console.log('  FRONTEND_URL:', process.env.FRONTEND_URL || 'Not set (using default)');
 console.log('  PORT:', process.env.PORT || '5000 (default)');
+console.log('  NODE_ENV:', process.env.NODE_ENV || 'development');
 console.log('  WhatsApp Provider:', 
   process.env.WHATSAPP_ACCESS_TOKEN ? '✅ WhatsApp Business API (Meta - FREE)' :
   (process.env.TWILIO_API_KEY_SID || process.env.TWILIO_ACCOUNT_SID) ? 
@@ -31,33 +36,90 @@ if (process.env.WHATSAPP_ACCESS_TOKEN) {
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// CORS configuration
+// Security: Trust proxy (important for Railway/Heroku/etc)
+app.set('trust proxy', 1);
+
+// Security: CORS configuration - Restrictive in production
+// IMPORTANT: CORS must be configured BEFORE Helmet to ensure headers are set correctly
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   'https://www.yenege.com',
   'https://yenege.com',
-  'http://localhost:3000',
-  'http://localhost:3001',
+  // Development origins
+  ...(isProduction ? [] : ['http://localhost:3000', 'http://localhost:3001']),
 ].filter(Boolean); // Remove undefined values
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
+    // In production, block requests with no origin (except for health checks)
+    if (!origin) {
+      if (isProduction) {
+        return callback(new Error('CORS: Origin header required in production'));
+      }
+      return callback(null, true);
+    }
     
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+    if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      console.warn(`CORS blocked origin: ${origin}`);
-      callback(null, true); // Allow all origins for now, but log blocked ones
+      console.warn(`🚫 CORS blocked origin: ${origin}`);
+      callback(new Error(`CORS: Origin ${origin} is not allowed`));
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Length', 'Content-Type'],
+  maxAge: 86400, // 24 hours
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+// Security: Helmet.js - Set security headers
+// Configure Helmet to work with CORS
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+    },
+  },
+  crossOriginEmbedderPolicy: false, // Allow cross-origin requests
+  crossOriginResourcePolicy: { policy: "cross-origin" }, // Allow cross-origin resources
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  }
+}));
+
+// Security: Rate limiting - General API rate limit
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Security: Rate limiting - Stricter for payment endpoints
+const paymentLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Limit each IP to 10 payment requests per windowMs
+  message: 'Too many payment requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: false,
+});
+
+// Apply general rate limiting to all routes
+app.use('/api', generalLimiter);
+
+// Security: Request size limits
+app.use(express.json({ limit: '10mb' })); // Limit JSON payload size
+app.use(express.urlencoded({ extended: true, limit: '10mb' })); // Limit URL-encoded payload size
 
 // Routes
 app.use('/api/payments', paymentRoutes);
