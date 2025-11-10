@@ -45,8 +45,11 @@ const allowedOrigins = [
   process.env.FRONTEND_URL,
   'https://www.yenege.com',
   'https://yenege.com',
-  // Development origins
-  ...(isProduction ? [] : ['http://localhost:3000', 'http://localhost:3001']),
+  // Always allow localhost for local development (even when server is in production)
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:3001',
 ].filter(Boolean); // Remove undefined values
 
 app.use(cors({
@@ -56,16 +59,33 @@ app.use(cors({
       return callback(null, true);
     }
     
+    // Always allow localhost origins for local development
+    if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
+      console.log(`✅ CORS: Allowing localhost origin: ${origin}`);
+      return callback(null, true);
+    }
+    
     if (allowedOrigins.includes(origin)) {
+      console.log(`✅ CORS: Allowing origin: ${origin}`);
       callback(null, true);
     } else {
       console.warn(`🚫 CORS blocked origin: ${origin}`);
+      console.warn(`   Allowed origins: ${allowedOrigins.join(', ')}`);
       callback(new Error(`CORS: Origin ${origin} is not allowed`));
     }
   },
   credentials: true,
   methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  // Allow common headers that browsers might send in preflight requests
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Requested-With',
+    'Accept',
+    'Origin',
+    'Access-Control-Request-Method',
+    'Access-Control-Request-Headers',
+  ],
   exposedHeaders: ['Content-Length', 'Content-Type'],
   maxAge: 86400, // 24 hours
   preflightContinue: false,
@@ -93,15 +113,18 @@ app.use(helmet({
 }));
 
 // Security: Rate limiting - General API rate limit
+// IMPORTANT: Skip OPTIONS requests (CORS preflight) - they must always be allowed
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Limit each IP to 100 requests per windowMs
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => req.method === 'OPTIONS', // Skip OPTIONS requests for CORS preflight
 });
 
 // Security: Rate limiting - Stricter for payment endpoints
+// IMPORTANT: Skip OPTIONS requests (CORS preflight) - they must always be allowed
 const paymentLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10, // Limit each IP to 10 payment requests per windowMs
@@ -109,6 +132,7 @@ const paymentLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skipSuccessfulRequests: false,
+  skip: (req) => req.method === 'OPTIONS', // Skip OPTIONS requests for CORS preflight
 });
 
 // Apply general rate limiting to all routes

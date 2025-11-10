@@ -3,13 +3,32 @@ import { PaymentMethod } from '../types';
 /**
  * Available payment methods supported by Chapa
  * These will be shown on Chapa's checkout page
+ * International payment methods are listed first, followed by Ethiopian payment methods
  */
 export const PAYMENT_METHODS: PaymentMethod[] = [
+  // International payment methods (shown first)
+  {
+    id: 'paypal',
+    name: 'PayPal',
+    description: 'International payments via PayPal',
+    icon: 'https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg',
+    minAmount: 10,
+    maxAmount: 500000,
+  },
+  {
+    id: 'card',
+    name: 'Debit/Credit Card',
+    description: 'Visa, Mastercard, and local bank cards',
+    icon: 'https://upload.wikimedia.org/wikipedia/commons/4/41/Visa_Logo.svg',
+    minAmount: 10,
+    maxAmount: 500000,
+  },
+  // Ethiopian payment methods
   {
     id: 'telebirr',
     name: 'Telebirr',
     description: 'Mobile money payment via Telebirr',
-    icon: '📱',
+    icon: 'https://upload.wikimedia.org/wikipedia/en/a/a4/Telebirr.png',
     minAmount: 1,
     maxAmount: 75000,
   },
@@ -25,7 +44,7 @@ export const PAYMENT_METHODS: PaymentMethod[] = [
     id: 'awash_birr',
     name: 'Awash Birr',
     description: 'Mobile money via Awash Bank',
-    icon: '💳',
+    icon: 'https://addisfortune.news/wp-content/uploads/2022/02/Awash-birr.jpg',
     minAmount: 1,
     maxAmount: 600000,
   },
@@ -70,28 +89,12 @@ export const PAYMENT_METHODS: PaymentMethod[] = [
     maxAmount: -1, // Unlimited
   },
   {
-    id: 'card',
-    name: 'Debit/Credit Card',
-    description: 'Visa, Mastercard, and local bank cards',
-    icon: '💳',
-    minAmount: 10,
-    maxAmount: 500000,
-  },
-  {
     id: 'm_pesa',
     name: 'M-Pesa',
     description: 'Mobile money via M-Pesa (Safaricom)',
-    icon: '📱',
+    icon: 'https://akaunting.com/public/assets/media/4-akaunting-inc/m-pesa/m-pesa-logo_1.png',
     minAmount: 20,
     maxAmount: 75000,
-  },
-  {
-    id: 'paypal',
-    name: 'PayPal',
-    description: 'International payments via PayPal',
-    icon: '🌐',
-    minAmount: 10,
-    maxAmount: 500000,
   },
 ];
 

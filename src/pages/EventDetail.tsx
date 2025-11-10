@@ -712,35 +712,57 @@ const EventDetail = () => {
             </form>
             ) : (
               <div className="space-y-3 sm:space-y-4">
-                <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
-                  Select your preferred payment method. You'll complete the payment on Chapa's secure checkout page.
-                </p>
+                {/* Logo and Header */}
+                <div className="flex items-center gap-2 sm:gap-3 mb-4">
+                  <img 
+                    src="/logo.png" 
+                    alt="Logo" 
+                    className="w-8 h-8 sm:w-10 sm:h-10 object-contain"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                    }}
+                  />
+                  <h2 className="text-base sm:text-lg font-semibold text-gray-900">Choose Payment Method</h2>
+                </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 max-h-64 sm:max-h-96 overflow-y-auto">
+                <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2 sm:gap-3 max-h-[60vh] overflow-y-auto pr-1">
                   {getAvailablePaymentMethods(parseFloat(event.price)).map((method) => (
                     <button
                       key={method.id}
                       type="button"
                       onClick={() => setSelectedPaymentMethod(method.id)}
-                      className={`p-3 sm:p-4 border-2 rounded-lg text-left transition-all ${
+                      className={`aspect-square p-2 sm:p-2.5 border-2 rounded-2xl text-center transition-all hover:shadow-lg flex flex-col items-center justify-center ${
                         selectedPaymentMethod === method.id
-                          ? 'border-gray-900 bg-gray-50'
+                          ? 'border-gray-900 bg-gray-50 shadow-md scale-105'
                           : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                       }`}
                     >
-                      <div className="flex items-start gap-2 sm:gap-3">
-                        <span className="text-xl sm:text-2xl flex-shrink-0">{method.icon}</span>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-sm sm:text-base font-semibold text-gray-900">{method.name}</h3>
-                          <p className="text-xs sm:text-sm text-gray-600 mt-1">{method.description}</p>
-                          {method.maxAmount && method.maxAmount > 0 && (
-                            <p className="text-xs text-gray-500 mt-1">
-                              Limit: {method.minAmount} - {method.maxAmount.toLocaleString()} ETB
-                            </p>
-                          )}
-                        </div>
+                      <div className="relative w-full h-full flex flex-col items-center justify-center">
+                        {method.icon.startsWith('http') || method.icon.startsWith('/') ? (
+                          <img 
+                            src={method.icon} 
+                            alt={method.name}
+                            className="w-full h-full object-contain p-0.5 sm:p-1"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              // Fallback to emoji if image fails to load
+                              const parent = target.parentElement;
+                              if (parent) {
+                                parent.innerHTML = `<span class="text-2xl sm:text-3xl flex-shrink-0">💳</span>`;
+                              }
+                            }}
+                          />
+                        ) : (
+                          <>
+                            <span className="text-2xl sm:text-3xl flex-shrink-0 mb-1">{method.icon}</span>
+                            <div className="mt-auto w-full px-1 pb-0.5">
+                              <h3 className="text-[9px] sm:text-[10px] font-semibold text-gray-900 leading-tight line-clamp-2">{method.name}</h3>
+                            </div>
+                          </>
+                        )}
                         {selectedPaymentMethod === method.id && (
-                          <span className="text-gray-900 flex-shrink-0">✓</span>
+                          <span className="absolute -top-1 -right-1 text-white flex-shrink-0 text-xs sm:text-sm font-bold bg-gray-900 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center shadow-md">✓</span>
                         )}
                       </div>
                     </button>
