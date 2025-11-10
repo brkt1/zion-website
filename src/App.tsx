@@ -16,6 +16,8 @@ const EventDetail = lazy(() => import("./pages/EventDetail"));
 const About = lazy(() => import("./pages/About"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Apply = lazy(() => import("./pages/Apply"));
+const Travel = lazy(() => import("./pages/Travel"));
+const Community = lazy(() => import("./pages/Community"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const PaymentCallback = lazy(() => import("./pages/PaymentCallback"));
 const PaymentFailed = lazy(() => import("./pages/PaymentFailed"));
@@ -61,6 +63,8 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/events" element={<Events />} />
                 <Route path="/events/:id" element={<EventDetail />} />
+                <Route path="/travel" element={<Travel />} />
+                <Route path="/community" element={<Community />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/apply" element={<Apply />} />

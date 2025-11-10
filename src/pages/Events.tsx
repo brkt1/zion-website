@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react";
 import { FaArrowRight, FaCalendarAlt, FaMapMarkerAlt, FaSearch, FaUsers, FaWhatsapp } from "react-icons/fa";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ErrorState } from "../Components/ui/ErrorState";
 import { LocationButton } from "../Components/ui/LocationButton";
 import OptimizedImage from "../Components/ui/OptimizedImage";
 import { useCategories, useEvents } from "../hooks/useApi";
 
 const Events = () => {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryParam = searchParams.get("category") || "all";
   const [selectedCategory, setSelectedCategory] = useState<string>(categoryParam);
@@ -52,6 +53,16 @@ const Events = () => {
   }, [events, selectedCategory, searchQuery]);
 
   const handleCategoryChange = (categoryId: string) => {
+    // Navigate to dedicated pages for Travel and Community
+    if (categoryId === "travel") {
+      navigate("/travel");
+      return;
+    }
+    if (categoryId === "community") {
+      navigate("/community");
+      return;
+    }
+    
     setSelectedCategory(categoryId);
     if (categoryId === "all") {
       setSearchParams({});

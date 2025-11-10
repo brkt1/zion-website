@@ -119,6 +119,17 @@ async function cacheFirstStrategy(request) {
     }
     return response;
   } catch (error) {
+    // Silently handle CSP violations and network errors for external resources
+    const url = new URL(request.url);
+    const currentOrigin = self.location.origin;
+    const isExternalResource = url.origin !== currentOrigin;
+    
+    if (isExternalResource) {
+      // For external resources that fail (CSP violations, network errors), return a 404
+      // This prevents service worker errors from breaking the app
+      return new Response('', { status: 404, statusText: 'Not Found' });
+    }
+    
     console.error('[Service Worker] Fetch failed:', error);
     // Return offline image for image requests
     if (request.headers.get('accept')?.includes('image')) {

@@ -385,6 +385,8 @@ router.get('/config', async (req: Request, res: Response) => {
       navigation: [
         { path: "/", label: "Home" },
         { path: "/events", label: "Events" },
+        { path: "/travel", label: "Travel & Adventures" },
+        { path: "/community", label: "Community" },
         { path: "/about", label: "About" },
         { path: "/contact", label: "Contact" },
       ],
@@ -393,6 +395,8 @@ router.get('/config', async (req: Request, res: Response) => {
         quickLinks: [
           { path: "/", label: "Home" },
           { path: "/events", label: "Events" },
+          { path: "/travel", label: "Travel & Adventures" },
+          { path: "/community", label: "Community" },
           { path: "/about", label: "About" },
           { path: "/contact", label: "Contact" },
         ],
@@ -415,7 +419,7 @@ router.get('/content/home', async (req: Request, res: Response) => {
         intro: "Yenege is a vibrant community dedicated to creating unforgettable experiences. We bring people together through exciting game nights, amazing travel adventures, and meaningful connections that celebrate life's beautiful moments.",
         categories: [
           { label: "Game Nights", path: "/events?category=game" },
-          { label: "Travel", path: "/events?category=travel" },
+          { label: "Travel", path: "/travel" },
           { label: "Community", path: "/community" },
         ],
       },
@@ -431,7 +435,7 @@ router.get('/content/home', async (req: Request, res: Response) => {
           id: "2",
           title: "Travel & Adventures",
           description: "Weekend getaways, day trips, and exciting adventures. Explore new places with amazing people.",
-          link: "/events?category=travel",
+          link: "/travel",
           number: "02",
         },
         {

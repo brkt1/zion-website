@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FaArrowUp, FaBriefcase, FaCalendarAlt, FaEnvelope, FaHome, FaInfoCircle } from "react-icons/fa";
+import { FaArrowUp, FaCalendarAlt, FaEnvelope, FaHome, FaMapMarkerAlt, FaUsers } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
 
 const MobileBottomNav = () => {
@@ -26,9 +26,9 @@ const MobileBottomNav = () => {
   const navItems = [
     { path: "/", label: "Home", icon: FaHome },
     { path: "/events", label: "Events", icon: FaCalendarAlt },
-    { path: "/about", label: "About", icon: FaInfoCircle },
+    { path: "/travel", label: "Travel", icon: FaMapMarkerAlt },
     { path: "/contact", label: "Contact", icon: FaEnvelope },
-    { path: "/apply", label: "Apply", icon: FaBriefcase },
+    { path: "/community", label: "Community", icon: FaUsers },
   ];
 
   const isActive = (path: string) => {

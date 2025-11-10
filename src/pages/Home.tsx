@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { FaArrowRight, FaCalendarAlt, FaMapMarkerAlt, FaWhatsapp } from "react-icons/fa";
+import { FaArrowRight, FaBriefcase, FaCalendarAlt, FaHandsHelping, FaMapMarkerAlt, FaWhatsapp } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import Gallery from "../Components/Gallery";
 import Hero from "../Components/Hero";
@@ -415,6 +415,174 @@ const Home = () => {
                 size={14}
               />
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Apply Section */}
+      <section className="py-12 sm:py-16 md:py-20 lg:py-24 relative overflow-hidden bg-white">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="text-center mb-8 sm:mb-12 md:mb-16 lg:mb-20">
+            <div className="inline-block mb-3 sm:mb-4 md:mb-6">
+              <div 
+                className="h-0.5 sm:h-1 w-12 sm:w-16 md:w-20 mx-auto mb-2 sm:mb-3 md:mb-4 rounded-full"
+                style={{
+                  background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                }}
+              ></div>
+            </div>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-3 sm:mb-4 md:mb-6 tracking-tight px-4">
+              <span 
+                className="block"
+                style={{
+                  background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                Join Our Team
+              </span>
+            </h2>
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed px-4">
+              We're always looking for passionate individuals to join us as interns or volunteers
+            </p>
+          </div>
+
+          <div className="max-w-5xl mx-auto">
+            <div className="group relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-gray-50 to-white border border-gray-100 transition-all duration-700"
+              style={{
+                boxShadow: "0 4px 20px rgba(0, 0, 0, 0.06)",
+              }}
+              onMouseEnter={(e) => {
+                if (window.innerWidth >= 768) {
+                  e.currentTarget.style.boxShadow = "0 20px 40px rgba(255, 111, 94, 0.15)";
+                  e.currentTarget.style.transform = "translateY(-4px)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = "0 4px 20px rgba(0, 0, 0, 0.06)";
+                e.currentTarget.style.transform = "translateY(0)";
+              }}
+            >
+              {/* Abstract gradient background */}
+              <div 
+                className="absolute top-0 right-0 w-48 h-48 sm:w-64 sm:h-64 md:w-96 md:h-96 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-3xl"
+                style={{
+                  background: "linear-gradient(135deg, rgba(255, 212, 71, 0.2) 0%, rgba(255, 111, 94, 0.2) 100%)",
+                  transform: "translate(30%, -30%)",
+                }}
+              ></div>
+
+              <div className="relative z-10 p-6 sm:p-8 md:p-12 lg:p-16">
+                <div className="flex flex-col lg:flex-row gap-6 sm:gap-8 md:gap-12 items-center">
+                  {/* Icons Section */}
+                  <div className="flex-shrink-0 flex gap-4 sm:gap-6">
+                    <div className="relative">
+                      <div 
+                        className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-2xl sm:rounded-3xl flex items-center justify-center transition-all duration-700 group-hover:scale-105"
+                        style={{
+                          background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
+                          boxShadow: "0 8px 30px rgba(0, 0, 0, 0.15)",
+                        }}
+                      >
+                        <FaBriefcase size={48} className="text-white" />
+                      </div>
+                      {/* Decorative accent */}
+                      <div 
+                        className="absolute -bottom-3 -right-3 sm:-bottom-4 sm:-right-4 w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-full opacity-20 blur-2xl"
+                        style={{
+                          background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
+                        }}
+                      ></div>
+                    </div>
+                    <div className="relative">
+                      <div 
+                        className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-2xl sm:rounded-3xl flex items-center justify-center transition-all duration-700 group-hover:scale-105"
+                        style={{
+                          background: "linear-gradient(135deg, #FF6F5E 0%, #FFD447 100%)",
+                          boxShadow: "0 8px 30px rgba(0, 0, 0, 0.15)",
+                        }}
+                      >
+                        <FaHandsHelping size={48} className="text-white" />
+                      </div>
+                      {/* Decorative accent */}
+                      <div 
+                        className="absolute -bottom-3 -right-3 sm:-bottom-4 sm:-right-4 w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-full opacity-20 blur-2xl"
+                        style={{
+                          background: "linear-gradient(135deg, #FF6F5E 0%, #FFD447 100%)",
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-grow text-center lg:text-left">
+                    {/* Decorative line */}
+                    <div 
+                      className="h-0.5 sm:h-1 w-12 sm:w-16 md:w-20 mb-4 sm:mb-6 md:mb-8 mx-auto lg:mx-0 rounded-full"
+                      style={{
+                        background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                      }}
+                    ></div>
+
+                    {/* Title */}
+                    <h3 
+                      className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 sm:mb-3 tracking-tight"
+                      style={{
+                        background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text",
+                      }}
+                    >
+                      Internships & Volunteer Opportunities
+                    </h3>
+                    <p 
+                      className="text-base sm:text-lg md:text-xl mb-4 sm:mb-6 md:mb-8 font-semibold"
+                      style={{
+                        color: "#C73A26",
+                      }}
+                    >
+                      Be part of creating amazing experiences
+                    </p>
+
+                    {/* Description */}
+                    <p className="text-sm sm:text-base md:text-lg text-gray-600 mb-4 sm:mb-6 md:mb-8 leading-relaxed">
+                      We're always looking for passionate individuals to join our team. Whether you're interested in an internship to gain valuable experience or want to volunteer and make a difference in our community, we'd love to hear from you!
+                    </p>
+
+                    {/* CTA Button */}
+                    <Link
+                      to="/apply"
+                      className="group inline-flex items-center justify-center px-6 sm:px-8 md:px-10 py-3 sm:py-3.5 md:py-4 rounded-full font-semibold transition-all duration-500 relative overflow-hidden text-sm sm:text-base"
+                      style={{
+                        background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
+                        color: "#1C2951",
+                        boxShadow: "0 4px 15px rgba(255, 111, 94, 0.3)",
+                      }}
+                      onMouseEnter={(e) => {
+                        handleLinkHover('/apply');
+                        if (window.innerWidth >= 768) {
+                          e.currentTarget.style.boxShadow = "0 6px 20px rgba(255, 111, 94, 0.5)";
+                          e.currentTarget.style.transform = "translateY(-2px)";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.boxShadow = "0 4px 15px rgba(255, 111, 94, 0.3)";
+                        e.currentTarget.style.transform = "translateY(0)";
+                      }}
+                    >
+                      <span className="relative z-10">Apply Now</span>
+                      <FaArrowRight 
+                        className="ml-2 sm:ml-3 relative z-10 transition-all duration-300 group-hover:translate-x-1" 
+                        size={14}
+                      />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
