@@ -22,6 +22,7 @@ const EventDetail = () => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
   const [commissionSellers, setCommissionSellers] = useState<CommissionSeller[]>([]);
   const [fullscreenImageIndex, setFullscreenImageIndex] = useState<number | null>(null);
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
   const [paymentForm, setPaymentForm] = useState({
     first_name: "",
     last_name: "",
@@ -740,19 +741,23 @@ const EventDetail = () => {
                     >
                       <div className="relative w-full h-full flex flex-col items-center justify-center">
                         {method.icon.startsWith('http') || method.icon.startsWith('/') ? (
-                          <img 
-                            src={method.icon} 
-                            alt={method.name}
-                            className="w-full h-full object-contain p-0.5 sm:p-1"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              // Fallback to emoji if image fails to load
-                              const parent = target.parentElement;
-                              if (parent) {
-                                parent.innerHTML = `<span class="text-2xl sm:text-3xl flex-shrink-0">💳</span>`;
-                              }
-                            }}
-                          />
+                          failedImages.has(method.id) ? (
+                            <>
+                              <span className="text-2xl sm:text-3xl mb-1">💳</span>
+                              <div className="mt-auto w-full px-1 pb-0.5">
+                                <h3 className="text-[9px] sm:text-[10px] font-semibold text-gray-900 leading-tight text-center line-clamp-2">{method.name}</h3>
+                              </div>
+                            </>
+                          ) : (
+                            <img 
+                              src={method.icon} 
+                              alt={method.name}
+                              className="w-full h-full object-contain p-0.5 sm:p-1"
+                              onError={() => {
+                                setFailedImages(prev => new Set(prev).add(method.id));
+                              }}
+                            />
+                          )
                         ) : (
                           <>
                             <span className="text-2xl sm:text-3xl flex-shrink-0 mb-1">{method.icon}</span>

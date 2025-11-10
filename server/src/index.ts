@@ -138,6 +138,40 @@ const paymentLimiter = rateLimit({
 // Apply general rate limiting to all routes
 app.use('/api', generalLimiter);
 
+// Explicit OPTIONS handler for CORS preflight (fallback)
+// This ensures preflight requests are always handled correctly
+app.options('*', (req: express.Request, res: express.Response) => {
+  const origin = req.headers.origin;
+  
+  // Check if origin is allowed
+  if (!origin) {
+    return res.status(204).end();
+  }
+  
+  // Always allow localhost origins
+  if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE, PATCH');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Max-Age', '86400');
+    return res.status(204).end();
+  }
+  
+  // Check if origin is in allowed list
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE, PATCH');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Max-Age', '86400');
+    return res.status(204).end();
+  }
+  
+  // Origin not allowed
+  res.status(403).end();
+});
+
 // Security: Request size limits
 app.use(express.json({ limit: '10mb' })); // Limit JSON payload size
 app.use(express.urlencoded({ extended: true, limit: '10mb' })); // Limit URL-encoded payload size

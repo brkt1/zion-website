@@ -5,7 +5,7 @@
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com https://www.gstatic.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://images.weserv.nl https://*.supabase.co; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://images.weserv.nl https://www.google.com https://*.onrender.com; frame-src https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com https://www.gstatic.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://images.weserv.nl https://*.supabase.co https://upload.wikimedia.org https://*.wikimedia.org https://addisfortune.news https://akaunting.com https://*.akaunting.com; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://images.weserv.nl https://www.google.com https://*.onrender.com; frame-src https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;
 
 /*.js
   Cache-Control: public, max-age=31536000, immutable
