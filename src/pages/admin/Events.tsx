@@ -29,6 +29,8 @@ const Events = () => {
     featured: false,
     gallery: [] as string[],
     allowed_commission_seller_ids: [] as string[],
+    social_media_link: '',
+    telegram_link: '',
   });
   const [newGalleryImage, setNewGalleryImage] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -102,6 +104,8 @@ const Events = () => {
       featured: event.featured || false,
       gallery: event.gallery || [],
       allowed_commission_seller_ids: event.allowed_commission_seller_ids || [],
+      social_media_link: event.social_media_link || '',
+      telegram_link: event.telegram_link || '',
     });
     setNewGalleryImage('');
     setUploading(false);
@@ -135,6 +139,8 @@ const Events = () => {
       featured: false,
       gallery: [],
       allowed_commission_seller_ids: [],
+      social_media_link: '',
+      telegram_link: '',
     });
     setNewGalleryImage('');
     setUploading(false);
@@ -404,7 +410,12 @@ const Events = () => {
                     <select
                       required
                       value={formData.category}
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
+                      onChange={(e) => {
+                        const newCategory = e.target.value as any;
+                        // Auto-set price to 0 for community events
+                        const newPrice = newCategory === 'community' ? '0' : formData.price;
+                        setFormData({ ...formData, category: newCategory, price: newPrice });
+                      }}
                       className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
                     >
                       <option value="game">Game</option>
@@ -430,8 +441,39 @@ const Events = () => {
                       value={formData.price}
                       onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                       className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                      disabled={formData.category === 'community'}
                     />
+                    {formData.category === 'community' && (
+                      <p className="mt-1 text-xs text-gray-500">Community events are free (price automatically set to 0)</p>
+                    )}
                   </div>
+                  {(formData.category === 'community' || formData.price === '0' || formData.price === 'Free') && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Telegram Group Link *</label>
+                        <input
+                          type="url"
+                          required={formData.category === 'community' || formData.price === '0' || formData.price === 'Free'}
+                          value={formData.telegram_link}
+                          onChange={(e) => setFormData({ ...formData, telegram_link: e.target.value })}
+                          placeholder="https://t.me/yourgroupname"
+                          className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                        />
+                        <p className="mt-1 text-xs text-gray-500">Telegram group link where users will be redirected after registration</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Social Media Link (Optional)</label>
+                        <input
+                          type="url"
+                          value={formData.social_media_link}
+                          onChange={(e) => setFormData({ ...formData, social_media_link: e.target.value })}
+                          placeholder="https://www.facebook.com/events/..."
+                          className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                        />
+                        <p className="mt-1 text-xs text-gray-500">Additional social media link (Facebook, Instagram, etc.)</p>
+                      </div>
+                    </>
+                  )}
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Currency</label>
                     <input

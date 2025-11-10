@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FaCalendarAlt, FaChevronLeft, FaChevronRight, FaInstagram, FaMapMarkerAlt, FaSpinner, FaTelegram, FaTimes, FaUsers, FaWhatsapp } from "react-icons/fa";
+import { FaCalendarAlt, FaChevronLeft, FaChevronRight, FaExternalLinkAlt, FaInstagram, FaMapMarkerAlt, FaSpinner, FaTelegram, FaTimes, FaUsers, FaWhatsapp } from "react-icons/fa";
 import { useParams, useSearchParams } from "react-router-dom";
 import "../Components/Gallery.css";
 import { ErrorState } from "../Components/ui/ErrorState";
@@ -9,6 +9,7 @@ import { getAvailablePaymentMethods } from "../data/paymentMethods";
 import { useContactInfo, useEvent } from "../hooks/useApi";
 import { api } from "../services/api";
 import { initializePayment } from "../services/payment";
+import { registerForFreeEvent } from "../services/ticket";
 import { CommissionSeller, PaymentRequest } from "../types";
 
 const EventDetail = () => {
@@ -17,7 +18,9 @@ const EventDetail = () => {
   const { event, isError, mutate: refetchEvent } = useEvent(id);
   const { contactInfo } = useContactInfo();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [paymentStep, setPaymentStep] = useState<'form' | 'methods'>('form');
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
   const [commissionSellers, setCommissionSellers] = useState<CommissionSeller[]>([]);
@@ -238,6 +241,74 @@ const EventDetail = () => {
     }
   };
 
+  const handleFreeEventRegistration = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!event || !id) return;
+
+    setIsProcessing(true);
+    try {
+      const customerName = `${paymentForm.first_name} ${paymentForm.last_name}`.trim();
+      
+      if (!customerName || !paymentForm.email || !paymentForm.phone_number) {
+        alert('Please fill in all required fields.');
+        setIsProcessing(false);
+        return;
+      }
+
+      await registerForFreeEvent(
+        id,
+        event.title,
+        customerName,
+        paymentForm.email,
+        paymentForm.phone_number,
+        paymentForm.quantity || 1
+      );
+
+      // Refresh event data to update attendee count
+      refetchEvent();
+      
+      setRegistrationSuccess(true);
+      setIsProcessing(false);
+      
+      // Redirect to Telegram group if link is available
+      if (event.telegram_link && event.telegram_link.trim() !== '') {
+        // Wait 2 seconds to show success message, then redirect
+        setTimeout(() => {
+          window.open(event.telegram_link, '_blank', 'noopener,noreferrer');
+          // Close modal and reset form
+          setShowRegistrationModal(false);
+          setRegistrationSuccess(false);
+          setPaymentForm({
+            first_name: "",
+            last_name: "",
+            email: "",
+            phone_number: "",
+            quantity: 1,
+            commission_seller_id: "",
+          });
+        }, 2000);
+      } else {
+        // If no Telegram link, just close modal after 3 seconds
+        setTimeout(() => {
+          setShowRegistrationModal(false);
+          setRegistrationSuccess(false);
+          setPaymentForm({
+            first_name: "",
+            last_name: "",
+            email: "",
+            phone_number: "",
+            quantity: 1,
+            commission_seller_id: "",
+          });
+        }, 3000);
+      }
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      alert(error.message || 'Failed to register. Please try again.');
+      setIsProcessing(false);
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const name = e.target.name;
     let value: string | number = e.target.value;
@@ -452,20 +523,62 @@ const EventDetail = () => {
                   <div className="text-xs sm:text-sm text-gray-600">per person</div>
                 </div>
                 
-                <button 
-                  onClick={() => event.price === "Free" ? alert("This is a free event! Registration coming soon.") : setShowPaymentModal(true)}
-                  className="w-full bg-gray-900 text-white py-2.5 sm:py-3 md:py-4 rounded-lg text-xs sm:text-sm md:text-base font-medium hover:bg-gray-800 transition-colors mb-3 sm:mb-4 md:mb-6 disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={isProcessing}
-                >
-                  {isProcessing ? (
-                    <span className="flex items-center justify-center">
-                      <FaSpinner className="animate-spin mr-2" />
-                      Processing...
-                    </span>
-                  ) : (
-                    "Reserve Your Spot"
-                  )}
-                </button>
+                {(() => {
+                  const isFree = event.price === "Free" || event.price?.toLowerCase() === "free" || event.price === "0" || parseFloat(event.price.toString().replace(/[^0-9.]/g, '') || '0') === 0;
+                  const isCommunity = event.category === 'community';
+                  const hasSocialLink = event.social_media_link && event.social_media_link.trim() !== '';
+                  
+                  // Show registration button for free events (with or without social link)
+                  if (isFree || isCommunity) {
+                    return (
+                      <>
+                        <button 
+                          onClick={() => setShowRegistrationModal(true)}
+                          className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-2.5 sm:py-3 md:py-4 rounded-lg text-xs sm:text-sm md:text-base font-medium hover:from-green-700 hover:to-emerald-700 transition-colors mb-3 sm:mb-4 md:mb-6 disabled:opacity-50 disabled:cursor-not-allowed"
+                          disabled={isProcessing}
+                        >
+                          {isProcessing ? (
+                            <span className="flex items-center justify-center">
+                              <FaSpinner className="animate-spin mr-2" />
+                              Registering...
+                            </span>
+                          ) : (
+                            "Register for Free"
+                          )}
+                        </button>
+                        {hasSocialLink && (
+                          <a
+                            href={event.social_media_link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-2.5 sm:py-3 md:py-4 rounded-lg text-xs sm:text-sm md:text-base font-medium hover:from-blue-700 hover:to-indigo-700 transition-colors mb-3 sm:mb-4 md:mb-6 flex items-center justify-center gap-2"
+                          >
+                            <FaExternalLinkAlt className="text-lg" />
+                            Join on Social Media
+                          </a>
+                        )}
+                      </>
+                    );
+                  }
+                  
+                  // Show payment button for paid events
+                  return (
+                    <button 
+                      onClick={() => setShowPaymentModal(true)}
+                      className="w-full bg-gray-900 text-white py-2.5 sm:py-3 md:py-4 rounded-lg text-xs sm:text-sm md:text-base font-medium hover:bg-gray-800 transition-colors mb-3 sm:mb-4 md:mb-6 disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={isProcessing}
+                    >
+                      {isProcessing ? (
+                        <span className="flex items-center justify-center">
+                          <FaSpinner className="animate-spin mr-2" />
+                          Processing...
+                        </span>
+                      ) : (
+                        "Reserve Your Spot"
+                      )}
+                    </button>
+                  );
+                })()}
 
                 <div className="border-t border-gray-200 pt-3 sm:pt-4 md:pt-6">
                   <div className="text-xs sm:text-sm font-medium text-gray-900 mb-2 sm:mb-3 md:mb-4">Share this event</div>
@@ -604,23 +717,55 @@ const EventDetail = () => {
               </div>
 
               <div>
-                <label htmlFor="quantity" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="quantity" className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                   Number of Tickets *
                 </label>
-                <input
-                  type="number"
-                  id="quantity"
-                  name="quantity"
-                  required
-                  min="1"
-                  max={event.maxAttendees ? event.maxAttendees - (event.attendees || 0) : 100}
-                  value={paymentForm.quantity || 1}
-                  onChange={handleInputChange}
-                  className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border-b border-gray-300 bg-transparent focus:outline-none focus:border-gray-900 transition-colors"
-                  placeholder="1"
-                />
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const currentQty = paymentForm.quantity || 1;
+                      if (currentQty > 1) {
+                        setPaymentForm({ ...paymentForm, quantity: currentQty - 1 });
+                      }
+                    }}
+                    disabled={(paymentForm.quantity || 1) <= 1}
+                    className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center border-2 border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                    aria-label="Decrease quantity"
+                  >
+                    <span className="text-lg sm:text-xl">−</span>
+                  </button>
+                  <input
+                    type="number"
+                    id="quantity"
+                    name="quantity"
+                    required
+                    min="1"
+                    max={event.maxAttendees ? event.maxAttendees - (event.attendees || 0) : 100}
+                    value={paymentForm.quantity || 1}
+                    onChange={handleInputChange}
+                    className="flex-1 px-4 py-2.5 sm:py-3 text-center text-base sm:text-lg font-semibold border-2 border-gray-300 rounded-lg focus:outline-none focus:border-gray-900 transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const currentQty = paymentForm.quantity || 1;
+                      const maxQty = event.maxAttendees ? event.maxAttendees - (event.attendees || 0) : 100;
+                      if (currentQty < maxQty) {
+                        setPaymentForm({ ...paymentForm, quantity: currentQty + 1 });
+                      }
+                    }}
+                    disabled={
+                      (paymentForm.quantity || 1) >= (event.maxAttendees ? event.maxAttendees - (event.attendees || 0) : 100)
+                    }
+                    className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center border-2 border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                    aria-label="Increase quantity"
+                  >
+                    <span className="text-lg sm:text-xl">+</span>
+                  </button>
+                </div>
                 {event.maxAttendees && (
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className="mt-2 text-xs sm:text-sm text-gray-500 text-center">
                     {event.maxAttendees - (event.attendees || 0)} tickets available
                   </p>
                 )}
@@ -830,6 +975,209 @@ const EventDetail = () => {
                   </button>
                 </div>
               </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Free Event Registration Modal */}
+      {showRegistrationModal && event && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4">
+          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+            {registrationSuccess ? (
+              <div className="text-center py-6">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Registration Successful!</h2>
+                <p className="text-gray-600 mb-4">You've successfully registered for this free event.</p>
+                {event.telegram_link && event.telegram_link.trim() !== '' ? (
+                  <p className="text-sm text-gray-500">Redirecting you to the Telegram group...</p>
+                ) : (
+                  <p className="text-sm text-gray-500">You'll receive a confirmation email shortly.</p>
+                )}
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-4 sm:mb-6">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Register for Free Event</h2>
+                  <button
+                    onClick={() => {
+                      setShowRegistrationModal(false);
+                      setPaymentForm({
+                        first_name: "",
+                        last_name: "",
+                        email: "",
+                        phone_number: "",
+                        quantity: 1,
+                        commission_seller_id: "",
+                      });
+                    }}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <FaTimes size={20} />
+                  </button>
+                </div>
+                <form onSubmit={handleFreeEventRegistration} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="reg_first_name" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                        First Name *
+                      </label>
+                      <input
+                        type="text"
+                        id="reg_first_name"
+                        name="first_name"
+                        required
+                        value={paymentForm.first_name}
+                        onChange={handleInputChange}
+                        className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border-b border-gray-300 bg-transparent focus:outline-none focus:border-gray-900 transition-colors"
+                        placeholder="John"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="reg_last_name" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                        Last Name *
+                      </label>
+                      <input
+                        type="text"
+                        id="reg_last_name"
+                        name="last_name"
+                        required
+                        value={paymentForm.last_name}
+                        onChange={handleInputChange}
+                        className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border-b border-gray-300 bg-transparent focus:outline-none focus:border-gray-900 transition-colors"
+                        placeholder="Doe"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label htmlFor="reg_email" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                      Email *
+                    </label>
+                    <input
+                      type="email"
+                      id="reg_email"
+                      name="email"
+                      required
+                      value={paymentForm.email}
+                      onChange={handleInputChange}
+                      className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border-b border-gray-300 bg-transparent focus:outline-none focus:border-gray-900 transition-colors"
+                      placeholder="john@example.com"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="reg_phone_number" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                      Phone Number *
+                    </label>
+                    <input
+                      type="tel"
+                      id="reg_phone_number"
+                      name="phone_number"
+                      required
+                      value={paymentForm.phone_number}
+                      onChange={handleInputChange}
+                      className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border-b border-gray-300 bg-transparent focus:outline-none focus:border-gray-900 transition-colors"
+                      placeholder="0911121314"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="reg_quantity" className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                      Number of Tickets *
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const currentQty = paymentForm.quantity || 1;
+                          if (currentQty > 1) {
+                            setPaymentForm({ ...paymentForm, quantity: currentQty - 1 });
+                          }
+                        }}
+                        disabled={(paymentForm.quantity || 1) <= 1}
+                        className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center border-2 border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                        aria-label="Decrease quantity"
+                      >
+                        <span className="text-lg sm:text-xl">−</span>
+                      </button>
+                      <input
+                        type="number"
+                        id="reg_quantity"
+                        name="quantity"
+                        required
+                        min="1"
+                        max={event.maxAttendees ? event.maxAttendees - (event.attendees || 0) : 100}
+                        value={paymentForm.quantity || 1}
+                        onChange={handleInputChange}
+                        className="flex-1 px-4 py-2.5 sm:py-3 text-center text-base sm:text-lg font-semibold border-2 border-gray-300 rounded-lg focus:outline-none focus:border-gray-900 transition-colors"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const currentQty = paymentForm.quantity || 1;
+                          const maxQty = event.maxAttendees ? event.maxAttendees - (event.attendees || 0) : 100;
+                          if (currentQty < maxQty) {
+                            setPaymentForm({ ...paymentForm, quantity: currentQty + 1 });
+                          }
+                        }}
+                        disabled={
+                          (paymentForm.quantity || 1) >= (event.maxAttendees ? event.maxAttendees - (event.attendees || 0) : 100)
+                        }
+                        className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center border-2 border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                        aria-label="Increase quantity"
+                      >
+                        <span className="text-lg sm:text-xl">+</span>
+                      </button>
+                    </div>
+                    {event.maxAttendees && (
+                      <p className="mt-2 text-xs sm:text-sm text-gray-500 text-center">
+                        {event.maxAttendees - (event.attendees || 0)} tickets available
+                      </p>
+                    )}
+                  </div>
+                  <div className="pt-4 border-t border-gray-200">
+                    <div className="flex justify-between items-center text-sm sm:text-base mb-4">
+                      <span className="text-gray-600">Total Cost:</span>
+                      <span className="text-xl font-semibold text-green-600">FREE</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowRegistrationModal(false);
+                        setPaymentForm({
+                          first_name: "",
+                          last_name: "",
+                          email: "",
+                          phone_number: "",
+                          quantity: 1,
+                          commission_seller_id: "",
+                        });
+                      }}
+                      className="flex-1 px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-1 px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-medium hover:from-green-700 hover:to-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={isProcessing}
+                    >
+                      {isProcessing ? (
+                        <span className="flex items-center justify-center">
+                          <FaSpinner className="animate-spin mr-2" />
+                          Registering...
+                        </span>
+                      ) : (
+                        "Complete Registration"
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </>
             )}
           </div>
         </div>

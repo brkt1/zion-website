@@ -24,6 +24,8 @@ export const adminApi = {
           featured: event.featured || false,
           gallery: event.gallery || [],
           allowed_commission_seller_ids: event.allowed_commission_seller_ids || [],
+          social_media_link: event.social_media_link || null,
+          telegram_link: event.telegram_link || null,
         })
         .select()
         .single();
@@ -50,6 +52,8 @@ export const adminApi = {
           featured: event.featured,
           gallery: event.gallery,
           allowed_commission_seller_ids: event.allowed_commission_seller_ids !== undefined ? event.allowed_commission_seller_ids : undefined,
+          social_media_link: event.social_media_link !== undefined ? event.social_media_link : undefined,
+          telegram_link: event.telegram_link !== undefined ? event.telegram_link : undefined,
           updated_at: new Date().toISOString(),
         })
         .eq('id', id)

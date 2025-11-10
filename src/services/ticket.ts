@@ -191,3 +191,77 @@ export const getTicketsByEventId = async (eventId: string): Promise<Ticket[]> =>
   }
 };
 
+/**
+ * Register for a free event (creates ticket with amount 0)
+ */
+export const registerForFreeEvent = async (
+  eventId: string,
+  eventTitle: string,
+  customerName: string,
+  customerEmail: string,
+  customerPhone: string,
+  quantity: number
+): Promise<Ticket> => {
+  try {
+    // Generate a unique transaction reference for free registration
+    const txRef = `FREE-${eventId}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    
+    // Create QR code data for the ticket
+    const qrData = {
+      tx_ref: txRef,
+      amount: 0,
+      currency: 'ETB',
+      date: new Date().toISOString(),
+      status: 'success',
+      reference: txRef,
+      quantity: quantity,
+      email: customerEmail,
+      name: customerName,
+    };
+
+    // Save ticket with status 'success' and amount 0
+    const ticket = await saveTicket({
+      tx_ref: txRef,
+      event_id: eventId,
+      event_title: eventTitle,
+      customer_name: customerName,
+      customer_email: customerEmail,
+      customer_phone: customerPhone,
+      amount: 0,
+      currency: 'ETB',
+      quantity: quantity,
+      status: 'success',
+      qr_code_data: qrData,
+      payment_date: new Date().toISOString(),
+    });
+
+    // Update event attendees count
+    try {
+      const { data: eventData, error: eventError } = await supabase
+        .from('events')
+        .select('attendees')
+        .eq('id', eventId)
+        .single();
+
+      if (!eventError && eventData) {
+        const currentAttendees = eventData.attendees || 0;
+        await supabase
+          .from('events')
+          .update({ 
+            attendees: currentAttendees + quantity,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', eventId);
+      }
+    } catch (updateError) {
+      // Don't fail registration if attendee count update fails
+      console.warn('Failed to update event attendees count:', updateError);
+    }
+
+    return ticket;
+  } catch (error: any) {
+    console.error('Error registering for free event:', error);
+    throw error;
+  }
+};
+
