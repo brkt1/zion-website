@@ -13,7 +13,7 @@ const SellerDashboard = () => {
   const chartData = useMemo(() => {
     if (!seller) return [];
     
-    const successfulTickets = tickets?.filter(t => t.status === 'success') || [];
+    const successfulTickets = tickets?.filter(t => t.status === 'success' || t.status === 'used') || [];
     const last7Days = Array.from({ length: 7 }, (_, i) => {
       const date = new Date();
       date.setDate(date.getDate() - (6 - i));
@@ -132,7 +132,7 @@ const SellerDashboard = () => {
   return (
     <SellerLayout>
       <SellerHeader seller={seller} user={user} title="Dashboard" />
-      <main className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+      <main className="p-3 sm:p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
         {/* Mobile Welcome Card */}
         <div className="mb-4 md:hidden bg-gradient-to-r from-yellow-500 to-amber-600 rounded-2xl p-4 text-white shadow-lg">
           <div className="flex items-start justify-between">

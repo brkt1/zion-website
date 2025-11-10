@@ -1,7 +1,45 @@
+import { useEffect } from "react";
 import { FaArrowRight, FaMapMarkerAlt, FaMountain, FaUmbrellaBeach } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
 const Travel = () => {
+  // Update page title and meta tags for SEO
+  useEffect(() => {
+    document.title = "CEO Perfect Ethiopian Travel and Event - Travel | Yenege";
+    
+    // Update meta description
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute('content', 'CEO Perfect Ethiopian Travel and Event - Discover amazing travel destinations and adventures in Ethiopia. Weekend getaways, day trips, and exciting adventures with Yenege.');
+    }
+    
+    // Update Open Graph tags
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) {
+      ogTitle.setAttribute('content', 'CEO Perfect Ethiopian Travel and Event - Travel | Yenege');
+    }
+    
+    const ogDescription = document.querySelector('meta[property="og:description"]');
+    if (ogDescription) {
+      ogDescription.setAttribute('content', 'CEO Perfect Ethiopian Travel and Event - Discover amazing travel destinations and adventures in Ethiopia. Weekend getaways, day trips, and exciting adventures with Yenege.');
+    }
+    
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) {
+      ogUrl.setAttribute('content', window.location.href);
+    }
+    
+    // Update Twitter tags
+    const twitterTitle = document.querySelector('meta[property="twitter:title"]');
+    if (twitterTitle) {
+      twitterTitle.setAttribute('content', 'CEO Perfect Ethiopian Travel and Event - Travel | Yenege');
+    }
+    
+    const twitterDescription = document.querySelector('meta[property="twitter:description"]');
+    if (twitterDescription) {
+      twitterDescription.setAttribute('content', 'CEO Perfect Ethiopian Travel and Event - Discover amazing travel destinations and adventures in Ethiopia. Weekend getaways, day trips, and exciting adventures with Yenege.');
+    }
+  }, []);
   return (
     <div className="min-h-screen bg-white">
       {/* Header Section */}
@@ -27,11 +65,11 @@ const Travel = () => {
                   backgroundClip: "text",
                 }}
               >
-                Travel & Adventures
+                CEO Perfect Ethiopian Travel and Event
               </span>
             </h1>
             <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed px-4">
-              Weekend getaways, day trips, and exciting adventures. Explore new places with amazing people.
+              Weekend getaways, day trips, and exciting adventures. Explore new places with amazing people. Your premier destination for travel and events in Ethiopia.
             </p>
           </div>
         </div>
@@ -84,14 +122,14 @@ const Travel = () => {
                     backgroundClip: "text",
                   }}
                 >
-                  Discover Amazing Destinations
+                  CEO Perfect Ethiopian Travel and Event - Discover Amazing Destinations
                 </h2>
                 <div className="space-y-4 sm:space-y-5 md:space-y-6 text-gray-700 text-base sm:text-lg md:text-xl leading-relaxed font-light">
                   <p>
-                    Embark on unforgettable journeys with Yenege! Whether you're looking for a quick weekend escape or an extended adventure, we curate the perfect travel experiences that combine exploration, fun, and meaningful connections.
+                    Embark on unforgettable journeys with CEO Perfect Ethiopian Travel and Event! Whether you're looking for a quick weekend escape or an extended adventure, we curate the perfect travel experiences that combine exploration, fun, and meaningful connections.
                   </p>
                   <p>
-                    From scenic mountain hikes to relaxing beach getaways, from cultural city tours to thrilling outdoor activities - we've got something for every type of traveler. Join us and discover hidden gems, create lasting memories, and make new friends along the way.
+                    From scenic mountain hikes to relaxing beach getaways, from cultural city tours to thrilling outdoor activities - we've got something for every type of traveler. Join us and discover hidden gems, create lasting memories, and make new friends along the way. CEO Perfect Ethiopian Travel and Event is your trusted partner for amazing travel experiences in Ethiopia.
                   </p>
                 </div>
               </div>

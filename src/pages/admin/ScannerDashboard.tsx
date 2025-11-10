@@ -377,7 +377,7 @@ const ScannerDashboard = () => {
   return (
     <ScannerLayout>
       <ScannerHeader scanner={scanner} user={user} title="Ticket Scanner" />
-      <main className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto pb-20 md:pb-8">
+      <main className="p-3 sm:p-4 md:p-6 lg:p-8 max-w-4xl mx-auto pb-20 md:pb-8">
         {/* Mobile Welcome Card */}
         <div className="mb-4 md:hidden bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-4 text-white shadow-lg">
           <div className="flex items-start justify-between">

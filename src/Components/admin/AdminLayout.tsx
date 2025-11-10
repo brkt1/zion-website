@@ -203,30 +203,30 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
       <div className={`flex-1 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-20'} transition-all duration-300`}>
         {/* Top Header */}
         <header className="bg-white border-b border-gray-200 sticky top-0 z-20">
-          <div className="px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
-              <div className="flex items-center gap-4">
+          <div className="px-3 sm:px-4 md:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-14 sm:h-16">
+              <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
                 <button
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  className="lg:hidden p-2 rounded-lg hover:bg-gray-100 text-gray-600"
+                  className="lg:hidden p-2 rounded-lg hover:bg-gray-100 text-gray-600 flex-shrink-0"
                 >
                   <FaBars size={20} />
                 </button>
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900">{title || 'Admin'}</h1>
-                  <p className="text-sm text-gray-500">Welcome back, {user?.email?.split('@')[0] || 'Admin'}</p>
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 truncate">{title || 'Admin'}</h1>
+                  <p className="text-xs sm:text-sm text-gray-500 truncate hidden sm:block">Welcome back, {user?.email?.split('@')[0] || 'Admin'}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
                 <div className="hidden md:flex items-center gap-2 text-sm text-gray-600">
                   <FaUser className="text-gray-400" />
-                  <span>{user?.email || ''}</span>
+                  <span className="hidden lg:inline">{user?.email || ''}</span>
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="inline-flex items-center gap-2 px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                  className="inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 border border-transparent text-xs sm:text-sm font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
                 >
-                  <FaSignOutAlt />
+                  <FaSignOutAlt className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   <span className="hidden sm:inline">Logout</span>
                 </button>
               </div>
@@ -298,7 +298,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
         )}
 
         {/* Main Content Area */}
-        <main className="p-4 sm:p-6 lg:p-8">
+        <main className="p-3 sm:p-4 md:p-6 lg:p-8">
           {children}
         </main>
       </div>

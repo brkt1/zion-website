@@ -39,17 +39,18 @@ const PaymentSuccess = () => {
       }
 
       // Get amount value
-      // Chapa returns amounts in cents, so we need to check if it's in cents or base currency
-      // Amounts > 100 are likely in cents (e.g., 39900 = 399.00 ETB)
-      // Amounts < 100 might already be in base currency
+      // Chapa may return amounts in cents or base currency depending on the API version
+      // We need to detect which format it is:
+      // - If amount is very large (>= 1000) and has no decimal or is integer, it's likely in cents
+      // - If amount has decimal places or is reasonable (< 10000), it's likely in base currency
       let amount = 0;
       if (paymentData.amount) {
         if (typeof paymentData.amount === 'string') {
           const parsed = parseFloat(paymentData.amount);
-          // If amount is >= 100, it's likely in cents (e.g., 39900 = 399.00 ETB)
-          // If amount is < 100, it might already be in base currency (e.g., 399.00)
-          // Chapa typically returns in cents, so we divide by 100 only if it seems to be in cents
-          if (parsed >= 100) {
+          // Check if it looks like cents: very large number (>= 1000) and no meaningful decimal part
+          const isLikelyCents = parsed >= 1000 && (parsed % 1 === 0 || parsed % 100 === 0);
+          if (isLikelyCents) {
+            // Likely in cents, divide by 100
             amount = parsed / 100;
           } else {
             // Already in base currency, use as is
@@ -57,7 +58,8 @@ const PaymentSuccess = () => {
           }
         } else {
           // For numeric values, apply same logic
-          if (paymentData.amount >= 100) {
+          const isLikelyCents = paymentData.amount >= 1000 && (paymentData.amount % 1 === 0 || paymentData.amount % 100 === 0);
+          if (isLikelyCents) {
             amount = paymentData.amount / 100;
           } else {
             amount = paymentData.amount;
@@ -306,7 +308,7 @@ const PaymentSuccess = () => {
 
 
   // Get amount value - handle both string and number formats
-  // Chapa returns amounts in cents, so we need to check if it's in cents or base currency
+  // Chapa may return amounts in cents or base currency depending on the API version
   const getAmount = () => {
     if (!paymentData || !paymentData.amount) return 0;
     
@@ -317,10 +319,10 @@ const PaymentSuccess = () => {
       amountValue = paymentData.amount;
     }
     
-    // If amount is >= 100, it's likely in cents (e.g., 39900 = 399.00 ETB)
-    // If amount is < 100, it might already be in base currency (e.g., 399.00)
-    // Chapa typically returns in cents, so we divide by 100 only if it seems to be in cents
-    if (amountValue >= 100) {
+    // Check if it looks like cents: very large number (>= 1000) and no meaningful decimal part
+    const isLikelyCents = amountValue >= 1000 && (amountValue % 1 === 0 || amountValue % 100 === 0);
+    if (isLikelyCents) {
+      // Likely in cents, divide by 100
       return amountValue / 100;
     } else {
       // Already in base currency, use as is

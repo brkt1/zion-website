@@ -84,17 +84,18 @@ const Categories = () => {
 
   return (
     <AdminLayout title="Categories Management">
-      <div className="mb-6 flex items-center justify-end">
+      <div className="mb-4 sm:mb-6 flex items-center justify-end">
         <button
           onClick={() => {
             resetForm();
             setEditingCategory(null);
             setShowModal(true);
           }}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+          className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 text-sm sm:text-base rounded-lg text-white transition-all shadow-md hover:shadow-lg"
+          style={{ background: 'linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)' }}
         >
           <FaPlus />
-          Add Category
+          <span>Add Category</span>
         </button>
       </div>
 
@@ -113,52 +114,60 @@ const Categories = () => {
           </div>
         ) : (
           <div className="bg-white shadow rounded-lg overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Slug</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {categories.map((category) => (
-                <tr key={category.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {category.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {category.slug}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
-                    {category.description}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button
-                      onClick={() => handleEdit(category)}
-                      className="text-indigo-600 hover:text-indigo-900 mr-4"
-                    >
-                      <FaEdit />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(category.id)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      <FaTrash />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                    <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">Slug</th>
+                    <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">Description</th>
+                    <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {categories.map((category) => (
+                    <tr key={category.id} className="hover:bg-gray-50">
+                      <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4">
+                        <div className="text-xs sm:text-sm font-medium text-gray-900">{category.name}</div>
+                        <div className="mt-1 md:hidden text-xs text-gray-500">{category.slug}</div>
+                      </td>
+                      <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500 hidden md:table-cell">
+                        {category.slug}
+                      </td>
+                      <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 text-xs sm:text-sm text-gray-500 hidden lg:table-cell">
+                        {category.description}
+                      </td>
+                      <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <button
+                            onClick={() => handleEdit(category)}
+                            className="p-1.5 sm:p-2 rounded hover:bg-gray-100 transition-colors"
+                            style={{ color: '#FF6F5E' }}
+                            title="Edit"
+                          >
+                            <FaEdit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(category.id)}
+                            className="p-1.5 sm:p-2 rounded hover:bg-gray-100 transition-colors text-red-600"
+                            title="Delete"
+                          >
+                            <FaTrash className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         )}
 
         {showModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-2xl w-full p-6">
-              <h2 className="text-2xl font-bold mb-4">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4">
+            <div className="bg-white rounded-lg max-w-2xl w-full p-4 sm:p-6">
+              <h2 className="text-xl sm:text-2xl font-bold mb-4">
                 {editingCategory ? 'Edit Category' : 'Add New Category'}
               </h2>
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -201,7 +210,7 @@ const Categories = () => {
                     className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
                   />
                 </div>
-                <div className="flex justify-end gap-4">
+                <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4">
                   <button
                     type="button"
                     onClick={() => {
@@ -209,13 +218,14 @@ const Categories = () => {
                       setEditingCategory(null);
                       resetForm();
                     }}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                    className="px-4 py-2 text-white rounded-md transition-all shadow-md hover:shadow-lg"
+                    style={{ background: 'linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)' }}
                   >
                     {editingCategory ? 'Update' : 'Create'}
                   </button>

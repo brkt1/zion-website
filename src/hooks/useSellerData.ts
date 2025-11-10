@@ -63,9 +63,16 @@ export const useSellerData = () => {
       const sellerTickets = await adminApi.tickets.getByCommissionSeller(seller.id);
       setTickets(sellerTickets || []);
 
-      const successfulTickets = (sellerTickets || []).filter(t => t.status === 'success');
+      const successfulTickets = (sellerTickets || []).filter(t => t.status === 'success' || t.status === 'used');
       const totalRevenue = successfulTickets.reduce((sum, t) => {
-        const amount = typeof t.amount === 'number' ? t.amount : parseFloat(String(t.amount)) || 0;
+        let amount = typeof t.amount === 'number' ? t.amount : parseFloat(String(t.amount)) || 0;
+        
+        // Fix: If amount is suspiciously small (less than 10), it might have been incorrectly divided
+        if (amount > 0 && amount < 10 && amount * 100 > 50) {
+          // Likely incorrectly stored - multiply by 100 to correct
+          amount = amount * 100;
+        }
+        
         return sum + (amount * t.quantity);
       }, 0);
       
@@ -74,7 +81,14 @@ export const useSellerData = () => {
       
       let totalCommission = 0;
       successfulTickets.forEach(ticket => {
-        const amount = typeof ticket.amount === 'number' ? ticket.amount : parseFloat(String(ticket.amount)) || 0;
+        let amount = typeof ticket.amount === 'number' ? ticket.amount : parseFloat(String(ticket.amount)) || 0;
+        
+        // Fix: If amount is suspiciously small (less than 10), it might have been incorrectly divided
+        if (amount > 0 && amount < 10 && amount * 100 > 50) {
+          // Likely incorrectly stored - multiply by 100 to correct
+          amount = amount * 100;
+        }
+        
         const ticketTotal = amount * ticket.quantity;
         if (seller.commission_type === 'percentage') {
           totalCommission += (ticketTotal * seller.commission_rate) / 100;

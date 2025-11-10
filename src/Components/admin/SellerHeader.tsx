@@ -19,7 +19,7 @@ const SellerHeader = ({ seller, user, title }: SellerHeaderProps) => {
 
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-20 shadow-sm md:bg-white/80 md:backdrop-blur-md">
-      <div className="px-4 sm:px-6 lg:px-8">
+      <div className="px-3 sm:px-4 md:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14 md:h-16 md:pl-0">
           <div className="flex items-center gap-3">
             <div className="h-9 w-9 md:h-10 md:w-10 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-xl flex items-center justify-center shadow-md">

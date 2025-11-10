@@ -87,20 +87,29 @@ const Dashboard = () => {
       ]);
 
       const totalTickets = allTickets?.length || 0;
-      const successfulTickets = allTickets?.filter(t => t.status === 'success').length || 0;
+      const successfulTickets = allTickets?.filter(t => t.status === 'success' || t.status === 'used').length || 0;
       const pendingTickets = allTickets?.filter(t => t.status === 'pending').length || 0;
       const failedTickets = allTickets?.filter(t => t.status === 'failed').length || 0;
       
       const totalRevenue = allTickets
-        ?.filter(t => t.status === 'success')
+        ?.filter(t => t.status === 'success' || t.status === 'used')
         .reduce((sum, t) => {
           // Ensure amount is treated as a number (handle both numeric and string)
-          const amount = typeof t.amount === 'number' ? t.amount : parseFloat(t.amount.toString()) || 0;
+          let amount = typeof t.amount === 'number' ? t.amount : parseFloat(t.amount.toString()) || 0;
+          
+          // Fix: If amount is suspiciously small (less than 10), it might have been incorrectly divided
+          // Check if multiplying by 100 makes it more reasonable (e.g., 3.99 -> 399.00)
+          // This handles cases where amounts were incorrectly divided when they were already in base currency
+          if (amount > 0 && amount < 10 && amount * 100 > 50) {
+            // Likely incorrectly stored - multiply by 100 to correct
+            amount = amount * 100;
+          }
+          
           return sum + (amount * t.quantity);
         }, 0) || 0;
 
       // Calculate commission seller earnings
-      const ticketsWithCommission = allTickets?.filter(t => t.status === 'success' && t.commission_seller_id) || [];
+      const ticketsWithCommission = allTickets?.filter(t => (t.status === 'success' || t.status === 'used') && t.commission_seller_id) || [];
       let totalCommissionPaid = 0;
       
       // Get all commission sellers to calculate commissions
@@ -109,7 +118,14 @@ const Dashboard = () => {
       ticketsWithCommission.forEach(ticket => {
         const seller = sellers.find(s => s.id === ticket.commission_seller_id);
         if (seller) {
-          const amount = typeof ticket.amount === 'number' ? ticket.amount : parseFloat(ticket.amount.toString()) || 0;
+          let amount = typeof ticket.amount === 'number' ? ticket.amount : parseFloat(ticket.amount.toString()) || 0;
+          
+          // Fix: If amount is suspiciously small (less than 10), it might have been incorrectly divided
+          if (amount > 0 && amount < 10 && amount * 100 > 50) {
+            // Likely incorrectly stored - multiply by 100 to correct
+            amount = amount * 100;
+          }
+          
           const ticketTotal = amount * ticket.quantity;
           let commission = 0;
           if (seller.commission_type === 'percentage') {
@@ -229,103 +245,113 @@ const Dashboard = () => {
   return (
     <AdminLayout title="Dashboard">
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-2 gap-3 mb-6 sm:mb-8">
             {/* Total Revenue */}
-            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-white/20 rounded-lg">
-                  <FaDollarSign size={24} />
+            <div className="rounded-lg shadow-md p-3 text-white" style={{ background: 'linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)' }}>
+              <div className="flex items-center gap-3">
+                <div className="p-1.5 bg-white/20 rounded-lg flex-shrink-0">
+                  <FaDollarSign className="w-4 h-4" />
                 </div>
-                <span className="text-green-100 text-sm font-medium">Revenue</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    {loadingStats ? (
+                      <div className="animate-pulse h-5 bg-white/20 rounded w-16"></div>
+                    ) : (
+                      <span className="text-base font-bold whitespace-nowrap">
+                        {formatCurrency(stats.totalRevenue, 'ETB')}
+                      </span>
+                    )}
+                    <span className="text-white/80 text-xs opacity-90 hidden sm:inline">({stats.successfulTickets} tickets)</span>
+                  </div>
+                  <p className="text-white/80 text-xs opacity-90 truncate">Revenue</p>
+                </div>
               </div>
-              {loadingStats ? (
-                <div className="animate-pulse h-8 bg-white/20 rounded w-24"></div>
-              ) : (
-                <div className="text-3xl font-bold mb-1">
-                  {formatCurrency(stats.totalRevenue, 'ETB')}
-                </div>
-              )}
-              <p className="text-green-100 text-sm">From {stats.successfulTickets} successful tickets</p>
             </div>
 
             {/* Total Tickets */}
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-white/20 rounded-lg">
-                  <FaTicketAlt size={24} />
+            <div className="rounded-lg shadow-md p-3 text-white" style={{ background: 'linear-gradient(135deg, #FF6F5E 0%, #C73A26 100%)' }}>
+              <div className="flex items-center gap-3">
+                <div className="p-1.5 bg-white/20 rounded-lg flex-shrink-0">
+                  <FaTicketAlt className="w-4 h-4" />
                 </div>
-                <span className="text-blue-100 text-sm font-medium">Total Tickets</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    {loadingStats ? (
+                      <div className="animate-pulse h-5 bg-white/20 rounded w-12"></div>
+                    ) : (
+                      <span className="text-base font-bold">{stats.totalTickets}</span>
+                    )}
+                    <span className="text-white/80 text-xs opacity-90 hidden sm:inline">
+                      ({stats.pendingTickets} pending, {stats.failedTickets} failed)
+                    </span>
+                  </div>
+                  <p className="text-white/80 text-xs opacity-90 truncate">Total Tickets</p>
+                </div>
               </div>
-              {loadingStats ? (
-                <div className="animate-pulse h-8 bg-white/20 rounded w-24"></div>
-              ) : (
-                <div className="text-3xl font-bold mb-1">{stats.totalTickets}</div>
-              )}
-              <p className="text-blue-100 text-sm">
-                {stats.pendingTickets} pending, {stats.failedTickets} failed
-              </p>
             </div>
 
             {/* Total Events */}
-            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-white/20 rounded-lg">
-                  <FaCalendarAlt size={24} />
+            <div className="rounded-lg shadow-md p-3 text-white" style={{ background: 'linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)' }}>
+              <div className="flex items-center gap-3">
+                <div className="p-1.5 bg-white/20 rounded-lg flex-shrink-0">
+                  <FaCalendarAlt className="w-4 h-4" />
                 </div>
-                <span className="text-purple-100 text-sm font-medium">Events</span>
+                <div className="flex-1 min-w-0">
+                  {loadingStats ? (
+                    <div className="animate-pulse h-5 bg-white/20 rounded w-12"></div>
+                  ) : (
+                    <span className="text-base font-bold">{stats.totalEvents}</span>
+                  )}
+                  <p className="text-white/80 text-xs opacity-90 truncate">Events</p>
+                </div>
               </div>
-              {loadingStats ? (
-                <div className="animate-pulse h-8 bg-white/20 rounded w-24"></div>
-              ) : (
-                <div className="text-3xl font-bold mb-1">{stats.totalEvents}</div>
-              )}
-              <p className="text-purple-100 text-sm">Active events</p>
             </div>
 
             {/* Total Users/Customers */}
-            <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg p-6 text-white">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-white/20 rounded-lg">
-                  <FaUsers size={24} />
+            <div className="rounded-lg shadow-md p-3 text-white" style={{ background: 'linear-gradient(135deg, #FF6F5E 0%, #C73A26 100%)' }}>
+              <div className="flex items-center gap-3">
+                <div className="p-1.5 bg-white/20 rounded-lg flex-shrink-0">
+                  <FaUsers className="w-4 h-4" />
                 </div>
-                <span className="text-orange-100 text-sm font-medium">Customers</span>
+                <div className="flex-1 min-w-0">
+                  {loadingStats ? (
+                    <div className="animate-pulse h-5 bg-white/20 rounded w-12"></div>
+                  ) : (
+                    <span className="text-base font-bold">
+                      {new Set(tickets.map(t => t.customer_email)).size}
+                    </span>
+                  )}
+                  <p className="text-orange-100 text-xs opacity-90 truncate">Customers</p>
+                </div>
               </div>
-              {loadingStats ? (
-                <div className="animate-pulse h-8 bg-white/20 rounded w-24"></div>
-              ) : (
-                <div className="text-3xl font-bold mb-1">
-                  {new Set(tickets.map(t => t.customer_email)).size}
-                </div>
-              )}
-              <p className="text-orange-100 text-sm">Unique customers</p>
             </div>
           </div>
 
           {/* Commission Seller Earnings Section */}
           {stats.totalCommissionPaid > 0 && (
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-8">
-              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <FaUsers className="text-orange-600" />
-                Commission Seller Earnings
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:p-6 mb-6 sm:mb-8">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
+                <FaUsers className="text-orange-600" size={20} />
+                <span className="text-base sm:text-xl">Commission Seller Earnings</span>
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
-                  <p className="text-sm text-gray-600 mb-1">Gross Commission Paid</p>
-                  <p className="text-2xl font-bold text-gray-900">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                <div className="p-3 sm:p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
+                  <p className="text-xs sm:text-sm text-gray-600 mb-1">Gross Commission Paid</p>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900">
                     {formatCurrency(stats.totalCommissionPaid, 'ETB')}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">Total before VAT</p>
                 </div>
-                <div className="p-4 bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg border border-amber-100">
-                  <p className="text-sm text-gray-600 mb-1">VAT Collected (15%)</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                <div className="p-3 sm:p-4 bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg border border-amber-100">
+                  <p className="text-xs sm:text-sm text-gray-600 mb-1">VAT Collected (15%)</p>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900">
                     {formatCurrency(stats.totalVATCollected, 'ETB')}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">Tax collected</p>
                 </div>
-                <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg border border-green-100">
-                  <p className="text-sm text-gray-600 mb-1">Net Commission Paid</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                <div className="p-3 sm:p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg border border-green-100 sm:col-span-2 lg:col-span-1">
+                  <p className="text-xs sm:text-sm text-gray-600 mb-1">Net Commission Paid</p>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900">
                     {formatCurrency(stats.netCommissionPaid, 'ETB')}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">After VAT deduction</p>
@@ -335,49 +361,49 @@ const Dashboard = () => {
           )}
 
           {/* Secondary Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-medium text-gray-600">Categories</p>
-                <FaNewspaper className="text-green-500" size={20} />
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Categories</p>
+                <FaNewspaper className="text-green-500 w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               {loadingStats ? (
-                <div className="animate-pulse h-8 bg-gray-200 rounded w-16"></div>
+                <div className="animate-pulse h-6 sm:h-8 bg-gray-200 rounded w-12 sm:w-16"></div>
               ) : (
-                <p className="text-2xl font-bold text-gray-900">{stats.totalCategories}</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.totalCategories}</p>
               )}
             </div>
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-medium text-gray-600">Gallery Items</p>
-                <FaImages className="text-pink-500" size={20} />
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Gallery Items</p>
+                <FaImages className="text-pink-500 w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               {loadingStats ? (
-                <div className="animate-pulse h-8 bg-gray-200 rounded w-16"></div>
+                <div className="animate-pulse h-6 sm:h-8 bg-gray-200 rounded w-12 sm:w-16"></div>
               ) : (
-                <p className="text-2xl font-bold text-gray-900">{stats.totalGalleryItems}</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.totalGalleryItems}</p>
               )}
             </div>
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-medium text-gray-600">Destinations</p>
-                <FaMapMarkerAlt className="text-purple-500" size={20} />
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Destinations</p>
+                <FaMapMarkerAlt className="text-purple-500 w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               {loadingStats ? (
-                <div className="animate-pulse h-8 bg-gray-200 rounded w-16"></div>
+                <div className="animate-pulse h-6 sm:h-8 bg-gray-200 rounded w-12 sm:w-16"></div>
               ) : (
-                <p className="text-2xl font-bold text-gray-900">{stats.totalDestinations}</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.totalDestinations}</p>
               )}
             </div>
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-medium text-gray-600">Success Rate</p>
-                <FaCheckCircle className="text-green-500" size={20} />
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Success Rate</p>
+                <FaCheckCircle className="text-green-500 w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               {loadingStats ? (
-                <div className="animate-pulse h-8 bg-gray-200 rounded w-16"></div>
+                <div className="animate-pulse h-6 sm:h-8 bg-gray-200 rounded w-12 sm:w-16"></div>
               ) : (
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">
                   {stats.totalTickets > 0
                     ? Math.round((stats.successfulTickets / stats.totalTickets) * 100)
                     : 0}
@@ -388,21 +414,21 @@ const Dashboard = () => {
           </div>
 
           {/* Quick Actions */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 mb-6 sm:mb-8">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Quick Actions</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
               {menuItems.slice(0, 5).map((item) => {
                 const Icon = item.icon;
                 return (
                   <Link
                     key={item.path}
                     to={item.path}
-                    className="flex flex-col items-center gap-2 p-4 rounded-lg border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 transition-colors group"
+                    className="flex flex-col items-center gap-1.5 sm:gap-2 p-3 sm:p-4 rounded-lg border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 transition-colors group"
                   >
-                    <div className={`${item.color} p-3 rounded-lg group-hover:scale-110 transition-transform`}>
-                      <Icon size={20} />
+                    <div className={`${item.color} p-2 sm:p-3 rounded-lg group-hover:scale-110 transition-transform`}>
+                      <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
-                    <span className="text-sm font-medium text-gray-700 text-center">{item.label}</span>
+                    <span className="text-xs sm:text-sm font-medium text-gray-700 text-center leading-tight">{item.label}</span>
                   </Link>
                 );
               })}
@@ -411,16 +437,16 @@ const Dashboard = () => {
 
           {/* Ticket Purchases Section */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <div className="flex items-center justify-between flex-wrap gap-4">
-                <div className="flex items-center gap-3">
-                  <FaTicketAlt className="text-indigo-500" size={24} />
-                  <h2 className="text-xl font-bold text-gray-900">Recent Ticket Purchases</h2>
+            <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-b border-gray-200">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <FaTicketAlt className="text-indigo-500 flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6" />
+                  <h2 className="text-lg sm:text-xl font-bold text-gray-900">Recent Ticket Purchases</h2>
                 </div>
                 <div className="flex gap-2 flex-wrap">
                   <button
                     onClick={() => setTicketFilter('all')}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors ${
                       ticketFilter === 'all'
                         ? 'bg-indigo-600 text-white shadow-sm'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -430,7 +456,7 @@ const Dashboard = () => {
                   </button>
                   <button
                     onClick={() => setTicketFilter('success')}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors ${
                       ticketFilter === 'success'
                         ? 'bg-green-600 text-white shadow-sm'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -440,7 +466,7 @@ const Dashboard = () => {
                   </button>
                   <button
                     onClick={() => setTicketFilter('pending')}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors ${
                       ticketFilter === 'pending'
                         ? 'bg-yellow-600 text-white shadow-sm'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -450,7 +476,7 @@ const Dashboard = () => {
                   </button>
                   <button
                     onClick={() => setTicketFilter('failed')}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors ${
                       ticketFilter === 'failed'
                         ? 'bg-red-600 text-white shadow-sm'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -462,18 +488,18 @@ const Dashboard = () => {
               </div>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto -mx-3 sm:-mx-4 md:-mx-6">
               {loadingTickets ? (
-                <div className="p-12 text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-                  <div className="text-gray-500">Loading tickets...</div>
+                <div className="p-8 sm:p-12 text-center">
+                  <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+                  <div className="text-sm sm:text-base text-gray-500">Loading tickets...</div>
                 </div>
               ) : tickets.length === 0 ? (
-                <div className="p-12 text-center">
+                <div className="p-8 sm:p-12 text-center">
                   <div className="max-w-md mx-auto">
-                    <FaTicketAlt className="mx-auto mb-4 text-gray-300" size={64} />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No tickets found</h3>
-                    <p className="text-sm text-gray-500 mb-4">
+                    <FaTicketAlt className="mx-auto mb-4 text-gray-300 w-12 h-12 sm:w-16 sm:h-16" />
+                    <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No tickets found</h3>
+                    <p className="text-xs sm:text-sm text-gray-500 mb-4 px-4">
                       {ticketFilter === 'all'
                         ? "There are no ticket purchases yet. When customers purchase tickets, they'll appear here."
                         : `No ${ticketFilter} tickets found. Try selecting a different filter.`}
@@ -481,7 +507,7 @@ const Dashboard = () => {
                     {ticketFilter !== 'all' && (
                       <button
                         onClick={() => setTicketFilter('all')}
-                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        className="inline-flex items-center px-4 py-2 border border-transparent text-xs sm:text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                       >
                         View All Tickets
                       </button>
@@ -493,25 +519,25 @@ const Dashboard = () => {
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Customer
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
                           Event
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Amount
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                           Quantity
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Status
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Purchase Date
+                        <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
+                          Date
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden xl:table-cell">
                           Transaction Ref
                         </th>
                       </tr>
@@ -519,12 +545,12 @@ const Dashboard = () => {
                     <tbody className="bg-white divide-y divide-gray-200">
                       {tickets.map((ticket) => (
                         <tr key={ticket.id} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4">
                             <div className="flex items-center">
-                              <div className="flex-shrink-0 h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                                <FaUser className="text-indigo-600" />
+                              <div className="flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                                <FaUser className="text-indigo-600 w-3.5 h-3.5 sm:w-4 sm:h-4" />
                               </div>
-                              <div className="ml-4 flex-1">
+                              <div className="ml-2 sm:ml-4 flex-1 min-w-0">
                                 <button
                                   onClick={() => {
                                     setExpandedCustomerId(
@@ -533,26 +559,26 @@ const Dashboard = () => {
                                   }}
                                   className="text-left w-full"
                                 >
-                                  <div className="text-sm font-medium text-gray-900 hover:text-indigo-600 transition-colors">
+                                  <div className="text-xs sm:text-sm font-medium text-gray-900 hover:text-indigo-600 transition-colors truncate">
                                     {ticket.customer_name || 'N/A'}
                                   </div>
-                                  <div className="text-sm text-gray-500 flex items-center gap-1">
-                                    <FaEnvelope className="text-xs" />
-                                    {ticket.customer_email}
+                                  <div className="text-xs sm:text-sm text-gray-500 flex items-center gap-1 truncate">
+                                    <FaEnvelope className="text-xs flex-shrink-0" />
+                                    <span className="truncate">{ticket.customer_email}</span>
                                   </div>
                                   {ticket.customer_phone && (
-                                    <div className="text-xs text-gray-400 flex items-center gap-1">
-                                      <FaPhone className="text-xs" />
-                                      {ticket.customer_phone}
+                                    <div className="text-xs text-gray-400 flex items-center gap-1 truncate">
+                                      <FaPhone className="text-xs flex-shrink-0" />
+                                      <span className="truncate">{ticket.customer_phone}</span>
                                     </div>
                                   )}
                                 </button>
                                 {expandedCustomerId === ticket.id && (
-                                  <div className="mt-2 flex gap-2 animate-in slide-in-from-top-2">
+                                  <div className="mt-2 flex flex-wrap gap-2 animate-in slide-in-from-top-2">
                                     {ticket.customer_phone && (
                                       <a
                                         href={`tel:${ticket.customer_phone}`}
-                                        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors shadow-sm"
+                                        className="inline-flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors shadow-sm"
                                         title="Call customer"
                                         onClick={(e) => e.stopPropagation()}
                                       >
@@ -572,7 +598,7 @@ const Dashboard = () => {
                                         setReminderModalOpen(true);
                                         setExpandedCustomerId(null);
                                       }}
-                                      className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
+                                      className="inline-flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
                                       title="Schedule call reminder"
                                     >
                                       <FaClock className="text-xs" />
@@ -583,16 +609,16 @@ const Dashboard = () => {
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4">
-                            <div className="text-sm text-gray-900">
+                          <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 hidden sm:table-cell">
+                            <div className="text-xs sm:text-sm text-gray-900">
                               {ticket.event_title || 'General Ticket'}
                             </div>
                             {ticket.event_id && (
                               <div className="text-xs text-gray-500">ID: {ticket.event_id.slice(0, 8)}...</div>
                             )}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">
+                          <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap">
+                            <div className="text-xs sm:text-sm font-medium text-gray-900">
                               {(() => {
                                 // Ensure amount is correctly formatted
                                 // Handle both numeric and string types
@@ -618,24 +644,25 @@ const Dashboard = () => {
                               })()}
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{ticket.quantity}</div>
+                          <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap hidden md:table-cell">
+                            <div className="text-xs sm:text-sm text-gray-900">{ticket.quantity}</div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap">
                             <span
-                              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(
+                              className={`inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(
                                 ticket.status
                               )}`}
                             >
                               {getStatusIcon(ticket.status)}
-                              {ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1)}
+                              <span className="hidden sm:inline">{ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1)}</span>
+                              <span className="sm:hidden">{ticket.status.charAt(0).toUpperCase()}</span>
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500 hidden lg:table-cell">
                             {formatDate(ticket.payment_date || ticket.created_at)}
                           </td>
-                          <td className="px-6 py-4">
-                            <div className="text-sm text-gray-900 font-mono">
+                          <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 hidden xl:table-cell">
+                            <div className="text-xs sm:text-sm text-gray-900 font-mono">
                               {ticket.tx_ref.slice(0, 12)}...
                             </div>
                             {ticket.chapa_reference && (

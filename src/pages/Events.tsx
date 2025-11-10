@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FaArrowRight, FaCalendarAlt, FaMapMarkerAlt, FaSearch, FaUsers, FaWhatsapp } from "react-icons/fa";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ErrorState } from "../Components/ui/ErrorState";
@@ -7,6 +7,43 @@ import OptimizedImage from "../Components/ui/OptimizedImage";
 import { useCategories, useEvents } from "../hooks/useApi";
 
 const Events = () => {
+  // Update page title and meta tags for SEO
+  useEffect(() => {
+    document.title = "CEO Perfect Ethiopian Travel and Event - Events | Yenege";
+    
+    // Update meta description
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute('content', 'CEO Perfect Ethiopian Travel and Event - Discover amazing events and experiences in Ethiopia. Join us for exciting game nights, travel adventures, corporate events, and community gatherings.');
+    }
+    
+    // Update Open Graph tags
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) {
+      ogTitle.setAttribute('content', 'CEO Perfect Ethiopian Travel and Event - Events | Yenege');
+    }
+    
+    const ogDescription = document.querySelector('meta[property="og:description"]');
+    if (ogDescription) {
+      ogDescription.setAttribute('content', 'CEO Perfect Ethiopian Travel and Event - Discover amazing events and experiences in Ethiopia. Join us for exciting game nights, travel adventures, corporate events, and community gatherings.');
+    }
+    
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) {
+      ogUrl.setAttribute('content', window.location.href);
+    }
+    
+    // Update Twitter tags
+    const twitterTitle = document.querySelector('meta[property="twitter:title"]');
+    if (twitterTitle) {
+      twitterTitle.setAttribute('content', 'CEO Perfect Ethiopian Travel and Event - Events | Yenege');
+    }
+    
+    const twitterDescription = document.querySelector('meta[property="twitter:description"]');
+    if (twitterDescription) {
+      twitterDescription.setAttribute('content', 'CEO Perfect Ethiopian Travel and Event - Discover amazing events and experiences in Ethiopia. Join us for exciting game nights, travel adventures, corporate events, and community gatherings.');
+    }
+  }, []);
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryParam = searchParams.get("category") || "all";
@@ -109,10 +146,10 @@ const Events = () => {
           {/* Title Section */}
           <div className="mb-10 md:mb-12">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold mb-3 text-gray-900">
-              Upcoming Events
+              CEO Perfect Ethiopian Travel and Event
             </h1>
             <p className="text-base text-gray-600">
-              Discover amazing experiences and join the fun!
+              Discover amazing experiences and join the fun! Your premier destination for events and travel in Ethiopia.
             </p>
           </div>
 
