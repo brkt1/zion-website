@@ -915,6 +915,7 @@ export const handleTelegramCommand = async (update: TelegramUpdate): Promise<voi
         break;
 
       case '/start':
+        const isAdminForStart = await isTelegramAdmin(telegramUserId);
         const welcomeText = `👋 <b>Welcome to Yenege Events Bot!</b>
 
 I can help you with:
@@ -928,7 +929,7 @@ I can help you with:
 /verify [tx_ref] - Verify a ticket
 /subscribe - Subscribe to event notifications
 /unsubscribe - Unsubscribe from notifications
-/help - Show this help message
+/help - Show this help message${isAdminForStart ? '\n\n🔐 <i>Admin: Use /admin_help to see admin commands</i>' : ''}
 
 <i>Use /help for more information</i>`;
 
@@ -940,6 +941,7 @@ I can help you with:
         break;
 
       case '/help':
+        const isAdminForHelpCmd = await isTelegramAdmin(telegramUserId);
         await sendTelegramMessage({
           chat_id: chatId,
           text: `📚 <b>Yenege Events Bot - Help</b>
@@ -952,14 +954,14 @@ I can help you with:
 /verify [tx_ref] - Verify a ticket by transaction reference
 /subscribe - Subscribe to event notifications
 /unsubscribe - Unsubscribe from notifications
-/help - Show this help message
+/help - Show this help message${isAdminForHelpCmd ? '\n/admin_help - Show admin commands (admin only)' : ''}
 
 <b>Examples:</b>
 • <code>/events</code> - List upcoming events
 • <code>/verify YENEGE123456</code> - Verify ticket
 • <code>/event_abc123</code> - Get event details
 
-<b>Need help?</b> Contact us at info@yenege.com`,
+${isAdminForHelpCmd ? '🔐 <b>Admin:</b> Use <code>/admin_help</code> to see all admin commands\n\n' : ''}<b>Need help?</b> Contact us at info@yenege.com`,
           parse_mode: 'HTML',
         });
         break;
