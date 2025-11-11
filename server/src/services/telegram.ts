@@ -4,7 +4,7 @@
  */
 
 import https from 'https';
-import { supabase } from './supabase';
+import { supabase, isSupabaseConfigured } from './supabase';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
@@ -422,6 +422,10 @@ const isGroupAdmin = async (chatId: number | string, userId: number): Promise<bo
  * Get upcoming events
  */
 const getUpcomingEvents = async (limit: number = 5) => {
+  if (!isSupabaseConfigured()) {
+    return [];
+  }
+
   try {
     const { data, error } = await supabase
       .from('events')
@@ -442,6 +446,10 @@ const getUpcomingEvents = async (limit: number = 5) => {
  * Get event by ID
  */
 const getEventById = async (eventId: string) => {
+  if (!isSupabaseConfigured()) {
+    return null;
+  }
+
   try {
     const { data, error } = await supabase
       .from('events')
@@ -461,6 +469,10 @@ const getEventById = async (eventId: string) => {
  * Verify ticket by transaction reference
  */
 const verifyTicket = async (txRef: string) => {
+  if (!isSupabaseConfigured()) {
+    return null;
+  }
+
   try {
     const { data, error } = await supabase
       .from('tickets')
@@ -567,6 +579,12 @@ const formatTicketInfo = (ticket: any): string => {
  */
 const isTelegramAdmin = async (telegramUserId: number): Promise<boolean> => {
   try {
+    // If Supabase is not configured, only check env variable
+    if (!isSupabaseConfigured()) {
+      const adminIds = process.env.TELEGRAM_ADMIN_USER_IDS?.split(',').map(id => parseInt(id.trim())) || [];
+      return adminIds.includes(telegramUserId);
+    }
+
     // Check if this Telegram user ID is linked to an admin account
     // First, try to find in telegram_admin_users table (if exists)
     const { data: adminLink } = await supabase
@@ -603,6 +621,10 @@ const isTelegramAdmin = async (telegramUserId: number): Promise<boolean> => {
  * Get website statistics for admin
  */
 const getWebsiteStats = async () => {
+  if (!isSupabaseConfigured()) {
+    return null;
+  }
+
   try {
     // Get total events
     const { count: totalEvents } = await supabase
@@ -734,6 +756,10 @@ ${topEventsText}
  * Get recent activity
  */
 const getRecentActivity = async (limit: number = 10) => {
+  if (!isSupabaseConfigured()) {
+    return [];
+  }
+
   try {
     // Get recent successful tickets
     const { data: recentTickets } = await supabase
@@ -1009,54 +1035,86 @@ I can help you with:
         break;
 
       case '/subscribe':
-        // Save subscription to database
-        const { error: subError } = await supabase
-          .from('telegram_subscriptions')
-          .upsert(
-            {
-              chat_id: chatId.toString(),
-              user_id: message.from.id.toString(),
-              username: message.from.username || null,
-              first_name: message.from.first_name,
-              last_name: message.from.last_name || null,
-              is_active: true,
-              subscribed_at: new Date().toISOString(),
-            },
-            { onConflict: 'chat_id' }
-          );
+        if (!isSupabaseConfigured()) {
+          await sendTelegramMessage({
+            chat_id: chatId,
+            text: '⚠️ Subscription feature is not available. Database is not configured.',
+          });
+          return;
+        }
 
-        if (subError) {
-          console.error('Error saving subscription:', subError);
+        // Save subscription to database
+        try {
+          const { error: subError } = await supabase
+            .from('telegram_subscriptions')
+            .upsert(
+              {
+                chat_id: chatId.toString(),
+                user_id: message.from.id.toString(),
+                username: message.from.username || null,
+                first_name: message.from.first_name,
+                last_name: message.from.last_name || null,
+                is_active: true,
+                subscribed_at: new Date().toISOString(),
+              },
+              { onConflict: 'chat_id' }
+            );
+
+          if (subError) {
+            console.error('Error saving subscription:', subError);
+            await sendTelegramMessage({
+              chat_id: chatId,
+              text: '❌ Failed to subscribe. Please try again later.',
+            });
+          } else {
+            await sendTelegramMessage({
+              chat_id: chatId,
+              text: '✅ <b>Subscribed!</b>\n\nYou will now receive notifications about new events and updates.',
+              parse_mode: 'HTML',
+            });
+          }
+        } catch (error: any) {
+          console.error('Error in subscribe:', error);
           await sendTelegramMessage({
             chat_id: chatId,
             text: '❌ Failed to subscribe. Please try again later.',
-          });
-        } else {
-          await sendTelegramMessage({
-            chat_id: chatId,
-            text: '✅ <b>Subscribed!</b>\n\nYou will now receive notifications about new events and updates.',
-            parse_mode: 'HTML',
           });
         }
         break;
 
       case '/unsubscribe':
-        const { error: unsubError } = await supabase
-          .from('telegram_subscriptions')
-          .update({ is_active: false })
-          .eq('chat_id', chatId.toString());
+        if (!isSupabaseConfigured()) {
+          await sendTelegramMessage({
+            chat_id: chatId,
+            text: '⚠️ Subscription feature is not available. Database is not configured.',
+          });
+          return;
+        }
 
-        if (unsubError) {
-          console.error('Error unsubscribing:', unsubError);
+        try {
+          const { error: unsubError } = await supabase
+            .from('telegram_subscriptions')
+            .update({ is_active: false })
+            .eq('chat_id', chatId.toString());
+
+          if (unsubError) {
+            console.error('Error unsubscribing:', unsubError);
+            await sendTelegramMessage({
+              chat_id: chatId,
+              text: '❌ Failed to unsubscribe. Please try again later.',
+            });
+          } else {
+            await sendTelegramMessage({
+              chat_id: chatId,
+              text: '👋 <b>Unsubscribed</b>\n\nYou will no longer receive notifications. Use /subscribe to re-enable them.',
+              parse_mode: 'HTML',
+            });
+          }
+        } catch (error: any) {
+          console.error('Error in unsubscribe:', error);
           await sendTelegramMessage({
             chat_id: chatId,
             text: '❌ Failed to unsubscribe. Please try again later.',
-          });
-        } else {
-          await sendTelegramMessage({
-            chat_id: chatId,
-            text: '👋 <b>Unsubscribed</b>\n\nYou will no longer receive notifications. Use /subscribe to re-enable them.',
-            parse_mode: 'HTML',
           });
         }
         break;
@@ -1756,6 +1814,11 @@ export const broadcastToSubscribers = async (
   message: string,
   parseMode: 'HTML' | 'Markdown' | 'MarkdownV2' = 'HTML'
 ): Promise<{ sent: number; failed: number }> => {
+  if (!isSupabaseConfigured()) {
+    console.warn('Cannot broadcast: Supabase not configured');
+    return { sent: 0, failed: 0 };
+  }
+
   try {
     const { data: subscriptions, error } = await supabase
       .from('telegram_subscriptions')

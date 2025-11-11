@@ -16,3 +16,7 @@ services:
       # CHAPA_SECRET_KEY should be set manually in Render dashboard for security
       # Go to: Render Dashboard → Your Service → Environment → Add Variable
       # VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY should also be set
+      # Telegram Bot Configuration - Add these in Render Dashboard → Environment:
+      # TELEGRAM_BOT_TOKEN=8586299633:AAHWeNqVixuiu2HmWQEJXKglupCThwa45ZI
+      # TELEGRAM_ADMIN_API_TOKEN=2d26b8e7c3a0a11a05c1287975c4934628ccaf83482cc741b0c862e6abb7466a
+      # TELEGRAM_ADMIN_USER_IDS=YOUR_TELEGRAM_USER_ID_HERE
