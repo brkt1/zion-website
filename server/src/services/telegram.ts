@@ -490,6 +490,59 @@ const verifyTicket = async (txRef: string) => {
 };
 
 /**
+ * Calculate countdown to event
+ */
+const calculateCountdown = (eventDate: string, eventTime?: string): string => {
+  try {
+    // Parse event date and time
+    const dateStr = eventDate.split('T')[0]; // Get YYYY-MM-DD
+    const timeStr = eventTime || '00:00';
+    
+    // Parse time (handle formats like "6:00 PM", "18:00", "6:00 PM EST")
+    let hours = 0;
+    let minutes = 0;
+    
+    const timeMatch = timeStr.match(/(\d{1,2}):(\d{2})/);
+    if (timeMatch) {
+      hours = parseInt(timeMatch[1], 10);
+      minutes = parseInt(timeMatch[2], 10);
+      
+      // Handle PM
+      if (timeStr.toLowerCase().includes('pm') && hours !== 12) {
+        hours += 12;
+      }
+      // Handle AM (12 AM = 0)
+      if (timeStr.toLowerCase().includes('am') && hours === 12) {
+        hours = 0;
+      }
+    }
+    
+    const eventDateTime = new Date(`${dateStr}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`);
+    const now = new Date();
+    const diff = eventDateTime.getTime() - now.getTime();
+    
+    if (diff < 0) {
+      return '⏰ Event has passed';
+    }
+    
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hoursRemaining = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutesRemaining = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (days > 0) {
+      return `⏳ <b>${days}</b> day${days > 1 ? 's' : ''}, <b>${hoursRemaining}</b> hour${hoursRemaining !== 1 ? 's' : ''} remaining`;
+    } else if (hoursRemaining > 0) {
+      return `⏳ <b>${hoursRemaining}</b> hour${hoursRemaining > 1 ? 's' : ''}, <b>${minutesRemaining}</b> minute${minutesRemaining !== 1 ? 's' : ''} remaining`;
+    } else {
+      return `⏳ <b>${minutesRemaining}</b> minute${minutesRemaining !== 1 ? 's' : ''} remaining`;
+    }
+  } catch (error) {
+    console.error('Error calculating countdown:', error);
+    return '⏰ Countdown unavailable';
+  }
+};
+
+/**
  * Format event information for Telegram
  */
 const formatEventInfo = (event: any): string => {
@@ -513,6 +566,163 @@ const formatEventInfo = (event: any): string => {
 ${event.description || ''}
 
 <i>Use /event_${event.id} for more details</i>`;
+};
+
+/**
+ * Format event announcement with countdown for Telegram groups
+ */
+const formatEventAnnouncement = (event: any): string => {
+  const date = new Date(event.date).toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+  const time = event.time || 'TBA';
+  const price = event.price === '0' || event.price === 'Free' ? 'Free' : `${event.price} ${event.currency}`;
+  const countdown = calculateCountdown(event.date, event.time);
+  
+  // Get website URL for event
+  const frontendUrl = process.env.FRONTEND_URL || 'https://www.yenege.com';
+  const eventUrl = `${frontendUrl}/events/${event.id}`;
+
+  let message = `🎉 <b>NEW EVENT ANNOUNCEMENT!</b>\n\n`;
+  message += `🎊 <b>${event.title}</b>\n\n`;
+  message += `${countdown}\n\n`;
+  message += `📅 <b>Date:</b> ${date}\n`;
+  message += `⏰ <b>Time:</b> ${time}\n`;
+  message += `📍 <b>Location:</b> ${event.location}\n`;
+  message += `💰 <b>Price:</b> ${price}\n`;
+  
+  if (event.category) {
+    message += `🏷️ <b>Category:</b> ${event.category}\n`;
+  }
+  
+  if (event.description) {
+    message += `\n📝 ${event.description.substring(0, 200)}${event.description.length > 200 ? '...' : ''}\n`;
+  }
+  
+  message += `\n🔗 <a href="${eventUrl}">View Details & Book Now</a>\n`;
+  
+  if (event.telegram_link) {
+    message += `💬 <a href="${event.telegram_link}">Join Event Group</a>\n`;
+  }
+  
+  message += `\n<i>Use /event_${event.id} for quick details</i>`;
+
+  return message;
+};
+
+/**
+ * Format event reminder message (3, 2, 1 days before)
+ */
+const formatEventReminder = (event: any, daysRemaining: number): string => {
+  const date = new Date(event.date).toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+  const time = event.time || 'TBA';
+  const price = event.price === '0' || event.price === 'Free' ? 'Free' : `${event.price} ${event.currency}`;
+  
+  // Get website URL for event
+  const frontendUrl = process.env.FRONTEND_URL || 'https://www.yenege.com';
+  const eventUrl = `${frontendUrl}/events/${event.id}`;
+
+  // Different emojis and messages based on days remaining
+  const dayEmojis = {
+    3: '📢',
+    2: '⏰',
+    1: '🔥',
+  };
+  
+  const dayMessages = {
+    3: 'Just 3 days to go!',
+    2: 'Only 2 days remaining!',
+    1: 'Tomorrow is the day!',
+  };
+
+  const emoji = dayEmojis[daysRemaining as keyof typeof dayEmojis] || '⏰';
+  const dayMessage = dayMessages[daysRemaining as keyof typeof dayMessages] || `${daysRemaining} days remaining!`;
+
+  let message = `${emoji} <b>EVENT REMINDER</b> ${emoji}\n\n`;
+  message += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+  message += `🎊 <b>${event.title}</b>\n\n`;
+  message += `⏳ <b>${dayMessage}</b>\n\n`;
+  message += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+  message += `📅 <b>Date:</b> ${date}\n`;
+  message += `⏰ <b>Time:</b> ${time}\n`;
+  message += `📍 <b>Location:</b> ${event.location}\n`;
+  message += `💰 <b>Price:</b> ${price}\n`;
+  
+  if (event.category) {
+    message += `🏷️ <b>Category:</b> ${event.category}\n`;
+  }
+  
+  if (daysRemaining === 1) {
+    message += `\n🔥 <b>Don't miss out! Book your spot now!</b>\n`;
+  } else {
+    message += `\n💡 <b>Secure your spot before it's too late!</b>\n`;
+  }
+  
+  message += `\n🔗 <a href="${eventUrl}">📱 View Details & Book Now</a>\n`;
+  
+  if (event.telegram_link) {
+    message += `💬 <a href="${event.telegram_link}">Join Event Group</a>\n`;
+  }
+  
+  message += `\n━━━━━━━━━━━━━━━━━━━━\n`;
+  message += `\n<i>Use /event_${event.id} for quick details</i>`;
+
+  return message;
+};
+
+/**
+ * Format "time has come" message for event day
+ */
+const formatEventDayMessage = (event: any): string => {
+  const date = new Date(event.date).toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+  const time = event.time || 'TBA';
+  const price = event.price === '0' || event.price === 'Free' ? 'Free' : `${event.price} ${event.currency}`;
+  
+  // Get website URL for event
+  const frontendUrl = process.env.FRONTEND_URL || 'https://www.yenege.com';
+  const eventUrl = `${frontendUrl}/events/${event.id}`;
+
+  let message = `🎉🎊🎉 <b>THE TIME HAS COME!</b> 🎉🎊🎉\n\n`;
+  message += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+  message += `🌟 <b>${event.title}</b> 🌟\n\n`;
+  message += `🎯 <b>Today is the day!</b>\n\n`;
+  message += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+  message += `📅 <b>Date:</b> ${date}\n`;
+  message += `⏰ <b>Time:</b> ${time}\n`;
+  message += `📍 <b>Location:</b> ${event.location}\n`;
+  message += `💰 <b>Price:</b> ${price}\n`;
+  
+  if (event.category) {
+    message += `🏷️ <b>Category:</b> ${event.category}\n`;
+  }
+  
+  message += `\n🎊 <b>We can't wait to see you there!</b>\n`;
+  message += `✨ <b>Get ready for an amazing experience!</b>\n\n`;
+  
+  message += `🔗 <a href="${eventUrl}">📱 View Event Details</a>\n`;
+  
+  if (event.telegram_link) {
+    message += `💬 <a href="${event.telegram_link}">Join Event Group</a>\n`;
+  }
+  
+  message += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+  message += `\n<i>Use /event_${event.id} for quick details</i>`;
+  message += `\n\n🎉 <b>See you soon!</b> 🎉`;
+
+  return message;
 };
 
 /**
@@ -1871,5 +2081,197 @@ export const broadcastToSubscribers = async (
     console.error('Error broadcasting to subscribers:', error);
     throw error;
   }
+};
+
+/**
+ * Announce new event to Telegram groups
+ * @param event Event object from database
+ * @param groupChatIds Array of Telegram group chat IDs (optional, uses env var if not provided)
+ * @returns Result with sent/failed counts
+ */
+export const announceEventToGroups = async (
+  event: any,
+  groupChatIds?: string[]
+): Promise<{ sent: number; failed: number; errors: string[] }> => {
+  if (!TELEGRAM_BOT_TOKEN) {
+    console.error('❌ TELEGRAM_BOT_TOKEN is not configured!');
+    return { sent: 0, failed: 0, errors: ['Bot token not configured'] };
+  }
+
+  // Get group chat IDs from parameter or environment variable
+  let chatIds: string[] = [];
+  
+  if (groupChatIds && groupChatIds.length > 0) {
+    chatIds = groupChatIds;
+  } else {
+    // Get from environment variable (comma-separated)
+    const envGroups = process.env.TELEGRAM_EVENT_GROUPS;
+    if (envGroups) {
+      chatIds = envGroups.split(',').map(id => id.trim()).filter(id => id.length > 0);
+    }
+  }
+
+  if (chatIds.length === 0) {
+    console.warn('⚠️  No Telegram groups configured for event announcements');
+    return { sent: 0, failed: 0, errors: ['No groups configured'] };
+  }
+
+  const announcementText = formatEventAnnouncement(event);
+  let sent = 0;
+  let failed = 0;
+  const errors: string[] = [];
+
+  for (const chatId of chatIds) {
+    try {
+      // Send with photo if available
+      if (event.image) {
+        await sendTelegramPhoto(chatId, event.image, announcementText, 'HTML');
+      } else {
+        await sendTelegramMessage({
+          chat_id: chatId,
+          text: announcementText,
+          parse_mode: 'HTML',
+        });
+      }
+      console.log(`✅ Event announcement sent to group ${chatId}`);
+      sent++;
+    } catch (error: any) {
+      const errorMsg = `Failed to send to group ${chatId}: ${error.message || error}`;
+      console.error(`❌ ${errorMsg}`);
+      errors.push(errorMsg);
+      failed++;
+    }
+  }
+
+  return { sent, failed, errors };
+};
+
+/**
+ * Get events that need reminders (3, 2, 1 days before, or today)
+ */
+const getEventsNeedingReminders = async (): Promise<{ event: any; daysRemaining: number }[]> => {
+  if (!isSupabaseConfigured()) {
+    return [];
+  }
+
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Get events in the next 3 days (including today)
+    const threeDaysLater = new Date(today);
+    threeDaysLater.setDate(threeDaysLater.getDate() + 3);
+    
+    const { data: events, error } = await supabase
+      .from('events')
+      .select('*')
+      .gte('date', today.toISOString().split('T')[0])
+      .lte('date', threeDaysLater.toISOString().split('T')[0])
+      .order('date', { ascending: true });
+
+    if (error) throw error;
+    if (!events || events.length === 0) return [];
+
+    const eventsNeedingReminders: { event: any; daysRemaining: number }[] = [];
+
+    for (const event of events) {
+      const eventDate = new Date(event.date);
+      eventDate.setHours(0, 0, 0, 0);
+      
+      const diffTime = eventDate.getTime() - today.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+      // Check if event is 3, 2, 1 days away, or today
+      if (diffDays >= 0 && diffDays <= 3) {
+        eventsNeedingReminders.push({
+          event,
+          daysRemaining: diffDays,
+        });
+      }
+    }
+
+    return eventsNeedingReminders;
+  } catch (error) {
+    console.error('Error getting events needing reminders:', error);
+    return [];
+  }
+};
+
+/**
+ * Send event reminders to Telegram groups
+ * Checks for events 3, 2, 1 days before, and on the day
+ */
+export const sendEventReminders = async (): Promise<{
+  sent: number;
+  failed: number;
+  errors: string[];
+}> => {
+  if (!TELEGRAM_BOT_TOKEN) {
+    console.error('❌ TELEGRAM_BOT_TOKEN is not configured!');
+    return { sent: 0, failed: 0, errors: ['Bot token not configured'] };
+  }
+
+  if (!isSupabaseConfigured()) {
+    console.warn('⚠️  Supabase not configured. Cannot send reminders.');
+    return { sent: 0, failed: 0, errors: ['Supabase not configured'] };
+  }
+
+  // Get group chat IDs
+  const envGroups = process.env.TELEGRAM_EVENT_GROUPS;
+  if (!envGroups) {
+    console.warn('⚠️  No Telegram groups configured for reminders');
+    return { sent: 0, failed: 0, errors: ['No groups configured'] };
+  }
+
+  const chatIds = envGroups.split(',').map(id => id.trim()).filter(id => id.length > 0);
+  if (chatIds.length === 0) {
+    return { sent: 0, failed: 0, errors: ['No groups configured'] };
+  }
+
+  const eventsNeedingReminders = await getEventsNeedingReminders();
+  if (eventsNeedingReminders.length === 0) {
+    console.log('✅ No events needing reminders today');
+    return { sent: 0, failed: 0, errors: [] };
+  }
+
+  let totalSent = 0;
+  let totalFailed = 0;
+  const errors: string[] = [];
+
+  for (const { event, daysRemaining } of eventsNeedingReminders) {
+    let message: string;
+    
+    if (daysRemaining === 0) {
+      // Event is today - "Time has come" message
+      message = formatEventDayMessage(event);
+    } else {
+      // 3, 2, or 1 days before - reminder message
+      message = formatEventReminder(event, daysRemaining);
+    }
+
+    // Send to all configured groups
+    for (const chatId of chatIds) {
+      try {
+        if (event.image) {
+          await sendTelegramPhoto(chatId, event.image, message, 'HTML');
+        } else {
+          await sendTelegramMessage({
+            chat_id: chatId,
+            text: message,
+            parse_mode: 'HTML',
+          });
+        }
+        console.log(`✅ Reminder sent for "${event.title}" (${daysRemaining} days) to group ${chatId}`);
+        totalSent++;
+      } catch (error: any) {
+        const errorMsg = `Failed to send reminder for "${event.title}" to group ${chatId}: ${error.message || error}`;
+        console.error(`❌ ${errorMsg}`);
+        errors.push(errorMsg);
+        totalFailed++;
+      }
+    }
+  }
+
+  return { sent: totalSent, failed: totalFailed, errors };
 };
 

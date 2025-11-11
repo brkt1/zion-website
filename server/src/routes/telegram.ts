@@ -1,11 +1,13 @@
 import express, { Request, Response } from 'express';
 import {
+  announceEventToGroups,
   broadcastToSubscribers,
   deleteWebhook,
   getBotInfo,
   handleNewChatMembers,
   handleTelegramCallback,
   handleTelegramCommand,
+  sendEventReminders,
   sendTelegramMessage,
   setWebhook,
 } from '../services/telegram';
@@ -238,6 +240,64 @@ router.post('/broadcast', verifyAdminAuth, async (req: Request, res: Response) =
   } catch (error: any) {
     console.error('Error broadcasting:', error);
     res.status(500).json({ error: 'Failed to broadcast message' });
+  }
+});
+
+/**
+ * POST /api/telegram/announce-event
+ * Announce a new event to Telegram groups
+ * Requires admin authentication
+ */
+router.post('/announce-event', verifyAdminAuth, async (req: Request, res: Response) => {
+  try {
+    const { event, group_chat_ids } = req.body;
+
+    if (!event) {
+      return res.status(400).json({ error: 'Event data is required' });
+    }
+
+    // Validate required event fields
+    if (!event.id || !event.title || !event.date) {
+      return res.status(400).json({ 
+        error: 'Event must have id, title, and date' 
+      });
+    }
+
+    const result = await announceEventToGroups(event, group_chat_ids);
+
+    res.json({
+      success: result.sent > 0,
+      sent: result.sent,
+      failed: result.failed,
+      total: result.sent + result.failed,
+      errors: result.errors,
+    });
+  } catch (error: any) {
+    console.error('Error announcing event:', error);
+    res.status(500).json({ error: 'Failed to announce event' });
+  }
+});
+
+/**
+ * POST /api/telegram/send-reminders
+ * Manually trigger event reminders (for testing or manual use)
+ * Requires admin authentication
+ */
+router.post('/send-reminders', verifyAdminAuth, async (req: Request, res: Response) => {
+  try {
+    console.log('📢 Manual reminder check triggered');
+    const result = await sendEventReminders();
+
+    res.json({
+      success: result.sent > 0 || result.failed === 0,
+      sent: result.sent,
+      failed: result.failed,
+      total: result.sent + result.failed,
+      errors: result.errors,
+    });
+  } catch (error: any) {
+    console.error('Error sending reminders:', error);
+    res.status(500).json({ error: 'Failed to send reminders' });
   }
 });
 

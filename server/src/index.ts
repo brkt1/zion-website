@@ -8,6 +8,7 @@ import contentRoutes from './routes/content';
 import paymentRoutes from './routes/payment';
 import pushRoutes from './routes/push';
 import telegramRoutes from './routes/telegram';
+import { sendEventReminders } from './services/telegram';
 
 // Load .env file from server directory
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
@@ -202,5 +203,36 @@ app.get('/api/health', (req: express.Request, res: express.Response) => {
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
+  
+  // Set up daily reminder check (runs once per day at 9:00 AM)
+  // Check every hour and send reminders if it's 9 AM
+  setInterval(async () => {
+    const now = new Date();
+    const hour = now.getHours();
+    
+    // Run at 9 AM (adjust timezone as needed)
+    if (hour === 9 && now.getMinutes() < 5) {
+      console.log('⏰ Running daily event reminder check...');
+      try {
+        const result = await sendEventReminders();
+        console.log(`✅ Reminder check complete: ${result.sent} sent, ${result.failed} failed`);
+        if (result.errors.length > 0) {
+          console.error('❌ Reminder errors:', result.errors);
+        }
+      } catch (error) {
+        console.error('❌ Error running reminder check:', error);
+      }
+    }
+  }, 60 * 60 * 1000); // Check every hour
+  
+  // Also run immediately on startup (for testing/debugging)
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('🧪 Running initial reminder check (dev mode)...');
+    sendEventReminders().then(result => {
+      console.log(`✅ Initial check: ${result.sent} sent, ${result.failed} failed`);
+    }).catch(error => {
+      console.error('❌ Initial check error:', error);
+    });
+  }
 });
 

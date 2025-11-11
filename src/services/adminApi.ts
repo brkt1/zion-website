@@ -53,6 +53,49 @@ export const adminApi = {
         console.warn('Failed to send push notification for new event:', pushError);
       }
       
+      // Announce event to Telegram groups
+      // Note: This requires REACT_APP_TELEGRAM_ADMIN_API_TOKEN to be set in frontend env
+      // The token is only accessible to authenticated admins, so this is secure
+      try {
+        const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+        const adminToken = process.env.REACT_APP_TELEGRAM_ADMIN_API_TOKEN;
+        
+        if (adminToken) {
+          const response = await fetch(`${apiUrl}/telegram/announce-event`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${adminToken}`,
+            },
+            body: JSON.stringify({
+              event: {
+                id: data.id,
+                title: data.title,
+                date: data.date,
+                time: data.time,
+                location: data.location,
+                category: data.category,
+                image: data.image,
+                description: data.description,
+                price: data.price,
+                currency: data.currency,
+                telegram_link: data.telegram_link,
+              },
+            }),
+          });
+          
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.warn('Telegram announcement failed:', errorData);
+          }
+        } else {
+          console.warn('REACT_APP_TELEGRAM_ADMIN_API_TOKEN not set. Event announcement skipped.');
+        }
+      } catch (telegramError) {
+        // Don't fail event creation if Telegram announcement fails
+        console.warn('Failed to announce event to Telegram groups:', telegramError);
+      }
+      
       return data;
     },
 
