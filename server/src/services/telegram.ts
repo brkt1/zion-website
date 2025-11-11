@@ -1110,7 +1110,6 @@ export const handleNewChatMembers = async (update: TelegramUpdate): Promise<void
   if (!update.message || !update.message.new_chat_members) return;
 
   const message = update.message;
-  const chatId = message.chat.id;
   const newMembers = update.message.new_chat_members;
 
   // Don't welcome the bot itself
@@ -1121,21 +1120,20 @@ export const handleNewChatMembers = async (update: TelegramUpdate): Promise<void
     // Skip if it's the bot itself
     if (member.id === botId) continue;
 
-    // Send welcome message
-    const welcomeMessage = `👋 Welcome to the group, <b>${member.first_name}</b>!
-
-Please read the group rules and enjoy your stay! 🎉
-
-<i>Use /help to see available commands.</i>`;
+    // Send welcome message privately to the new member (not in group)
+    const welcomeMessage = `👋 Welcome, <b>${member.first_name}</b>! 🎉`;
 
     try {
+      // Send as private message to the user (using their user ID, not group chat ID)
       await sendTelegramMessage({
-        chat_id: chatId,
+        chat_id: member.id,
         text: welcomeMessage,
         parse_mode: 'HTML',
       });
     } catch (error) {
-      console.error('Error sending welcome message:', error);
+      // If we can't send private message (user hasn't started bot), silently fail
+      // This is normal - user needs to start bot first to receive private messages
+      console.log(`Could not send welcome message to user ${member.id} (they may need to start the bot first)`);
     }
   }
 };
@@ -1143,6 +1141,72 @@ Please read the group rules and enjoy your stay! 🎉
 /**
  * Handle bot commands
  */
+/**
+ * Handle automatic text replies (for non-command messages)
+ */
+const handleAutoReply = async (update: TelegramUpdate): Promise<void> => {
+  if (!update.message || !update.message.text) return;
+
+  const message = update.message;
+  const chatId = message.chat.id;
+  const chatType = message.chat.type;
+  const text = (message.text || '').trim();
+  const telegramUserId = message.from.id;
+
+  // Skip if it's a command
+  if (text.startsWith('/')) return;
+
+  // Only auto-reply in private chats (not in groups unless bot is mentioned)
+  if (chatType === 'private') {
+    // Simple auto-reply for common questions
+    const lowerText = text.toLowerCase();
+    
+    // Check for greetings
+    if (lowerText.match(/\b(hi|hello|hey|greetings|good morning|good afternoon|good evening)\b/)) {
+      await sendTelegramMessage({
+        chat_id: chatId,
+        text: '👋 Hello! How can I help you today? Use /help to see available commands.',
+      });
+      return;
+    }
+
+    // Check for help requests
+    if (lowerText.match(/\b(help|what can you do|what do you do|commands)\b/)) {
+      await sendTelegramMessage({
+        chat_id: chatId,
+        text: '📚 I can help you with events, tickets, and notifications! Use /help to see all commands.',
+      });
+      return;
+    }
+
+    // Check for events
+    if (lowerText.match(/\b(event|events|upcoming|what events|show events)\b/)) {
+      await sendTelegramMessage({
+        chat_id: chatId,
+        text: '📅 Use /events to see upcoming events!',
+      });
+      return;
+    }
+
+    // Default response for other messages
+    await sendTelegramMessage({
+      chat_id: chatId,
+      text: '💬 I\'m here to help! Use /help to see what I can do, or try /events to see upcoming events.',
+    });
+  } else if (chatType === 'group' || chatType === 'supergroup') {
+    // In groups, only respond if bot is mentioned
+    const botInfo = await getBotInfo();
+    const botUsername = botInfo.result?.username;
+    
+    if (botUsername && text.includes(`@${botUsername}`)) {
+      await sendTelegramMessage({
+        chat_id: chatId,
+        text: '👋 Hi! Use /help to see available commands.',
+      });
+    }
+  }
+};
+
 export const handleTelegramCommand = async (update: TelegramUpdate): Promise<void> => {
   if (!update.message) {
     console.log('⚠️ No message in update');
@@ -1157,6 +1221,13 @@ export const handleTelegramCommand = async (update: TelegramUpdate): Promise<voi
   const args = text.split(' ').slice(1);
   const telegramUserId = message.from.id;
   const messageId = message.message_id;
+
+  // Check if it's a command or regular message
+  if (!text.startsWith('/')) {
+    // Not a command - handle auto-reply
+    await handleAutoReply(update);
+    return;
+  }
 
   console.log(`🔍 Processing command: "${command}" from user ${telegramUserId} in ${chatType}`);
 
@@ -1210,14 +1281,7 @@ I can help you with:
 • 📅 View upcoming events
 • 🎫 Verify your tickets
 • 🔔 Get event notifications
-• ℹ️ Get event information
-
-<b>Commands:</b>
-/events - View upcoming events
-/verify [tx_ref] - Verify a ticket
-/subscribe - Subscribe to event notifications
-/unsubscribe - Unsubscribe from notifications
-/help - Show this help message`;
+• ℹ️ Get event information`;
 
         if (isAdminForStart) {
           welcomeText += '\n\n🔐 <i>Bot Admin: Use /admin_help to see bot admin commands</i>';
@@ -1227,12 +1291,42 @@ I can help you with:
           welcomeText += '\n👥 <i>Group Admin: Use /group_help to see group admin commands</i>';
         }
 
-        welcomeText += '\n\n<i>Use /help for more information</i>';
+        // Create inline keyboard with buttons
+        const startKeyboard = {
+          inline_keyboard: [
+            [
+              { text: '📅 View Events', callback_data: 'cmd_events' },
+              { text: '🎫 Verify Ticket', callback_data: 'cmd_verify' }
+            ],
+            [
+              { text: '🔔 Subscribe', callback_data: 'cmd_subscribe' },
+              { text: '❌ Unsubscribe', callback_data: 'cmd_unsubscribe' }
+            ],
+            [
+              { text: '📚 Help', callback_data: 'cmd_help' }
+            ]
+          ]
+        };
+
+        // Add admin buttons if user is admin
+        if (isAdminForStart || isGroupAdminForStart) {
+          if (isAdminForStart) {
+            startKeyboard.inline_keyboard.push([
+              { text: '🔐 Admin Panel', callback_data: 'cmd_admin_help' }
+            ]);
+          }
+          if (isGroupAdminForStart) {
+            startKeyboard.inline_keyboard.push([
+              { text: '👥 Group Admin', callback_data: 'cmd_group_help' }
+            ]);
+          }
+        }
 
         await sendTelegramMessage({
           chat_id: chatId,
           text: welcomeText,
           parse_mode: 'HTML',
+          reply_markup: startKeyboard,
         });
         break;
 
@@ -1277,19 +1371,43 @@ I can help you with:
 
         helpText += '\n<b>Need help?</b> Contact us at info@yenege.com';
 
+        // Create help keyboard with quick action buttons
+        const helpKeyboard = {
+          inline_keyboard: [
+            [
+              { text: '📅 View Events', callback_data: 'cmd_events' },
+              { text: '🎫 Verify Ticket', callback_data: 'cmd_verify' }
+            ],
+            [
+              { text: '🔔 Subscribe', callback_data: 'cmd_subscribe' },
+              { text: '🏠 Main Menu', callback_data: 'cmd_start' }
+            ]
+          ]
+        };
+
         await sendTelegramMessage({
           chat_id: chatId,
           text: helpText,
           parse_mode: 'HTML',
+          reply_markup: helpKeyboard,
         });
         break;
 
       case '/events':
         const events = await getUpcomingEvents(5);
         if (events.length === 0) {
+          const emptyKeyboard = {
+            inline_keyboard: [
+              [
+                { text: '🔄 Refresh', callback_data: 'cmd_events' },
+                { text: '🏠 Main Menu', callback_data: 'cmd_start' }
+              ]
+            ]
+          };
           await sendTelegramMessage({
             chat_id: chatId,
             text: '📅 No upcoming events found. Check back later!',
+            reply_markup: emptyKeyboard,
           });
         } else {
           for (const event of events) {
@@ -1302,6 +1420,10 @@ I can help you with:
                     callback_data: `event_${event.id}`,
                   },
                 ],
+                [
+                  { text: '🔙 Back', callback_data: 'cmd_events' },
+                  { text: '🏠 Main Menu', callback_data: 'cmd_start' }
+                ]
               ],
             };
 
@@ -2378,12 +2500,8 @@ ${chat.username ? `<b>Username:</b> @${chat.username}` : ''}`;
               parse_mode: 'HTML',
             });
           }
-        } else {
-          await sendTelegramMessage({
-            chat_id: chatId,
-            text: '❓ Unknown command. Use /help to see available commands.',
-          });
         }
+        // Don't respond to unknown commands or regular messages - just ignore them
         break;
     }
   } catch (error: any) {
@@ -2404,6 +2522,7 @@ export const handleTelegramCallback = async (update: TelegramUpdate): Promise<vo
   const callbackQuery = update.callback_query;
   const chatId = callbackQuery.message?.chat.id;
   const data = callbackQuery.data || '';
+  const userId = callbackQuery.from.id;
 
   if (!chatId) return;
 
@@ -2411,7 +2530,29 @@ export const handleTelegramCallback = async (update: TelegramUpdate): Promise<vo
     // Answer the callback query first
     await answerCallbackQuery(callbackQuery.id);
 
-    // Handle different callback data
+    // Handle command buttons (cmd_*)
+    if (data.startsWith('cmd_')) {
+      const command = data.replace('cmd_', '');
+      
+      // Create a fake update object to reuse command handlers
+      const fakeUpdate: TelegramUpdate = {
+        update_id: update.update_id,
+        message: {
+          ...callbackQuery.message!,
+          text: `/${command}`,
+          from: callbackQuery.from,
+          chat: callbackQuery.message!.chat,
+          message_id: callbackQuery.message!.message_id,
+          date: callbackQuery.message!.date,
+        },
+      };
+
+      // Handle the command
+      await handleTelegramCommand(fakeUpdate);
+      return;
+    }
+
+    // Handle event detail callbacks (event_*)
     if (data.startsWith('event_')) {
       const eventId = data.replace('event_', '');
       const event = await getEventById(eventId);
@@ -2425,6 +2566,15 @@ export const handleTelegramCallback = async (update: TelegramUpdate): Promise<vo
       }
 
       const eventText = formatEventInfo(event);
+      const keyboard = {
+        inline_keyboard: [
+          [
+            { text: '🔙 Back to Events', callback_data: 'cmd_events' },
+            { text: '🏠 Main Menu', callback_data: 'cmd_start' }
+          ]
+        ]
+      };
+
       if (event.image) {
         await sendTelegramPhoto(chatId, event.image, eventText, 'HTML');
       } else {
@@ -2432,11 +2582,12 @@ export const handleTelegramCallback = async (update: TelegramUpdate): Promise<vo
           chat_id: chatId,
           text: eventText,
           parse_mode: 'HTML',
+          reply_markup: keyboard,
         });
       }
     }
   } catch (error: any) {
-    console.error('Error handling callback:', error);
+    console.error('Error handling callback query:', error);
   }
 };
 
