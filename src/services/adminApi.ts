@@ -31,6 +31,28 @@ export const adminApi = {
         .single();
 
       if (error) throw error;
+      
+      // Send push notification about new event
+      try {
+        const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+        await fetch(`${apiUrl}/push/send`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            title: '🎉 New Event Launched!',
+            body: `${event.title} - Check it out now!`,
+            image: event.image || undefined,
+            url: `/events/${data.id}`,
+            tag: `new-event-${data.id}`,
+          }),
+        });
+      } catch (pushError) {
+        // Don't fail event creation if push notification fails
+        console.warn('Failed to send push notification for new event:', pushError);
+      }
+      
       return data;
     },
 

@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import path from 'path';
 import contentRoutes from './routes/content';
 import paymentRoutes from './routes/payment';
+import pushRoutes from './routes/push';
 
 // Load .env file from server directory
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
@@ -178,6 +179,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' })); // Limit URL-enc
 
 // Routes
 app.use('/api/payments', paymentRoutes);
+app.use('/api/push', pushRoutes);
 app.use('/api', contentRoutes);
 
 // Health check

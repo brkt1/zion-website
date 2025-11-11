@@ -225,10 +225,53 @@ self.addEventListener('sync', (event) => {
   // Implement background sync logic here if needed
 });
 
-// Handle push notifications (if needed in future)
+// Handle push notifications
 self.addEventListener('push', (event) => {
   console.log('[Service Worker] Push notification received');
-  // Implement push notification logic here if needed
+  
+  let notificationData = {
+    title: 'Yenege',
+    body: 'You have a new notification',
+    icon: '/icon-192x192.png',
+    badge: '/icon-192x192.png',
+    tag: 'yenege-notification',
+    requireInteraction: false,
+    vibrate: [200, 100, 200],
+  };
+
+  // Try to parse push data
+  if (event.data) {
+    try {
+      const data = event.data.json();
+      notificationData = { 
+        ...notificationData, 
+        ...data,
+        // Ensure image is included if provided (for browsers that support it)
+        ...(data.image && { image: data.image }),
+      };
+    } catch (e) {
+      const text = event.data.text();
+      if (text) {
+        notificationData.body = text;
+      }
+    }
+  }
+
+  const notificationOptions = {
+    body: notificationData.body,
+    icon: notificationData.icon,
+    badge: notificationData.badge,
+    tag: notificationData.tag,
+    requireInteraction: notificationData.requireInteraction,
+    vibrate: notificationData.vibrate,
+    data: notificationData.data || {},
+    // Add image if supported (some browsers support this)
+    ...(notificationData.image && { image: notificationData.image }),
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(notificationData.title, notificationOptions)
+  );
 });
 
 // Handle notification clicks

@@ -58,4 +58,39 @@ npm start
 - `NODE_ENV` - Environment (development/production)
 - `FRONTEND_URL` - Frontend application URL
 - `CHAPA_SECRET_KEY` - Your Chapa secret key
+- `VAPID_PUBLIC_KEY` - VAPID public key for Web Push (generate with `node scripts/generate-vapid-keys.js`)
+- `VAPID_PRIVATE_KEY` - VAPID private key for Web Push (keep secret!)
+- `VAPID_SUBJECT` - VAPID subject (e.g., `mailto:admin@yenege.com`)
+- `SUPABASE_URL` - Supabase project URL (for push subscriptions)
+- `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key (for backend operations)
+
+## Push Notifications Setup
+
+1. Generate VAPID keys:
+```bash
+node scripts/generate-vapid-keys.js
+```
+
+2. Add the generated keys to your `.env` file
+
+3. Create the push_subscriptions table in Supabase (see `docs/scripts/create-push-subscriptions-table.sql`)
+
+4. Users will automatically subscribe when they install the PWA and grant notification permission
+
+## API Endpoints
+
+### Health Check
+- `GET /api/health` - Check if server is running
+
+### Payment Endpoints
+- `POST /api/payments/initialize` - Initialize a payment
+- `GET /api/payments/verify/:tx_ref` - Verify a payment
+- `POST /api/payments/webhook` - Webhook for payment updates
+- `GET /api/payments/generate-tx-ref` - Generate transaction reference
+
+### Push Notification Endpoints
+- `GET /api/push/vapid-public-key` - Get VAPID public key
+- `POST /api/push/subscribe` - Subscribe to push notifications
+- `POST /api/push/unsubscribe` - Unsubscribe from push notifications
+- `POST /api/push/send` - Send push notification to all subscribers
 

@@ -5,7 +5,7 @@ services:
     plan: free
     region: oregon
     rootDir: server
-    buildCommand: NODE_ENV=development npm install && npm run build
+    buildCommand: npm install && npm run build
     startCommand: npm start
     healthCheckPath: /api/health
     envVars:
@@ -15,3 +15,4 @@ services:
         value: https://www.yenege.com
       # CHAPA_SECRET_KEY should be set manually in Render dashboard for security
       # Go to: Render Dashboard → Your Service → Environment → Add Variable
+      # VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY should also be set

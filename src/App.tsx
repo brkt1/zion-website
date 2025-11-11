@@ -2,6 +2,7 @@ import { Suspense, lazy } from "react";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import AdminRoute from "./Components/admin/AdminRoute";
 import Layout from "./Components/layout/Layout";
+import NotificationManager from "./Components/NotificationManager";
 import ScrollToTop from "./Components/ScrollToTop";
 import { LoadingState } from "./Components/ui/LoadingState";
 import PWAInstallPrompt from "./Components/ui/PWAInstallPrompt";
@@ -55,6 +56,7 @@ function App() {
     >
       <ScrollToTop />
       <VisitTracker />
+      <NotificationManager />
       <PWAInstallPrompt />
       <Routes>
         {/* Public Routes */}
