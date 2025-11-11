@@ -204,15 +204,20 @@ app.get('/api/health', (req: express.Request, res: express.Response) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   
+  // Track last reminder check date to prevent duplicates
+  let lastReminderCheckDate: string | null = null;
+  
   // Set up daily reminder check (runs once per day at 9:00 AM)
   // Check every hour and send reminders if it's 9 AM
   setInterval(async () => {
     const now = new Date();
     const hour = now.getHours();
+    const today = now.toISOString().split('T')[0]; // YYYY-MM-DD format
     
-    // Run at 9 AM (adjust timezone as needed)
-    if (hour === 9 && now.getMinutes() < 5) {
+    // Run at 9 AM (adjust timezone as needed) and only once per day
+    if (hour === 9 && now.getMinutes() < 5 && lastReminderCheckDate !== today) {
       console.log('⏰ Running daily event reminder check...');
+      lastReminderCheckDate = today; // Mark as checked for today
       try {
         const result = await sendEventReminders();
         console.log(`✅ Reminder check complete: ${result.sent} sent, ${result.failed} failed`);
@@ -221,6 +226,8 @@ app.listen(PORT, () => {
         }
       } catch (error) {
         console.error('❌ Error running reminder check:', error);
+        // Reset on error so it can retry
+        lastReminderCheckDate = null;
       }
     }
   }, 60 * 60 * 1000); // Check every hour

@@ -403,6 +403,82 @@ export const getChatAdministrators = async (chatId: number | string): Promise<Te
 };
 
 /**
+ * Add a user to a chat (invite)
+ */
+export const addChatMember = async (
+  chatId: number | string,
+  userId: number,
+  forwardLimit?: number
+): Promise<TelegramResponse> => {
+  try {
+    const params: any = {
+      chat_id: chatId,
+      user_id: userId,
+    };
+    if (forwardLimit !== undefined) {
+      params.forward_limit = forwardLimit;
+    }
+    return await telegramRequest('addChatMember', params);
+  } catch (error: any) {
+    console.error('Error adding chat member:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get chat members count
+ */
+export const getChatMembersCount = async (chatId: number | string): Promise<TelegramResponse> => {
+  try {
+    return await telegramRequest('getChatMembersCount', {
+      chat_id: chatId,
+    });
+  } catch (error: any) {
+    console.error('Error getting chat members count:', error);
+    throw error;
+  }
+};
+
+/**
+ * Export chat invite link
+ */
+export const exportChatInviteLink = async (chatId: number | string): Promise<TelegramResponse> => {
+  try {
+    return await telegramRequest('exportChatInviteLink', {
+      chat_id: chatId,
+    });
+  } catch (error: any) {
+    console.error('Error exporting chat invite link:', error);
+    throw error;
+  }
+};
+
+/**
+ * Create chat invite link
+ */
+export const createChatInviteLink = async (
+  chatId: number | string,
+  name?: string,
+  expireDate?: number,
+  memberLimit?: number,
+  createsJoinRequest?: boolean
+): Promise<TelegramResponse> => {
+  try {
+    const params: any = {
+      chat_id: chatId,
+    };
+    if (name) params.name = name;
+    if (expireDate) params.expire_date = expireDate;
+    if (memberLimit) params.member_limit = memberLimit;
+    if (createsJoinRequest !== undefined) params.creates_join_request = createsJoinRequest;
+    return await telegramRequest('createChatInviteLink', params);
+  } catch (error: any) {
+    console.error('Error creating chat invite link:', error);
+    throw error;
+  }
+};
+
+/**
  * Check if user is admin or creator of a group
  */
 const isGroupAdmin = async (chatId: number | string, userId: number): Promise<boolean> => {
@@ -1126,7 +1202,9 @@ export const handleTelegramCommand = async (update: TelegramUpdate): Promise<voi
 
       case '/start':
         const isAdminForStart = await isTelegramAdmin(telegramUserId);
-        const welcomeText = `👋 <b>Welcome to Yenege Events Bot!</b>
+        const isGroupAdminForStart = chatType !== 'private' ? await isGroupAdmin(chatId, telegramUserId) : false;
+        
+        let welcomeText = `👋 <b>Welcome to Yenege Events Bot!</b>
 
 I can help you with:
 • 📅 View upcoming events
@@ -1139,9 +1217,17 @@ I can help you with:
 /verify [tx_ref] - Verify a ticket
 /subscribe - Subscribe to event notifications
 /unsubscribe - Unsubscribe from notifications
-/help - Show this help message${isAdminForStart ? '\n\n🔐 <i>Admin: Use /admin_help to see admin commands</i>' : ''}
+/help - Show this help message`;
 
-<i>Use /help for more information</i>`;
+        if (isAdminForStart) {
+          welcomeText += '\n\n🔐 <i>Bot Admin: Use /admin_help to see bot admin commands</i>';
+        }
+        
+        if (isGroupAdminForStart) {
+          welcomeText += '\n👥 <i>Group Admin: Use /group_help to see group admin commands</i>';
+        }
+
+        welcomeText += '\n\n<i>Use /help for more information</i>';
 
         await sendTelegramMessage({
           chat_id: chatId,
@@ -1152,9 +1238,9 @@ I can help you with:
 
       case '/help':
         const isAdminForHelpCmd = await isTelegramAdmin(telegramUserId);
-        await sendTelegramMessage({
-          chat_id: chatId,
-          text: `📚 <b>Yenege Events Bot - Help</b>
+        const isGroupAdminForHelpCmd = chatType !== 'private' ? await isGroupAdmin(chatId, telegramUserId) : false;
+        
+        let helpText = `📚 <b>Yenege Events Bot - Help</b>
 
 <b>Available Commands:</b>
 
@@ -1164,14 +1250,36 @@ I can help you with:
 /verify [tx_ref] - Verify a ticket by transaction reference
 /subscribe - Subscribe to event notifications
 /unsubscribe - Unsubscribe from notifications
-/help - Show this help message${isAdminForHelpCmd ? '\n/admin_help - Show admin commands (admin only)' : ''}
+/help - Show this help message`;
 
-<b>Examples:</b>
+        if (isAdminForHelpCmd) {
+          helpText += '\n/admin_help - Show bot admin commands (bot admin only)';
+        }
+        
+        if (isGroupAdminForHelpCmd) {
+          helpText += '\n/group_help - Show group admin commands (group admin only)';
+        }
+
+        helpText += `\n\n<b>Examples:</b>
 • <code>/events</code> - List upcoming events
 • <code>/verify YENEGE123456</code> - Verify ticket
-• <code>/event_abc123</code> - Get event details
+• <code>/event_abc123</code> - Get event details`;
 
-${isAdminForHelpCmd ? '🔐 <b>Admin:</b> Use <code>/admin_help</code> to see all admin commands\n\n' : ''}<b>Need help?</b> Contact us at info@yenege.com`,
+        if (isAdminForHelpCmd || isGroupAdminForHelpCmd) {
+          helpText += '\n\n';
+          if (isAdminForHelpCmd) {
+            helpText += '🔐 <b>Bot Admin:</b> Use <code>/admin_help</code> to see bot admin commands\n';
+          }
+          if (isGroupAdminForHelpCmd) {
+            helpText += '👥 <b>Group Admin:</b> Use <code>/group_help</code> to see group admin commands\n';
+          }
+        }
+
+        helpText += '\n<b>Need help?</b> Contact us at info@yenege.com';
+
+        await sendTelegramMessage({
+          chat_id: chatId,
+          text: helpText,
           parse_mode: 'HTML',
         });
         break;
@@ -1414,7 +1522,7 @@ ${isAdminForHelpCmd ? '🔐 <b>Admin:</b> Use <code>/admin_help</code> to see al
 
         await sendTelegramMessage({
           chat_id: chatId,
-          text: `🔐 <b>Admin Commands</b>
+          text: `🔐 <b>Bot Admin Commands</b>
 
 <b>Statistics & Analytics:</b>
 /stats - Get website statistics (events, tickets, revenue, subscribers)
@@ -1433,6 +1541,66 @@ ${isAdminForHelpCmd ? '🔐 <b>Admin:</b> Use <code>/admin_help</code> to see al
 • <code>/broadcast New event announced! 🎉</code> - Send message to all subscribers
 
 <i>Note: To use admin commands, your Telegram user ID must be added to TELEGRAM_ADMIN_USER_IDS in the server .env file.</i>`,
+          parse_mode: 'HTML',
+        });
+        break;
+
+      case '/group_help':
+      case '/grouphelp':
+        if (chatType === 'private') {
+          await sendTelegramMessage({
+            chat_id: chatId,
+            text: '❌ This command only works in groups.',
+          });
+          return;
+        }
+
+        // Check if user is group admin
+        const isGroupAdminForHelp = await isGroupAdmin(chatId, telegramUserId);
+        if (!isGroupAdminForHelp) {
+          await sendTelegramMessage({
+            chat_id: chatId,
+            text: '❌ Access denied. This command is only available to group administrators.',
+          });
+          return;
+        }
+
+        await sendTelegramMessage({
+          chat_id: chatId,
+          text: `👥 <b>Group Admin Commands</b>
+
+<b>Member Management:</b>
+/add_user [user_id] - Add a user to the group by ID
+/add_users [user_id1] [user_id2] ... - Add multiple users to the group
+/export_invite - Get group invite link
+/invite_link - Get group invite link (alias)
+
+<b>Moderation:</b>
+/ban - Ban a user (reply to their message)
+/unban - Unban a user (reply to their message)
+/kick - Kick a user from the group (reply to their message)
+/mute [hours] - Mute a user (reply to their message, default: 24 hours)
+/unmute - Unmute a user (reply to their message)
+
+<b>Message Management:</b>
+/del - Delete a message (reply to the message)
+/delete - Delete a message (alias)
+/pin [silent] - Pin a message (reply to the message)
+/unpin - Unpin the current pinned message
+
+<b>Information:</b>
+/groupinfo - Get group information
+/ginfo - Get group information (alias)
+/rules - Show group rules
+/group_help - Show this help message
+
+<b>Examples:</b>
+• <code>/add_user 123456789</code> - Add user by ID
+• <code>/add_users 123456789 987654321</code> - Add multiple users
+• <code>/export_invite</code> - Get invite link
+• <code>/mute 48</code> - Mute user for 48 hours
+
+<i>Note: These commands are only available to group administrators.</i>`,
           parse_mode: 'HTML',
         });
         break;
@@ -1896,6 +2064,294 @@ ${chat.username ? `<b>Username:</b> @${chat.username}` : ''}`;
           text: rulesMessage,
           parse_mode: 'HTML',
         });
+        break;
+
+      case '/add_user':
+        if (chatType === 'private') {
+          await sendTelegramMessage({
+            chat_id: chatId,
+            text: '❌ This command only works in groups.',
+          });
+          return;
+        }
+
+        // Check if user is admin
+        const isGroupAdminForAdd = await isGroupAdmin(chatId, telegramUserId);
+        if (!isGroupAdminForAdd) {
+          await sendTelegramMessage({
+            chat_id: chatId,
+            text: '❌ You must be a group administrator to use this command.',
+          });
+          return;
+        }
+
+        if (args.length === 0) {
+          await sendTelegramMessage({
+            chat_id: chatId,
+            text: '❌ Please provide a user ID or username.\n\n<b>Usage:</b> <code>/add_user &lt;user_id&gt;</code> or <code>/add_user @username</code>\n\n<b>Example:</b> <code>/add_user 123456789</code>',
+            parse_mode: 'HTML',
+          });
+          return;
+        }
+
+        try {
+          const userIdentifier = args[0];
+          let userId: number;
+
+          // Check if it's a username (starts with @)
+          if (userIdentifier.startsWith('@')) {
+            // For username, we need to resolve it first
+            // Note: Telegram Bot API doesn't directly support username resolution
+            // We'll need the user ID. For now, show instructions.
+            await sendTelegramMessage({
+              chat_id: chatId,
+              text: '⚠️ To add by username, please use the user ID instead.\n\nTo get a user ID, forward a message from that user to @userinfobot or use their numeric ID.\n\n<b>Usage:</b> <code>/add_user 123456789</code>',
+              parse_mode: 'HTML',
+            });
+            return;
+          }
+
+          // Parse user ID
+          userId = parseInt(userIdentifier);
+          if (isNaN(userId)) {
+            await sendTelegramMessage({
+              chat_id: chatId,
+              text: '❌ Invalid user ID. Please provide a numeric user ID.\n\n<b>Example:</b> <code>/add_user 123456789</code>',
+              parse_mode: 'HTML',
+            });
+            return;
+          }
+
+          const result = await addChatMember(chatId, userId);
+          if (result.ok) {
+            await sendTelegramMessage({
+              chat_id: chatId,
+              text: `✅ User <code>${userId}</code> has been added to the group.`,
+              parse_mode: 'HTML',
+            });
+          } else {
+            throw new Error(result.description || 'Failed to add user');
+          }
+        } catch (error: any) {
+          console.error('Error adding user:', error.message || 'Unknown error');
+          const errorMsg = error.message || 'Unknown error';
+          let userFriendlyMsg = '❌ Failed to add user. ';
+          
+          if (errorMsg.includes('USER_ALREADY_PARTICIPANT')) {
+            userFriendlyMsg += 'User is already a member of this group.';
+          } else if (errorMsg.includes('USER_PRIVACY_RESTRICTED')) {
+            userFriendlyMsg += 'User has privacy settings that prevent adding them.';
+          } else if (errorMsg.includes('CHAT_ADMIN_REQUIRED')) {
+            userFriendlyMsg += 'Bot needs admin rights with "Add Users" permission.';
+          } else {
+            userFriendlyMsg += 'Please try again or contact an administrator.';
+          }
+
+          await sendTelegramMessage({
+            chat_id: chatId,
+            text: userFriendlyMsg,
+          });
+        }
+        break;
+
+      case '/add_users':
+        if (chatType === 'private') {
+          await sendTelegramMessage({
+            chat_id: chatId,
+            text: '❌ This command only works in groups.',
+          });
+          return;
+        }
+
+        // Check if user is admin
+        const isGroupAdminForAddUsers = await isGroupAdmin(chatId, telegramUserId);
+        if (!isGroupAdminForAddUsers) {
+          await sendTelegramMessage({
+            chat_id: chatId,
+            text: '❌ You must be a group administrator to use this command.',
+          });
+          return;
+        }
+
+        if (args.length === 0) {
+          await sendTelegramMessage({
+            chat_id: chatId,
+            text: '❌ Please provide user IDs separated by spaces.\n\n<b>Usage:</b> <code>/add_users &lt;user_id1&gt; &lt;user_id2&gt; ...</code>\n\n<b>Example:</b> <code>/add_users 123456789 987654321 555555555</code>',
+            parse_mode: 'HTML',
+          });
+          return;
+        }
+
+        try {
+          const userIds = args.map(id => parseInt(id)).filter(id => !isNaN(id));
+          if (userIds.length === 0) {
+            await sendTelegramMessage({
+              chat_id: chatId,
+              text: '❌ No valid user IDs provided.',
+            });
+            return;
+          }
+
+          let successCount = 0;
+          let failCount = 0;
+          const errors: string[] = [];
+
+          // Add users one by one (with delay to respect rate limits)
+          for (const userId of userIds) {
+            try {
+              await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second delay between adds
+              const result = await addChatMember(chatId, userId);
+              if (result.ok) {
+                successCount++;
+              } else {
+                failCount++;
+                errors.push(`User ${userId}: ${result.description || 'Failed'}`);
+              }
+            } catch (error: any) {
+              failCount++;
+              errors.push(`User ${userId}: ${error.message || 'Failed'}`);
+            }
+          }
+
+          let resultMsg = `📊 <b>Add Users Result</b>\n\n`;
+          resultMsg += `✅ Success: ${successCount}\n`;
+          resultMsg += `❌ Failed: ${failCount}\n`;
+          
+          if (errors.length > 0 && errors.length <= 5) {
+            resultMsg += `\n<b>Errors:</b>\n${errors.join('\n')}`;
+          } else if (errors.length > 5) {
+            resultMsg += `\n<b>First 5 errors:</b>\n${errors.slice(0, 5).join('\n')}`;
+          }
+
+          await sendTelegramMessage({
+            chat_id: chatId,
+            text: resultMsg,
+            parse_mode: 'HTML',
+          });
+        } catch (error: any) {
+          console.error('Error adding users:', error.message || 'Unknown error');
+          await sendTelegramMessage({
+            chat_id: chatId,
+            text: '❌ Failed to add users. Please try again or contact an administrator.',
+          });
+        }
+        break;
+
+      case '/copy_members':
+        // This is an admin-only command (requires bot admin, not just group admin)
+        const isAdminForCopy = await isTelegramAdmin(telegramUserId);
+        if (!isAdminForCopy) {
+          await sendTelegramMessage({
+            chat_id: chatId,
+            text: '❌ This command is only available to bot administrators.',
+          });
+          return;
+        }
+
+        if (args.length < 2) {
+          await sendTelegramMessage({
+            chat_id: chatId,
+            text: '❌ Please provide source and target group IDs.\n\n<b>Usage:</b> <code>/copy_members &lt;source_group_id&gt; &lt;target_group_id&gt;</code>\n\n<b>Example:</b> <code>/copy_members -1001234567890 -1009876543210</code>\n\n<b>Note:</b> Use negative numbers for group IDs (e.g., -1001234567890)',
+            parse_mode: 'HTML',
+          });
+          return;
+        }
+
+        try {
+          const sourceGroupId = args[0];
+          const targetGroupId = args[1];
+
+          // Verify bot is admin in both groups
+          const botInfo = await getBotInfo();
+          const botId = botInfo.result?.id;
+          if (!botId) {
+            throw new Error('Could not get bot ID');
+          }
+
+          const isBotAdminSource = await isGroupAdmin(sourceGroupId, botId);
+          const isBotAdminTarget = await isGroupAdmin(targetGroupId, botId);
+
+          if (!isBotAdminSource) {
+            await sendTelegramMessage({
+              chat_id: chatId,
+              text: `❌ Bot must be an administrator in the source group (${sourceGroupId}).`,
+            });
+            return;
+          }
+
+          if (!isBotAdminTarget) {
+            await sendTelegramMessage({
+              chat_id: chatId,
+              text: `❌ Bot must be an administrator in the target group (${targetGroupId}).`,
+            });
+            return;
+          }
+
+          // Get members count from source group
+          const membersCountResult = await getChatMembersCount(sourceGroupId);
+          const membersCount = membersCountResult.ok ? membersCountResult.result : 0;
+
+          await sendTelegramMessage({
+            chat_id: chatId,
+            text: `⚠️ <b>Note:</b> Telegram Bot API doesn't allow getting a full list of group members.\n\nTo copy members, you have two options:\n\n1. <b>Use invite link:</b> Export an invite link from source group and share it\n2. <b>Add manually:</b> Use <code>/add_users</code> with user IDs\n\n<b>Source group has:</b> ${membersCount} members\n\n<b>Tip:</b> Use <code>/export_invite</code> in the source group to get an invite link.`,
+            parse_mode: 'HTML',
+          });
+        } catch (error: any) {
+          console.error('Error copying members:', error.message || 'Unknown error');
+          await sendTelegramMessage({
+            chat_id: chatId,
+            text: '❌ Failed to process copy members request. Please try again.',
+          });
+        }
+        break;
+
+      case '/export_invite':
+      case '/invite_link':
+        if (chatType === 'private') {
+          await sendTelegramMessage({
+            chat_id: chatId,
+            text: '❌ This command only works in groups.',
+          });
+          return;
+        }
+
+        // Check if user is admin
+        const isGroupAdminForInvite = await isGroupAdmin(chatId, telegramUserId);
+        if (!isGroupAdminForInvite) {
+          await sendTelegramMessage({
+            chat_id: chatId,
+            text: '❌ You must be a group administrator to use this command.',
+          });
+          return;
+        }
+
+        try {
+          const result = await exportChatInviteLink(chatId);
+          if (result.ok && result.result) {
+            await sendTelegramMessage({
+              chat_id: chatId,
+              text: `🔗 <b>Group Invite Link</b>\n\n<code>${result.result}</code>\n\nShare this link to invite members to the group.`,
+              parse_mode: 'HTML',
+            });
+          } else {
+            throw new Error(result.description || 'Failed to export invite link');
+          }
+        } catch (error: any) {
+          console.error('Error exporting invite link:', error.message || 'Unknown error');
+          const errorMsg = error.message || 'Unknown error';
+          let userFriendlyMsg = '❌ Failed to export invite link. ';
+          
+          if (errorMsg.includes('CHAT_ADMIN_REQUIRED')) {
+            userFriendlyMsg += 'Bot needs admin rights to export invite links.';
+          } else {
+            userFriendlyMsg += 'Please try again or contact an administrator.';
+          }
+
+          await sendTelegramMessage({
+            chat_id: chatId,
+            text: userFriendlyMsg,
+          });
+        }
         break;
 
       default:
