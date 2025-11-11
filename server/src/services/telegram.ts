@@ -4,7 +4,7 @@
  */
 
 import https from 'https';
-mmimport { isSupabaseConfigured, supabase } from './supabase';
+import { isSupabaseConfigured, supabase } from './supabase';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
