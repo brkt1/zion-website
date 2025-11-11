@@ -863,7 +863,7 @@ const EventDetail = () => {
                       ? 0
                       : parseFloat(event.price.toString().replace(/[^0-9.]/g, '') || '0');
                     const qty = paymentForm.quantity || 1;
-                    const { discountAmount, discountText } = calculateDiscount(basePrice, qty);
+                    const { discountAmount } = calculateDiscount(basePrice, qty);
                     
                     if (discountAmount > 0) {
                       return (
