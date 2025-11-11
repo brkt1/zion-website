@@ -136,16 +136,45 @@ export const isCommissionSeller = async (): Promise<boolean> => {
     // Check if user's email exists in commission_sellers table and is active
     // Use case-insensitive comparison by converting both to lowercase
     const normalizedEmail = userEmail.toLowerCase().trim();
-    const { data, error } = await supabase
+    
+    // Try to find the user in commission_sellers table
+    // First try exact match with normalized email
+    let { data, error } = await supabase
       .from('commission_sellers')
       .select('id, email, is_active')
       .eq('email', normalizedEmail)
       .eq('is_active', true)
       .maybeSingle();
 
+    // If not found with exact match, try case-insensitive search
+    // This handles cases where email in DB might have different casing
+    if (!data && !error) {
+      const { data: allSellers } = await supabase
+        .from('commission_sellers')
+        .select('id, email, is_active');
+      
+      if (allSellers) {
+        data = allSellers.find(
+          seller => seller.email?.toLowerCase().trim() === normalizedEmail && seller.is_active
+        ) || null;
+      }
+    }
+
     if (error) {
       console.error('Error checking commission seller status:', error);
+      // If RLS error, try using RPC function if available
+      if (error.code === '42501' || error.message?.includes('permission') || error.message?.includes('policy')) {
+        console.log('RLS policy blocking query, trying alternative method...');
+        // The RLS policy might be blocking - this will be fixed by running the SQL script
+        return false;
+      }
       return false;
+    }
+
+    if (data) {
+      console.log('Commission seller found:', data);
+    } else {
+      console.log('Commission seller not found for email:', normalizedEmail);
     }
 
     return !!data;

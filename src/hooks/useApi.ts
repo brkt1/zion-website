@@ -13,6 +13,9 @@ export const useEvents = (params?: { category?: string; featured?: boolean; limi
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: true,
+      shouldRetryOnError: true,
+      errorRetryCount: Infinity,
+      errorRetryInterval: 3000,
     }
   );
 
@@ -30,6 +33,9 @@ export const useEvent = (id: string | undefined) => {
     () => id ? api.getEvent(id) : Promise.resolve(null as any),
     {
       revalidateOnFocus: false,
+      shouldRetryOnError: true,
+      errorRetryCount: Infinity,
+      errorRetryInterval: 3000,
     }
   );
 
@@ -98,6 +104,9 @@ export const useAboutContent = () => {
     () => api.getAboutContent(),
     {
       revalidateOnFocus: false,
+      shouldRetryOnError: true,
+      errorRetryCount: Infinity, // Keep retrying indefinitely
+      errorRetryInterval: 3000, // Retry every 3 seconds
     }
   );
 
@@ -115,6 +124,9 @@ export const useContactInfo = () => {
     () => api.getContactInfo(),
     {
       revalidateOnFocus: false,
+      shouldRetryOnError: true,
+      errorRetryCount: Infinity,
+      errorRetryInterval: 3000,
     }
   );
 

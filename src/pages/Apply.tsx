@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { FaBriefcase, FaHandsHelping, FaSpinner } from "react-icons/fa";
-import { ErrorState } from "../Components/ui/ErrorState";
+import { ApplySkeleton } from "../Components/ui/ApplySkeleton";
 import { useContactInfo } from "../hooks/useApi";
 import { supabase } from "../services/supabase";
 
 const Apply = () => {
-  const { contactInfo, isError, mutate: refetchContactInfo } = useContactInfo();
+  const { contactInfo, isLoading } = useContactInfo();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -19,12 +19,10 @@ const Apply = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
 
-  if (isError || !contactInfo) {
-    return (
-      <div className="min-h-screen bg-white">
-        <ErrorState message="Failed to load contact information. Please try again later." onRetry={() => refetchContactInfo()} />
-      </div>
-    );
+  // Show skeleton loading while loading or if contact info is not available yet
+  // The hook will keep retrying automatically until contact info loads
+  if (isLoading || !contactInfo) {
+    return <ApplySkeleton />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

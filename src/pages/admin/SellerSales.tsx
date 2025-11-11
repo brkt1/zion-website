@@ -121,7 +121,7 @@ const SellerSales = () => {
                       )}
                       <div className="mt-2 pt-2 border-t border-gray-100">
                         <p className="text-xs text-gray-500 mb-1">Customer</p>
-                        <p className="text-xs font-medium text-gray-900">{ticket.customer_name || ticket.customer_email || '-'}</p>
+                        <p className="text-xs font-medium text-gray-900">{ticket.customer_name || '-'}</p>
                       </div>
                     </div>
                   );
@@ -176,10 +176,7 @@ const SellerSales = () => {
                             {ticket.event_title || ticket.event_id || '-'}
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-900">
-                            <div>
-                              <div className="font-medium">{ticket.customer_name || '-'}</div>
-                              <div className="text-gray-500 text-xs">{ticket.customer_email}</div>
-                            </div>
+                            <div className="font-medium">{ticket.customer_name || '-'}</div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
                             {ticket.quantity}

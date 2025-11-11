@@ -1,18 +1,16 @@
 import { FaArrowRight, FaEnvelope, FaFacebook, FaInstagram, FaLinkedin, FaTwitter, FaWhatsapp } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import { ErrorState } from "../Components/ui/ErrorState";
+import { AboutSkeleton } from "../Components/ui/AboutSkeleton";
 import { useAboutContent, useContactInfo } from "../hooks/useApi";
 
 const About = () => {
-  const { content, isError, mutate: refetchContent } = useAboutContent();
+  const { content, isLoading } = useAboutContent();
   const { contactInfo } = useContactInfo();
 
-  if (isError || !content) {
-    return (
-      <div className="min-h-screen bg-white">
-        <ErrorState message="Failed to load content. Please try again later." onRetry={() => refetchContent()} />
-      </div>
-    );
+  // Show skeleton loading while loading or if content is not available yet
+  // The hook will keep retrying automatically until content loads
+  if (isLoading || !content) {
+    return <AboutSkeleton />;
   }
 
   const values = content.values || [];

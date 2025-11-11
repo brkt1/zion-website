@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { FaArrowRight, FaCalendarAlt, FaMapMarkerAlt, FaSearch, FaUsers, FaWhatsapp } from "react-icons/fa";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { ErrorState } from "../Components/ui/ErrorState";
+import { EventsSkeleton } from "../Components/ui/EventsSkeleton";
 import { LocationButton } from "../Components/ui/LocationButton";
 import OptimizedImage from "../Components/ui/OptimizedImage";
 import { useCategories, useEvents } from "../hooks/useApi";
@@ -9,23 +9,23 @@ import { useCategories, useEvents } from "../hooks/useApi";
 const Events = () => {
   // Update page title and meta tags for SEO
   useEffect(() => {
-    document.title = "CEO Perfect Ethiopian Travel and Event - Events | Yenege";
+    document.title = "Events | Yenege";
     
     // Update meta description
     const metaDescription = document.querySelector('meta[name="description"]');
     if (metaDescription) {
-      metaDescription.setAttribute('content', 'CEO Perfect Ethiopian Travel and Event - Discover amazing events and experiences in Ethiopia. Join us for exciting game nights, travel adventures, corporate events, and community gatherings.');
+      metaDescription.setAttribute('content', 'Yenege - Discover amazing events and experiences in Ethiopia. Join us for exciting game nights, travel adventures, corporate events, and community gatherings.');
     }
     
     // Update Open Graph tags
     const ogTitle = document.querySelector('meta[property="og:title"]');
     if (ogTitle) {
-      ogTitle.setAttribute('content', 'CEO Perfect Ethiopian Travel and Event - Events | Yenege');
+      ogTitle.setAttribute('content', 'Events | Yenege');
     }
     
     const ogDescription = document.querySelector('meta[property="og:description"]');
     if (ogDescription) {
-      ogDescription.setAttribute('content', 'CEO Perfect Ethiopian Travel and Event - Discover amazing events and experiences in Ethiopia. Join us for exciting game nights, travel adventures, corporate events, and community gatherings.');
+      ogDescription.setAttribute('content', 'Yenege - Discover amazing events and experiences in Ethiopia. Join us for exciting game nights, travel adventures, corporate events, and community gatherings.');
     }
     
     const ogUrl = document.querySelector('meta[property="og:url"]');
@@ -36,12 +36,12 @@ const Events = () => {
     // Update Twitter tags
     const twitterTitle = document.querySelector('meta[property="twitter:title"]');
     if (twitterTitle) {
-      twitterTitle.setAttribute('content', 'CEO Perfect Ethiopian Travel and Event - Events | Yenege');
+      twitterTitle.setAttribute('content', 'Events | Yenege');
     }
     
     const twitterDescription = document.querySelector('meta[property="twitter:description"]');
     if (twitterDescription) {
-      twitterDescription.setAttribute('content', 'CEO Perfect Ethiopian Travel and Event - Discover amazing events and experiences in Ethiopia. Join us for exciting game nights, travel adventures, corporate events, and community gatherings.');
+      twitterDescription.setAttribute('content', 'Yenege - Discover amazing events and experiences in Ethiopia. Join us for exciting game nights, travel adventures, corporate events, and community gatherings.');
     }
   }, []);
   const navigate = useNavigate();
@@ -51,7 +51,7 @@ const Events = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   // Fetch events and categories from API
-  const { events, isError: eventsError, mutate: refetchEvents } = useEvents({
+  const { events, isLoading: eventsLoading } = useEvents({
     category: selectedCategory === "all" ? undefined : selectedCategory as any,
   });
   
@@ -108,14 +108,10 @@ const Events = () => {
     }
   };
 
-  if (eventsError) {
-    return (
-      <div className="min-h-screen bg-white">
-        <div className="pt-24 pb-8 md:pt-28 md:pb-12">
-          <ErrorState message="Failed to load events. Please try again later." onRetry={() => refetchEvents()} />
-        </div>
-      </div>
-    );
+  // Show skeleton loading while loading or if events are not available yet
+  // The hook will keep retrying automatically until events load
+  if (eventsLoading || !events) {
+    return <EventsSkeleton />;
   }
 
   const formatDate = (dateString: string) => {
@@ -146,7 +142,7 @@ const Events = () => {
           {/* Title Section */}
           <div className="mb-10 md:mb-12">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold mb-3 text-gray-900">
-              CEO Perfect Ethiopian Travel and Event
+              Yenege
             </h1>
             <p className="text-base text-gray-600">
               Discover amazing experiences and join the fun! Your premier destination for events and travel in Ethiopia.

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { FaCalendarAlt, FaChevronLeft, FaChevronRight, FaExternalLinkAlt, FaInstagram, FaMapMarkerAlt, FaSpinner, FaTelegram, FaTimes, FaUsers, FaWhatsapp } from "react-icons/fa";
 import { useParams, useSearchParams } from "react-router-dom";
 import "../Components/Gallery.css";
-import { ErrorState } from "../Components/ui/ErrorState";
+import { EventDetailSkeleton } from "../Components/ui/EventDetailSkeleton";
 import { LocationButton } from "../Components/ui/LocationButton";
 import OptimizedImage from "../Components/ui/OptimizedImage";
 import { getAvailablePaymentMethods } from "../data/paymentMethods";
@@ -15,7 +15,7 @@ import { CommissionSeller, PaymentRequest } from "../types";
 const EventDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
-  const { event, isError, mutate: refetchEvent } = useEvent(id);
+  const { event, isLoading, mutate: refetchEvent } = useEvent(id);
   const { contactInfo } = useContactInfo();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
@@ -48,24 +48,17 @@ const EventDetail = () => {
         console.log('Event allowed_commission_seller_ids:', event.allowed_commission_seller_ids);
         console.log('All active sellers:', allSellers.map(s => ({ id: s.id, name: s.name })));
         
-        // If event has allowed_commission_seller_ids, filter to only those
-        // If undefined/null, show all active sellers
-        // If empty array [], show no sellers (admin explicitly selected none)
-        if (event.allowed_commission_seller_ids !== undefined && event.allowed_commission_seller_ids !== null) {
-          if (event.allowed_commission_seller_ids.length > 0) {
-            // Filter to only allowed sellers
-            const allowedSellers = allSellers.filter(seller => 
-              event.allowed_commission_seller_ids!.includes(seller.id)
-            );
-            console.log('Filtered sellers:', allowedSellers.map(s => ({ id: s.id, name: s.name })));
-            setCommissionSellers(allowedSellers);
-          } else {
-            // Empty array means no sellers allowed for this event
-            console.log('Empty array - no sellers allowed');
-            setCommissionSellers([]);
-          }
+        // If event has allowed_commission_seller_ids with values, filter to only those
+        // If undefined/null/empty array, show all active sellers (no restrictions)
+        if (event.allowed_commission_seller_ids && event.allowed_commission_seller_ids.length > 0) {
+          // Filter to only allowed sellers
+          const allowedSellers = allSellers.filter(seller => 
+            event.allowed_commission_seller_ids!.includes(seller.id)
+          );
+          console.log('Filtered sellers:', allowedSellers.map(s => ({ id: s.id, name: s.name })));
+          setCommissionSellers(allowedSellers);
         } else {
-          // No restrictions set - show all active sellers
+          // No restrictions set (undefined, null, or empty array) - show all active sellers
           console.log('No restrictions - showing all sellers');
           setCommissionSellers(allSellers);
         }
@@ -115,14 +108,10 @@ const EventDetail = () => {
   }, [fullscreenImageIndex, event?.gallery]);
 
 
-  if (isError || !event) {
-    return (
-      <div className="min-h-screen bg-white">
-        <div className="pt-24 pb-8 md:pt-28 md:pb-12">
-          <ErrorState message="Failed to load event. Please try again later." onRetry={() => refetchEvent()} />
-        </div>
-      </div>
-    );
+  // Show skeleton loading while loading or if event is not available yet
+  // The hook will keep retrying automatically until event loads
+  if (isLoading || !event) {
+    return <EventDetailSkeleton />;
   }
 
   const handleFormSubmit = (e: React.FormEvent) => {
@@ -1137,6 +1126,32 @@ const EventDetail = () => {
                       </p>
                     )}
                   </div>
+
+                  {commissionSellers.length > 0 && (
+                    <div>
+                      <label htmlFor="reg_commission_seller_id" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                        Sold By (Optional)
+                      </label>
+                      <select
+                        id="reg_commission_seller_id"
+                        name="commission_seller_id"
+                        value={paymentForm.commission_seller_id}
+                        onChange={handleInputChange}
+                        className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border-b border-gray-300 bg-transparent focus:outline-none focus:border-gray-900 transition-colors"
+                      >
+                        <option value="">Select a seller (optional)</option>
+                        {commissionSellers.map((seller) => (
+                          <option key={seller.id} value={seller.id}>
+                            {seller.name} {seller.email ? `(${seller.email})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="mt-1 text-xs text-gray-500">
+                        If you were referred by a seller, please select them here
+                      </p>
+                    </div>
+                  )}
+
                   <div className="pt-4 border-t border-gray-200">
                     <div className="flex justify-between items-center text-sm sm:text-base mb-4">
                       <span className="text-gray-600">Total Cost:</span>
