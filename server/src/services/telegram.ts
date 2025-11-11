@@ -4,7 +4,7 @@
  */
 
 import https from 'https';
-import { supabase, isSupabaseConfigured } from './supabase';
+mmimport { isSupabaseConfigured, supabase } from './supabase';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
@@ -581,38 +581,61 @@ const isTelegramAdmin = async (telegramUserId: number): Promise<boolean> => {
   try {
     // If Supabase is not configured, only check env variable
     if (!isSupabaseConfigured()) {
-      const adminIds = process.env.TELEGRAM_ADMIN_USER_IDS?.split(',').map(id => parseInt(id.trim())) || [];
-      return adminIds.includes(telegramUserId);
+      const adminIdsEnv = process.env.TELEGRAM_ADMIN_USER_IDS;
+      if (!adminIdsEnv || adminIdsEnv.trim() === '') {
+        return false; // No admin IDs configured
+      }
+      const adminIds = adminIdsEnv.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+      const isAdmin = adminIds.includes(telegramUserId);
+      if (isAdmin) {
+        console.log(`✅ User ${telegramUserId} is admin (from env variable)`);
+      }
+      return isAdmin;
     }
 
     // Check if this Telegram user ID is linked to an admin account
     // First, try to find in telegram_admin_users table (if exists)
-    const { data: adminLink } = await supabase
+    const { data: adminLink, error: linkError } = await supabase
       .from('telegram_admin_users')
       .select('user_id')
       .eq('telegram_user_id', telegramUserId.toString())
       .eq('is_active', true)
       .single();
 
-    if (adminLink) {
+    if (adminLink && !linkError) {
       // Check if the linked user is an admin
-      const { data: userRole } = await supabase
+      const { data: userRole, error: roleError } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', adminLink.user_id)
         .eq('role', 'admin')
         .single();
 
-      return !!userRole;
+      if (userRole && !roleError) {
+        console.log(`✅ User ${telegramUserId} is admin (from database)`);
+        return true;
+      }
     }
 
     // Fallback: Check if admin Telegram user IDs are configured in env
-    const adminIds = process.env.TELEGRAM_ADMIN_USER_IDS?.split(',').map(id => parseInt(id.trim())) || [];
-    return adminIds.includes(telegramUserId);
+    const adminIdsEnv = process.env.TELEGRAM_ADMIN_USER_IDS;
+    if (!adminIdsEnv || adminIdsEnv.trim() === '') {
+      return false; // No admin IDs configured
+    }
+    const adminIds = adminIdsEnv.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+    const isAdmin = adminIds.includes(telegramUserId);
+    if (isAdmin) {
+      console.log(`✅ User ${telegramUserId} is admin (from env fallback)`);
+    }
+    return isAdmin;
   } catch (error) {
     console.error('Error checking Telegram admin status:', error);
     // Fallback to env check
-    const adminIds = process.env.TELEGRAM_ADMIN_USER_IDS?.split(',').map(id => parseInt(id.trim())) || [];
+    const adminIdsEnv = process.env.TELEGRAM_ADMIN_USER_IDS;
+    if (!adminIdsEnv || adminIdsEnv.trim() === '') {
+      return false; // No admin IDs configured
+    }
+    const adminIds = adminIdsEnv.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
     return adminIds.includes(telegramUserId);
   }
 };
@@ -879,9 +902,7 @@ export const handleTelegramCommand = async (update: TelegramUpdate): Promise<voi
 ✅ Event information
 ✅ Ticket verification
 ✅ Group moderation
-✅ Admin statistics
 ✅ Welcome messages
-✅ Marketing tools
 
 <i>Last updated: ${new Date().toLocaleString()}</i>`;
 
@@ -893,33 +914,7 @@ export const handleTelegramCommand = async (update: TelegramUpdate): Promise<voi
         break;
 
       case '/start':
-        const isAdminUser = await isTelegramAdmin(telegramUserId);
-        const welcomeText = isAdminUser
-          ? `👋 <b>Welcome to Yenege Events Bot!</b>
-
-I can help you with:
-• 📅 View upcoming events
-• 🎫 Verify your tickets
-• 🔔 Get event notifications
-• ℹ️ Get event information
-• 📊 <b>Admin: View website statistics</b>
-• 📈 <b>Admin: Marketing tools</b>
-
-<b>User Commands:</b>
-/events - View upcoming events
-/verify [tx_ref] - Verify a ticket
-/subscribe - Subscribe to event notifications
-/unsubscribe - Unsubscribe from notifications
-/help - Show this help message
-
-<b>Admin Commands:</b>
-/stats - View website statistics
-/activity [limit] - View recent ticket sales
-/broadcast [message] - Broadcast to all subscribers
-/admin_help - Show admin commands
-
-<i>Use /help for more information</i>`
-          : `👋 <b>Welcome to Yenege Events Bot!</b>
+        const welcomeText = `👋 <b>Welcome to Yenege Events Bot!</b>
 
 I can help you with:
 • 📅 View upcoming events
@@ -1131,6 +1126,16 @@ I can help you with:
           return;
         }
 
+        // Check if Supabase is configured before attempting to fetch stats
+        if (!isSupabaseConfigured()) {
+          await sendTelegramMessage({
+            chat_id: chatId,
+            text: '⚠️ <b>Statistics Unavailable</b>\n\nDatabase is not configured. Please configure Supabase credentials to use this feature.',
+            parse_mode: 'HTML',
+          });
+          return;
+        }
+
         await sendTelegramMessage({
           chat_id: chatId,
           text: '⏳ Fetching statistics...',
@@ -1152,6 +1157,16 @@ I can help you with:
           await sendTelegramMessage({
             chat_id: chatId,
             text: '❌ Access denied. This command is only available to administrators.',
+          });
+          return;
+        }
+
+        // Check if Supabase is configured before attempting to fetch activity
+        if (!isSupabaseConfigured()) {
+          await sendTelegramMessage({
+            chat_id: chatId,
+            text: '⚠️ <b>Activity Unavailable</b>\n\nDatabase is not configured. Please configure Supabase credentials to use this feature.',
+            parse_mode: 'HTML',
           });
           return;
         }
