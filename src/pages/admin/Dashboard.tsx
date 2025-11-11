@@ -2,11 +2,14 @@ import { useEffect, useState } from 'react';
 import {
   FaBan,
   FaCalendarAlt,
+  FaChartLine,
   FaCheckCircle,
   FaClock,
   FaCog,
   FaDollarSign,
   FaEnvelope,
+  FaEye,
+  FaGlobe,
   FaHome,
   FaImages,
   FaInfoCircle,
@@ -14,6 +17,8 @@ import {
   FaNewspaper,
   FaPhone,
   FaQrcode,
+  FaRedo,
+  FaStar,
   FaTicketAlt,
   FaTimesCircle,
   FaUser,
@@ -23,6 +28,7 @@ import { Link } from 'react-router-dom';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import ReminderModal from '../../Components/admin/ReminderModal';
 import { adminApi } from '../../services/adminApi';
+import { getDailyVisitStats, getTodayVisits, getTotalVisits, getUniqueVisitorsToday } from '../../services/analytics';
 import { supabase } from '../../services/supabase';
 import { Ticket } from '../../types';
 
@@ -39,6 +45,15 @@ interface Stats {
   totalCommissionPaid: number;
   totalVATCollected: number;
   netCommissionPaid: number;
+  reach: number;
+  rsvps: number;
+  attendees: number;
+  repeatInterest: number;
+  venueFeedback: number;
+  todayVisits: number;
+  uniqueVisitorsToday: number;
+  totalVisits: number;
+  dailyVisitStats: Array<{ date: string; count: number; unique_visitors: number }>;
 }
 
 const Dashboard = () => {
@@ -57,6 +72,15 @@ const Dashboard = () => {
     totalCommissionPaid: 0,
     totalVATCollected: 0,
     netCommissionPaid: 0,
+    reach: 0,
+    rsvps: 0,
+    attendees: 0,
+    repeatInterest: 0,
+    venueFeedback: 0,
+    todayVisits: 0,
+    uniqueVisitorsToday: 0,
+    totalVisits: 0,
+    dailyVisitStats: [],
   });
   const [loadingStats, setLoadingStats] = useState(true);
   const [ticketFilter, setTicketFilter] = useState<'all' | 'success' | 'pending' | 'failed'>('all');
@@ -78,12 +102,13 @@ const Dashboard = () => {
   const loadStats = async () => {
     try {
       setLoadingStats(true);
-      const [events, categories, gallery, destinations, allTickets] = await Promise.all([
+      const [events, categories, gallery, destinations, allTickets, eventsData] = await Promise.all([
         supabase.from('events').select('id', { count: 'exact', head: true }),
         supabase.from('categories').select('id', { count: 'exact', head: true }),
         supabase.from('gallery').select('id', { count: 'exact', head: true }),
         supabase.from('destinations').select('id', { count: 'exact', head: true }),
         adminApi.tickets.getAll(),
+        supabase.from('events').select('attendees'),
       ]);
 
       const totalTickets = allTickets?.length || 0;
@@ -141,6 +166,39 @@ const Dashboard = () => {
       const totalVATCollected = (totalCommissionPaid * 15) / 100;
       const netCommissionPaid = totalCommissionPaid - totalVATCollected;
 
+      // Calculate metrics
+      // Reach: Total unique customers (people who have purchased tickets)
+      const uniqueCustomers = new Set(allTickets?.map(t => t.customer_email).filter(Boolean) || []).size;
+      
+      // RSVPs: Total successful tickets (already calculated)
+      const rsvps = successfulTickets;
+      
+      // Attendees: Sum of all attendees from events
+      const totalAttendees = eventsData?.data?.reduce((sum, event) => sum + (event.attendees || 0), 0) || 0;
+      
+      // Repeat interest: Customers who purchased tickets for 2+ different events
+      const customerEventMap = new Map<string, Set<string>>();
+      allTickets?.forEach(ticket => {
+        if (ticket.customer_email && ticket.event_id) {
+          if (!customerEventMap.has(ticket.customer_email)) {
+            customerEventMap.set(ticket.customer_email, new Set());
+          }
+          customerEventMap.get(ticket.customer_email)?.add(ticket.event_id);
+        }
+      });
+      const repeatCustomers = Array.from(customerEventMap.values()).filter(eventSet => eventSet.size >= 2).length;
+      
+      // Venue feedback: Placeholder (0 for now, can be enhanced later with feedback table)
+      const venueFeedback = 0;
+
+      // Get visit statistics
+      const [todayVisits, uniqueVisitorsToday, totalVisits, dailyVisitStats] = await Promise.all([
+        getTodayVisits(),
+        getUniqueVisitorsToday(),
+        getTotalVisits(),
+        getDailyVisitStats(7), // Last 7 days
+      ]);
+
       setStats({
         totalEvents: events.count || 0,
         totalCategories: categories.count || 0,
@@ -154,6 +212,15 @@ const Dashboard = () => {
         totalCommissionPaid,
         totalVATCollected,
         netCommissionPaid,
+        reach: uniqueCustomers,
+        rsvps,
+        attendees: totalAttendees,
+        repeatInterest: repeatCustomers,
+        venueFeedback,
+        todayVisits,
+        uniqueVisitorsToday,
+        totalVisits,
+        dailyVisitStats,
       });
     } catch (error) {
       console.error('Error loading stats:', error);
@@ -359,6 +426,186 @@ const Dashboard = () => {
               </div>
             </div>
           )}
+
+          {/* Metrics Tracking Section */}
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:p-6 mb-6 sm:mb-8">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
+              <FaChartLine className="text-indigo-600" size={20} />
+              <span className="text-base sm:text-xl">Track your first metrics</span>
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+              {/* Reach */}
+              <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
+                <div className="flex items-center justify-between mb-2">
+                  <FaEye className="text-blue-600 w-5 h-5" />
+                </div>
+                <p className="text-xs sm:text-sm text-gray-600 mb-1">Reach</p>
+                {loadingStats ? (
+                  <div className="animate-pulse h-6 sm:h-8 bg-white/50 rounded w-12"></div>
+                ) : (
+                  <p className="text-2xl sm:text-3xl font-bold text-gray-900">{stats.reach}</p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">Unique customers</p>
+              </div>
+
+              {/* RSVPs */}
+              <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg border border-green-100">
+                <div className="flex items-center justify-between mb-2">
+                  <FaTicketAlt className="text-green-600 w-5 h-5" />
+                </div>
+                <p className="text-xs sm:text-sm text-gray-600 mb-1">RSVPs</p>
+                {loadingStats ? (
+                  <div className="animate-pulse h-6 sm:h-8 bg-white/50 rounded w-12"></div>
+                ) : (
+                  <p className="text-2xl sm:text-3xl font-bold text-gray-900">{stats.rsvps}</p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">Successful tickets</p>
+              </div>
+
+              {/* Attendees */}
+              <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg border border-purple-100">
+                <div className="flex items-center justify-between mb-2">
+                  <FaUsers className="text-purple-600 w-5 h-5" />
+                </div>
+                <p className="text-xs sm:text-sm text-gray-600 mb-1">Attendees</p>
+                {loadingStats ? (
+                  <div className="animate-pulse h-6 sm:h-8 bg-white/50 rounded w-12"></div>
+                ) : (
+                  <p className="text-2xl sm:text-3xl font-bold text-gray-900">{stats.attendees}</p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">Total across events</p>
+              </div>
+
+              {/* Repeat Interest */}
+              <div className="p-4 bg-gradient-to-br from-orange-50 to-amber-50 rounded-lg border border-orange-100">
+                <div className="flex items-center justify-between mb-2">
+                  <FaRedo className="text-orange-600 w-5 h-5" />
+                </div>
+                <p className="text-xs sm:text-sm text-gray-600 mb-1">Repeat Interest</p>
+                {loadingStats ? (
+                  <div className="animate-pulse h-6 sm:h-8 bg-white/50 rounded w-12"></div>
+                ) : (
+                  <p className="text-2xl sm:text-3xl font-bold text-gray-900">{stats.repeatInterest}</p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">2+ events purchased</p>
+              </div>
+
+              {/* Venue Feedback */}
+              <div className="p-4 bg-gradient-to-br from-teal-50 to-cyan-50 rounded-lg border border-teal-100">
+                <div className="flex items-center justify-between mb-2">
+                  <FaStar className="text-teal-600 w-5 h-5" />
+                </div>
+                <p className="text-xs sm:text-sm text-gray-600 mb-1">Venue Feedback</p>
+                {loadingStats ? (
+                  <div className="animate-pulse h-6 sm:h-8 bg-white/50 rounded w-12"></div>
+                ) : (
+                  <p className="text-2xl sm:text-3xl font-bold text-gray-900">
+                    {stats.venueFeedback > 0 ? stats.venueFeedback : '—'}
+                  </p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  {stats.venueFeedback > 0 ? 'Feedback received' : 'Coming soon'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Daily Website Visitors Section */}
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:p-6 mb-6 sm:mb-8">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
+              <FaGlobe className="text-indigo-600" size={20} />
+              <span className="text-base sm:text-xl">Daily Website Visitors</span>
+            </h2>
+            
+            {/* Today's Stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
+              <div className="p-4 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-lg border border-indigo-100">
+                <div className="flex items-center justify-between mb-2">
+                  <FaEye className="text-indigo-600 w-5 h-5" />
+                </div>
+                <p className="text-xs sm:text-sm text-gray-600 mb-1">Today's Visits</p>
+                {loadingStats ? (
+                  <div className="animate-pulse h-6 sm:h-8 bg-white/50 rounded w-12"></div>
+                ) : (
+                  <p className="text-2xl sm:text-3xl font-bold text-gray-900">{stats.todayVisits}</p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">Page views today</p>
+              </div>
+
+              <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg border border-green-100">
+                <div className="flex items-center justify-between mb-2">
+                  <FaUsers className="text-green-600 w-5 h-5" />
+                </div>
+                <p className="text-xs sm:text-sm text-gray-600 mb-1">Unique Visitors</p>
+                {loadingStats ? (
+                  <div className="animate-pulse h-6 sm:h-8 bg-white/50 rounded w-12"></div>
+                ) : (
+                  <p className="text-2xl sm:text-3xl font-bold text-gray-900">{stats.uniqueVisitorsToday}</p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">Unique paths today</p>
+              </div>
+
+              <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg border border-purple-100">
+                <div className="flex items-center justify-between mb-2">
+                  <FaChartLine className="text-purple-600 w-5 h-5" />
+                </div>
+                <p className="text-xs sm:text-sm text-gray-600 mb-1">Total Visits</p>
+                {loadingStats ? (
+                  <div className="animate-pulse h-6 sm:h-8 bg-white/50 rounded w-12"></div>
+                ) : (
+                  <p className="text-2xl sm:text-3xl font-bold text-gray-900">{stats.totalVisits}</p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">All time</p>
+              </div>
+            </div>
+
+            {/* Last 7 Days Chart */}
+            {stats.dailyVisitStats.length > 0 && (
+              <div className="mt-4 sm:mt-6">
+                <h3 className="text-sm sm:text-base font-semibold text-gray-700 mb-3 sm:mb-4">Last 7 Days</h3>
+                <div className="space-y-2 sm:space-y-3">
+                  {stats.dailyVisitStats.map((day) => {
+                    const date = new Date(day.date);
+                    const maxVisits = Math.max(...stats.dailyVisitStats.map(d => d.count), 1);
+                    const percentage = (day.count / maxVisits) * 100;
+                    const isToday = day.date === new Date().toISOString().split('T')[0];
+                    
+                    return (
+                      <div key={day.date} className="flex items-center gap-2 sm:gap-3">
+                        <div className="w-16 sm:w-20 text-xs sm:text-sm text-gray-600 font-medium">
+                          {isToday ? 'Today' : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </div>
+                        <div className="flex-1 bg-gray-100 rounded-full h-6 sm:h-8 overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all duration-500 ${
+                              isToday
+                                ? 'bg-gradient-to-r from-indigo-500 to-blue-500'
+                                : 'bg-gradient-to-r from-gray-400 to-gray-500'
+                            }`}
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                        <div className="w-12 sm:w-16 text-right">
+                          <div className="text-xs sm:text-sm font-bold text-gray-900">{day.count}</div>
+                          <div className="text-xs text-gray-500">{day.unique_visitors} unique</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {stats.dailyVisitStats.length === 0 && !loadingStats && (
+              <div className="text-center py-8 sm:py-12">
+                <FaGlobe className="mx-auto mb-4 text-gray-300 w-12 h-12 sm:w-16 sm:h-16" />
+                <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No visit data yet</h3>
+                <p className="text-xs sm:text-sm text-gray-500 px-4">
+                  Visitor tracking will start once users begin visiting your website.
+                </p>
+              </div>
+            )}
+          </div>
 
           {/* Secondary Stats */}
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
