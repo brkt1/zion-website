@@ -72,6 +72,37 @@ const EventDetail = () => {
     loadSellers();
   }, [event]);
 
+  // Helper function to calculate discount
+  const calculateDiscount = (basePrice: number, quantity: number) => {
+    if (!paymentForm.commission_seller_id || basePrice === 0 || !event) {
+      return { discountAmount: 0, discountText: '', selectedSeller: null };
+    }
+
+    const selectedSeller = commissionSellers.find(s => s.id === paymentForm.commission_seller_id);
+    if (!selectedSeller || !selectedSeller.discount_rate || !selectedSeller.discount_type) {
+      return { discountAmount: 0, discountText: '', selectedSeller: null };
+    }
+
+    const subtotal = basePrice * quantity;
+    let discountAmount = 0;
+
+    if (selectedSeller.discount_type === 'percentage') {
+      discountAmount = (subtotal * selectedSeller.discount_rate) / 100;
+    } else {
+      // Fixed discount per ticket
+      discountAmount = selectedSeller.discount_rate * quantity;
+    }
+
+    // Don't allow discount to exceed subtotal
+    discountAmount = Math.min(discountAmount, subtotal);
+
+    const discountText = selectedSeller.discount_type === 'percentage'
+      ? `${selectedSeller.discount_rate}% off`
+      : `${selectedSeller.discount_rate} ${event.currency} off`;
+
+    return { discountAmount, discountText, selectedSeller };
+  };
+
   // Handle keyboard navigation for fullscreen gallery and prevent body scroll
   useEffect(() => {
     if (fullscreenImageIndex === null || !event?.gallery) {
@@ -134,7 +165,9 @@ const EventDetail = () => {
       }
       
       const quantity = paymentForm.quantity || 1;
-      const totalAmount = (pricePerTicket * quantity).toFixed(2);
+      const { discountAmount } = calculateDiscount(pricePerTicket, quantity);
+      const subtotal = pricePerTicket * quantity;
+      const totalAmount = Math.max(0, subtotal - discountAmount).toFixed(2);
 
       // Validate calculation
       if (pricePerTicket <= 0 && event.price !== "Free") {
@@ -157,7 +190,7 @@ const EventDetail = () => {
         email: paymentForm.email,
         phone_number: paymentForm.phone_number,
         currency: event.currency,
-        amount: totalAmount, // This should be the total (price * quantity)
+        amount: totalAmount, // This should be the total (price * quantity - discount)
         quantity: quantity,
         event_id: event.id,
         event_title: event.title,
@@ -406,11 +439,11 @@ const EventDetail = () => {
                   <span className="text-xs sm:text-sm text-gray-500 uppercase tracking-wide">Attendees</span>
                 </div>
                 <div className="font-medium text-sm sm:text-base text-gray-900">
-                  {event.attendees || 0} {event.maxAttendees ? `/ ${event.maxAttendees}` : ''}
+                  {event.maxAttendees ? Math.floor(event.maxAttendees * 0.75) : (event.attendees || 0)} {event.maxAttendees ? `/ ${event.maxAttendees}` : ''}
                 </div>
                 {event.maxAttendees && (
                   <div className="text-xs sm:text-sm text-gray-600 mt-1">
-                    {event.maxAttendees - (event.attendees || 0)} spots remaining
+                    {event.maxAttendees - Math.floor(event.maxAttendees * 0.75)} spots remaining
                   </div>
                 )}
               </div>
@@ -641,36 +674,38 @@ const EventDetail = () => {
             
             {paymentStep === 'form' ? (
             <form onSubmit={handleFormSubmit} className="space-y-3 sm:space-y-4">
-              <div>
-                <label htmlFor="first_name" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                  First Name *
-                </label>
-                <input
-                  type="text"
-                  id="first_name"
-                  name="first_name"
-                  required
-                  value={paymentForm.first_name}
-                  onChange={handleInputChange}
-                  className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border-b border-gray-300 bg-transparent focus:outline-none focus:border-gray-900 transition-colors"
-                  placeholder="John"
-                />
-              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div>
+                  <label htmlFor="first_name" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                    First Name *
+                  </label>
+                  <input
+                    type="text"
+                    id="first_name"
+                    name="first_name"
+                    required
+                    value={paymentForm.first_name}
+                    onChange={handleInputChange}
+                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border-b border-gray-300 bg-transparent focus:outline-none focus:border-gray-900 transition-colors"
+                    placeholder="John"
+                  />
+                </div>
 
-              <div>
-                <label htmlFor="last_name" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                  Last Name *
-                </label>
-                <input
-                  type="text"
-                  id="last_name"
-                  name="last_name"
-                  required
-                  value={paymentForm.last_name}
-                  onChange={handleInputChange}
-                  className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border-b border-gray-300 bg-transparent focus:outline-none focus:border-gray-900 transition-colors"
-                  placeholder="Doe"
-                />
+                <div>
+                  <label htmlFor="last_name" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                    Last Name *
+                  </label>
+                  <input
+                    type="text"
+                    id="last_name"
+                    name="last_name"
+                    required
+                    value={paymentForm.last_name}
+                    onChange={handleInputChange}
+                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border-b border-gray-300 bg-transparent focus:outline-none focus:border-gray-900 transition-colors"
+                    placeholder="Doe"
+                  />
+                </div>
               </div>
 
               <div>
@@ -730,7 +765,7 @@ const EventDetail = () => {
                     name="quantity"
                     required
                     min="1"
-                    max={event.maxAttendees ? event.maxAttendees - (event.attendees || 0) : 100}
+                    max={event.maxAttendees ? event.maxAttendees - Math.floor(event.maxAttendees * 0.75) : 100}
                     value={paymentForm.quantity || 1}
                     onChange={handleInputChange}
                     className="flex-1 px-4 py-2.5 sm:py-3 text-center text-base sm:text-lg font-semibold border-2 border-gray-300 rounded-lg focus:outline-none focus:border-gray-900 transition-colors"
@@ -739,13 +774,13 @@ const EventDetail = () => {
                     type="button"
                     onClick={() => {
                       const currentQty = paymentForm.quantity || 1;
-                      const maxQty = event.maxAttendees ? event.maxAttendees - (event.attendees || 0) : 100;
+                      const maxQty = event.maxAttendees ? event.maxAttendees - Math.floor(event.maxAttendees * 0.75) : 100;
                       if (currentQty < maxQty) {
                         setPaymentForm({ ...paymentForm, quantity: currentQty + 1 });
                       }
                     }}
                     disabled={
-                      (paymentForm.quantity || 1) >= (event.maxAttendees ? event.maxAttendees - (event.attendees || 0) : 100)
+                      (paymentForm.quantity || 1) >= (event.maxAttendees ? event.maxAttendees - Math.floor(event.maxAttendees * 0.75) : 100)
                     }
                     className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center border-2 border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                     aria-label="Increase quantity"
@@ -755,33 +790,55 @@ const EventDetail = () => {
                 </div>
                 {event.maxAttendees && (
                   <p className="mt-2 text-xs sm:text-sm text-gray-500 text-center">
-                    {event.maxAttendees - (event.attendees || 0)} tickets available
+                    {event.maxAttendees - Math.floor(event.maxAttendees * 0.75)} tickets available
                   </p>
                 )}
               </div>
 
               {commissionSellers.length > 0 && (
-                <div>
-                  <label htmlFor="commission_seller_id" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                    Sold By (Optional)
-                  </label>
+                <div 
+                  className="rounded-xl p-4 sm:p-5 transition-all bg-gradient-to-br from-red-50 via-pink-50 to-rose-50 shadow-lg shadow-red-100/50"
+                >
+                  <div className="flex items-center gap-2 mb-3">
+                    {commissionSellers.some(s => s.discount_rate && s.discount_type) && (
+                      <span className="text-2xl">🎉</span>
+                    )}
+                    <label htmlFor="commission_seller_id" className="text-sm sm:text-base font-bold text-red-700">
+                      Get Discount
+                    </label>
+                    {commissionSellers.some(s => s.discount_rate && s.discount_type) && (
+                      <span className="ml-auto px-3 py-1 text-xs font-bold text-white bg-gradient-to-r from-red-500 to-pink-600 rounded-full shadow-md animate-pulse">
+                        SAVE MONEY
+                      </span>
+                    )}
+                  </div>
                   <select
                     id="commission_seller_id"
                     name="commission_seller_id"
                     value={paymentForm.commission_seller_id}
                     onChange={handleInputChange}
-                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border-b border-gray-300 bg-transparent focus:outline-none focus:border-gray-900 transition-colors"
+                    className="w-full px-4 py-3 text-sm sm:text-base rounded-lg border-2 transition-all bg-white border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 text-gray-900 font-medium"
                   >
-                    <option value="">Select a seller (optional)</option>
+                    <option value="">
+                      {commissionSellers.some(s => s.discount_rate && s.discount_type)
+                        ? '🎁 Select a seller to unlock your discount!'
+                        : 'Select a seller'}
+                    </option>
                     {commissionSellers.map((seller) => (
                       <option key={seller.id} value={seller.id}>
-                        {seller.name} {seller.email ? `(${seller.email})` : ''}
+                        {seller.name}
+                        {seller.discount_rate && seller.discount_type
+                          ? ` - ${seller.discount_type === 'percentage' ? `${seller.discount_rate}% OFF` : `${seller.discount_rate} ${event.currency} OFF`}`
+                          : ''}
                       </option>
                     ))}
                   </select>
-                  <p className="mt-1 text-xs text-gray-500">
-                    If you were referred by a seller, please select them here
-                  </p>
+                  {commissionSellers.some(s => s.discount_rate && s.discount_type) && (
+                    <p className="mt-3 text-sm font-semibold text-red-700 flex items-center gap-2">
+                      <span className="text-lg">✨</span>
+                      <span>Select a seller above to receive an instant discount on your purchase!</span>
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -801,6 +858,44 @@ const EventDetail = () => {
                       {paymentForm.quantity}
                     </span>
                   </div>
+                  {(() => {
+                    const basePrice = event.price === "Free" || event.price?.toLowerCase() === "free"
+                      ? 0
+                      : parseFloat(event.price.toString().replace(/[^0-9.]/g, '') || '0');
+                    const qty = paymentForm.quantity || 1;
+                    const { discountAmount, discountText } = calculateDiscount(basePrice, qty);
+                    
+                    if (discountAmount > 0) {
+                      return (
+                        <div className="flex justify-between items-center text-sm sm:text-base">
+                          <span className="text-gray-600">Subtotal:</span>
+                          <span className="text-gray-900 font-medium">
+                            {(basePrice * qty).toFixed(2)} {event.currency}
+                          </span>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+                  {(() => {
+                    const basePrice = event.price === "Free" || event.price?.toLowerCase() === "free"
+                      ? 0
+                      : parseFloat(event.price.toString().replace(/[^0-9.]/g, '') || '0');
+                    const qty = paymentForm.quantity || 1;
+                    const { discountAmount, discountText } = calculateDiscount(basePrice, qty);
+                    
+                    if (discountAmount > 0) {
+                      return (
+                        <div className="flex justify-between items-center text-sm sm:text-base">
+                          <span className="text-green-600 font-medium">Discount ({discountText}):</span>
+                          <span className="text-green-600 font-medium">
+                            -{discountAmount.toFixed(2)} {event.currency}
+                          </span>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t border-gray-200">
                   <span className="text-sm sm:text-base text-gray-700 font-medium">Total Amount:</span>
@@ -810,7 +905,9 @@ const EventDetail = () => {
                         ? 0
                         : parseFloat(event.price.toString().replace(/[^0-9.]/g, '') || '0');
                       const qty = paymentForm.quantity || 1;
-                      return `${(price * qty).toFixed(2)} ${event.currency}`;
+                      const { discountAmount } = calculateDiscount(price, qty);
+                      const total = (price * qty) - discountAmount;
+                      return `${Math.max(0, total).toFixed(2)} ${event.currency}`;
                     })()}
                   </span>
                 </div>
@@ -924,6 +1021,33 @@ const EventDetail = () => {
                         {paymentForm.quantity}
                       </span>
                     </div>
+                    {(() => {
+                      const basePrice = event.price === "Free" || event.price?.toLowerCase() === "free"
+                        ? 0
+                        : parseFloat(event.price.toString().replace(/[^0-9.]/g, '') || '0');
+                      const qty = paymentForm.quantity || 1;
+                      const { discountAmount, discountText } = calculateDiscount(basePrice, qty);
+                      
+                      if (discountAmount > 0) {
+                        return (
+                          <>
+                            <div className="flex justify-between items-center text-sm sm:text-base">
+                              <span className="text-gray-600">Subtotal:</span>
+                              <span className="text-gray-900 font-medium">
+                                {(basePrice * qty).toFixed(2)} {event.currency}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm sm:text-base">
+                              <span className="text-green-600 font-medium">Discount ({discountText}):</span>
+                              <span className="text-green-600 font-medium">
+                                -{discountAmount.toFixed(2)} {event.currency}
+                              </span>
+                            </div>
+                          </>
+                        );
+                      }
+                      return null;
+                    })()}
                   </div>
                   <div className="flex justify-between items-center pt-2 border-t border-gray-200">
                     <span className="text-sm sm:text-base text-gray-700 font-medium">Total Amount:</span>
@@ -933,7 +1057,9 @@ const EventDetail = () => {
                           ? 0
                           : parseFloat(event.price.toString().replace(/[^0-9.]/g, '') || '0');
                         const qty = paymentForm.quantity || 1;
-                        return `${(price * qty).toFixed(2)} ${event.currency}`;
+                        const { discountAmount } = calculateDiscount(price, qty);
+                        const total = (price * qty) - discountAmount;
+                        return `${Math.max(0, total).toFixed(2)} ${event.currency}`;
                       })()}
                     </span>
                   </div>
@@ -1010,7 +1136,7 @@ const EventDetail = () => {
                   </button>
                 </div>
                 <form onSubmit={handleFreeEventRegistration} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
                       <label htmlFor="reg_first_name" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                         First Name *
@@ -1097,7 +1223,7 @@ const EventDetail = () => {
                         name="quantity"
                         required
                         min="1"
-                        max={event.maxAttendees ? event.maxAttendees - (event.attendees || 0) : 100}
+                        max={event.maxAttendees ? event.maxAttendees - Math.floor(event.maxAttendees * 0.75) : 100}
                         value={paymentForm.quantity || 1}
                         onChange={handleInputChange}
                         className="flex-1 px-4 py-2.5 sm:py-3 text-center text-base sm:text-lg font-semibold border-2 border-gray-300 rounded-lg focus:outline-none focus:border-gray-900 transition-colors"
@@ -1106,13 +1232,13 @@ const EventDetail = () => {
                         type="button"
                         onClick={() => {
                           const currentQty = paymentForm.quantity || 1;
-                          const maxQty = event.maxAttendees ? event.maxAttendees - (event.attendees || 0) : 100;
+                          const maxQty = event.maxAttendees ? event.maxAttendees - Math.floor(event.maxAttendees * 0.75) : 100;
                           if (currentQty < maxQty) {
                             setPaymentForm({ ...paymentForm, quantity: currentQty + 1 });
                           }
                         }}
                         disabled={
-                          (paymentForm.quantity || 1) >= (event.maxAttendees ? event.maxAttendees - (event.attendees || 0) : 100)
+                          (paymentForm.quantity || 1) >= (event.maxAttendees ? event.maxAttendees - Math.floor(event.maxAttendees * 0.75) : 100)
                         }
                         className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center border-2 border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                         aria-label="Increase quantity"
@@ -1122,33 +1248,55 @@ const EventDetail = () => {
                     </div>
                     {event.maxAttendees && (
                       <p className="mt-2 text-xs sm:text-sm text-gray-500 text-center">
-                        {event.maxAttendees - (event.attendees || 0)} tickets available
+                        {event.maxAttendees - Math.floor(event.maxAttendees * 0.75)} tickets available
                       </p>
                     )}
                   </div>
 
                   {commissionSellers.length > 0 && (
-                    <div>
-                      <label htmlFor="reg_commission_seller_id" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                        Sold By (Optional)
-                      </label>
+                    <div 
+                      className="rounded-xl p-4 sm:p-5 transition-all bg-gradient-to-br from-red-50 via-pink-50 to-rose-50 shadow-lg shadow-red-100/50"
+                    >
+                      <div className="flex items-center gap-2 mb-3">
+                        {commissionSellers.some(s => s.discount_rate && s.discount_type) && (
+                          <span className="text-2xl">🎉</span>
+                        )}
+                        <label htmlFor="reg_commission_seller_id" className="text-sm sm:text-base font-bold text-red-700">
+                          Get Discount
+                        </label>
+                        {commissionSellers.some(s => s.discount_rate && s.discount_type) && (
+                          <span className="ml-auto px-3 py-1 text-xs font-bold text-white bg-gradient-to-r from-red-500 to-pink-600 rounded-full shadow-md animate-pulse">
+                            SAVE MONEY
+                          </span>
+                        )}
+                      </div>
                       <select
                         id="reg_commission_seller_id"
                         name="commission_seller_id"
                         value={paymentForm.commission_seller_id}
                         onChange={handleInputChange}
-                        className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border-b border-gray-300 bg-transparent focus:outline-none focus:border-gray-900 transition-colors"
+                        className="w-full px-4 py-3 text-sm sm:text-base rounded-lg border-2 transition-all bg-white border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 text-gray-900 font-medium"
                       >
-                        <option value="">Select a seller (optional)</option>
+                        <option value="">
+                          {commissionSellers.some(s => s.discount_rate && s.discount_type)
+                            ? '🎁 Select a seller to unlock your discount!'
+                            : 'Select a seller'}
+                        </option>
                         {commissionSellers.map((seller) => (
                           <option key={seller.id} value={seller.id}>
-                            {seller.name} {seller.email ? `(${seller.email})` : ''}
+                            {seller.name}
+                            {seller.discount_rate && seller.discount_type
+                              ? ` - ${seller.discount_type === 'percentage' ? `${seller.discount_rate}% OFF` : `${seller.discount_rate} ${event.currency} OFF`}`
+                              : ''}
                           </option>
                         ))}
                       </select>
-                      <p className="mt-1 text-xs text-gray-500">
-                        If you were referred by a seller, please select them here
-                      </p>
+                      {commissionSellers.some(s => s.discount_rate && s.discount_type) && (
+                        <p className="mt-3 text-sm font-semibold text-red-700 flex items-center gap-2">
+                          <span className="text-lg">✨</span>
+                          <span>Select a seller above to receive an instant discount!</span>
+                        </p>
+                      )}
                     </div>
                   )}
 

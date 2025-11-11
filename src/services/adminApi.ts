@@ -802,6 +802,8 @@ export const adminApi = {
           phone: sellerData.phone || null,
           commission_rate: sellerData.commission_rate,
           commission_type: sellerData.commission_type,
+          discount_rate: sellerData.discount_rate !== undefined ? sellerData.discount_rate : null,
+          discount_type: sellerData.discount_type || null,
           is_active: sellerData.is_active !== undefined ? sellerData.is_active : true,
           notes: sellerData.notes || null,
         }])
@@ -822,6 +824,8 @@ export const adminApi = {
       if (sellerData.phone !== undefined) updateData.phone = sellerData.phone || null;
       if (sellerData.commission_rate !== undefined) updateData.commission_rate = sellerData.commission_rate;
       if (sellerData.commission_type !== undefined) updateData.commission_type = sellerData.commission_type;
+      if (sellerData.discount_rate !== undefined) updateData.discount_rate = sellerData.discount_rate !== null && sellerData.discount_rate !== undefined ? sellerData.discount_rate : null;
+      if (sellerData.discount_type !== undefined) updateData.discount_type = sellerData.discount_type || null;
       if (sellerData.is_active !== undefined) updateData.is_active = sellerData.is_active;
       if (sellerData.notes !== undefined) updateData.notes = sellerData.notes || null;
 

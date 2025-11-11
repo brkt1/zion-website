@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { FaArrowRight, FaCalendarAlt, FaMapMarkerAlt, FaSearch, FaUsers, FaWhatsapp } from "react-icons/fa";
+import { FaArrowRight, FaCalendarAlt, FaSearch, FaUsers, FaWhatsapp } from "react-icons/fa";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { EventsSkeleton } from "../Components/ui/EventsSkeleton";
 import { LocationButton } from "../Components/ui/LocationButton";
@@ -334,24 +334,28 @@ const Events = () => {
                     </h3>
 
                     {/* Date and Location */}
-                    <div className="space-y-2 mb-4">
+                    <div className="space-y-3 mb-5">
                       <div className="flex items-center text-gray-600 text-xs md:text-sm">
                         <FaCalendarAlt className="mr-2 flex-shrink-0" size={12} aria-hidden="true" />
                         <span>{formatDate(event.date)}</span>
                       </div>
                       <div className="flex items-center text-gray-600 text-xs md:text-sm">
-                        <FaMapMarkerAlt className="mr-2 flex-shrink-0" size={12} aria-hidden="true" />
-                        <LocationButton location={event.location} className="text-gray-600 text-xs md:text-sm" showIcon={false} />
+                        <LocationButton 
+                          location={event.location} 
+                          className="!text-gray-600 hover:!text-gray-900 !text-xs md:!text-sm !p-0 !min-h-0 !min-w-0" 
+                          showIcon={false} 
+                        />
                       </div>
-                      {event.attendees && (
-                        <div className="flex items-center text-gray-600 text-xs md:text-sm">
-                          <FaUsers className="mr-2 flex-shrink-0" size={12} aria-hidden="true" />
-                          <span>{event.attendees} attending</span>
-                        </div>
-                      )}
+                      <div className="flex items-center text-gray-600 text-xs md:text-sm">
+                        <FaUsers className="mr-2 flex-shrink-0" size={12} aria-hidden="true" />
+                        <span>
+                          {event.maxAttendees ? Math.floor(event.maxAttendees * 0.75) : (event.attendees || 0)}
+                          {event.maxAttendees ? ` / ${event.maxAttendees}` : event.attendees ? ' attending' : ''}
+                        </span>
+                      </div>
                     </div>
 
-                    <p className="text-gray-600 mb-5 md:mb-6 leading-relaxed text-sm md:text-base line-clamp-2">
+                    <p className="text-gray-600 mb-5 md:mb-6 leading-relaxed text-sm md:text-base line-clamp-4">
                       {event.description}
                     </p>
                     

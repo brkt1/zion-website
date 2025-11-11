@@ -45,6 +45,8 @@ const CommissionSellers = () => {
     phone: '',
     commission_rate: '',
     commission_type: 'percentage' as 'percentage' | 'fixed',
+    discount_rate: '',
+    discount_type: '' as '' | 'percentage' | 'fixed',
     is_active: true,
     notes: '',
   });
@@ -92,6 +94,8 @@ const CommissionSellers = () => {
         phone: formData.phone || undefined,
         commission_rate: parseFloat(formData.commission_rate),
         commission_type: formData.commission_type,
+        discount_rate: formData.discount_rate && formData.discount_type ? parseFloat(formData.discount_rate) : undefined,
+        discount_type: formData.discount_type || undefined,
         is_active: formData.is_active,
         notes: formData.notes || undefined,
       };
@@ -118,6 +122,8 @@ const CommissionSellers = () => {
       phone: seller.phone || '',
       commission_rate: seller.commission_rate.toString(),
       commission_type: seller.commission_type,
+      discount_rate: seller.discount_rate?.toString() || '',
+      discount_type: seller.discount_type || '',
       is_active: seller.is_active,
       notes: seller.notes || '',
     });
@@ -157,6 +163,8 @@ const CommissionSellers = () => {
       phone: '',
       commission_rate: '',
       commission_type: 'percentage',
+      discount_rate: '',
+      discount_type: '',
       is_active: true,
       notes: '',
     });
@@ -637,6 +645,55 @@ const CommissionSellers = () => {
                       ? 'Enter percentage (e.g., 10 for 10%)'
                       : 'Enter fixed amount in ETB'}
                   </p>
+                </div>
+              </div>
+              
+              {/* Discount Section */}
+              <div className="border-t border-gray-200 pt-6">
+                <h3 className="text-sm font-semibold text-gray-700 mb-4">Customer Discount (Optional)</h3>
+                <p className="text-xs text-gray-500 mb-4">
+                  Set a discount that customers will receive when they select this seller during ticket purchase.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Discount Type</label>
+                    <select
+                      value={formData.discount_type}
+                      onChange={(e) => {
+                        const newType = e.target.value as '' | 'percentage' | 'fixed';
+                        setFormData({ 
+                          ...formData, 
+                          discount_type: newType,
+                          discount_rate: newType ? formData.discount_rate : ''
+                        });
+                      }}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                    >
+                      <option value="">No Discount</option>
+                      <option value="percentage">Percentage (%)</option>
+                      <option value="fixed">Fixed Amount (ETB)</option>
+                    </select>
+                  </div>
+                  {formData.discount_type && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Discount Rate *</label>
+                      <input
+                        type="number"
+                        required={!!formData.discount_type}
+                        step="0.01"
+                        min="0"
+                        value={formData.discount_rate}
+                        onChange={(e) => setFormData({ ...formData, discount_rate: e.target.value })}
+                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                        placeholder={formData.discount_type === 'percentage' ? '5' : '50'}
+                      />
+                      <p className="mt-1 text-xs text-gray-500">
+                        {formData.discount_type === 'percentage'
+                          ? 'Enter percentage (e.g., 5 for 5% off)'
+                          : 'Enter fixed amount in ETB (e.g., 50 for 50 ETB off)'}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">

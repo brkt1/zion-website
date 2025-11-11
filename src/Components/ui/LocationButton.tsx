@@ -58,14 +58,18 @@ export const LocationButton = ({ location, className = '', showIcon = true }: Lo
 
   const displayText = getDisplayText();
 
+  // Check if className overrides default padding/sizing
+  const hasCustomPadding = className.includes('!p-0') || className.includes('p-0');
+  const hasCustomMinSize = className.includes('!min-h-0') || className.includes('min-h-0');
+  
   return (
     <button
       onClick={handleClick}
       className={`inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline transition-colors ${className}`}
       style={{ 
-        minHeight: '44px', 
-        minWidth: '44px', 
-        padding: '8px 12px',
+        minHeight: hasCustomMinSize ? undefined : '44px', 
+        minWidth: hasCustomMinSize ? undefined : '44px', 
+        padding: hasCustomPadding ? undefined : '8px 12px',
         display: 'inline-flex',
         alignItems: 'center',
         boxSizing: 'border-box'

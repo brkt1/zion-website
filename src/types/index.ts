@@ -159,6 +159,8 @@ export interface CommissionSeller {
   phone?: string;
   commission_rate: number;
   commission_type: 'percentage' | 'fixed';
+  discount_rate?: number;
+  discount_type?: 'percentage' | 'fixed';
   is_active: boolean;
   notes?: string;
   created_at: string;
@@ -171,6 +173,8 @@ export interface CreateCommissionSellerData {
   phone?: string;
   commission_rate: number;
   commission_type: 'percentage' | 'fixed';
+  discount_rate?: number;
+  discount_type?: 'percentage' | 'fixed';
   is_active?: boolean;
   notes?: string;
 }
@@ -181,6 +185,8 @@ export interface UpdateCommissionSellerData {
   phone?: string;
   commission_rate?: number;
   commission_type?: 'percentage' | 'fixed';
+  discount_rate?: number;
+  discount_type?: 'percentage' | 'fixed';
   is_active?: boolean;
   notes?: string;
 }
