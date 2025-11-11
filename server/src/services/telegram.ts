@@ -1,6 +1,7 @@
 /**
  * Telegram Bot Service
  * Handles Telegram bot interactions, notifications, and commands
+ * Fixed import statement typo
  */
 
 import https from 'https';
