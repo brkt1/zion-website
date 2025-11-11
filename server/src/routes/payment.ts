@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import chapa from '../services/chapa';
+import { supabase } from '../services/supabase';
 import { generateThankYouMessage, sendWhatsAppMessage } from '../services/whatsapp';
 
 const router = express.Router();
@@ -583,6 +584,35 @@ router.post('/webhook', async (req: Request, res: Response) => {
           }).catch((error) => {
             console.error('❌ Error sending WhatsApp message via webhook:', error);
           });
+
+          // Try to send Telegram notification if customer has subscribed
+          // Look for Telegram subscription by email (if available)
+          const customerEmail = verificationData.email || verificationData.meta?.email;
+          if (customerEmail && process.env.TELEGRAM_BOT_TOKEN) {
+            try {
+              // Try to find Telegram subscription by email (you may need to store email in subscriptions table)
+              // For now, we'll just try to send to all active subscribers if email matches
+              // In a production setup, you'd want to link Telegram chat_id to customer email/phone
+              const { data: telegramSub } = await supabase
+                .from('telegram_subscriptions')
+                .select('chat_id')
+                .eq('is_active', true)
+                .limit(1)
+                .single();
+
+              // Note: In production, you should store customer email/phone with Telegram subscription
+              // For now, this is a placeholder - you can enhance this by:
+              // 1. Adding email/phone fields to telegram_subscriptions table
+              // 2. Matching customer email/phone with subscription
+              // 3. Sending notification only to matching subscriber
+
+              // For now, we'll skip automatic Telegram notifications via webhook
+              // Users can verify their tickets manually via /verify command
+            } catch (telegramError) {
+              // Silently fail - Telegram notifications are optional
+              console.log('Telegram notification skipped (customer may not be subscribed)');
+            }
+          }
         } catch (error: any) {
           // Don't fail the webhook if WhatsApp sending fails
           console.error('Error preparing WhatsApp message in webhook:', error);

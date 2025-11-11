@@ -7,6 +7,7 @@ import path from 'path';
 import contentRoutes from './routes/content';
 import paymentRoutes from './routes/payment';
 import pushRoutes from './routes/push';
+import telegramRoutes from './routes/telegram';
 
 // Load .env file from server directory
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
@@ -25,6 +26,7 @@ console.log('  WhatsApp Provider:',
     (process.env.TWILIO_MESSAGING_SERVICE_SID ? '✅ Twilio (Messaging Service)' : '✅ Twilio (WhatsApp Number)') :
   process.env.WHATSAPP_API_URL ? '✅ HTTP Service' :
   '⚠️  Not configured (messages will not be sent)');
+console.log('  Telegram Bot:', process.env.TELEGRAM_BOT_TOKEN ? '✅ Configured' : '❌ Not configured');
 if (process.env.WHATSAPP_ACCESS_TOKEN) {
   console.log('  Meta WhatsApp: ✅ Configured (Phone Number ID:', process.env.WHATSAPP_PHONE_NUMBER_ID ? 'Set' : 'Not set', ')');
 } else if (process.env.TWILIO_API_KEY_SID || process.env.TWILIO_ACCOUNT_SID) {
@@ -177,9 +179,20 @@ app.options('*', (req: express.Request, res: express.Response) => {
 app.use(express.json({ limit: '10mb' })); // Limit JSON payload size
 app.use(express.urlencoded({ extended: true, limit: '10mb' })); // Limit URL-encoded payload size
 
+// Security: Rate limiting for Telegram routes (stricter)
+const telegramLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 200, // Limit each IP to 200 requests per windowMs (webhook can be called frequently)
+  message: 'Too many requests to Telegram API, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.method === 'OPTIONS', // Skip OPTIONS requests
+});
+
 // Routes
 app.use('/api/payments', paymentRoutes);
 app.use('/api/push', pushRoutes);
+app.use('/api/telegram', telegramLimiter, telegramRoutes);
 app.use('/api', contentRoutes);
 
 // Health check

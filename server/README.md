@@ -63,6 +63,9 @@ npm start
 - `VAPID_SUBJECT` - VAPID subject (e.g., `mailto:admin@yenege.com`)
 - `SUPABASE_URL` - Supabase project URL (for push subscriptions)
 - `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key (for backend operations)
+- `TELEGRAM_BOT_TOKEN` - Telegram bot token (for Telegram bot features)
+- `TELEGRAM_ADMIN_API_TOKEN` - Admin API token for protecting admin endpoints (generate with `openssl rand -hex 32`)
+- `TELEGRAM_ADMIN_USER_IDS` - Comma-separated list of Telegram user IDs with admin access (get from @userinfobot)
 
 ## Push Notifications Setup
 
@@ -93,4 +96,14 @@ node scripts/generate-vapid-keys.js
 - `POST /api/push/subscribe` - Subscribe to push notifications
 - `POST /api/push/unsubscribe` - Unsubscribe from push notifications
 - `POST /api/push/send` - Send push notification to all subscribers
+
+### Telegram Bot Endpoints
+- `POST /api/telegram/webhook` - Webhook for Telegram bot updates
+- `GET /api/telegram/info` - Get bot information
+- `POST /api/telegram/set-webhook` - Set webhook URL
+- `POST /api/telegram/delete-webhook` - Delete webhook
+- `POST /api/telegram/send-message` - Send message to specific chat
+- `POST /api/telegram/broadcast` - Broadcast message to all subscribers
+
+See [TELEGRAM_BOT_SETUP.md](../docs/TELEGRAM_BOT_SETUP.md) for detailed setup instructions.
 
