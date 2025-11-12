@@ -78,8 +78,13 @@ router.post('/initialize', async (req: Request, res: Response) => {
     returnUrlParams.set('tx_ref', transactionRef);
     if (event_id) returnUrlParams.set('event_id', event_id);
     if (event_title) returnUrlParams.set('event_title', event_title);
-    if (quantity) returnUrlParams.set('quantity', quantity.toString());
-    if (commission_seller_id) returnUrlParams.set('commission_seller_id', commission_seller_id);
+    // Always include quantity (default to 1 if not provided)
+    const ticketQuantity = quantity && quantity > 0 ? quantity : 1;
+    returnUrlParams.set('quantity', ticketQuantity.toString());
+    // Only include commission_seller_id if it's a valid non-empty string
+    if (commission_seller_id && commission_seller_id.trim() !== '') {
+      returnUrlParams.set('commission_seller_id', commission_seller_id.trim());
+    }
     
     const returnUrl = return_url || `${baseUrl}/payment/success?${returnUrlParams.toString()}`;
 

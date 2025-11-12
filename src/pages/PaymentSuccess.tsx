@@ -3,7 +3,7 @@ import { FaCheckCircle, FaDownload, FaSpinner } from "react-icons/fa";
 import { Link, useSearchParams } from "react-router-dom";
 import { adminApi } from "../services/adminApi";
 import { verifyPayment } from "../services/payment";
-import { getTicketByTxRef, saveTicket } from "../services/ticket";
+import { getTicketByTxRef, saveTicket, updateTicket } from "../services/ticket";
 import { sendWhatsAppThankYou } from "../services/whatsapp";
 import { logger } from "../utils/logger";
 
@@ -30,14 +30,6 @@ const PaymentSuccess = () => {
     if (!txRef || ticketSaved) return; // Don't save twice
 
     try {
-      // Check if ticket already exists
-      const existingTicket = await getTicketByTxRef(txRef);
-      if (existingTicket) {
-        logger.log('Ticket already exists in database');
-        setTicketSaved(true);
-        return;
-      }
-
       // Get amount value
       // Chapa may return amounts in cents or base currency depending on the API version
       // We need to detect which format it is:
@@ -85,7 +77,12 @@ const PaymentSuccess = () => {
         logger.warn('⚠️ No quantity param in URL, defaulting to 1');
       }
       
-      logger.log('Quantity info:', { quantityParam, parsedQuantity: quantity, amount });
+      logger.log('Quantity info:', { 
+        quantityParam, 
+        parsedQuantity: quantity, 
+        amount,
+        commission_seller_id_param: commissionSellerIdParam
+      });
 
       // Prepare QR code data
       const qrData = {
@@ -101,19 +98,66 @@ const PaymentSuccess = () => {
       };
 
       // Get commission seller name if commission_seller_id is provided
+      // Handle empty strings - treat them as undefined
+      const validCommissionSellerId = commissionSellerIdParam && commissionSellerIdParam.trim() !== '' 
+        ? commissionSellerIdParam.trim() 
+        : undefined;
+      
       let commissionSellerName: string | undefined = undefined;
-      if (commissionSellerIdParam) {
+      if (validCommissionSellerId) {
         try {
-          const seller = await adminApi.commissionSellers.getById(commissionSellerIdParam);
+          const seller = await adminApi.commissionSellers.getById(validCommissionSellerId);
           commissionSellerName = seller.name;
+          logger.log('Commission seller found:', { id: validCommissionSellerId, name: commissionSellerName });
         } catch (error) {
           console.error('Error fetching commission seller:', error);
           // Continue without seller name
         }
       }
 
+      // Check if ticket already exists - if so, update it with commission_seller_id and quantity
+      const existingTicket = await getTicketByTxRef(txRef);
+      if (existingTicket) {
+        logger.log('Ticket already exists in database, checking if update is needed');
+        
+        // Update existing ticket with commission_seller_id and quantity if they're missing or different
+        const commissionSellerChanged = validCommissionSellerId !== undefined && 
+          existingTicket.commission_seller_id !== validCommissionSellerId;
+        const quantityChanged = quantity !== undefined && 
+          existingTicket.quantity !== quantity;
+        const needsUpdate = commissionSellerChanged || quantityChanged;
+        
+        if (needsUpdate) {
+          logger.log('Updating ticket with:', {
+            commission_seller_id: validCommissionSellerId,
+            quantity: quantity,
+            existing_commission_seller_id: existingTicket.commission_seller_id,
+            existing_quantity: existingTicket.quantity,
+          });
+          
+          await updateTicket(txRef, {
+            commission_seller_id: validCommissionSellerId,
+            commission_seller_name: commissionSellerName,
+            quantity: quantity,
+            qr_code_data: qrData,
+          });
+          logger.log('Ticket updated successfully with commission_seller_id and quantity');
+        } else {
+          logger.log('Ticket already has correct commission_seller_id and quantity');
+        }
+        
+        setTicketSaved(true);
+        return;
+      }
+
       // Save ticket with quantity
-      logger.log('Saving ticket with data:', { tx_ref: txRef, amount, quantity });
+      logger.log('Saving ticket with data:', { 
+        tx_ref: txRef, 
+        amount, 
+        quantity,
+        commission_seller_id: validCommissionSellerId,
+        commission_seller_name: commissionSellerName
+      });
 
       await saveTicket({
         tx_ref: txRef,
@@ -127,7 +171,7 @@ const PaymentSuccess = () => {
         quantity: quantity, // This should be the actual quantity purchased
         status: 'success',
         chapa_reference: paymentData.reference || undefined,
-        commission_seller_id: commissionSellerIdParam || undefined,
+        commission_seller_id: validCommissionSellerId,
         commission_seller_name: commissionSellerName,
         qr_code_data: qrData,
         payment_date: paymentData.created_at || new Date().toISOString(),
