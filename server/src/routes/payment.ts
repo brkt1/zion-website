@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import chapa from '../services/chapa';
-import { supabase } from '../services/supabase';
+import { notifyAdminsOfPayment } from '../services/telegram';
 import { generateThankYouMessage, sendWhatsAppMessage } from '../services/whatsapp';
 
 const router = express.Router();
@@ -451,12 +451,12 @@ router.get('/verify/:tx_ref', async (req: Request, res: Response) => {
     
     console.log('Verification data:', JSON.stringify(verificationData, null, 2));
 
-    // If payment is successful, send WhatsApp thank you message
+    // If payment is successful, send WhatsApp thank you message and notify admins
     const status = verificationData.status?.toLowerCase();
     // Access phone_number from meta or directly (Chapa may store it in different places)
     const phoneNumber = verificationData.phone_number || verificationData.meta?.phone_number;
     
-    if ((status === "success" || status === "successful" || status === "completed") && phoneNumber) {
+    if (status === "success" || status === "successful" || status === "completed") {
       try {
         const amount = verificationData.amount 
           ? (typeof verificationData.amount === 'string' 
@@ -464,34 +464,60 @@ router.get('/verify/:tx_ref', async (req: Request, res: Response) => {
               : verificationData.amount / 100)
           : 0;
         
-        const thankYouMessage = generateThankYouMessage({
-          customerName: verificationData.first_name && verificationData.last_name
-            ? `${verificationData.first_name} ${verificationData.last_name}`
-            : verificationData.first_name || verificationData.last_name,
+        const customerName = verificationData.first_name && verificationData.last_name
+          ? `${verificationData.first_name} ${verificationData.last_name}`
+          : verificationData.first_name || verificationData.last_name || undefined;
+        
+        // Send WhatsApp thank you message if phone number is available
+        if (phoneNumber) {
+          const thankYouMessage = generateThankYouMessage({
+            customerName,
+            amount,
+            currency: verificationData.currency || 'ETB',
+            txRef: verificationData.tx_ref || '',
+            eventTitle: verificationData.event_title || verificationData.meta?.event_title,
+            quantity: verificationData.quantity || verificationData.meta?.quantity,
+          });
+
+          // Send WhatsApp message asynchronously (don't wait for it)
+          sendWhatsAppMessage({
+            to: phoneNumber,
+            message: thankYouMessage,
+            customerName,
+          }).then((result) => {
+            if (result.success) {
+              console.log('✅ WhatsApp thank you message sent successfully:', result.messageId);
+            } else {
+              console.warn('⚠️  Failed to send WhatsApp message:', result.error);
+            }
+          }).catch((error) => {
+            console.error('❌ Error sending WhatsApp message:', error);
+          });
+        }
+
+        // Notify admins via Telegram (asynchronously, don't wait for it)
+        notifyAdminsOfPayment({
+          customerName,
+          customerEmail: verificationData.email || verificationData.meta?.email,
+          customerPhone: phoneNumber,
           amount,
           currency: verificationData.currency || 'ETB',
-          txRef: verificationData.tx_ref || '',
+          txRef: verificationData.tx_ref || tx_ref,
           eventTitle: verificationData.event_title || verificationData.meta?.event_title,
           quantity: verificationData.quantity || verificationData.meta?.quantity,
-        });
-
-        // Send WhatsApp message asynchronously (don't wait for it)
-        sendWhatsAppMessage({
-          to: phoneNumber,
-          message: thankYouMessage,
-          customerName: verificationData.first_name || verificationData.last_name,
         }).then((result) => {
-          if (result.success) {
-            console.log('✅ WhatsApp thank you message sent successfully:', result.messageId);
-          } else {
-            console.warn('⚠️  Failed to send WhatsApp message:', result.error);
+          if (result.sent > 0) {
+            console.log(`✅ Payment notification sent to ${result.sent} admin(s)`);
+          }
+          if (result.failed > 0) {
+            console.warn(`⚠️  Failed to send payment notification to ${result.failed} admin(s)`);
           }
         }).catch((error) => {
-          console.error('❌ Error sending WhatsApp message:', error);
+          console.error('❌ Error notifying admins of payment:', error);
         });
       } catch (error: any) {
-        // Don't fail the verification if WhatsApp sending fails
-        console.error('Error preparing WhatsApp message:', error);
+        // Don't fail the verification if notifications fail
+        console.error('Error preparing notifications:', error);
       }
     }
 
@@ -552,11 +578,11 @@ router.post('/webhook', async (req: Request, res: Response) => {
       const verificationData: any = verification.data || verification;
       const status = verificationData.status?.toLowerCase();
 
-      // If payment is successful, send WhatsApp thank you message
+      // If payment is successful, send WhatsApp thank you message and notify admins
       // Access phone_number from meta or directly (Chapa may store it in different places)
       const phoneNumber = verificationData.phone_number || verificationData.meta?.phone_number || req.body.phone_number;
       
-      if ((status === "success" || status === "successful" || status === "completed") && phoneNumber) {
+      if (status === "success" || status === "successful" || status === "completed") {
         try {
           const amount = verificationData.amount 
             ? (typeof verificationData.amount === 'string' 
@@ -564,63 +590,64 @@ router.post('/webhook', async (req: Request, res: Response) => {
                 : verificationData.amount / 100)
             : 0;
           
-          const thankYouMessage = generateThankYouMessage({
-            customerName: verificationData.first_name && verificationData.last_name
-              ? `${verificationData.first_name} ${verificationData.last_name}`
-              : verificationData.first_name || verificationData.last_name,
+          const customerName = verificationData.first_name && verificationData.last_name
+            ? `${verificationData.first_name} ${verificationData.last_name}`
+            : verificationData.first_name || verificationData.last_name || undefined;
+          
+          const customerEmail = verificationData.email || verificationData.meta?.email;
+          const eventTitle = verificationData.event_title || verificationData.meta?.event_title || req.body.event_title;
+          const quantity = verificationData.quantity || verificationData.meta?.quantity || req.body.quantity;
+          
+          // Send WhatsApp thank you message if phone number is available
+          if (phoneNumber) {
+            const thankYouMessage = generateThankYouMessage({
+              customerName,
+              amount,
+              currency: verificationData.currency || 'ETB',
+              txRef: verificationData.tx_ref || tx_ref,
+              eventTitle,
+              quantity,
+            });
+
+            // Send WhatsApp message asynchronously (don't wait for it)
+            sendWhatsAppMessage({
+              to: phoneNumber,
+              message: thankYouMessage,
+              customerName,
+            }).then((result) => {
+              if (result.success) {
+                console.log('✅ WhatsApp thank you message sent successfully via webhook:', result.messageId);
+              } else {
+                console.warn('⚠️  Failed to send WhatsApp message via webhook:', result.error);
+              }
+            }).catch((error) => {
+              console.error('❌ Error sending WhatsApp message via webhook:', error);
+            });
+          }
+
+          // Notify admins via Telegram (asynchronously, don't wait for it)
+          notifyAdminsOfPayment({
+            customerName,
+            customerEmail,
+            customerPhone: phoneNumber,
             amount,
             currency: verificationData.currency || 'ETB',
             txRef: verificationData.tx_ref || tx_ref,
-            eventTitle: verificationData.event_title || verificationData.meta?.event_title || req.body.event_title,
-            quantity: verificationData.quantity || verificationData.meta?.quantity || req.body.quantity,
-          });
-
-          // Send WhatsApp message asynchronously (don't wait for it)
-          sendWhatsAppMessage({
-            to: phoneNumber,
-            message: thankYouMessage,
-            customerName: verificationData.first_name || verificationData.last_name,
+            eventTitle,
+            quantity,
           }).then((result) => {
-            if (result.success) {
-              console.log('✅ WhatsApp thank you message sent successfully via webhook:', result.messageId);
-            } else {
-              console.warn('⚠️  Failed to send WhatsApp message via webhook:', result.error);
+            if (result.sent > 0) {
+              console.log(`✅ Payment notification sent to ${result.sent} admin(s) via webhook`);
+            }
+            if (result.failed > 0) {
+              console.warn(`⚠️  Failed to send payment notification to ${result.failed} admin(s) via webhook`);
             }
           }).catch((error) => {
-            console.error('❌ Error sending WhatsApp message via webhook:', error);
+            console.error('❌ Error notifying admins of payment via webhook:', error);
           });
-
-          // Try to send Telegram notification if customer has subscribed
-          // Look for Telegram subscription by email (if available)
-          const customerEmail = verificationData.email || verificationData.meta?.email;
-          if (customerEmail && process.env.TELEGRAM_BOT_TOKEN) {
-            try {
-              // Try to find Telegram subscription by email (you may need to store email in subscriptions table)
-              // For now, we'll just try to send to all active subscribers if email matches
-              // In a production setup, you'd want to link Telegram chat_id to customer email/phone
-              const { data: telegramSub } = await supabase
-                .from('telegram_subscriptions')
-                .select('chat_id')
-                .eq('is_active', true)
-                .limit(1)
-                .single();
-
-              // Note: In production, you should store customer email/phone with Telegram subscription
-              // For now, this is a placeholder - you can enhance this by:
-              // 1. Adding email/phone fields to telegram_subscriptions table
-              // 2. Matching customer email/phone with subscription
-              // 3. Sending notification only to matching subscriber
-
-              // For now, we'll skip automatic Telegram notifications via webhook
-              // Users can verify their tickets manually via /verify command
-            } catch (telegramError) {
-              // Silently fail - Telegram notifications are optional
-              console.log('Telegram notification skipped (customer may not be subscribed)');
-            }
-          }
         } catch (error: any) {
-          // Don't fail the webhook if WhatsApp sending fails
-          console.error('Error preparing WhatsApp message in webhook:', error);
+          // Don't fail the webhook if notifications fail
+          console.error('Error preparing notifications in webhook:', error);
         }
       }
 

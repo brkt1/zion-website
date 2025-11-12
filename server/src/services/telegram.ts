@@ -2592,6 +2592,149 @@ export const handleTelegramCallback = async (update: TelegramUpdate): Promise<vo
 };
 
 /**
+ * Get all admin Telegram user IDs
+ */
+const getAllAdminTelegramUserIds = async (): Promise<number[]> => {
+  const adminIds: number[] = [];
+
+  try {
+    // First, try to get from database if Supabase is configured
+    if (isSupabaseConfigured()) {
+      try {
+        const { data: adminLinks, error: linkError } = await supabase
+          .from('telegram_admin_users')
+          .select('telegram_user_id, user_id')
+          .eq('is_active', true);
+
+        if (!linkError && adminLinks) {
+          for (const link of adminLinks) {
+            const telegramUserId = parseInt(link.telegram_user_id);
+            if (!isNaN(telegramUserId)) {
+              // Verify the linked user is actually an admin
+              const { data: userRole } = await supabase
+                .from('user_roles')
+                .select('role')
+                .eq('user_id', link.user_id)
+                .eq('role', 'admin')
+                .single();
+
+              if (userRole) {
+                adminIds.push(telegramUserId);
+              }
+            }
+          }
+        }
+      } catch (dbError) {
+        console.warn('Error fetching admin IDs from database:', dbError);
+      }
+    }
+
+    // Also get from environment variable (comma-separated)
+    const adminIdsEnv = process.env.TELEGRAM_ADMIN_USER_IDS;
+    if (adminIdsEnv && adminIdsEnv.trim() !== '') {
+      const envAdminIds = adminIdsEnv
+        .split(',')
+        .map(id => parseInt(id.trim()))
+        .filter(id => !isNaN(id));
+      
+      // Add env admin IDs (avoid duplicates)
+      for (const id of envAdminIds) {
+        if (!adminIds.includes(id)) {
+          adminIds.push(id);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error getting admin Telegram user IDs:', error);
+  }
+
+  return adminIds;
+};
+
+/**
+ * Send payment notification to all admins
+ */
+export const notifyAdminsOfPayment = async (
+  paymentData: {
+    customerName?: string;
+    customerEmail?: string;
+    customerPhone?: string;
+    amount: number;
+    currency: string;
+    txRef: string;
+    eventTitle?: string;
+    quantity?: number;
+  }
+): Promise<{ sent: number; failed: number }> => {
+  if (!TELEGRAM_BOT_TOKEN) {
+    console.warn('⚠️  Telegram bot token not configured. Cannot send admin notifications.');
+    return { sent: 0, failed: 0 };
+  }
+
+  try {
+    const adminIds = await getAllAdminTelegramUserIds();
+    
+    if (adminIds.length === 0) {
+      console.warn('⚠️  No admin Telegram user IDs configured. Cannot send payment notifications.');
+      return { sent: 0, failed: 0 };
+    }
+
+    const name = paymentData.customerName || 'Customer';
+    const email = paymentData.customerEmail || 'N/A';
+    const phone = paymentData.customerPhone || 'N/A';
+    const amount = paymentData.amount.toFixed(2);
+    const currency = paymentData.currency || 'ETB';
+    const txRef = paymentData.txRef.toUpperCase();
+    const eventInfo = paymentData.eventTitle ? `\n🎉 <b>Event:</b> ${paymentData.eventTitle}` : '';
+    const quantityInfo = paymentData.quantity && paymentData.quantity > 1 
+      ? `\n🎫 <b>Quantity:</b> ${paymentData.quantity} tickets` 
+      : '';
+
+    const message = `💰 <b>New Payment Received!</b>
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+👤 <b>Customer:</b> ${name}
+📧 <b>Email:</b> ${email}
+📱 <b>Phone:</b> ${phone}
+
+💰 <b>Amount:</b> ${amount} ${currency}${quantityInfo}${eventInfo}
+
+📋 <b>Transaction Ref:</b> <code>${txRef}</code>
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Payment status: <b>SUCCESS</b>
+
+<i>Time: ${new Date().toLocaleString()}</i>`;
+
+    let sent = 0;
+    let failed = 0;
+
+    // Send notification to all admins
+    for (const adminId of adminIds) {
+      try {
+        await sendTelegramMessage({
+          chat_id: adminId,
+          text: message,
+          parse_mode: 'HTML',
+        });
+        sent++;
+        console.log(`✅ Payment notification sent to admin ${adminId}`);
+      } catch (error: any) {
+        failed++;
+        console.error(`❌ Failed to send payment notification to admin ${adminId}:`, error.message || error);
+      }
+    }
+
+    return { sent, failed };
+  } catch (error: any) {
+    console.error('Error notifying admins of payment:', error);
+    return { sent: 0, failed: 0 };
+  }
+};
+
+/**
  * Send payment confirmation message
  */
 export const sendPaymentConfirmation = async (
