@@ -1,3 +1,4 @@
+import { safeStorage } from '../utils/polyfills';
 import { supabase } from './supabase';
 
 export interface NotificationPermission {
@@ -130,7 +131,7 @@ export const checkForNewEvents = async (lastCheckedDate: string | null): Promise
       });
 
       // Update last checked date
-      localStorage.setItem('lastEventCheckDate', new Date().toISOString());
+      safeStorage.setItem('lastEventCheckDate', new Date().toISOString());
     }
   } catch (error) {
     console.error('Error checking for new events:', error);
@@ -173,7 +174,7 @@ export const checkForUpcomingEvents = async (): Promise<void> => {
         // Notify if event is within 24 hours
         if (hoursUntilEvent <= 24 && hoursUntilEvent > 0) {
           const notificationId = `event-${event.id}-${eventDate.toISOString().split('T')[0]}`;
-          const lastNotified = localStorage.getItem(notificationId);
+          const lastNotified = safeStorage.getItem(notificationId);
           
           // Only notify once per day per event
           if (!lastNotified || lastNotified !== today.toISOString().split('T')[0]) {
@@ -190,7 +191,7 @@ export const checkForUpcomingEvents = async (): Promise<void> => {
             });
 
             // Mark as notified today
-            localStorage.setItem(notificationId, today.toISOString().split('T')[0]);
+            safeStorage.setItem(notificationId, today.toISOString().split('T')[0]);
           }
         }
       });
@@ -214,7 +215,7 @@ export const initializeNotificationChecking = async (): Promise<void> => {
   }
 
   // Check for new events
-  const lastChecked = localStorage.getItem('lastEventCheckDate');
+  const lastChecked = safeStorage.getItem('lastEventCheckDate');
   await checkForNewEvents(lastChecked);
 
   // Check for upcoming events

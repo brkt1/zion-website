@@ -117,12 +117,33 @@ const Contact = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="container mx-auto px-4 sm:px-6 py-12 md:py-16 lg:py-24">
-        <div className="grid lg:grid-cols-2 gap-8 md:gap-12 max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gray-50 md:bg-white">
+      {/* Mobile App-like Header Section */}
+      <div className="md:hidden sticky top-0 z-30 bg-white border-b border-gray-100 shadow-sm">
+        <div className="px-4 py-4">
+          <h1 
+            className="text-2xl font-bold tracking-tight"
+            style={{
+              background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
+            Contact Us
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Get in touch with us
+          </p>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 sm:px-6 py-6 md:py-12 lg:py-24">
+        <div className="grid lg:grid-cols-2 gap-6 md:gap-8 lg:gap-12 max-w-6xl mx-auto">
           {/* Contact Information */}
           <div>
-            <div className="mb-8 md:mb-12">
+            {/* Desktop Header */}
+            <div className="hidden md:block mb-8 md:mb-12">
               <h1 
                 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 md:mb-6 tracking-tight"
                 style={{
@@ -139,7 +160,54 @@ const Contact = () => {
               </p>
             </div>
 
-            <div className="space-y-4 md:space-y-6 mb-8 md:mb-12">
+            {/* Mobile: Contact Info Cards - App-like Design */}
+            <div className="md:hidden space-y-3 mb-6">
+              {contactInfoItems.map((info, index) => {
+                const Icon = info.icon;
+                const content = info.link ? (
+                  <a 
+                    href={info.link} 
+                    className="text-gray-900 font-medium active:text-[#FF6F5E] transition-colors duration-200"
+                  >
+                    {info.content}
+                  </a>
+                ) : (
+                  <p className="text-gray-900 font-medium">{info.content}</p>
+                );
+
+                return (
+                  <div
+                    key={index}
+                    className="relative overflow-hidden rounded-2xl p-4 bg-white border border-gray-100 active:scale-[0.98] transition-transform duration-150"
+                    style={{
+                      boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
+                    }}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div 
+                        className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                        style={{
+                          background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
+                        }}
+                      >
+                        <Icon className="text-[#1C2951] text-lg" />
+                      </div>
+                      <div className="flex-grow min-w-0">
+                        <h3 className="font-semibold text-gray-500 text-xs mb-1 uppercase tracking-wide whitespace-nowrap">
+                          {info.title}
+                        </h3>
+                        <div className="text-sm break-words">
+                          {content}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop: Contact Info Cards */}
+            <div className="hidden md:block space-y-4 md:space-y-6 mb-8 md:mb-12">
               {contactInfoItems.map((info, index) => {
                 const Icon = info.icon;
                 const content = info.link ? (
@@ -232,7 +300,7 @@ const Contact = () => {
             {/* Social Media */}
             <div>
               <h3 
-                className="font-bold text-gray-900 mb-4 md:mb-6 text-lg md:text-xl"
+                className="font-bold text-gray-900 mb-4 md:mb-6 text-base md:text-lg lg:text-xl"
                 style={{
                   background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)",
                   WebkitBackgroundClip: "text",
@@ -251,7 +319,7 @@ const Contact = () => {
                       href={social.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group relative w-12 h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center text-white transition-all duration-300 overflow-hidden"
+                      className="group relative w-12 h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center text-white transition-all duration-300 overflow-hidden active:scale-95"
                       style={{
                         background: social.gradient,
                         boxShadow: "0 4px 15px rgba(0, 0, 0, 0.2)",
@@ -277,9 +345,8 @@ const Contact = () => {
           </div>
 
           {/* Contact Form */}
-          <div className="group relative overflow-hidden rounded-2xl md:rounded-3xl p-6 md:p-8 lg:p-10 border border-gray-100 transition-all duration-700"
+          <div className="group relative overflow-hidden rounded-2xl md:rounded-3xl p-5 md:p-6 lg:p-10 border border-gray-100 transition-all duration-700 bg-white"
             style={{
-              background: "linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%)",
               boxShadow: "0 4px 24px rgba(0, 0, 0, 0.06)",
             }}
             onMouseEnter={(e) => {
@@ -293,7 +360,7 @@ const Contact = () => {
           >
             {/* Abstract shape background */}
             <div 
-              className="absolute top-0 right-0 w-40 h-40 md:w-64 md:h-64 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-3xl"
+              className="hidden md:block absolute top-0 right-0 w-40 h-40 md:w-64 md:h-64 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-3xl"
               style={{
                 background: "linear-gradient(135deg, rgba(255, 212, 71, 0.2) 0%, rgba(255, 111, 94, 0.2) 100%)",
                 transform: "translate(30%, -30%)",
@@ -302,13 +369,13 @@ const Contact = () => {
 
             <div className="relative z-10">
               <div 
-                className="h-1 w-16 md:w-20 mb-6 rounded-full"
+                className="h-1 w-16 md:w-20 mb-5 md:mb-6 rounded-full"
                 style={{
                   background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
                 }}
               ></div>
               <h2 
-                className="text-2xl md:text-3xl font-bold mb-6 md:mb-8 tracking-tight"
+                className="text-xl md:text-2xl lg:text-3xl font-bold mb-5 md:mb-6 lg:mb-8 tracking-tight"
                 style={{
                   background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)",
                   WebkitBackgroundClip: "text",
@@ -320,7 +387,7 @@ const Contact = () => {
               </h2>
               
               {submitStatus === "success" && (
-                <div className="mb-6 p-4 rounded-xl text-sm md:text-base"
+                <div className="mb-5 md:mb-6 p-4 rounded-xl text-sm md:text-base"
                   style={{
                     background: "rgba(34, 197, 94, 0.1)",
                     border: "1px solid rgba(34, 197, 94, 0.3)",
@@ -332,7 +399,7 @@ const Contact = () => {
               )}
 
               {submitStatus === "error" && (
-                <div className="mb-6 p-4 rounded-xl text-sm md:text-base"
+                <div className="mb-5 md:mb-6 p-4 rounded-xl text-sm md:text-base"
                   style={{
                     background: "rgba(239, 68, 68, 0.1)",
                     border: "1px solid rgba(239, 68, 68, 0.3)",
@@ -343,7 +410,7 @@ const Contact = () => {
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-5 md:space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5 lg:space-y-6">
                 <div>
                   <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
                     Name *
@@ -355,8 +422,11 @@ const Contact = () => {
                     required
                     value={formData.name}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF6F5E] focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm"
+                    className="w-full px-4 py-3.5 md:py-3 text-base border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF6F5E] focus:border-transparent transition-all duration-300 bg-white"
                     placeholder="Your name"
+                    style={{
+                      minHeight: '48px',
+                    }}
                   />
                 </div>
 
@@ -371,8 +441,11 @@ const Contact = () => {
                     required
                     value={formData.email}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF6F5E] focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm"
+                    className="w-full px-4 py-3.5 md:py-3 text-base border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF6F5E] focus:border-transparent transition-all duration-300 bg-white"
                     placeholder="your.email@example.com"
+                    style={{
+                      minHeight: '48px',
+                    }}
                   />
                 </div>
 
@@ -386,8 +459,11 @@ const Contact = () => {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF6F5E] focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm"
+                    className="w-full px-4 py-3.5 md:py-3 text-base border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF6F5E] focus:border-transparent transition-all duration-300 bg-white"
                     placeholder="+251 9XX XXX XXX"
+                    style={{
+                      minHeight: '48px',
+                    }}
                   />
                 </div>
 
@@ -402,7 +478,7 @@ const Contact = () => {
                     rows={6}
                     value={formData.message}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF6F5E] focus:border-transparent resize-none transition-all duration-300 bg-white/80 backdrop-blur-sm"
+                    className="w-full px-4 py-3.5 md:py-3 text-base border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF6F5E] focus:border-transparent resize-none transition-all duration-300 bg-white"
                     placeholder="Tell us what's on your mind..."
                   ></textarea>
                 </div>
@@ -410,10 +486,11 @@ const Contact = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="group w-full py-3 md:py-4 rounded-full font-semibold transition-all duration-500 relative overflow-hidden text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed text-white"
+                  className="group w-full py-4 md:py-3 lg:py-4 rounded-xl font-semibold transition-all duration-300 relative overflow-hidden text-base disabled:opacity-50 disabled:cursor-not-allowed text-white active:scale-[0.98]"
                   style={{
                     background: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)",
                     boxShadow: "0 4px 20px rgba(37, 211, 102, 0.3)",
+                    minHeight: '52px',
                   }}
                   onMouseEnter={(e) => {
                     if (window.innerWidth >= 768 && !isSubmitting) {
@@ -433,7 +510,7 @@ const Contact = () => {
                       </>
                     ) : (
                       <>
-                        <FaWhatsapp className="mr-2 md:mr-3 relative z-10" size={18} />
+                        <FaWhatsapp className="mr-2 md:mr-3 relative z-10" size={20} />
                         Send via WhatsApp
                       </>
                     )}

@@ -3,7 +3,11 @@ import ReactDOM from 'react-dom/client';
 import { SWRConfig } from 'swr';
 import App from './App';
 import './index.css';
+import { initializePolyfills, requestIdleCallbackPolyfill } from './utils/polyfills';
 import * as serviceWorkerRegistration from './utils/serviceWorkerRegistration';
+
+// Initialize polyfills early
+initializePolyfills();
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -64,13 +68,6 @@ const registerServiceWorker = () => {
 };
 
 if (typeof window !== 'undefined' && window) {
-  if ('requestIdleCallback' in window) {
-    requestIdleCallback(registerServiceWorker, { timeout: 2000 });
-  } else {
-    // Fallback: register after page load
-    const win = window as Window & typeof globalThis;
-    win.addEventListener('load', () => {
-      setTimeout(registerServiceWorker, 1000);
-    });
-  }
+  const handleId = requestIdleCallbackPolyfill(registerServiceWorker, { timeout: 2000 });
+  // Note: We don't need to cancel this as it's a one-time registration
 }

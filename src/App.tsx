@@ -4,6 +4,7 @@ import AdminRoute from "./Components/admin/AdminRoute";
 import Layout from "./Components/layout/Layout";
 import NotificationManager from "./Components/NotificationManager";
 import ScrollToTop from "./Components/ScrollToTop";
+import { BrowserCompatibility } from "./Components/ui/BrowserCompatibility";
 import { LoadingState } from "./Components/ui/LoadingState";
 import PWAInstallPrompt from "./Components/ui/PWAInstallPrompt";
 import VisitTracker from "./Components/VisitTracker";
@@ -23,6 +24,9 @@ const Community = lazy(() => import("./pages/Community"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const PaymentCallback = lazy(() => import("./pages/PaymentCallback"));
 const PaymentFailed = lazy(() => import("./pages/PaymentFailed"));
+
+// Game pages - hidden routes (no navigation links)
+const DiceRoller = lazy(() => import("./pages/games/DiceRoller"));
 
 // Admin pages - lazy loaded
 const AdminRedirect = lazy(() => import("./pages/admin/AdminRedirect"));
@@ -54,6 +58,7 @@ function App() {
         v7_relativeSplatPath: true,
       }}
     >
+      <BrowserCompatibility />
       <ScrollToTop />
       <VisitTracker />
       <NotificationManager />
@@ -79,6 +84,18 @@ function App() {
             </Suspense>
           </Layout>
         } />
+        
+        {/* Hidden game routes - accessible via direct URL only */}
+        <Route 
+          path="/games/dice-roller" 
+          element={
+            <Layout>
+              <Suspense fallback={<LoadingState message="Loading page..." />}>
+                <DiceRoller />
+              </Suspense>
+            </Layout>
+          } 
+        />
         
         {/* Admin Routes */}
         <Route 

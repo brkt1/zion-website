@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { FaBell, FaBolt, FaCheckCircle, FaDownload, FaMobileAlt, FaTimes, FaWifi } from 'react-icons/fa';
 import { requestPushPermissionAndSubscribe } from '../../services/pushNotifications';
+import { safeMatchMedia, safeStorage } from '../../utils/polyfills';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -14,13 +15,14 @@ const PWAInstallPrompt = () => {
 
   useEffect(() => {
     // Check if app is already installed
-    if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
+    const standaloneQuery = safeMatchMedia('(display-mode: standalone)');
+    if ((standaloneQuery && standaloneQuery.matches) || (window.navigator as any).standalone) {
       setIsInstalled(true);
       return;
     }
 
     // Check localStorage to see if user has dismissed the prompt
-    const dismissed = localStorage.getItem('pwa-install-dismissed');
+    const dismissed = safeStorage.getItem('pwa-install-dismissed');
     const dismissedTime = dismissed ? parseInt(dismissed, 10) : 0;
     const minutesSinceDismissed = (Date.now() - dismissedTime) / (1000 * 60);
     
@@ -64,7 +66,7 @@ const PWAInstallPrompt = () => {
     } else {
       console.log('User dismissed the install prompt');
       // Save dismissal to localStorage
-      localStorage.setItem('pwa-install-dismissed', Date.now().toString());
+      safeStorage.setItem('pwa-install-dismissed', Date.now().toString());
     }
 
     setDeferredPrompt(null);
@@ -74,7 +76,7 @@ const PWAInstallPrompt = () => {
   const handleDismiss = () => {
     setShowPrompt(false);
     // Save dismissal to localStorage
-    localStorage.setItem('pwa-install-dismissed', Date.now().toString());
+    safeStorage.setItem('pwa-install-dismissed', Date.now().toString());
   };
 
   if (isInstalled || !showPrompt || !deferredPrompt) {
