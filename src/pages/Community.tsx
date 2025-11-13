@@ -1,23 +1,82 @@
+import { useEffect } from "react";
 import { FaArrowRight, FaHandshake, FaHeart, FaUsers } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
 const Community = () => {
+  // Update page title and meta tags for SEO
+  useEffect(() => {
+    document.title = "Community | Yenege";
+    
+    // Update meta description
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute('content', 'Yenege - Join our vibrant community. Share stories, connect, and build lasting friendships with like-minded people.');
+    }
+    
+    // Update Open Graph tags
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) {
+      ogTitle.setAttribute('content', 'Community | Yenege');
+    }
+    
+    const ogDescription = document.querySelector('meta[property="og:description"]');
+    if (ogDescription) {
+      ogDescription.setAttribute('content', 'Yenege - Join our vibrant community. Share stories, connect, and build lasting friendships with like-minded people.');
+    }
+    
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) {
+      ogUrl.setAttribute('content', window.location.href);
+    }
+    
+    // Update Twitter tags
+    const twitterTitle = document.querySelector('meta[property="twitter:title"]');
+    if (twitterTitle) {
+      twitterTitle.setAttribute('content', 'Community | Yenege');
+    }
+    
+    const twitterDescription = document.querySelector('meta[property="twitter:description"]');
+    if (twitterDescription) {
+      twitterDescription.setAttribute('content', 'Yenege - Join our vibrant community. Share stories, connect, and build lasting friendships with like-minded people.');
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-white">
-      {/* Header Section */}
-      <section className="pt-24 sm:pt-28 md:pt-32 pb-12 sm:pb-16 md:pb-24 lg:pb-32 relative overflow-hidden bg-white">
+      {/* Mobile App-like Sticky Header */}
+      <div className="md:hidden sticky top-0 z-30 bg-white border-b border-gray-100 shadow-sm">
+        <div className="px-4 py-3">
+          <h1 
+            className="text-xl font-bold tracking-tight"
+            style={{
+              background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
+            Community
+          </h1>
+          <p className="text-gray-500 text-xs mt-0.5">
+            Connect and build friendships
+          </p>
+        </div>
+      </div>
+
+      {/* Header Section - Desktop */}
+      <section className="hidden md:block pt-24 md:pt-32 pb-12 md:pb-24 lg:pb-32 relative overflow-hidden bg-white">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-block mb-4 sm:mb-6 md:mb-8">
+            <div className="inline-block mb-4 md:mb-8">
               <div 
-                className="h-0.5 sm:h-1 w-16 sm:w-20 md:w-24 mx-auto mb-3 sm:mb-4 md:mb-6 rounded-full"
+                className="h-1 w-20 md:w-24 mx-auto mb-4 md:mb-6 rounded-full"
                 style={{
                   background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
                 }}
               ></div>
             </div>
             
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6 md:mb-8 tracking-tight px-2">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 md:mb-8 tracking-tight px-2">
               <span 
                 className="block"
                 style={{
@@ -30,7 +89,7 @@ const Community = () => {
                 Community
               </span>
             </h1>
-            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed px-4">
+            <p className="text-lg md:text-xl lg:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed px-4">
               Join a vibrant community of happy people. Share stories, connect, and build lasting friendships.
             </p>
           </div>
@@ -38,10 +97,10 @@ const Community = () => {
       </section>
 
       {/* Main Content Section */}
-      <section className="py-12 sm:py-16 md:py-24 lg:py-32 relative overflow-hidden bg-white">
-        <div className="container mx-auto px-4 sm:px-6">
+      <section className="py-4 md:py-12 lg:py-24 relative overflow-hidden bg-white">
+        <div className="container mx-auto px-4 md:px-4 sm:px-6">
           <div className="max-w-5xl mx-auto">
-            <div className="group relative overflow-hidden rounded-2xl sm:rounded-3xl md:rounded-[2rem] p-6 sm:p-8 md:p-12 lg:p-16 transition-all duration-700"
+            <div className="group relative overflow-hidden rounded-xl md:rounded-2xl lg:rounded-[2rem] p-4 md:p-8 lg:p-12 xl:p-16 transition-all duration-700"
               style={{
                 background: "linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 248, 240, 0.9) 100%)",
                 boxShadow: "0 10px 30px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(255, 212, 71, 0.1)",
@@ -101,18 +160,18 @@ const Community = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-12 sm:py-16 md:py-20 lg:py-24 relative overflow-hidden bg-gray-50">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="text-center mb-8 sm:mb-12 md:mb-16 lg:mb-20">
-            <div className="inline-block mb-3 sm:mb-4 md:mb-6">
+      <section className="py-6 md:py-12 lg:py-24 relative overflow-hidden bg-gray-50">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="text-center mb-6 md:mb-12 lg:mb-20">
+            <div className="inline-block mb-3 md:mb-6">
               <div 
-                className="h-0.5 sm:h-1 w-12 sm:w-16 md:w-20 mx-auto mb-2 sm:mb-3 md:mb-4 rounded-full"
+                className="h-0.5 md:h-1 w-12 md:w-20 mx-auto mb-2 md:mb-4 rounded-full"
                 style={{
                   background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
                 }}
               ></div>
             </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-3 sm:mb-4 md:mb-6 tracking-tight px-4">
+            <h2 className="text-xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 md:mb-6 tracking-tight px-4">
               <span 
                 className="block"
                 style={{
@@ -127,7 +186,7 @@ const Community = () => {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6 lg:gap-8 max-w-7xl mx-auto">
             {[
               {
                 icon: FaUsers,
@@ -149,7 +208,7 @@ const Community = () => {
               return (
                 <div
                   key={index}
-                  className="group relative overflow-hidden rounded-2xl sm:rounded-3xl md:rounded-[2rem] p-6 sm:p-8 md:p-10 transition-all duration-700 cursor-pointer"
+                  className="group relative overflow-hidden rounded-xl md:rounded-2xl lg:rounded-[2rem] p-4 md:p-8 lg:p-10 transition-all duration-700 cursor-pointer"
                   style={{
                     background: "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 248, 240, 0.95) 100%)",
                     boxShadow: "0 8px 24px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(255, 212, 71, 0.1)",
@@ -216,7 +275,7 @@ const Community = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-12 sm:py-16 md:py-24 lg:py-32 relative overflow-hidden">
+      <section className="py-8 md:py-12 lg:py-24 relative overflow-hidden bg-gray-50">
         <div 
           className="absolute inset-0 z-0"
           style={{
@@ -224,32 +283,32 @@ const Community = () => {
           }}
         >
           <div 
-            className="absolute top-10 left-10 w-48 h-48 sm:w-64 sm:h-64 rounded-full blur-3xl opacity-20"
+            className="absolute top-10 left-10 w-48 h-48 md:w-64 md:h-64 rounded-full blur-3xl opacity-20"
             style={{
               background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
               animation: "float 6s ease-in-out infinite",
             }}
           />
           <div 
-            className="absolute bottom-10 right-10 w-56 h-56 sm:w-80 sm:h-80 rounded-full blur-3xl opacity-15"
+            className="absolute bottom-10 right-10 w-56 h-56 md:w-80 md:h-80 rounded-full blur-3xl opacity-15"
             style={{
               background: "linear-gradient(135deg, #FF6F5E 0%, #FFD447 100%)",
               animation: "float 8s ease-in-out infinite 2s",
             }}
           />
         </div>
-        <div className="container mx-auto px-4 sm:px-6 relative z-10">
+        <div className="container mx-auto px-4 md:px-6 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-block mb-4 sm:mb-6 md:mb-8">
+            <div className="inline-block mb-4 md:mb-8">
               <div 
-                className="h-0.5 sm:h-1 w-16 sm:w-20 md:w-24 mx-auto mb-3 sm:mb-4 md:mb-6 rounded-full"
+                className="h-0.5 md:h-1 w-16 md:w-24 mx-auto mb-3 md:mb-6 rounded-full"
                 style={{
                   background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
                 }}
               ></div>
             </div>
             <h2 
-              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 md:mb-8 tracking-tight px-4"
+              className="text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-3 md:mb-6 lg:mb-8 tracking-tight px-4"
               style={{
                 background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)",
                 WebkitBackgroundClip: "text",
@@ -259,17 +318,18 @@ const Community = () => {
             >
               Join Us Today
             </h2>
-            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 mb-8 sm:mb-10 md:mb-14 max-w-2xl mx-auto leading-relaxed px-4">
+            <p className="text-sm md:text-lg lg:text-xl xl:text-2xl text-gray-600 mb-6 md:mb-10 lg:mb-14 max-w-2xl mx-auto leading-relaxed px-4">
               Become part of our growing community and start making meaningful connections today.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
+            <div className="flex flex-col md:flex-row gap-3 md:gap-4 justify-center px-4">
               <Link
                 to="/events"
-                className="group inline-flex items-center justify-center px-6 sm:px-8 md:px-10 py-3 sm:py-3.5 md:py-4 rounded-full font-semibold transition-all duration-500 relative overflow-hidden text-sm sm:text-base w-full sm:w-auto"
+                className="group inline-flex items-center justify-center px-6 md:px-8 lg:px-10 py-3.5 md:py-4 rounded-full font-semibold transition-all duration-500 relative overflow-hidden text-sm md:text-base w-full md:w-auto"
                 style={{
                   background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
                   color: "#1C2951",
                   boxShadow: "0 4px 20px rgba(255, 111, 94, 0.3)",
+                  minHeight: '44px',
                 }}
                 onMouseEnter={(e) => {
                   if (window.innerWidth >= 768) {
@@ -281,10 +341,22 @@ const Community = () => {
                   e.currentTarget.style.transform = "translateY(0)";
                   e.currentTarget.style.boxShadow = "0 4px 20px rgba(255, 111, 94, 0.3)";
                 }}
+                onTouchStart={(e) => {
+                  if (window.innerWidth < 768) {
+                    e.currentTarget.style.opacity = "0.9";
+                  }
+                }}
+                onTouchEnd={(e) => {
+                  if (window.innerWidth < 768) {
+                    setTimeout(() => {
+                      e.currentTarget.style.opacity = "1";
+                    }, 150);
+                  }
+                }}
               >
                 <span className="relative z-10">Explore Events</span>
                 <FaArrowRight 
-                  className="ml-2 sm:ml-3 relative z-10 transition-all duration-300 group-hover:translate-x-1" 
+                  className="ml-2 md:ml-3 relative z-10 transition-all duration-300 group-hover:translate-x-1" 
                   size={14}
                 />
               </Link>

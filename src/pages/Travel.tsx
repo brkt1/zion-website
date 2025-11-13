@@ -332,7 +332,7 @@ const Travel = () => {
             </p>
           </div>
 
-          {eventsLoading || !travelEvents ? (
+          {eventsLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0 md:gap-4 lg:gap-6 max-w-7xl mx-auto">
               {[1, 2, 3].map((i) => (
                 <div
@@ -367,7 +367,7 @@ const Travel = () => {
                 </div>
               ))}
             </div>
-          ) : travelEvents.length === 0 ? (
+          ) : !travelEvents || travelEvents.length === 0 ? (
             <div className="text-center py-20">
               <div 
                 className="h-1 w-16 mx-auto mb-6 rounded-full"
