@@ -35,7 +35,11 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="hidden md:block relative bg-gray-900 text-white overflow-hidden">
+    <footer 
+      role="contentinfo"
+      aria-label="Site footer"
+      className="hidden md:block relative bg-gray-900 text-white overflow-hidden"
+    >
       {/* Decorative gradient overlay */}
       <div 
         className="absolute top-0 left-0 right-0 h-px opacity-50"

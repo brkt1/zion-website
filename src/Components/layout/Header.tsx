@@ -60,6 +60,8 @@ const Header = () => {
 
   return (
     <header
+      role="banner"
+      aria-label="Site header"
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         isScrolled
           ? isHomePage
@@ -85,6 +87,7 @@ const Header = () => {
           <Link
             to="/"
             className="flex items-center transition-transform duration-300 hover:scale-105"
+            aria-label="YENEGE Home"
           >
             <OptimizedImage
               src="/logo.png"
@@ -103,14 +106,19 @@ const Header = () => {
           </Link>
 
           {/* Desktop Navigation - Hidden on mobile home page */}
-          <nav className={`hidden lg:flex items-center gap-8 ${
-            isHomePage ? "md:flex" : ""
-          }`}>
+          <nav 
+            role="navigation"
+            aria-label="Main navigation"
+            className={`hidden lg:flex items-center gap-8 ${
+              isHomePage ? "md:flex" : ""
+            }`}
+          >
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
                 onMouseEnter={() => handleLinkHover(link.path)}
+                aria-current={isActive(link.path) ? "page" : undefined}
                 className={`relative text-sm font-semibold tracking-wide transition-all duration-300 ${
                   isHomePage && !isScrolled
                     ? isActive(link.path)

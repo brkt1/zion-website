@@ -1,5 +1,6 @@
 import { lazy, ReactNode, Suspense } from "react";
 import { useLocation } from "react-router-dom";
+import SkipToContent from "../ui/SkipToContent";
 import Header from "./Header";
 import MobileBottomNav from "./MobileBottomNav";
 
@@ -16,8 +17,16 @@ const Layout = ({ children }: LayoutProps) => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SkipToContent />
       <Header />
-      <main className="flex-grow">{children}</main>
+      <main 
+        id="main-content" 
+        className="flex-grow" 
+        role="main"
+        aria-label="Main content"
+      >
+        {children}
+      </main>
       {!isHomePage && (
         <Suspense fallback={<div className="h-24" />}>
           <Footer />

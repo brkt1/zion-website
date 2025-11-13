@@ -53,6 +53,7 @@
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
     "type-check": "tsc --noEmit",
     "generate-icons": "node scripts/generate-pwa-icons.js",
+    "generate-sitemap": "node scripts/generate-sitemap.js",
     "deploy": "./deploy.sh",
     "deploy:vercel": "vercel --prod",
     "deploy:preview": "vercel"

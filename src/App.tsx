@@ -3,6 +3,7 @@ import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import AdminRoute from "./Components/admin/AdminRoute";
 import Layout from "./Components/layout/Layout";
 import NotificationManager from "./Components/NotificationManager";
+import PageTracker from "./Components/PageTracker";
 import ScrollToTop from "./Components/ScrollToTop";
 import { BrowserCompatibility } from "./Components/ui/BrowserCompatibility";
 import { LoadingState } from "./Components/ui/LoadingState";
@@ -24,6 +25,7 @@ const Community = lazy(() => import("./pages/Community"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const PaymentCallback = lazy(() => import("./pages/PaymentCallback"));
 const PaymentFailed = lazy(() => import("./pages/PaymentFailed"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Game pages - hidden routes (no navigation links)
 const DiceRoller = lazy(() => import("./pages/games/DiceRoller"));
@@ -60,6 +62,7 @@ function App() {
     >
       <BrowserCompatibility />
       <ScrollToTop />
+      <PageTracker />
       <VisitTracker />
       <NotificationManager />
       <PWAInstallPrompt />
@@ -80,6 +83,7 @@ function App() {
                 <Route path="/payment/success" element={<PaymentSuccess />} />
                 <Route path="/payment/callback" element={<PaymentCallback />} />
                 <Route path="/payment/failed" element={<PaymentFailed />} />
+                <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
           </Layout>

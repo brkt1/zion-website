@@ -57,7 +57,11 @@ const MobileBottomNav = () => {
       )}
 
       {/* Unique Floating Curved Navigation Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 pointer-events-none">
+      <nav 
+        role="navigation"
+        aria-label="Mobile bottom navigation"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 pointer-events-none"
+      >
         {/* Curved background with gradient */}
         <div 
           className="relative h-24"
@@ -102,6 +106,8 @@ const MobileBottomNav = () => {
                 to={item.path}
                 className="flex flex-col items-center justify-center relative group"
                 style={{ flex: '0 0 auto' }}
+                aria-current={isActive(item.path) ? "page" : undefined}
+                aria-label={item.label}
               >
                 {/* Floating active indicator */}
                 {active && (
