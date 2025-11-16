@@ -124,19 +124,40 @@ const EventDetail = () => {
   };
 
   // Pre-fetch Chapa public key when payment modal opens (for faster checkout)
+  // Also check localStorage cache immediately for instant access
   useEffect(() => {
-    if (showPaymentModal && !chapaPublicKey && !isLoadingPublicKey) {
-      setIsLoadingPublicKey(true);
-      getChapaPublicKey()
-        .then((key) => {
-          setChapaPublicKey(key);
-          setIsLoadingPublicKey(false);
-        })
-        .catch((error) => {
-          console.warn('Failed to pre-fetch public key, will try on submit:', error);
-          setIsLoadingPublicKey(false);
-          // Don't set error state - we'll fall back to API on submit
-        });
+    if (showPaymentModal) {
+      // Check localStorage cache first (instant, no network call)
+      if (typeof window !== 'undefined' && window.localStorage && !chapaPublicKey) {
+        try {
+          const cached = localStorage.getItem('chapa_public_key');
+          if (cached) {
+            const { key, timestamp } = JSON.parse(cached);
+            // Use cached key if less than 24 hours old
+            if (Date.now() - timestamp < 24 * 60 * 60 * 1000) {
+              setChapaPublicKey(key);
+              return; // Already have key, no need to fetch
+            }
+          }
+        } catch (e) {
+          // Ignore cache errors, continue to fetch
+        }
+      }
+
+      // Fetch from server if not cached or cache expired
+      if (!chapaPublicKey && !isLoadingPublicKey) {
+        setIsLoadingPublicKey(true);
+        getChapaPublicKey()
+          .then((key) => {
+            setChapaPublicKey(key);
+            setIsLoadingPublicKey(false);
+          })
+          .catch((error) => {
+            console.warn('Failed to pre-fetch public key, will try on submit:', error);
+            setIsLoadingPublicKey(false);
+            // Don't set error state - we'll fall back to API on submit
+          });
+      }
     }
   }, [showPaymentModal, chapaPublicKey, isLoadingPublicKey]);
 

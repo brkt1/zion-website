@@ -166,42 +166,103 @@ export const generateTxRef = async (): Promise<string> => {
   }
 };
 
-// Get Chapa public key for HTML checkout
+// Cache key for localStorage
+const CHAPA_PUBLIC_KEY_CACHE_KEY = 'chapa_public_key';
+const CHAPA_PUBLIC_KEY_CACHE_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours
+
+// Get Chapa public key for HTML checkout with localStorage caching
 export const getChapaPublicKey = async (): Promise<string> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/payments/public-key`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    // Handle non-JSON responses (like 404 HTML pages)
-    const responseText = await response.text();
-    let data;
-    
-    try {
-      data = responseText ? JSON.parse(responseText) : {};
-    } catch (parseError) {
-      // If response is not JSON (likely a 404 HTML page), provide helpful error
-      if (response.status === 404) {
-        throw new Error(
-          'Public key endpoint not found. The server may need to be restarted with the latest code. ' +
-          'Please contact support or try again later.'
-        );
+    // Check localStorage cache first (instant on mobile)
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        const cached = localStorage.getItem(CHAPA_PUBLIC_KEY_CACHE_KEY);
+        if (cached) {
+          const { key, timestamp } = JSON.parse(cached);
+          // Use cached key if less than 24 hours old
+          if (Date.now() - timestamp < CHAPA_PUBLIC_KEY_CACHE_EXPIRY) {
+            return key;
+          }
+        }
+      } catch (e) {
+        // Ignore cache errors
       }
-      throw new Error(`Server error: ${response.status} ${response.statusText || 'Unknown error'}`);
-    }
-    
-    if (!response.ok) {
-      throw new Error(data.message || 'Failed to get Chapa public key');
     }
 
-    if (!data.publicKey) {
-      throw new Error('Public key not found in server response');
-    }
+    // Fetch from server with timeout for free Render cold starts
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
 
-    return data.publicKey;
+    try {
+      const response = await fetch(`${API_BASE_URL}/payments/public-key`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      // Handle non-JSON responses (like 404 HTML pages)
+      const responseText = await response.text();
+      let data;
+      
+      try {
+        data = responseText ? JSON.parse(responseText) : {};
+      } catch (parseError) {
+        // If response is not JSON (likely a 404 HTML page), provide helpful error
+        if (response.status === 404) {
+          throw new Error(
+            'Public key endpoint not found. The server may need to be restarted with the latest code. ' +
+            'Please contact support or try again later.'
+          );
+        }
+        throw new Error(`Server error: ${response.status} ${response.statusText || 'Unknown error'}`);
+      }
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to get Chapa public key');
+      }
+
+      if (!data.publicKey) {
+        throw new Error('Public key not found in server response');
+      }
+
+      // Cache the key in localStorage for instant future access
+      if (typeof window !== 'undefined' && window.localStorage) {
+        try {
+          localStorage.setItem(CHAPA_PUBLIC_KEY_CACHE_KEY, JSON.stringify({
+            key: data.publicKey,
+            timestamp: Date.now(),
+          }));
+        } catch (e) {
+          // Ignore localStorage errors (private browsing, quota exceeded, etc.)
+        }
+      }
+
+      return data.publicKey;
+    } catch (fetchError: any) {
+      clearTimeout(timeoutId);
+      
+      // If timeout or network error, try to use cached key even if expired
+      if (fetchError.name === 'AbortError' || fetchError.message.includes('timeout')) {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          try {
+            const cached = localStorage.getItem(CHAPA_PUBLIC_KEY_CACHE_KEY);
+            if (cached) {
+              const { key } = JSON.parse(cached);
+              console.warn('Using expired cached public key due to timeout');
+              return key; // Use expired cache as fallback
+            }
+          } catch (e) {
+            // Ignore cache errors
+          }
+        }
+        throw new Error('Server timeout. Please check your connection and try again.');
+      }
+      throw fetchError;
+    }
   } catch (error: any) {
     console.error('Public key retrieval error:', error);
     // Re-throw with more context
