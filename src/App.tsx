@@ -52,6 +52,10 @@ const AdminSettings = lazy(() => import("./pages/admin/Settings"));
 const VerifyTicket = lazy(() => import("./pages/admin/VerifyTicket"));
 const Applications = lazy(() => import("./pages/admin/Applications"));
 
+// E-learning pages
+const ElearningLogin = lazy(() => import("./pages/ElearningLogin"));
+const Elearning = lazy(() => import("./pages/Elearning"));
+
 function App() {
   return (
     <Router
@@ -98,6 +102,24 @@ function App() {
                 <DiceRoller />
               </Suspense>
             </Layout>
+          } 
+        />
+        
+        {/* E-learning Routes */}
+        <Route 
+          path="/elearning/login" 
+          element={
+            <Suspense fallback={<LoadingState message="Loading login..." />}>
+              <ElearningLogin />
+            </Suspense>
+          } 
+        />
+        <Route 
+          path="/elearning" 
+          element={
+            <Suspense fallback={<LoadingState message="Loading e-learning portal..." />}>
+              <Elearning />
+            </Suspense>
           } 
         />
         

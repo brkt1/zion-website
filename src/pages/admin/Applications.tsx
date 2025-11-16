@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FaBriefcase, FaCalendarAlt, FaEnvelope, FaHandsHelping, FaPhone, FaSpinner, FaTrash, FaUser, FaSave } from 'react-icons/fa';
+import { FaBriefcase, FaCalendarAlt, FaCheck, FaEnvelope, FaHandsHelping, FaPhone, FaSpinner, FaTimes, FaTrash, FaUser } from 'react-icons/fa';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { adminApi } from '../../services/adminApi';
 import { Application } from '../../types';
@@ -7,12 +7,14 @@ import { Application } from '../../types';
 const Applications = () => {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [filter, setFilter] = useState<'all' | 'internship' | 'volunteer'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'reviewed' | 'accepted' | 'rejected'>('all');
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [statusNotes, setStatusNotes] = useState('');
+  const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadApplications();
@@ -21,10 +23,12 @@ const Applications = () => {
   const loadApplications = async () => {
     try {
       setLoading(true);
+      setError(null);
       const data = await adminApi.applications.getAll();
-      setApplications(data);
-    } catch (error) {
+      setApplications(data || []);
+    } catch (error: any) {
       console.error('Error loading applications:', error);
+      setError(error?.message || 'Failed to load applications. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -45,6 +49,67 @@ const Applications = () => {
     } catch (error) {
       console.error('Error deleting application:', error);
       alert('Failed to delete application. Please try again.');
+    }
+  };
+
+  const handleStatusUpdate = async (newStatus: 'pending' | 'reviewed' | 'accepted' | 'rejected') => {
+    if (!selectedApplication) return;
+
+    setUpdatingStatus(true);
+    try {
+      const updated = await adminApi.applications.update(selectedApplication.id, {
+        status: newStatus,
+        notes: statusNotes || undefined,
+      });
+      
+      // Update the application in the list
+      setApplications(applications.map(app => 
+        app.id === selectedApplication.id ? updated : app
+      ));
+      
+      // Update the selected application
+      setSelectedApplication(updated);
+      
+      alert(`Status updated to ${newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}`);
+    } catch (error) {
+      console.error('Error updating status:', error);
+      alert('Failed to update status. Please try again.');
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
+  const handleQuickStatusUpdate = async (id: string, newStatus: 'accepted' | 'rejected') => {
+    if (!window.confirm(`Are you sure you want to ${newStatus === 'accepted' ? 'accept' : 'reject'} this application?`)) {
+      return;
+    }
+
+    setUpdatingIds(prev => new Set(prev).add(id));
+    try {
+      const updated = await adminApi.applications.update(id, {
+        status: newStatus,
+      });
+      
+      // Update the application in the list
+      setApplications(applications.map(app => 
+        app.id === id ? updated : app
+      ));
+      
+      // Update selected application if it's the one being updated
+      if (selectedApplication?.id === id) {
+        setSelectedApplication(updated);
+      }
+      
+      alert(`Application ${newStatus === 'accepted' ? 'accepted' : 'rejected'} successfully!`);
+    } catch (error) {
+      console.error('Error updating status:', error);
+      alert('Failed to update status. Please try again.');
+    } finally {
+      setUpdatingIds(prev => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     }
   };
 
@@ -101,6 +166,24 @@ const Applications = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Applications</h1>
           <p className="text-gray-600">Manage internship and volunteer applications</p>
         </div>
+
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-800 font-medium">Error: {error}</p>
+            <button
+              onClick={loadApplications}
+              className="mt-2 text-sm text-red-600 hover:text-red-800 underline font-medium"
+            >
+              Try again
+            </button>
+          </div>
+        )}
+
+        {!error && !loading && applications.length === 0 && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-blue-800">No applications found. Applications will appear here once submitted.</p>
+          </div>
+        )}
 
         {/* Filters */}
         <div className="bg-white rounded-lg shadow-md p-4 mb-6">
@@ -205,21 +288,53 @@ const Applications = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button
-                          onClick={() => {
-                            setSelectedApplication(application);
-                            setShowModal(true);
-                          }}
-                          className="text-blue-600 hover:text-blue-900 mr-4"
-                        >
-                          View
-                        </button>
-                        <button
-                          onClick={() => handleDelete(application.id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          <FaTrash />
-                        </button>
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => {
+                              setSelectedApplication(application);
+                              setShowModal(true);
+                            }}
+                            className="text-blue-600 hover:text-blue-900"
+                            title="View details"
+                          >
+                            View
+                          </button>
+                          {application.status !== 'accepted' && (
+                            <button
+                              onClick={() => handleQuickStatusUpdate(application.id, 'accepted')}
+                              disabled={updatingIds.has(application.id)}
+                              className="text-green-600 hover:text-green-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Accept application"
+                            >
+                              {updatingIds.has(application.id) ? (
+                                <FaSpinner className="animate-spin" />
+                              ) : (
+                                <FaCheck />
+                              )}
+                            </button>
+                          )}
+                          {application.status !== 'rejected' && (
+                            <button
+                              onClick={() => handleQuickStatusUpdate(application.id, 'rejected')}
+                              disabled={updatingIds.has(application.id)}
+                              className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Reject application"
+                            >
+                              {updatingIds.has(application.id) ? (
+                                <FaSpinner className="animate-spin" />
+                              ) : (
+                                <FaTimes />
+                              )}
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleDelete(application.id)}
+                            className="text-red-600 hover:text-red-900"
+                            title="Delete application"
+                          >
+                            <FaTrash />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -240,6 +355,7 @@ const Applications = () => {
                     onClick={() => {
                       setShowModal(false);
                       setSelectedApplication(null);
+                      setStatusNotes('');
                     }}
                     className="text-gray-400 hover:text-gray-600"
                   >
@@ -316,6 +432,78 @@ const Applications = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Motivation</label>
                   <p className="text-gray-900 whitespace-pre-wrap">{selectedApplication.motivation}</p>
+                </div>
+                {selectedApplication.notes && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Admin Notes</label>
+                    <p className="text-gray-900 whitespace-pre-wrap">{selectedApplication.notes}</p>
+                  </div>
+                )}
+                
+                {/* Status Update Section */}
+                <div className="border-t border-gray-200 pt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Update Status</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">New Status</label>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        <button
+                          onClick={() => handleStatusUpdate('pending')}
+                          disabled={updatingStatus || selectedApplication.status === 'pending'}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            selectedApplication.status === 'pending'
+                              ? 'bg-yellow-100 text-yellow-800 border-2 border-yellow-300'
+                              : 'bg-yellow-50 text-yellow-700 border border-yellow-200 hover:bg-yellow-100'
+                          } disabled:opacity-50 disabled:cursor-not-allowed`}
+                        >
+                          Pending
+                        </button>
+                        <button
+                          onClick={() => handleStatusUpdate('reviewed')}
+                          disabled={updatingStatus || selectedApplication.status === 'reviewed'}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            selectedApplication.status === 'reviewed'
+                              ? 'bg-blue-100 text-blue-800 border-2 border-blue-300'
+                              : 'bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100'
+                          } disabled:opacity-50 disabled:cursor-not-allowed`}
+                        >
+                          Reviewed
+                        </button>
+                        <button
+                          onClick={() => handleStatusUpdate('accepted')}
+                          disabled={updatingStatus || selectedApplication.status === 'accepted'}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            selectedApplication.status === 'accepted'
+                              ? 'bg-green-100 text-green-800 border-2 border-green-300'
+                              : 'bg-green-50 text-green-700 border border-green-200 hover:bg-green-100'
+                          } disabled:opacity-50 disabled:cursor-not-allowed`}
+                        >
+                          Accept
+                        </button>
+                        <button
+                          onClick={() => handleStatusUpdate('rejected')}
+                          disabled={updatingStatus || selectedApplication.status === 'rejected'}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            selectedApplication.status === 'rejected'
+                              ? 'bg-red-100 text-red-800 border-2 border-red-300'
+                              : 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100'
+                          } disabled:opacity-50 disabled:cursor-not-allowed`}
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Notes (Optional)</label>
+                      <textarea
+                        value={statusNotes}
+                        onChange={(e) => setStatusNotes(e.target.value)}
+                        placeholder="Add notes about this status change..."
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        rows={3}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

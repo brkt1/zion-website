@@ -267,3 +267,72 @@ export const requireAdmin = async (): Promise<boolean> => {
   return true;
 };
 
+/**
+ * Check if an email has an accepted internship application
+ * This can be used before signup to verify eligibility
+ */
+export const hasAcceptedApplication = async (email: string): Promise<boolean> => {
+  try {
+    const normalizedEmail = email.toLowerCase().trim();
+    
+    let { data, error } = await supabase
+      .from('applications')
+      .select('id, email, status, type')
+      .eq('email', normalizedEmail)
+      .eq('status', 'accepted')
+      .eq('type', 'internship')
+      .maybeSingle();
+
+    // If not found with exact match, try case-insensitive search
+    if (!data && !error) {
+      const { data: allApplications } = await supabase
+        .from('applications')
+        .select('id, email, status, type');
+      
+      if (allApplications) {
+        data = allApplications.find(
+          app => 
+            app.email?.toLowerCase().trim() === normalizedEmail && 
+            app.status === 'accepted' && 
+            app.type === 'internship'
+        ) || null;
+      }
+    }
+
+    if (error) {
+      console.error('Error checking application status:', error);
+      return false;
+    }
+
+    return !!data;
+  } catch (error) {
+    console.error('Error checking application status:', error);
+    return false;
+  }
+};
+
+/**
+ * Check if the current user has access to e-learning
+ * Users with accepted internship applications can access e-learning
+ */
+export const isElearningUser = async (): Promise<boolean> => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session?.user) {
+      return false;
+    }
+
+    const userEmail = session.user.email;
+
+    if (!userEmail) {
+      return false;
+    }
+
+    return await hasAcceptedApplication(userEmail);
+  } catch (error) {
+    console.error('Error checking e-learning access:', error);
+    return false;
+  }
+};
+
