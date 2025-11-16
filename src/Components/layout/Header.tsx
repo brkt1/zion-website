@@ -21,7 +21,6 @@ const Header = () => {
     { path: "/community", label: "Community" },
     { path: "/about", label: "About" },
     { path: "/contact", label: "Contact" },
-    { path: "/elearning/login", label: "E-Learning", className: "text-blue-600 font-semibold" },
   ];
 
   const isActive = (path: string) => {
@@ -121,7 +120,7 @@ const Header = () => {
                 onMouseEnter={() => handleLinkHover(link.path)}
                 aria-current={isActive(link.path) ? "page" : undefined}
                 className={`relative text-sm font-semibold tracking-wide transition-all duration-300 ${
-                  link.className || (
+                  (link as any).className || (
                     isHomePage && !isScrolled
                       ? isActive(link.path)
                         ? "text-white"
