@@ -22,6 +22,8 @@ const EventDetail = () => {
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [fullscreenImageIndex, setFullscreenImageIndex] = useState<number | null>(null);
   const [rateLimitCountdown, setRateLimitCountdown] = useState<number | null>(null);
+  const [chapaPublicKey, setChapaPublicKey] = useState<string | null>(null);
+  const [isLoadingPublicKey, setIsLoadingPublicKey] = useState(false);
   const [paymentForm, setPaymentForm] = useState({
     first_name: "",
     last_name: "",
@@ -121,6 +123,23 @@ const EventDetail = () => {
     return { discountAmount, discountText, selectedSeller };
   };
 
+  // Pre-fetch Chapa public key when payment modal opens (for faster checkout)
+  useEffect(() => {
+    if (showPaymentModal && !chapaPublicKey && !isLoadingPublicKey) {
+      setIsLoadingPublicKey(true);
+      getChapaPublicKey()
+        .then((key) => {
+          setChapaPublicKey(key);
+          setIsLoadingPublicKey(false);
+        })
+        .catch((error) => {
+          console.warn('Failed to pre-fetch public key, will try on submit:', error);
+          setIsLoadingPublicKey(false);
+          // Don't set error state - we'll fall back to API on submit
+        });
+    }
+  }, [showPaymentModal, chapaPublicKey, isLoadingPublicKey]);
+
   // Handle rate limit countdown timer
   useEffect(() => {
     if (rateLimitCountdown === null || rateLimitCountdown <= 0) {
@@ -219,8 +238,13 @@ const EventDetail = () => {
 
       // Try HTML checkout first, fall back to API initialization if public key endpoint is not available
       try {
-        // Get Chapa public key for HTML checkout
-        const publicKey = await getChapaPublicKey();
+        // Use pre-fetched public key if available, otherwise fetch it now
+        let publicKey = chapaPublicKey;
+        if (!publicKey) {
+          // Try to get it quickly (should be cached or fast)
+          publicKey = await getChapaPublicKey();
+          setChapaPublicKey(publicKey); // Cache it for next time
+        }
 
         // Build callback and return URLs
         const frontendUrl = window.location.origin;
@@ -243,8 +267,9 @@ const EventDetail = () => {
         const title = sanitizedTitle.length > 16 ? sanitizedTitle.substring(0, 16) : sanitizedTitle;
         const description = sanitizeTitle(`Payment for ${sanitizedTitle || 'event registration'}`);
 
-        // Submit HTML checkout form
-        await submitChapaHTMLCheckout({
+        // Submit HTML checkout form immediately (non-blocking)
+        // This is instant - no waiting for server response
+        submitChapaHTMLCheckout({
           publicKey,
           txRef,
           amount: totalAmount,
@@ -265,7 +290,8 @@ const EventDetail = () => {
           },
         });
 
-        // Form submission will redirect, so we don't need to set isProcessing to false
+        // Form submission redirects immediately, so we don't need to set isProcessing to false
+        // The page will redirect to Chapa's payment page
         return;
       } catch (htmlCheckoutError: any) {
         // If HTML checkout fails (e.g., public key endpoint not available), fall back to API initialization

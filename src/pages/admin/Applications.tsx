@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FaBriefcase, FaCalendarAlt, FaEnvelope, FaHandsHelping, FaPhone, FaSpinner, FaTrash, FaUser } from 'react-icons/fa';
+import { FaBriefcase, FaCalendarAlt, FaEnvelope, FaHandsHelping, FaPhone, FaSpinner, FaTrash, FaUser, FaSave } from 'react-icons/fa';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { adminApi } from '../../services/adminApi';
 import { Application } from '../../types';
@@ -11,6 +11,8 @@ const Applications = () => {
   const [showModal, setShowModal] = useState(false);
   const [filter, setFilter] = useState<'all' | 'internship' | 'volunteer'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'reviewed' | 'accepted' | 'rejected'>('all');
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [statusNotes, setStatusNotes] = useState('');
 
   useEffect(() => {
     loadApplications();

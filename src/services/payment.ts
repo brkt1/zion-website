@@ -213,7 +213,8 @@ export const getChapaPublicKey = async (): Promise<string> => {
 };
 
 // Submit payment using Chapa HTML checkout form
-export const submitChapaHTMLCheckout = async (paymentData: {
+// This is synchronous and instant - no async/await needed
+export const submitChapaHTMLCheckout = (paymentData: {
   publicKey: string;
   txRef: string;
   amount: string;
@@ -227,12 +228,13 @@ export const submitChapaHTMLCheckout = async (paymentData: {
   callback_url?: string;
   return_url?: string;
   meta?: Record<string, any>;
-}) => {
+}): void => {
   // Create a form element
   const form = document.createElement('form');
   form.method = 'POST';
   form.action = 'https://api.chapa.co/v1/hosted/pay';
   form.style.display = 'none';
+  form.setAttribute('data-chapa-checkout', 'true'); // For tracking/debugging
 
   // Add all required fields
   const fields: Record<string, string> = {
@@ -259,7 +261,7 @@ export const submitChapaHTMLCheckout = async (paymentData: {
     });
   }
 
-  // Create input fields
+  // Create input fields efficiently
   Object.entries(fields).forEach(([name, value]) => {
     const input = document.createElement('input');
     input.type = 'hidden';
@@ -268,8 +270,14 @@ export const submitChapaHTMLCheckout = async (paymentData: {
     form.appendChild(input);
   });
 
-  // Append form to body and submit
+  // Append form to body and submit immediately
+  // This triggers an instant redirect to Chapa's payment page
   document.body.appendChild(form);
-  form.submit();
+  
+  // Use requestAnimationFrame to ensure form is in DOM before submit
+  // This makes the redirect instant and smooth
+  requestAnimationFrame(() => {
+    form.submit();
+  });
 };
 
