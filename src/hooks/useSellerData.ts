@@ -3,9 +3,12 @@ import { adminApi } from '../services/adminApi';
 import { supabase } from '../services/supabase';
 import { CommissionSeller, Ticket } from '../types';
 import { useAdminAuth } from './useAdminAuth';
+import { useCommissionSellers } from './useApi';
 
 export const useSellerData = () => {
   const { loading: authLoading, isAdminUser, isSeller } = useAdminAuth();
+  // Use cached hook for commission sellers
+  const { sellers: allSellers } = useCommissionSellers();
   const [seller, setSeller] = useState<CommissionSeller | null>(null);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
@@ -32,20 +35,20 @@ export const useSellerData = () => {
   }, []);
 
   useEffect(() => {
-    if (!authLoading) {
+    if (!authLoading && allSellers.length > 0) {
       if (isSeller && !isAdminUser) {
         loadSellerData();
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authLoading, isAdminUser, isSeller]);
+  }, [authLoading, isAdminUser, isSeller, allSellers]);
 
   const loadSellerData = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user?.email) {
-        const data = await adminApi.commissionSellers.getAll();
-        const sellerData = data.find(s => s.email.toLowerCase() === session.user.email?.toLowerCase());
+        // Use cached commission sellers data
+        const sellerData = allSellers.find(s => s.email.toLowerCase() === session.user.email?.toLowerCase());
         setSeller(sellerData || null);
       }
     } catch (error) {

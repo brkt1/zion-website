@@ -3,10 +3,10 @@ import { FaEdit, FaPlus, FaSpinner, FaTimes, FaTrash, FaUpload } from 'react-ico
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { ImageUpload } from '../../Components/admin/ImageUpload';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
+import { useCommissionSellers } from '../../hooks/useApi';
 import { adminApi } from '../../services/adminApi';
 import { api, Event } from '../../services/api';
 import { uploadImage } from '../../services/upload';
-import { CommissionSeller } from '../../types';
 
 const Events = () => {
   const { loading: authLoading, isAdminUser } = useAdminAuth();
@@ -35,7 +35,8 @@ const Events = () => {
   const [newGalleryImage, setNewGalleryImage] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<string>('');
-  const [commissionSellers, setCommissionSellers] = useState<CommissionSeller[]>([]);
+  // Use cached hook for commission sellers
+  const { sellers: commissionSellers } = useCommissionSellers();
 
   useEffect(() => {
     if (!authLoading) {
@@ -45,19 +46,9 @@ const Events = () => {
         return;
       }
       loadEvents();
-      loadCommissionSellers();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, isAdminUser]);
-
-  const loadCommissionSellers = async () => {
-    try {
-      const sellers = await adminApi.commissionSellers.getAll();
-      setCommissionSellers(sellers);
-    } catch (error) {
-      console.error('Error loading commission sellers:', error);
-    }
-  };
 
   const loadEvents = async () => {
     try {

@@ -1,5 +1,7 @@
 import useSWR from 'swr';
+import { adminApi } from '../services/adminApi';
 import { AboutContent, api, Category, ContactInfo, Destination, Event, GalleryItem, HomeContent, SiteConfig } from '../services/api';
+import { CommissionSeller } from '../types';
 
 // Custom hooks for data fetching using SWR
 export const useEvents = (params?: { category?: string; featured?: boolean; limit?: number }) => {
@@ -166,6 +168,75 @@ export const useHomeContent = () => {
 
   return {
     content: data,
+    isLoading,
+    isError: error,
+    mutate,
+  };
+};
+
+// Commission Sellers hook with caching (public - active sellers only)
+export const useActiveCommissionSellers = () => {
+  const { data, error, isLoading, mutate } = useSWR<CommissionSeller[]>(
+    'active-commission-sellers',
+    () => api.getActiveCommissionSellers(),
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      dedupingInterval: 5000, // Cache for 5 seconds to prevent duplicate requests
+      shouldRetryOnError: true,
+      errorRetryCount: 2,
+      errorRetryInterval: 2000,
+    }
+  );
+
+  return {
+    sellers: data || [],
+    isLoading,
+    isError: error,
+    mutate,
+  };
+};
+
+// Commission Sellers hook with caching (admin - all sellers)
+export const useCommissionSellers = () => {
+  const { data, error, isLoading, mutate } = useSWR<CommissionSeller[]>(
+    'admin-commission-sellers',
+    () => adminApi.commissionSellers.getAll(),
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      dedupingInterval: 5000, // Cache for 5 seconds to prevent duplicate requests
+      shouldRetryOnError: true,
+      errorRetryCount: 2,
+      errorRetryInterval: 2000,
+    }
+  );
+
+  return {
+    sellers: data || [],
+    isLoading,
+    isError: error,
+    mutate,
+  };
+};
+
+// Commission Seller by ID hook with caching
+export const useCommissionSeller = (id: string | undefined) => {
+  const { data, error, isLoading, mutate } = useSWR<CommissionSeller>(
+    id ? `commission-seller-${id}` : null,
+    () => id ? adminApi.commissionSellers.getById(id) : Promise.resolve(null as any),
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      dedupingInterval: 5000,
+      shouldRetryOnError: true,
+      errorRetryCount: 2,
+      errorRetryInterval: 2000,
+    }
+  );
+
+  return {
+    seller: data,
     isLoading,
     isError: error,
     mutate,

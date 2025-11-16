@@ -5,6 +5,29 @@ import { generateThankYouMessage, sendWhatsAppMessage } from '../services/whatsa
 
 const router = express.Router();
 
+// Sanitize text for Chapa customization fields
+// Only allows: letters, numbers, hyphens, underscores, spaces, and dots
+const sanitizeChapaText = (text: string): string => {
+  if (!text) return '';
+  // Convert to string and normalize whitespace
+  let sanitized = String(text).trim();
+  // Remove all characters except letters, numbers, hyphens, underscores, spaces, and dots
+  // Note: hyphen is placed at the end of character class to avoid range interpretation
+  sanitized = sanitized.replace(/[^a-zA-Z0-9_\s.\-]/g, '');
+  // Replace multiple spaces with single space
+  sanitized = sanitized.replace(/\s+/g, ' ');
+  // Trim again after replacements
+  return sanitized.trim();
+};
+
+// Validate that text only contains allowed characters (double-check after sanitization)
+const isValidChapaText = (text: string): boolean => {
+  if (!text) return false;
+  // Check if text only contains allowed characters: letters, numbers, hyphens, underscores, spaces, and dots
+  const allowedPattern = /^[a-zA-Z0-9_\s.\-]+$/;
+  return allowedPattern.test(text);
+};
+
 interface InitializePaymentRequest {
   first_name?: string;
   last_name?: string;
@@ -24,14 +47,6 @@ interface InitializePaymentRequest {
 // Initialize payment
 router.post('/initialize', async (req: Request, res: Response) => {
   try {
-    // Log incoming request for debugging
-    console.log('Payment initialization request received:', {
-      body: req.body,
-      headers: {
-        'content-type': req.headers['content-type'],
-      },
-    });
-
     const {
       first_name,
       last_name,
@@ -48,7 +63,7 @@ router.post('/initialize', async (req: Request, res: Response) => {
       commission_seller_id,
     }: InitializePaymentRequest = req.body;
 
-    // Validate required fields (tx_ref is optional, will be generated if not provided)
+    // Validate required fields
     if (!email || !currency || !amount) {
       return res.status(400).json({
         success: false,
@@ -56,7 +71,7 @@ router.post('/initialize', async (req: Request, res: Response) => {
       });
     }
 
-    // Generate transaction reference if not provided
+    // Use provided tx_ref or generate if not provided (frontend should provide it for speed)
     let transactionRef = tx_ref;
     if (!transactionRef) {
       transactionRef = await chapa.generateTransactionReference({
@@ -99,26 +114,10 @@ router.post('/initialize', async (req: Request, res: Response) => {
       });
     }
 
-    // Debug logging
-    console.log('Payment initialization:', {
-      email,
-      amount,
-      currency,
-      tx_ref: transactionRef,
-      callback_url: callbackUrl,
-      return_url: returnUrl,
-      frontendUrl: baseUrl,
-      hasApiKey: !!process.env.CHAPA_SECRET_KEY,
-      apiKeyPrefix: process.env.CHAPA_SECRET_KEY?.substring(0, 20) || 'NOT SET',
-    });
-
     // Initialize payment
     // Note: Chapa requires HTTPS URLs for production keys
-    // Ensure your FRONTEND_URL uses HTTPS in production
     try {
       // Prepare payment data - ensure amount is a string (Chapa expects string)
-      // Chapa expects amount as a string in base currency (e.g., "100.00" for 100 ETB)
-      // Chapa will convert it to cents internally and return amounts in cents
       const amountValue = parseFloat(String(amount)) || 0;
       
       // Validate amount
@@ -128,15 +127,6 @@ router.post('/initialize', async (req: Request, res: Response) => {
           message: 'Invalid payment amount. Amount must be greater than 0.',
         });
       }
-
-      console.log('Payment amount details:', {
-        receivedAmount: amount,
-        parsedAmount: amountValue,
-        quantity: quantity || 1,
-        expectedTotal: amountValue,
-        currency: currency.toUpperCase(),
-        note: 'Amount should be total (price * quantity)',
-      });
 
       const paymentData: any = {
         first_name: first_name || 'Customer',
@@ -156,87 +146,31 @@ router.post('/initialize', async (req: Request, res: Response) => {
 
       // Add customization if provided
       // Note: Chapa requires customization.title to be max 16 characters
+      // and both title and description may only contain letters, numbers, hyphens, underscores, spaces, and dots
       if (event_title) {
-        const title = event_title.length > 16 ? event_title.substring(0, 16) : event_title;
-        paymentData.customization = {
-          title: title,
-          description: `Payment for ${event_title || 'event registration'}`,
-        };
-      }
-
-      console.log('Calling Chapa initialize with:', {
-        ...paymentData,
-        callback_url: paymentData.callback_url,
-        return_url: paymentData.return_url,
-      });
-
-      // Try using Chapa library first, but if it fails with limited error info,
-      // make a direct HTTP call to get the actual error
-      let response;
-      try {
-        response = await chapa.initialize(paymentData);
-      } catch (libraryError: any) {
-        // If the library error doesn't have detailed info, make direct HTTP call
-        if (!libraryError.response?.data || Object.keys(libraryError.response?.data || {}).length <= 1) {
-          console.log('⚠️  Chapa library error lacks details, making direct HTTP call to get full error...');
-          
-          // Make direct HTTP call to Chapa API
-          const https = require('https');
-          const postData = JSON.stringify(paymentData);
-          const secretKey = process.env.CHAPA_SECRET_KEY || '';
-          
-          const directResponse = await new Promise((resolve, reject) => {
-            const req = https.request({
-              hostname: 'api.chapa.co',
-              port: 443,
-              path: '/v1/transaction/initialize',
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${secretKey}`,
-                'Content-Type': 'application/json',
-                'Content-Length': Buffer.byteLength(postData),
-              },
-            }, (res: any) => {
-              let data = '';
-              res.on('data', (chunk: any) => { data += chunk; });
-              res.on('end', () => {
-                try {
-                  const jsonData = JSON.parse(data);
-                  if (res.statusCode >= 200 && res.statusCode < 300) {
-                    // Success - return in Chapa library format
-                    resolve({ 
-                      data: jsonData.data || jsonData,
-                      message: jsonData.message,
-                      status: jsonData.status || 'success',
-                    });
-                  } else {
-                    // Error - reject with full error details
-                    reject({
-                      response: {
-                        status: res.statusCode,
-                        data: jsonData,
-                      },
-                      message: jsonData.message || 'Chapa API error',
-                      status: res.statusCode,
-                    });
-                  }
-                } catch (e) {
-                  reject({ message: data, status: res.statusCode });
-                }
-              });
-            });
-            
-            req.on('error', reject);
-            req.write(postData);
-            req.end();
-          });
-          
-          response = directResponse as any;
+        // Sanitize the event title to remove invalid characters
+        const sanitizedTitle = sanitizeChapaText(event_title);
+        // Truncate to 16 characters for title (Chapa requirement)
+        const title = sanitizedTitle.length > 16 ? sanitizedTitle.substring(0, 16) : sanitizedTitle;
+        // Sanitize description as well
+        const description = sanitizeChapaText(`Payment for ${sanitizedTitle || 'event registration'}`);
+        
+        // Only add customization if we have valid title and description after sanitization
+        // Double-check that they only contain allowed characters
+        if (title && isValidChapaText(title) && description && isValidChapaText(description)) {
+          paymentData.customization = {
+            title: title,
+            description: description,
+          };
         } else {
-          // Re-throw the library error if it has details
-          throw libraryError;
+          // If sanitization didn't produce valid text, skip customization entirely
+          // This is safer than sending invalid data
+          console.warn('Skipping customization due to invalid characters in event title:', event_title);
         }
       }
+
+      // Initialize payment with Chapa
+      const response = await chapa.initialize(paymentData);
       return res.json({
         success: true,
         data: {
@@ -247,60 +181,27 @@ router.post('/initialize', async (req: Request, res: Response) => {
         },
       });
     } catch (error: any) {
-      // Log the full error for debugging - this is critical for troubleshooting
-      // Chapa library might store error in different places - try all possibilities
+      // Extract error response efficiently
       let errorResponse: any = {};
       let errorStatus: number | undefined;
       
-      // Try multiple ways to extract the error response
       if (error.response?.data) {
         errorResponse = error.response.data;
         errorStatus = error.response.status;
       } else if (error.data) {
         errorResponse = error.data;
         errorStatus = error.status;
-      } else if (error.body) {
-        errorResponse = error.body;
-        errorStatus = error.statusCode;
-      } else if (error.response) {
-        // Sometimes the response itself is the data
-        errorResponse = error.response;
-        errorStatus = error.status || error.statusCode;
       } else {
-        // Try to extract from error object directly
         errorResponse = error;
         errorStatus = error.status || error.statusCode;
       }
       
-      const errorMessage = error.message || 'Unknown error occurred';
+      const errorMessage = error.message || errorResponse.message || 'Unknown error occurred';
       
-      // Log all error properties to help debug
-      console.error('═══════════════════════════════════════════════════════');
-      console.error('❌ Chapa API Error Details:');
-      console.error('═══════════════════════════════════════════════════════');
-      console.error('Error Type:', error.constructor?.name);
-      console.error('Error Message:', errorMessage);
-      console.error('HTTP Status:', errorStatus);
-      console.error('\nError Object Keys:', error && typeof error === 'object' ? Object.keys(error) : 'N/A');
-      console.error('\nError Response:', JSON.stringify(errorResponse, null, 2));
-      
-      // Try to find the actual Chapa response in nested properties
-      if (error.response && typeof error.response === 'object') {
-        console.error('\nError.response keys:', Object.keys(error.response));
-        if (error.response.data) {
-          console.error('Error.response.data:', JSON.stringify(error.response.data, null, 2));
-        }
+      // Log error concisely (only in development or for critical errors)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Chapa API Error:', errorMessage, errorStatus ? `(${errorStatus})` : '');
       }
-      
-      console.error('\nRequest Data Sent:', {
-        email,
-        amount,
-        currency,
-        tx_ref: transactionRef,
-        callback_url: callbackUrl,
-        return_url: returnUrl,
-      });
-      console.error('═══════════════════════════════════════════════════════');
 
       // Check if using production key
       const isProductionKey = process.env.CHAPA_SECRET_KEY?.startsWith('CHASECK-') && 
@@ -314,12 +215,45 @@ router.post('/initialize', async (req: Request, res: Response) => {
 
       // FIRST: Check for rate limiting errors (429)
       if (errorStatus === 429) {
-        const retryAfter = errorResponse.message?.match(/(\d+)\s*seconds?/i)?.[1] || 'a few';
+        // Try to extract retry time from various possible formats
+        let retryAfter = 30; // Default to 30 seconds
+        const errorMsg = errorResponse.message || errorMessage || '';
+        
+        // Try to extract number from message (e.g., "try again in 30 seconds", "retry after 60s", etc.)
+        const timeMatch = errorMsg.match(/(\d+)\s*(?:seconds?|secs?|s|minute|minutes?|min)/i);
+        if (timeMatch && timeMatch[1]) {
+          const extractedTime = parseInt(timeMatch[1], 10);
+          // If it says "minutes", convert to seconds
+          if (errorMsg.toLowerCase().includes('minute')) {
+            retryAfter = extractedTime * 60;
+          } else {
+            retryAfter = extractedTime;
+          }
+        }
+        
+        // Check for Retry-After header (standard HTTP header for rate limiting)
+        const retryAfterHeader = error.response?.headers?.['retry-after'] || 
+                                 error.response?.headers?.['Retry-After'] ||
+                                 errorResponse.retry_after ||
+                                 errorResponse.retryAfter;
+        if (retryAfterHeader) {
+          const headerValue = parseInt(String(retryAfterHeader), 10);
+          if (!isNaN(headerValue) && headerValue > 0) {
+            retryAfter = headerValue;
+          }
+        }
+        
+        // Ensure retryAfter is a valid positive number
+        if (isNaN(retryAfter) || retryAfter <= 0) {
+          retryAfter = 30;
+        }
+        
         return res.status(429).json({
           success: false,
-          message: `Rate limit exceeded. ${errorResponse.message || `Please try again in ${retryAfter} seconds.`}`,
+          message: `Rate limit exceeded. Please try again in ${retryAfter} seconds.`,
           error: 'RATE_LIMIT_EXCEEDED',
-          suggestion: `Please wait ${retryAfter} seconds before trying again.`,
+          suggestion: `Please wait ${retryAfter} seconds before trying again. The payment system is temporarily limiting requests to ensure stability.`,
+          retryAfter: retryAfter,
           details: errorResponse,
         });
       }
@@ -367,9 +301,29 @@ router.post('/initialize', async (req: Request, res: Response) => {
     }
   } catch (error: any) {
     console.error('Payment initialization error:', error);
+    console.error('Error stack:', error.stack);
+    console.error('Error details:', {
+      message: error.message,
+      name: error.name,
+      code: error.code,
+      response: error.response?.data,
+    });
+    
+    // Extract error message from various possible locations
+    const errorMessage = 
+      error.message || 
+      error.response?.data?.message ||
+      error.response?.message ||
+      'Failed to initialize payment. Please try again.';
+    
     res.status(500).json({
       success: false,
-      message: error.message || 'Failed to initialize payment',
+      message: errorMessage,
+      error: 'SERVER_ERROR',
+      details: process.env.NODE_ENV === 'development' ? {
+        originalError: error.message,
+        stack: error.stack,
+      } : undefined,
     });
   }
 });
@@ -695,6 +649,34 @@ router.get('/generate-tx-ref', async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to generate transaction reference',
+    });
+  }
+});
+
+// Get Chapa public key for HTML checkout
+router.get('/public-key', async (req: Request, res: Response) => {
+  try {
+    // Chapa public key should be set as environment variable
+    // It's different from the secret key and can be safely exposed to frontend
+    const publicKey = process.env.CHAPA_PUBLIC_KEY || '';
+    
+    if (!publicKey) {
+      return res.status(500).json({
+        success: false,
+        message: 'Chapa public key not configured. Please set CHAPA_PUBLIC_KEY in environment variables.',
+        error: 'CONFIGURATION_ERROR',
+      });
+    }
+
+    res.json({
+      success: true,
+      publicKey,
+    });
+  } catch (error: any) {
+    console.error('Public key retrieval error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to retrieve public key',
     });
   }
 });

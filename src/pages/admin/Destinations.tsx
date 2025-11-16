@@ -3,9 +3,9 @@ import { FaArrowLeft, FaEdit, FaPlus, FaTrash } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { ImageUpload } from '../../Components/admin/ImageUpload';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
+import { useCommissionSellers } from '../../hooks/useApi';
 import { adminApi } from '../../services/adminApi';
 import { api, Destination } from '../../services/api';
-import { CommissionSeller } from '../../types';
 
 const Destinations = () => {
   const { loading: authLoading, isAdminUser } = useAdminAuth();
@@ -20,7 +20,8 @@ const Destinations = () => {
     featured: false,
     allowed_commission_seller_ids: [] as string[],
   });
-  const [commissionSellers, setCommissionSellers] = useState<CommissionSeller[]>([]);
+  // Use cached hook for commission sellers
+  const { sellers: commissionSellers } = useCommissionSellers();
 
   useEffect(() => {
     if (!authLoading) {
@@ -29,19 +30,9 @@ const Destinations = () => {
         return;
       }
       loadDestinations();
-      loadCommissionSellers();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, isAdminUser]);
-
-  const loadCommissionSellers = async () => {
-    try {
-      const sellers = await adminApi.commissionSellers.getAll();
-      setCommissionSellers(sellers);
-    } catch (error) {
-      console.error('Error loading commission sellers:', error);
-    }
-  };
 
   const loadDestinations = async () => {
     try {

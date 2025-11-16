@@ -830,7 +830,7 @@ export const adminApi = {
       const { data, error } = await supabase
         .from('commission_sellers')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('name', { ascending: true }); // Order by name for better UX
 
       if (error) throw error;
       return data as CommissionSeller[];
@@ -852,7 +852,7 @@ export const adminApi = {
         .from('commission_sellers')
         .select('*')
         .eq('is_active', true)
-        .order('created_at', { ascending: false });
+        .order('name', { ascending: true }); // Order by name for better UX
 
       if (error) throw error;
       return data as CommissionSeller[];

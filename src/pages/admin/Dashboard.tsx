@@ -27,6 +27,7 @@ import {
 import { Link } from 'react-router-dom';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import ReminderModal from '../../Components/admin/ReminderModal';
+import { useCommissionSellers } from '../../hooks/useApi';
 import { adminApi } from '../../services/adminApi';
 import { getDailyVisitStats, getTodayVisits, getTotalVisits, getUniqueVisitorsToday } from '../../services/analytics';
 import { supabase } from '../../services/supabase';
@@ -57,6 +58,8 @@ interface Stats {
 }
 
 const Dashboard = () => {
+  // Use cached hook for commission sellers
+  const { sellers: commissionSellers } = useCommissionSellers();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loadingTickets, setLoadingTickets] = useState(true);
   const [stats, setStats] = useState<Stats>({
@@ -137,8 +140,8 @@ const Dashboard = () => {
       const ticketsWithCommission = allTickets?.filter(t => (t.status === 'success' || t.status === 'used') && t.commission_seller_id) || [];
       let totalCommissionPaid = 0;
       
-      // Get all commission sellers to calculate commissions
-      const sellers = await adminApi.commissionSellers.getAll();
+      // Use cached commission sellers data
+      const sellers = commissionSellers;
       
       ticketsWithCommission.forEach(ticket => {
         const seller = sellers.find(s => s.id === ticket.commission_seller_id);

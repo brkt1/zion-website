@@ -1,7 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FaCheckCircle, FaDownload, FaSpinner } from "react-icons/fa";
 import { Link, useSearchParams } from "react-router-dom";
-import { adminApi } from "../services/adminApi";
+import { useCommissionSeller } from "../hooks/useApi";
 import { verifyPayment } from "../services/payment";
 import { getTicketByTxRef, saveTicket, updateTicket } from "../services/ticket";
 import { sendWhatsAppThankYou } from "../services/whatsapp";
@@ -24,6 +24,12 @@ const PaymentSuccess = () => {
   const [ticketSaved, setTicketSaved] = useState(false);
   const [whatsappSent, setWhatsappSent] = useState(false);
   const ticketRef = useRef<HTMLDivElement>(null);
+  
+  // Use cached hook for commission seller
+  const validCommissionSellerId = commissionSellerIdParam && commissionSellerIdParam.trim() !== '' 
+    ? commissionSellerIdParam.trim() 
+    : undefined;
+  const { seller: commissionSeller } = useCommissionSeller(validCommissionSellerId);
 
   // Function to save ticket to database
   const saveTicketToDatabase = useCallback(async (paymentData: any, txRef: string | null) => {
@@ -97,22 +103,10 @@ const PaymentSuccess = () => {
         name: customerName
       };
 
-      // Get commission seller name if commission_seller_id is provided
-      // Handle empty strings - treat them as undefined
-      const validCommissionSellerId = commissionSellerIdParam && commissionSellerIdParam.trim() !== '' 
-        ? commissionSellerIdParam.trim() 
-        : undefined;
-      
-      let commissionSellerName: string | undefined = undefined;
-      if (validCommissionSellerId) {
-        try {
-          const seller = await adminApi.commissionSellers.getById(validCommissionSellerId);
-          commissionSellerName = seller.name;
-          logger.log('Commission seller found:', { id: validCommissionSellerId, name: commissionSellerName });
-        } catch (error) {
-          console.error('Error fetching commission seller:', error);
-          // Continue without seller name
-        }
+      // Get commission seller name from cached hook data
+      const commissionSellerName = commissionSeller?.name;
+      if (validCommissionSellerId && commissionSellerName) {
+        logger.log('Commission seller found:', { id: validCommissionSellerId, name: commissionSellerName });
       }
 
       // Check if ticket already exists - if so, update it with commission_seller_id and quantity
@@ -183,7 +177,7 @@ const PaymentSuccess = () => {
       console.error('Error saving ticket to database:', error);
       // Don't show error to user, ticket display will still work
     }
-  }, [quantityParam, eventIdParam, eventTitleParam, commissionSellerIdParam, ticketSaved]);
+  }, [quantityParam, eventIdParam, eventTitleParam, commissionSellerIdParam, ticketSaved, commissionSeller]);
 
   // Function to send WhatsApp thank you message
   const sendWhatsAppMessage = useCallback(async (paymentData: any, txRef: string | null) => {

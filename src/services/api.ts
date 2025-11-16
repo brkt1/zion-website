@@ -146,9 +146,15 @@ export interface HomeContent {
 export const api = {
   // Events
   getEvents: async (params?: { category?: string; featured?: boolean; limit?: number }): Promise<Event[]> => {
+    // Get today's date in YYYY-MM-DD format for comparison
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStr = today.toISOString().split('T')[0];
+
     let query = supabase
       .from('events')
       .select('*')
+      .gte('date', todayStr) // Only get events from today onwards
       .order('date', { ascending: true });
 
     if (params?.category) {
@@ -564,12 +570,13 @@ export const api = {
   },
 
   // Commission Sellers - Public access to active sellers for ticket purchase
+  // Optimized: Only select columns needed for ticket purchase form
   getActiveCommissionSellers: async (): Promise<CommissionSeller[]> => {
     const { data, error } = await supabase
       .from('commission_sellers')
-      .select('*')
+      .select('id, name, email, phone, commission_rate, commission_type, discount_rate, discount_type, is_active, created_at')
       .eq('is_active', true)
-      .order('created_at', { ascending: false });
+      .order('name', { ascending: true }); // Order by name for better UX
 
     if (error) {
       console.error('Error fetching active commission sellers:', error);

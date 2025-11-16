@@ -546,7 +546,7 @@ const Travel = () => {
                       <div className="flex items-center text-gray-600 text-xs md:text-sm">
                         <FaUsers className="mr-2 flex-shrink-0" size={11} aria-hidden="true" />
                         <span>
-                          {event.maxAttendees ? Math.floor(event.maxAttendees * 0.75) : (event.attendees || 0)}
+                          {event.attendees || 0}
                           {event.maxAttendees ? ` / ${event.maxAttendees}` : event.attendees ? ' attending' : ''}
                         </span>
                       </div>

@@ -1,31 +1,27 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FaCalendarAlt, FaChevronLeft, FaChevronRight, FaExternalLinkAlt, FaInstagram, FaMapMarkerAlt, FaSpinner, FaTelegram, FaTimes, FaUsers, FaWhatsapp } from "react-icons/fa";
 import { useParams, useSearchParams } from "react-router-dom";
 import "../Components/Gallery.css";
 import { EventDetailSkeleton } from "../Components/ui/EventDetailSkeleton";
 import { LocationButton } from "../Components/ui/LocationButton";
 import OptimizedImage from "../Components/ui/OptimizedImage";
-import { getAvailablePaymentMethods } from "../data/paymentMethods";
-import { useContactInfo, useEvent } from "../hooks/useApi";
-import { api } from "../services/api";
-import { initializePayment } from "../services/payment";
+import { useActiveCommissionSellers, useContactInfo, useEvent } from "../hooks/useApi";
+import { generateTransactionReference, getChapaPublicKey, initializePayment, submitChapaHTMLCheckout } from "../services/payment";
 import { registerForFreeEvent } from "../services/ticket";
-import { CommissionSeller, PaymentRequest } from "../types";
+import { PaymentRequest } from "../types";
 
 const EventDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const { event, isLoading, mutate: refetchEvent } = useEvent(id);
   const { contactInfo } = useContactInfo();
+  const { sellers: allSellers, isLoading: sellersLoading } = useActiveCommissionSellers();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
-  const [paymentStep, setPaymentStep] = useState<'form' | 'methods'>('form');
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
-  const [commissionSellers, setCommissionSellers] = useState<CommissionSeller[]>([]);
   const [fullscreenImageIndex, setFullscreenImageIndex] = useState<number | null>(null);
-  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
+  const [rateLimitCountdown, setRateLimitCountdown] = useState<number | null>(null);
   const [paymentForm, setPaymentForm] = useState({
     first_name: "",
     last_name: "",
@@ -35,54 +31,45 @@ const EventDetail = () => {
     commission_seller_id: searchParams.get('seller') || "",
   });
 
-  // Load commission sellers - filter by event's allowed sellers if specified
-  // This hook must be called before any early returns
-  useEffect(() => {
-    const loadSellers = async () => {
-      if (!event) return;
-      
-      try {
-        const allSellers = await api.getActiveCommissionSellers();
-        
-        // Debug logging
-        console.log('Event allowed_commission_seller_ids:', event.allowed_commission_seller_ids);
-        console.log('All active sellers:', allSellers.map(s => ({ id: s.id, name: s.name })));
-        
-        // If event has allowed_commission_seller_ids with values, filter to only those
-        // If undefined/null/empty array, show all active sellers (no restrictions)
-        if (event.allowed_commission_seller_ids && event.allowed_commission_seller_ids.length > 0) {
-          // Filter to only allowed sellers
-          const allowedSellers = allSellers.filter(seller => 
-            event.allowed_commission_seller_ids!.includes(seller.id)
-          );
-          console.log('Filtered sellers:', allowedSellers.map(s => ({ id: s.id, name: s.name })));
-          setCommissionSellers(allowedSellers);
-        } else {
-          // No restrictions set (undefined, null, or empty array) - show all active sellers
-          console.log('No restrictions - showing all sellers');
-          setCommissionSellers(allSellers);
-        }
-      } catch (error) {
-        console.error('Error loading commission sellers:', error);
-        // Don't show error to user, just continue without sellers
-        setCommissionSellers([]);
-      }
-    };
+  // Filter commission sellers based on event's allowed sellers - memoized for performance
+  // Only show discounts if event has allowed_commission_seller_ids configured
+  const commissionSellers = useMemo(() => {
+    if (!event || !allSellers.length) return [];
     
-    loadSellers();
+    // Only show discounts if event has allowed_commission_seller_ids configured
+    // If no allowed sellers are set, don't show any discounts
+    if (!event.allowed_commission_seller_ids || event.allowed_commission_seller_ids.length === 0) {
+      return [];
+    }
+    
+    // Filter to only allowed sellers that have discounts configured
+    return allSellers.filter(seller => 
+      event.allowed_commission_seller_ids!.includes(seller.id) &&
+      seller.discount_rate && 
+      seller.discount_type
+    );
+  }, [event, allSellers]);
+
+  // Memoize selected seller lookup for performance
+  const selectedSeller = useMemo(() => {
+    if (!paymentForm.commission_seller_id || !commissionSellers.length) return null;
+    return commissionSellers.find(s => s.id === paymentForm.commission_seller_id) || null;
+  }, [paymentForm.commission_seller_id, commissionSellers]);
+
+  // Memoize base price calculation
+  const basePrice = useMemo(() => {
+    if (!event) return 0;
+    if (event.price === "Free" || event.price?.toLowerCase() === "free") return 0;
+    return parseFloat(event.price.toString().replace(/[^0-9.]/g, '') || '0');
   }, [event]);
 
-  // Helper function to calculate discount
-  const calculateDiscount = (basePrice: number, quantity: number) => {
-    if (!paymentForm.commission_seller_id || basePrice === 0 || !event) {
+  // Memoize discount calculation for performance
+  const discountCalculation = useMemo(() => {
+    if (!selectedSeller || !selectedSeller.discount_rate || !selectedSeller.discount_type || basePrice === 0 || !event) {
       return { discountAmount: 0, discountText: '', selectedSeller: null };
     }
 
-    const selectedSeller = commissionSellers.find(s => s.id === paymentForm.commission_seller_id);
-    if (!selectedSeller || !selectedSeller.discount_rate || !selectedSeller.discount_type) {
-      return { discountAmount: 0, discountText: '', selectedSeller: null };
-    }
-
+    const quantity = paymentForm.quantity || 1;
     const subtotal = basePrice * quantity;
     let discountAmount = 0;
 
@@ -101,7 +88,59 @@ const EventDetail = () => {
       : `${selectedSeller.discount_rate} ${event.currency} off`;
 
     return { discountAmount, discountText, selectedSeller };
+  }, [selectedSeller, basePrice, paymentForm.quantity, event]);
+
+  // Helper function to calculate discount (uses memoized result when possible)
+  const calculateDiscount = (price: number, qty: number) => {
+    // If parameters match memoized calculation, return cached result
+    const currentQty = paymentForm.quantity || 1;
+    if (price === basePrice && qty === currentQty) {
+      return discountCalculation;
+    }
+    
+    // Otherwise calculate on the fly (for edge cases with different parameters)
+    if (!selectedSeller || !selectedSeller.discount_rate || !selectedSeller.discount_type || price === 0 || !event) {
+      return { discountAmount: 0, discountText: '', selectedSeller: null };
+    }
+
+    const subtotal = price * qty;
+    let discountAmount = 0;
+
+    if (selectedSeller.discount_type === 'percentage') {
+      discountAmount = (subtotal * selectedSeller.discount_rate) / 100;
+    } else {
+      discountAmount = selectedSeller.discount_rate * qty;
+    }
+
+    discountAmount = Math.min(discountAmount, subtotal);
+
+    const discountText = selectedSeller.discount_type === 'percentage'
+      ? `${selectedSeller.discount_rate}% off`
+      : `${selectedSeller.discount_rate} ${event.currency} off`;
+
+    return { discountAmount, discountText, selectedSeller };
   };
+
+  // Handle rate limit countdown timer
+  useEffect(() => {
+    if (rateLimitCountdown === null || rateLimitCountdown <= 0) {
+      if (rateLimitCountdown === 0) {
+        setRateLimitCountdown(null);
+      }
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setRateLimitCountdown((prev) => {
+        if (prev === null || prev <= 1) {
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [rateLimitCountdown]);
 
   // Handle keyboard navigation for fullscreen gallery and prevent body scroll
   useEffect(() => {
@@ -145,32 +184,25 @@ const EventDetail = () => {
     return <EventDetailSkeleton />;
   }
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setPaymentStep('methods');
+    // Submit directly to payment - no need for payment method selection
+    // Chapa will show all available payment methods on their checkout page
+    await handlePayment();
   };
 
   const handlePayment = async () => {
     setIsProcessing(true);
 
     try {
-      // Calculate total amount based on quantity
-      // Handle "Free" price or parse numeric price
-      let pricePerTicket = 0;
-      if (event.price && event.price !== "Free" && event.price.toString().toLowerCase() !== "free") {
-        // Extract numeric value from price string (handles "25", "25.00", "25 ETB", etc.)
-        const priceStr = event.price.toString().trim();
-        const numericPrice = priceStr.replace(/[^0-9.]/g, '');
-        pricePerTicket = parseFloat(numericPrice) || 0;
-      }
-      
+      // Calculate total amount based on quantity - use memoized discount calculation
       const quantity = paymentForm.quantity || 1;
-      const { discountAmount } = calculateDiscount(pricePerTicket, quantity);
-      const subtotal = pricePerTicket * quantity;
+      const { discountAmount } = discountCalculation;
+      const subtotal = basePrice * quantity;
       const totalAmount = Math.max(0, subtotal - discountAmount).toFixed(2);
 
       // Validate calculation
-      if (pricePerTicket <= 0 && event.price !== "Free") {
+      if (basePrice <= 0 && event.price !== "Free") {
         alert('Invalid event price. Please contact support.');
         setIsProcessing(false);
         return;
@@ -182,55 +214,131 @@ const EventDetail = () => {
         return;
       }
 
-      // Payment calculation logged for debugging
+      // Generate transaction reference on frontend
+      const txRef = generateTransactionReference('YENEGE', 20);
 
-      const paymentData: PaymentRequest = {
-        first_name: paymentForm.first_name,
-        last_name: paymentForm.last_name,
-        email: paymentForm.email,
-        phone_number: paymentForm.phone_number,
-        currency: event.currency,
-        amount: totalAmount, // This should be the total (price * quantity - discount)
-        quantity: quantity,
-        event_id: event.id,
-        event_title: event.title,
-        preferred_payment_method: selectedPaymentMethod || undefined,
-        commission_seller_id: paymentForm.commission_seller_id || undefined,
-      };
+      // Try HTML checkout first, fall back to API initialization if public key endpoint is not available
+      try {
+        // Get Chapa public key for HTML checkout
+        const publicKey = await getChapaPublicKey();
 
-      // Payment data prepared for server
-
-      const response = await initializePayment(paymentData);
-
-      if (response.success && response.data?.checkout_url) {
-        // Redirect to Chapa checkout
-        window.location.href = response.data.checkout_url;
-      } else {
-        // Show error message
-        const errorMsg = response.message || "Failed to initialize payment";
-        
-        if (response.error === 'LOCALHOST_URL_NOT_ALLOWED') {
-          alert(
-            "⚠️ URL Configuration Error\n\n" +
-            errorMsg + "\n\n" +
-            (response.suggestion || "Production payments require HTTPS URLs. Please ensure your FRONTEND_URL is configured correctly.")
-          );
-        } else {
-          alert(errorMsg + (response.suggestion ? "\n\n" + response.suggestion : ""));
+        // Build callback and return URLs
+        const frontendUrl = window.location.origin;
+        const callbackUrl = `${frontendUrl}/payment/callback`;
+        const returnUrlParams = new URLSearchParams();
+        returnUrlParams.set('tx_ref', txRef);
+        returnUrlParams.set('event_id', event.id);
+        returnUrlParams.set('event_title', event.title);
+        returnUrlParams.set('quantity', quantity.toString());
+        if (paymentForm.commission_seller_id) {
+          returnUrlParams.set('commission_seller_id', paymentForm.commission_seller_id);
         }
-        setIsProcessing(false);
+        const returnUrl = `${frontendUrl}/payment/success?${returnUrlParams.toString()}`;
+
+        // Sanitize event title for Chapa (only letters, numbers, hyphens, underscores, spaces, and dots)
+        const sanitizeTitle = (text: string): string => {
+          return text.replace(/[^a-zA-Z0-9_\s.\-]/g, '').trim();
+        };
+        const sanitizedTitle = sanitizeTitle(event.title);
+        const title = sanitizedTitle.length > 16 ? sanitizedTitle.substring(0, 16) : sanitizedTitle;
+        const description = sanitizeTitle(`Payment for ${sanitizedTitle || 'event registration'}`);
+
+        // Submit HTML checkout form
+        await submitChapaHTMLCheckout({
+          publicKey,
+          txRef,
+          amount: totalAmount,
+          currency: event.currency,
+          email: paymentForm.email,
+          first_name: paymentForm.first_name,
+          last_name: paymentForm.last_name,
+          phone_number: paymentForm.phone_number,
+          title: title || undefined,
+          description: description || undefined,
+          callback_url: callbackUrl,
+          return_url: returnUrl,
+          meta: {
+            event_id: event.id,
+            event_title: event.title,
+            quantity: quantity.toString(),
+            ...(paymentForm.commission_seller_id && { commission_seller_id: paymentForm.commission_seller_id }),
+          },
+        });
+
+        // Form submission will redirect, so we don't need to set isProcessing to false
+        return;
+      } catch (htmlCheckoutError: any) {
+        // If HTML checkout fails (e.g., public key endpoint not available), fall back to API initialization
+        console.warn('HTML checkout not available, falling back to API initialization:', htmlCheckoutError.message);
+        
+        // Fall back to the original API initialization method
+        const paymentData: PaymentRequest = {
+          first_name: paymentForm.first_name,
+          last_name: paymentForm.last_name,
+          email: paymentForm.email,
+          phone_number: paymentForm.phone_number,
+          currency: event.currency,
+          amount: totalAmount,
+          quantity: quantity,
+          event_id: event.id,
+          event_title: event.title,
+          commission_seller_id: paymentForm.commission_seller_id || undefined,
+          tx_ref: txRef,
+        };
+
+        const response = await initializePayment(paymentData);
+
+        if (response.success && response.data?.checkout_url) {
+          // Redirect to Chapa checkout
+          window.location.href = response.data.checkout_url;
+        } else {
+          // Show error message
+          const errorMsg = response.message || "Failed to initialize payment";
+          
+          if (response.error === 'LOCALHOST_URL_NOT_ALLOWED') {
+            alert(
+              "⚠️ URL Configuration Error\n\n" +
+              errorMsg + "\n\n" +
+              (response.suggestion || "Production payments require HTTPS URLs. Please ensure your FRONTEND_URL is configured correctly.")
+            );
+          } else {
+            alert(errorMsg + (response.suggestion ? "\n\n" + response.suggestion : ""));
+          }
+          setIsProcessing(false);
+        }
+        return;
       }
     } catch (error: any) {
       console.error("Payment error:", error);
-      const errorMsg = error.message || "An error occurred. Please try again.";
-      const errorType = error.error;
+      console.error("Error details:", {
+        message: error.message,
+        error: error.error,
+        status: error.status,
+        details: error.details,
+        suggestion: error.suggestion,
+      });
+      
+      // Extract error message from various possible locations
+      const errorMsg = 
+        error.message || 
+        error.details?.message ||
+        (typeof error.error === 'string' ? error.error : null) ||
+        error.toString?.() ||
+        "An error occurred. Please try again.";
+      const errorType = error.error?.code || error.error || (error.status ? 'HTTP_ERROR' : 'UNKNOWN_ERROR');
       
       // Check if it's a rate limit error
       if (errorType === 'RATE_LIMIT_EXCEEDED' || errorMsg.includes("Rate limit") || errorMsg.includes("try again in")) {
+        const retryTime = error.retryAfter || parseInt(errorMsg.match(/(\d+)\s*seconds?/i)?.[1] || '30', 10);
+        // Start countdown timer
+        setRateLimitCountdown(retryTime);
+      }
+      // Check if it's a public key endpoint error
+      else if (errorMsg.includes("Public key endpoint not found") || errorMsg.includes("public key")) {
         alert(
-          "⏱️ Rate Limit Exceeded\n\n" +
-          errorMsg + "\n\n" +
-          (error.suggestion || "Please wait a moment and try again.")
+          "⚠️ Configuration Error\n\n" +
+          "The payment system is not fully configured yet. The server may need to be restarted with the latest code.\n\n" +
+          "Please contact support or try again later."
         );
       }
       // Check if it's a validation error
@@ -439,11 +547,11 @@ const EventDetail = () => {
                   <span className="text-xs sm:text-sm text-gray-500 uppercase tracking-wide">Attendees</span>
                 </div>
                 <div className="font-medium text-sm sm:text-base text-gray-900">
-                  {event.maxAttendees ? Math.floor(event.maxAttendees * 0.75) : (event.attendees || 0)} {event.maxAttendees ? `/ ${event.maxAttendees}` : ''}
+                  {event.attendees || 0} {event.maxAttendees ? `/ ${event.maxAttendees}` : ''}
                 </div>
                 {event.maxAttendees && (
                   <div className="text-xs sm:text-sm text-gray-600 mt-1">
-                    {event.maxAttendees - Math.floor(event.maxAttendees * 0.75)} spots remaining
+                    {Math.max(0, event.maxAttendees - (event.attendees || 0))} spots remaining
                   </div>
                 )}
               </div>
@@ -669,10 +777,9 @@ const EventDetail = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center z-50 p-2 sm:p-3 md:p-4 overflow-y-auto">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[98vh] sm:max-h-[95vh] md:max-h-[90vh] overflow-y-auto p-3 sm:p-4 md:p-6 lg:p-8 my-2 sm:my-4">
             <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-4 sm:mb-6">
-              {paymentStep === 'form' ? 'Complete Your Registration' : 'Choose Payment Method'}
+              Complete Your Registration
             </h2>
             
-            {paymentStep === 'form' ? (
             <form onSubmit={handleFormSubmit} className="space-y-3 sm:space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
@@ -765,7 +872,7 @@ const EventDetail = () => {
                     name="quantity"
                     required
                     min="1"
-                    max={event.maxAttendees ? event.maxAttendees - Math.floor(event.maxAttendees * 0.75) : 100}
+                    max={event.maxAttendees ? Math.max(0, event.maxAttendees - (event.attendees || 0)) : 100}
                     value={paymentForm.quantity || 1}
                     onChange={handleInputChange}
                     className="flex-1 px-4 py-2.5 sm:py-3 text-center text-base sm:text-lg font-semibold border-2 border-gray-300 rounded-lg focus:outline-none focus:border-gray-900 transition-colors"
@@ -774,13 +881,13 @@ const EventDetail = () => {
                     type="button"
                     onClick={() => {
                       const currentQty = paymentForm.quantity || 1;
-                      const maxQty = event.maxAttendees ? event.maxAttendees - Math.floor(event.maxAttendees * 0.75) : 100;
+                      const maxQty = event.maxAttendees ? Math.max(0, event.maxAttendees - (event.attendees || 0)) : 100;
                       if (currentQty < maxQty) {
                         setPaymentForm({ ...paymentForm, quantity: currentQty + 1 });
                       }
                     }}
                     disabled={
-                      (paymentForm.quantity || 1) >= (event.maxAttendees ? event.maxAttendees - Math.floor(event.maxAttendees * 0.75) : 100)
+                      (paymentForm.quantity || 1) >= (event.maxAttendees ? Math.max(0, event.maxAttendees - (event.attendees || 0)) : 100)
                     }
                     className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center border-2 border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                     aria-label="Increase quantity"
@@ -790,7 +897,7 @@ const EventDetail = () => {
                 </div>
                 {event.maxAttendees && (
                   <p className="mt-2 text-xs sm:text-sm text-gray-500 text-center">
-                    {event.maxAttendees - Math.floor(event.maxAttendees * 0.75)} tickets available
+                    {Math.max(0, event.maxAttendees - (event.attendees || 0))} tickets available
                   </p>
                 )}
               </div>
@@ -859,39 +966,26 @@ const EventDetail = () => {
                     </span>
                   </div>
                   {(() => {
-                    const basePrice = event.price === "Free" || event.price?.toLowerCase() === "free"
-                      ? 0
-                      : parseFloat(event.price.toString().replace(/[^0-9.]/g, '') || '0');
                     const qty = paymentForm.quantity || 1;
-                    const { discountAmount } = calculateDiscount(basePrice, qty);
+                    const { discountAmount, discountText } = discountCalculation;
                     
-                    if (discountAmount > 0) {
+                    // Only show discount section if there's an actual discount and a seller is selected
+                    if (discountAmount > 0 && paymentForm.commission_seller_id) {
                       return (
-                        <div className="flex justify-between items-center text-sm sm:text-base">
-                          <span className="text-gray-600">Subtotal:</span>
-                          <span className="text-gray-900 font-medium">
-                            {(basePrice * qty).toFixed(2)} {event.currency}
-                          </span>
-                        </div>
-                      );
-                    }
-                    return null;
-                  })()}
-                  {(() => {
-                    const basePrice = event.price === "Free" || event.price?.toLowerCase() === "free"
-                      ? 0
-                      : parseFloat(event.price.toString().replace(/[^0-9.]/g, '') || '0');
-                    const qty = paymentForm.quantity || 1;
-                    const { discountAmount, discountText } = calculateDiscount(basePrice, qty);
-                    
-                    if (discountAmount > 0) {
-                      return (
-                        <div className="flex justify-between items-center text-sm sm:text-base">
-                          <span className="text-green-600 font-medium">Discount ({discountText}):</span>
-                          <span className="text-green-600 font-medium">
-                            -{discountAmount.toFixed(2)} {event.currency}
-                          </span>
-                        </div>
+                        <>
+                          <div className="flex justify-between items-center text-sm sm:text-base">
+                            <span className="text-gray-600">Subtotal:</span>
+                            <span className="text-gray-900 font-medium">
+                              {(basePrice * qty).toFixed(2)} {event.currency}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center text-sm sm:text-base">
+                            <span className="text-green-600 font-medium">Discount ({discountText}):</span>
+                            <span className="text-green-600 font-medium">
+                              -{discountAmount.toFixed(2)} {event.currency}
+                            </span>
+                          </div>
+                        </>
                       );
                     }
                     return null;
@@ -901,12 +995,9 @@ const EventDetail = () => {
                   <span className="text-sm sm:text-base text-gray-700 font-medium">Total Amount:</span>
                   <span className="text-xl sm:text-2xl font-semibold text-gray-900">
                     {(() => {
-                      const price = event.price === "Free" || event.price?.toLowerCase() === "free"
-                        ? 0
-                        : parseFloat(event.price.toString().replace(/[^0-9.]/g, '') || '0');
                       const qty = paymentForm.quantity || 1;
-                      const { discountAmount } = calculateDiscount(price, qty);
-                      const total = (price * qty) - discountAmount;
+                      const { discountAmount } = discountCalculation;
+                      const total = (basePrice * qty) - discountAmount;
                       return `${Math.max(0, total).toFixed(2)} ${event.currency}`;
                     })()}
                   </span>
@@ -919,8 +1010,6 @@ const EventDetail = () => {
                   onClick={() => {
                     setShowPaymentModal(false);
                     setIsProcessing(false);
-                    setPaymentStep('form');
-                    setSelectedPaymentMethod(null);
                     setPaymentForm({
                       first_name: "",
                       last_name: "",
@@ -937,160 +1026,19 @@ const EventDetail = () => {
                 <button
                   type="submit"
                   className="flex-1 px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isProcessing}
                 >
-                  Continue to Payment Methods
+                  {isProcessing ? (
+                    <span className="flex items-center justify-center">
+                      <FaSpinner className="animate-spin mr-2" />
+                      Processing...
+                    </span>
+                  ) : (
+                    "Proceed to Checkout"
+                  )}
                 </button>
               </div>
             </form>
-            ) : (
-              <div className="space-y-3 sm:space-y-4">
-                {/* Logo and Header */}
-                <div className="flex items-center gap-2 sm:gap-3 mb-4">
-                  <img 
-                    src="/logo.png" 
-                    alt="Logo" 
-                    className="w-8 h-8 sm:w-10 sm:h-10 object-contain"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                    }}
-                  />
-                  <h2 className="text-base sm:text-lg font-semibold text-gray-900">Choose Payment Method</h2>
-                </div>
-                
-                <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2 sm:gap-3 max-h-[60vh] overflow-y-auto pr-1">
-                  {getAvailablePaymentMethods(parseFloat(event.price)).map((method) => (
-                    <button
-                      key={method.id}
-                      type="button"
-                      onClick={() => setSelectedPaymentMethod(method.id)}
-                      className={`aspect-square p-2 sm:p-2.5 border-2 rounded-2xl text-center transition-all hover:shadow-lg flex flex-col items-center justify-center ${
-                        selectedPaymentMethod === method.id
-                          ? 'border-gray-900 bg-gray-50 shadow-md scale-105'
-                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                      }`}
-                    >
-                      <div className="relative w-full h-full flex flex-col items-center justify-center">
-                        {method.icon.startsWith('http') || method.icon.startsWith('/') ? (
-                          failedImages.has(method.id) ? (
-                            <>
-                              <span className="text-2xl sm:text-3xl mb-1">💳</span>
-                              <div className="mt-auto w-full px-1 pb-0.5">
-                                <h3 className="text-[9px] sm:text-[10px] font-semibold text-gray-900 leading-tight text-center line-clamp-2">{method.name}</h3>
-                              </div>
-                            </>
-                          ) : (
-                            <img 
-                              src={method.icon} 
-                              alt={method.name}
-                              className="w-full h-full object-contain p-0.5 sm:p-1"
-                              onError={() => {
-                                setFailedImages(prev => new Set(prev).add(method.id));
-                              }}
-                            />
-                          )
-                        ) : (
-                          <>
-                            <span className="text-2xl sm:text-3xl flex-shrink-0 mb-1">{method.icon}</span>
-                            <div className="mt-auto w-full px-1 pb-0.5">
-                              <h3 className="text-[9px] sm:text-[10px] font-semibold text-gray-900 leading-tight line-clamp-2">{method.name}</h3>
-                            </div>
-                          </>
-                        )}
-                        {selectedPaymentMethod === method.id && (
-                          <span className="absolute -top-1 -right-1 text-white flex-shrink-0 text-xs sm:text-sm font-bold bg-gray-900 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center shadow-md">✓</span>
-                        )}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-
-                <div className="pt-4 sm:pt-6 border-t border-gray-200">
-                  <div className="space-y-2 mb-3 sm:mb-4">
-                    <div className="flex justify-between items-center text-sm sm:text-base">
-                      <span className="text-gray-600">Price per ticket:</span>
-                      <span className="text-gray-900 font-medium">
-                        {event.price === "Free" || event.price?.toLowerCase() === "free" 
-                          ? "Free" 
-                          : `${parseFloat(event.price.toString().replace(/[^0-9.]/g, '') || '0').toFixed(2)} ${event.currency}`}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm sm:text-base">
-                      <span className="text-gray-600">Quantity:</span>
-                      <span className="text-gray-900 font-medium">
-                        {paymentForm.quantity}
-                      </span>
-                    </div>
-                    {(() => {
-                      const basePrice = event.price === "Free" || event.price?.toLowerCase() === "free"
-                        ? 0
-                        : parseFloat(event.price.toString().replace(/[^0-9.]/g, '') || '0');
-                      const qty = paymentForm.quantity || 1;
-                      const { discountAmount, discountText } = calculateDiscount(basePrice, qty);
-                      
-                      if (discountAmount > 0) {
-                        return (
-                          <>
-                            <div className="flex justify-between items-center text-sm sm:text-base">
-                              <span className="text-gray-600">Subtotal:</span>
-                              <span className="text-gray-900 font-medium">
-                                {(basePrice * qty).toFixed(2)} {event.currency}
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center text-sm sm:text-base">
-                              <span className="text-green-600 font-medium">Discount ({discountText}):</span>
-                              <span className="text-green-600 font-medium">
-                                -{discountAmount.toFixed(2)} {event.currency}
-                              </span>
-                            </div>
-                          </>
-                        );
-                      }
-                      return null;
-                    })()}
-                  </div>
-                  <div className="flex justify-between items-center pt-2 border-t border-gray-200">
-                    <span className="text-sm sm:text-base text-gray-700 font-medium">Total Amount:</span>
-                    <span className="text-xl sm:text-2xl font-semibold text-gray-900">
-                      {(() => {
-                        const price = event.price === "Free" || event.price?.toLowerCase() === "free"
-                          ? 0
-                          : parseFloat(event.price.toString().replace(/[^0-9.]/g, '') || '0');
-                        const qty = paymentForm.quantity || 1;
-                        const { discountAmount } = calculateDiscount(price, qty);
-                        const total = (price * qty) - discountAmount;
-                        return `${Math.max(0, total).toFixed(2)} ${event.currency}`;
-                      })()}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => setPaymentStep('form')}
-                    className="flex-1 px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
-                  >
-                    Back
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handlePayment}
-                    className="flex-1 px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={isProcessing || !selectedPaymentMethod}
-                  >
-                    {isProcessing ? (
-                      <span className="flex items-center justify-center">
-                        <FaSpinner className="animate-spin mr-2" />
-                        Processing...
-                      </span>
-                    ) : (
-                      "Proceed to Checkout"
-                    )}
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       )}
@@ -1223,7 +1171,7 @@ const EventDetail = () => {
                         name="quantity"
                         required
                         min="1"
-                        max={event.maxAttendees ? event.maxAttendees - Math.floor(event.maxAttendees * 0.75) : 100}
+                        max={event.maxAttendees ? Math.max(0, event.maxAttendees - (event.attendees || 0)) : 100}
                         value={paymentForm.quantity || 1}
                         onChange={handleInputChange}
                         className="flex-1 px-4 py-2.5 sm:py-3 text-center text-base sm:text-lg font-semibold border-2 border-gray-300 rounded-lg focus:outline-none focus:border-gray-900 transition-colors"
@@ -1232,13 +1180,13 @@ const EventDetail = () => {
                         type="button"
                         onClick={() => {
                           const currentQty = paymentForm.quantity || 1;
-                          const maxQty = event.maxAttendees ? event.maxAttendees - Math.floor(event.maxAttendees * 0.75) : 100;
+                          const maxQty = event.maxAttendees ? Math.max(0, event.maxAttendees - (event.attendees || 0)) : 100;
                           if (currentQty < maxQty) {
                             setPaymentForm({ ...paymentForm, quantity: currentQty + 1 });
                           }
                         }}
                         disabled={
-                          (paymentForm.quantity || 1) >= (event.maxAttendees ? event.maxAttendees - Math.floor(event.maxAttendees * 0.75) : 100)
+                          (paymentForm.quantity || 1) >= (event.maxAttendees ? Math.max(0, event.maxAttendees - (event.attendees || 0)) : 100)
                         }
                         className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center border-2 border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                         aria-label="Increase quantity"
@@ -1248,7 +1196,7 @@ const EventDetail = () => {
                     </div>
                     {event.maxAttendees && (
                       <p className="mt-2 text-xs sm:text-sm text-gray-500 text-center">
-                        {event.maxAttendees - Math.floor(event.maxAttendees * 0.75)} tickets available
+                        {Math.max(0, event.maxAttendees - (event.attendees || 0))} tickets available
                       </p>
                     )}
                   </div>
@@ -1342,6 +1290,83 @@ const EventDetail = () => {
                 </form>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Rate Limit Countdown Modal */}
+      {rateLimitCountdown !== null && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6 sm:p-8 shadow-xl">
+            <div className="text-center">
+              {rateLimitCountdown > 0 ? (
+                <>
+                  <div className="mb-4">
+                    <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+                    ⏱️ Rate Limit Exceeded
+                  </h2>
+                  <p className="text-sm sm:text-base text-gray-600 mb-6">
+                    The payment system is temporarily limiting requests. This is a temporary restriction to ensure system stability.
+                  </p>
+                  
+                  {/* Countdown Timer */}
+                  <div className="mb-6">
+                    <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-orange-500 to-red-500 text-white mb-4 animate-pulse">
+                      <div className="text-center">
+                        <div className="text-3xl sm:text-4xl font-bold">
+                          {rateLimitCountdown}
+                        </div>
+                        <div className="text-xs sm:text-sm opacity-90">
+                          {rateLimitCountdown === 1 ? 'second' : 'seconds'}
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      Please wait before trying again
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => setRateLimitCountdown(null)}
+                    className="w-full px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                  >
+                    Close (Timer will continue in background)
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="mb-4">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+                    ✅ Ready to Try Again
+                  </h2>
+                  <p className="text-sm sm:text-base text-gray-600 mb-6">
+                    The rate limit has been lifted. You can now proceed with your payment.
+                  </p>
+
+                  <button
+                    onClick={() => {
+                      setRateLimitCountdown(null);
+                      setIsProcessing(false);
+                    }}
+                    className="w-full px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
+                  >
+                    Close & Try Again
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}

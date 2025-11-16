@@ -24,14 +24,13 @@ import {
 } from 'react-icons/fa';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
+import { useCommissionSellers } from '../../hooks/useApi';
 import { adminApi } from '../../services/adminApi';
 import { supabase } from '../../services/supabase';
 import { CommissionSeller } from '../../types';
 
 const CommissionSellers = () => {
   const { loading: authLoading, isAdminUser } = useAdminAuth();
-  const [sellers, setSellers] = useState<CommissionSeller[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingSeller, setEditingSeller] = useState<CommissionSeller | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -51,6 +50,9 @@ const CommissionSellers = () => {
     notes: '',
   });
 
+  // Use cached hook for commission sellers data
+  const { sellers = [], isLoading: loading, mutate: mutateSellers } = useCommissionSellers();
+
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -68,22 +70,9 @@ const CommissionSellers = () => {
         navigate('/admin/seller-dashboard', { replace: true });
         return;
       }
-      loadSellers();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, isAdminUser, navigate]);
 
-  const loadSellers = async () => {
-    try {
-      // Admin can see all sellers
-      const data = await adminApi.commissionSellers.getAll();
-      setSellers(data);
-    } catch (error) {
-      console.error('Error loading commission sellers:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,7 +97,7 @@ const CommissionSellers = () => {
       setShowModal(false);
       setEditingSeller(null);
       resetForm();
-      loadSellers();
+      mutateSellers(); // Refresh data using cached hook mutate
     } catch (error: any) {
       alert('Error: ' + (error.message || 'Failed to save seller'));
     }
@@ -134,7 +123,7 @@ const CommissionSellers = () => {
     if (!window.confirm('Are you sure you want to delete this commission seller?')) return;
     try {
       await adminApi.commissionSellers.delete(id);
-      loadSellers();
+      mutateSellers(); // Refresh data using cached hook mutate
     } catch (error: any) {
       alert('Error: ' + (error.message || 'Failed to delete seller'));
     }
@@ -145,7 +134,7 @@ const CommissionSellers = () => {
       await adminApi.commissionSellers.update(seller.id, {
         is_active: !seller.is_active,
       });
-      loadSellers();
+      mutateSellers(); // Refresh data using cached hook mutate
     } catch (error: any) {
       alert('Error: ' + (error.message || 'Failed to update seller status'));
     }
