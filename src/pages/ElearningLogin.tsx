@@ -10,8 +10,10 @@ const ElearningLogin = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSignup, setIsSignup] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -65,6 +67,7 @@ const ElearningLogin = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess('');
 
     // Validate password match
     if (password !== confirmPassword) {
@@ -105,12 +108,43 @@ const ElearningLogin = () => {
           navigate('/elearning');
         } else {
           // Email confirmation required
-          setError('Please check your email to confirm your account before logging in.');
+          setSuccess('Account created! Please check your email to confirm your account before logging in.');
           setIsSignup(false);
+          setEmail('');
+          setPassword('');
+          setConfirmPassword('');
         }
       }
     } catch (err: any) {
       setError(err.message || 'Failed to create account. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess('');
+
+    if (!email) {
+      setError('Please enter your email address.');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/elearning/login?reset=true`,
+      });
+
+      if (resetError) throw resetError;
+
+      setSuccess('Password reset link sent! Please check your email to reset your password.');
+      setEmail('');
+    } catch (err: any) {
+      setError(err.message || 'Failed to send password reset email. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -136,7 +170,62 @@ const ElearningLogin = () => {
             </div>
           )}
 
-          <form onSubmit={isSignup ? handleSignup : handleLogin} className="space-y-6">
+          {success && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-green-800 text-sm">{success}</p>
+            </div>
+          )}
+
+          {isForgotPassword ? (
+            <form onSubmit={handleForgotPassword} className="space-y-6">
+              <div>
+                <label htmlFor="resetEmail" className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Address
+                </label>
+                <input
+                  id="resetEmail"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="your.email@example.com"
+                />
+                <p className="mt-2 text-xs text-gray-500">
+                  Enter your email address and we'll send you a link to reset your password.
+                </p>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              >
+                {loading ? (
+                  <>
+                    <FaSpinner className="animate-spin mr-2" />
+                    Sending reset link...
+                  </>
+                ) : (
+                  'Send Password Reset Link'
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsForgotPassword(false);
+                  setError('');
+                  setSuccess('');
+                  setEmail('');
+                }}
+                className="w-full text-sm text-blue-600 hover:text-blue-700 font-medium"
+              >
+                Back to Login
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={isSignup ? handleSignup : handleLogin} className="space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 Email Address
@@ -193,46 +282,66 @@ const ElearningLogin = () => {
               </div>
             )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-            >
-              {loading ? (
-                <>
-                  <FaSpinner className="animate-spin mr-2" />
-                  {isSignup ? 'Creating account...' : 'Logging in...'}
-                </>
-              ) : (
-                isSignup ? 'Create Account' : 'Login to E-Learning'
-              )}
-            </button>
-          </form>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              >
+                {loading ? (
+                  <>
+                    <FaSpinner className="animate-spin mr-2" />
+                    {isSignup ? 'Creating account...' : 'Logging in...'}
+                  </>
+                ) : (
+                  isSignup ? 'Create Account' : 'Login to E-Learning'
+                )}
+              </button>
+            </form>
+          )}
 
-          <div className="mt-6 text-center space-y-2">
-            <button
-              type="button"
-              onClick={() => {
-                setIsSignup(!isSignup);
-                setError('');
-                setPassword('');
-                setConfirmPassword('');
-              }}
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-            >
-              {isSignup ? 'Already have an account? Login' : "Don't have an account? Sign up"}
-            </button>
+          {!isForgotPassword && !isSignup && (
+            <div className="mt-4 text-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsForgotPassword(true);
+                  setError('');
+                  setSuccess('');
+                }}
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+              >
+                Forgot your password?
+              </button>
+            </div>
+          )}
+
+          {!isForgotPassword && (
+            <div className="mt-6 text-center space-y-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSignup(!isSignup);
+                  setError('');
+                  setSuccess('');
+                  setPassword('');
+                  setConfirmPassword('');
+                }}
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+              >
+                {isSignup ? 'Already have an account? Login' : "Don't have an account? Sign up"}
+              </button>
             {!isSignup && (
               <p className="text-xs text-gray-500">
                 Only accepted internship applicants can access e-learning
               </p>
             )}
-            {isSignup && (
-              <p className="text-xs text-gray-500">
-                You must have an accepted internship application to create an account
-              </p>
-            )}
-          </div>
+              {isSignup && (
+                <p className="text-xs text-gray-500">
+                  You must have an accepted internship application to create an account
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

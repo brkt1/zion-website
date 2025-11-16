@@ -21,6 +21,7 @@ const Header = () => {
     { path: "/community", label: "Community" },
     { path: "/about", label: "About" },
     { path: "/contact", label: "Contact" },
+    { path: "/elearning/login", label: "E-Learning", className: "text-blue-600 font-semibold" },
   ];
 
   const isActive = (path: string) => {
@@ -120,13 +121,15 @@ const Header = () => {
                 onMouseEnter={() => handleLinkHover(link.path)}
                 aria-current={isActive(link.path) ? "page" : undefined}
                 className={`relative text-sm font-semibold tracking-wide transition-all duration-300 ${
-                  isHomePage && !isScrolled
-                    ? isActive(link.path)
-                      ? "text-white"
-                      : "text-white/70 hover:text-white"
-                    : isActive(link.path)
-                    ? "text-gray-900"
-                    : "text-gray-600 hover:text-gray-900"
+                  link.className || (
+                    isHomePage && !isScrolled
+                      ? isActive(link.path)
+                        ? "text-white"
+                        : "text-white/70 hover:text-white"
+                      : isActive(link.path)
+                      ? "text-gray-900"
+                      : "text-gray-600 hover:text-gray-900"
+                  )
                 }`}
               >
                 <span className="relative z-10">{link.label}</span>
