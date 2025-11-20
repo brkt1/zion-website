@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FaEye, FaEyeSlash, FaGraduationCap, FaSpinner } from 'react-icons/fa';
+import { FaEnvelope, FaEye, FaEyeSlash, FaGraduationCap, FaSpinner } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { hasAcceptedApplication, isElearningUser } from '../services/auth';
 import { supabase } from '../services/supabase';
@@ -14,6 +14,8 @@ const ElearningLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSignup, setIsSignup] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [needsEmailConfirmation, setNeedsEmailConfirmation] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -34,6 +36,7 @@ const ElearningLogin = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setNeedsEmailConfirmation(false);
 
     try {
       const { data, error: loginError } = await supabase.auth.signInWithPassword({
@@ -41,9 +44,72 @@ const ElearningLogin = () => {
         password,
       });
 
-      if (loginError) throw loginError;
+      if (loginError) {
+        // Check if error is due to email not confirmed
+        // Supabase can return various error messages for unconfirmed emails
+        const errorMessage = (loginError.message || '').toLowerCase();
+        const errorStatus = loginError.status || (loginError as any).code;
+        
+        // Log error for debugging (remove in production if needed)
+        console.log('Login error:', { message: loginError.message, status: errorStatus, error: loginError });
+        
+        const isEmailNotConfirmed = 
+          errorMessage.includes('email not confirmed') ||
+          errorMessage.includes('email not verified') ||
+          errorMessage.includes('email_not_confirmed') ||
+          errorMessage.includes('email_not_verified') ||
+          errorMessage.includes('unconfirmed') ||
+          (errorMessage.includes('confirm') && errorMessage.includes('email')) ||
+          (errorMessage.includes('verify') && errorMessage.includes('email')) ||
+          // Sometimes Supabase returns 400 with "Invalid login credentials" for unconfirmed emails
+          (errorStatus === 400 && errorMessage.includes('invalid') && errorMessage.includes('login')) ||
+          // Check error code if available
+          (loginError as any).code === 'email_not_confirmed' ||
+          (loginError as any).code === 'email_not_verified';
+        
+        if (isEmailNotConfirmed) {
+          setNeedsEmailConfirmation(true);
+          setError('Please confirm your email address before logging in. Check your inbox (and spam folder) for the confirmation link.');
+          setLoading(false);
+          return;
+        }
+        
+        // For 400 errors, it might be an unconfirmed email even if message doesn't explicitly say so
+        // Try to check if user exists by attempting to get user info
+        if (errorStatus === 400) {
+          // Check if we can determine it's an email confirmation issue
+          // by trying to see if the error suggests the account exists
+          const mightBeUnconfirmed = 
+            errorMessage.includes('invalid') || 
+            errorMessage.includes('credentials') ||
+            errorMessage.includes('wrong');
+          
+          if (mightBeUnconfirmed) {
+            // It could be unconfirmed email or wrong password
+            // Show a more helpful message that covers both cases
+            setNeedsEmailConfirmation(true);
+            setError('Unable to login. This could be because: 1) Your email is not confirmed yet, or 2) Your password is incorrect. Please check your email for a confirmation link, or try resetting your password.');
+            setLoading(false);
+            return;
+          }
+        }
+        
+        // For other errors, show the actual error message
+        setError(loginError.message || 'Failed to login. Please check your credentials.');
+        setLoading(false);
+        return;
+      }
 
       if (data.user) {
+        // Check if email is confirmed
+        if (!data.user.email_confirmed_at) {
+          setNeedsEmailConfirmation(true);
+          setError('Please confirm your email address before logging in. Check your inbox for the confirmation link.');
+          await supabase.auth.signOut();
+          setLoading(false);
+          return;
+        }
+
         // Check if user has e-learning access
         const hasAccess = await isElearningUser();
         
@@ -57,7 +123,21 @@ const ElearningLogin = () => {
         navigate('/elearning');
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to login. Please check your credentials.');
+      // Check if this is an email confirmation error that wasn't caught earlier
+      const errorMessage = err.message?.toLowerCase() || '';
+      const isEmailNotConfirmed = 
+        errorMessage.includes('email not confirmed') ||
+        errorMessage.includes('email not verified') ||
+        errorMessage.includes('email_not_confirmed') ||
+        errorMessage.includes('email_not_verified') ||
+        (errorMessage.includes('confirm') && errorMessage.includes('email'));
+      
+      if (isEmailNotConfirmed) {
+        setNeedsEmailConfirmation(true);
+        setError('Please confirm your email address before logging in. Check your inbox (and spam folder) for the confirmation link.');
+      } else {
+        setError(err.message || 'Failed to login. Please check your credentials.');
+      }
     } finally {
       setLoading(false);
     }
@@ -108,17 +188,47 @@ const ElearningLogin = () => {
           navigate('/elearning');
         } else {
           // Email confirmation required
-          setSuccess('Account created! Please check your email to confirm your account before logging in.');
+          setNeedsEmailConfirmation(true);
+          setSuccess('Account created successfully! Please check your email to confirm your account before logging in.');
           setIsSignup(false);
-          setEmail('');
           setPassword('');
           setConfirmPassword('');
+          // Keep email in the field so user can resend if needed
         }
       }
     } catch (err: any) {
       setError(err.message || 'Failed to create account. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendConfirmation = async () => {
+    if (!email) {
+      setError('Please enter your email address.');
+      return;
+    }
+
+    setResendLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const { error: resendError } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/elearning`,
+        },
+      });
+
+      if (resendError) throw resendError;
+
+      setSuccess('Confirmation email sent! Please check your inbox (and spam folder) for the confirmation link.');
+    } catch (err: any) {
+      setError(err.message || 'Failed to resend confirmation email. Please try again.');
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -173,6 +283,41 @@ const ElearningLogin = () => {
           {success && (
             <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
               <p className="text-green-800 text-sm">{success}</p>
+            </div>
+          )}
+
+          {needsEmailConfirmation && (
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-start">
+                <FaEnvelope className="text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-blue-800 text-sm font-medium mb-2">Email Confirmation Required</p>
+                  <p className="text-blue-700 text-xs mb-3">
+                    We've sent a confirmation link to <strong>{email}</strong>. Please check your inbox and click the link to confirm your account.
+                  </p>
+                  <p className="text-blue-600 text-xs mb-3">
+                    <strong>Didn't receive the email?</strong> Check your spam folder or click the button below to resend.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleResendConfirmation}
+                    disabled={resendLoading || !email}
+                    className="text-xs bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                  >
+                    {resendLoading ? (
+                      <>
+                        <FaSpinner className="animate-spin mr-2" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <FaEnvelope className="mr-2" />
+                        Resend Confirmation Email
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
@@ -323,6 +468,7 @@ const ElearningLogin = () => {
                   setIsSignup(!isSignup);
                   setError('');
                   setSuccess('');
+                  setNeedsEmailConfirmation(false);
                   setPassword('');
                   setConfirmPassword('');
                 }}

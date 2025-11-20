@@ -1,4 +1,4 @@
-import { Application, CommissionSeller, CreateApplicationData, CreateCommissionSellerData, CreateTicketScannerData, TicketScanner, UpdateApplicationData, UpdateCommissionSellerData, UpdateTicketScannerData } from '../types';
+import { Application, CommissionSeller, CreateApplicationData, CreateCommissionSellerData, CreateEventProjectData, CreateTicketScannerData, EventProject, TicketScanner, UpdateApplicationData, UpdateCommissionSellerData, UpdateEventProjectData, UpdateTicketScannerData } from '../types';
 import { AboutContent, Category, ContactInfo, Destination, Event, GalleryItem, HomeContent, SiteConfig } from './api';
 import { supabase } from './supabase';
 
@@ -1067,6 +1067,236 @@ export const adminApi = {
         .from('applications')
         .delete()
         .eq('id', id);
+
+      if (error) throw error;
+      return { success: true };
+    },
+  },
+
+  // Event Projects - Project management for events
+  eventProjects: {
+    getAll: async (eventId?: string) => {
+      let query = supabase
+        .from('event_projects')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (eventId) {
+        query = query.eq('event_id', eventId);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+      return data as EventProject[];
+    },
+
+    getById: async (id: string) => {
+      const { data, error } = await supabase
+        .from('event_projects')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      return data as EventProject;
+    },
+
+    getByEventId: async (eventId: string) => {
+      const { data, error } = await supabase
+        .from('event_projects')
+        .select('*')
+        .eq('event_id', eventId)
+        .order('due_date', { ascending: true, nullsFirst: false })
+        .order('priority', { ascending: false })
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data as EventProject[];
+    },
+
+    create: async (projectData: CreateEventProjectData) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const { data, error } = await supabase
+        .from('event_projects')
+        .insert([{
+          event_id: projectData.event_id,
+          title: projectData.title,
+          description: projectData.description || null,
+          status: projectData.status || 'pending',
+          priority: projectData.priority || 'medium',
+          assignee_email: projectData.assignee_email || null,
+          assignee_name: projectData.assignee_name || null,
+          due_date: projectData.due_date || null,
+          created_by: user?.id || null,
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as EventProject;
+    },
+
+    update: async (id: string, projectData: UpdateEventProjectData) => {
+      const updateData: any = {
+        updated_at: new Date().toISOString(),
+      };
+
+      if (projectData.title !== undefined) updateData.title = projectData.title;
+      if (projectData.description !== undefined) updateData.description = projectData.description || null;
+      if (projectData.status !== undefined) {
+        updateData.status = projectData.status;
+        // Set completed_at when status is set to completed
+        if (projectData.status === 'completed') {
+          updateData.completed_at = new Date().toISOString();
+        } else {
+          // Clear completed_at if status changes from completed to something else
+          updateData.completed_at = null;
+        }
+      }
+      if (projectData.priority !== undefined) updateData.priority = projectData.priority;
+      if (projectData.assignee_email !== undefined) updateData.assignee_email = projectData.assignee_email || null;
+      if (projectData.assignee_name !== undefined) updateData.assignee_name = projectData.assignee_name || null;
+      if (projectData.due_date !== undefined) updateData.due_date = projectData.due_date || null;
+      if (projectData.completed_at !== undefined) updateData.completed_at = projectData.completed_at || null;
+
+      const { data, error } = await supabase
+        .from('event_projects')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as EventProject;
+    },
+
+    delete: async (id: string) => {
+      const { error } = await supabase
+        .from('event_projects')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return { success: true };
+    },
+  },
+
+  // Event Organizers - Manage event organizer assignments
+  eventOrganizers: {
+    getAll: async (eventId?: string) => {
+      let query = supabase
+        .from('event_organizers')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (eventId) {
+        query = query.eq('event_id', eventId);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+      return data;
+    },
+
+    getByEventId: async (eventId: string) => {
+      const { data, error } = await supabase
+        .from('event_organizers')
+        .select('*')
+        .eq('event_id', eventId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+
+    getByUserId: async (userId: string) => {
+      const { data, error } = await supabase
+        .from('event_organizers')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+
+    // Assign event_organizer role to a user
+    assignRole: async (userEmail: string) => {
+      // Use RPC function if available
+      const { data, error } = await supabase.rpc('assign_event_organizer_role', {
+        user_email: userEmail.toLowerCase()
+      });
+
+      if (error) {
+        // If RPC function doesn't exist, provide helpful error message
+        if (error.code === '42883' || error.message.includes('function') || error.message.includes('does not exist')) {
+          throw new Error('RPC function not found. Please run the SQL script: docs/scripts/create-event-organizer-rpc-functions.sql in your Supabase SQL Editor.');
+        }
+        throw new Error(`Unable to assign role: ${error.message}. User may need to sign up first.`);
+      }
+
+      return data;
+    },
+
+    // Assign organizer to an event (user must already have event_organizer role)
+    assignToEvent: async (eventId: string, userEmail: string, autoAssignRole: boolean = false) => {
+      // Use RPC function if available
+      const { data, error } = await supabase.rpc('assign_organizer_to_event', {
+        p_event_id: eventId,
+        p_user_email: userEmail.toLowerCase(),
+        p_auto_assign_role: autoAssignRole
+      });
+
+      if (error) {
+        // If RPC function doesn't exist, provide helpful error message
+        if (error.code === '42883' || error.message.includes('function') || error.message.includes('does not exist')) {
+          throw new Error('RPC function not found. Please run the SQL script: docs/scripts/create-event-organizer-rpc-functions.sql in your Supabase SQL Editor.');
+        }
+        throw new Error(`Unable to assign organizer: ${error.message}`);
+      }
+
+      return data;
+    },
+
+    assign: async (eventId: string, userEmail: string, assignRoleIfNeeded: boolean = true) => {
+      // Use RPC function which handles both role assignment and event assignment
+      try {
+        return await adminApi.eventOrganizers.assignToEvent(eventId, userEmail, assignRoleIfNeeded);
+      } catch (error: any) {
+        throw error; // Re-throw with the helpful error message
+      }
+    },
+
+    unassign: async (eventId: string, userId: string) => {
+      const { error } = await supabase
+        .from('event_organizers')
+        .delete()
+        .eq('event_id', eventId)
+        .eq('user_id', userId);
+
+      if (error) throw error;
+      return { success: true };
+    },
+
+    unassignByEmail: async (eventId: string, userEmail: string) => {
+      const { data: organizers } = await supabase
+        .from('event_organizers')
+        .select('id, user_id')
+        .eq('event_id', eventId)
+        .eq('user_email', userEmail.toLowerCase());
+
+      if (!organizers || organizers.length === 0) {
+        throw new Error('Organizer not found for this event');
+      }
+
+      const { error } = await supabase
+        .from('event_organizers')
+        .delete()
+        .eq('event_id', eventId)
+        .eq('user_email', userEmail.toLowerCase());
 
       if (error) throw error;
       return { success: true };

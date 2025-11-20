@@ -3,7 +3,7 @@ import { supabase } from './supabase';
 export interface UserRole {
   id: string;
   user_id: string;
-  role: 'admin' | 'user';
+  role: 'admin' | 'user' | 'event_organizer';
   created_at: string;
 }
 
@@ -82,7 +82,7 @@ export const clearAdminCache = () => {
 /**
  * Get current user's role
  */
-export const getUserRole = async (): Promise<'admin' | 'user' | null> => {
+export const getUserRole = async (): Promise<'admin' | 'user' | 'event_organizer' | null> => {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     
@@ -99,7 +99,7 @@ export const getUserRole = async (): Promise<'admin' | 'user' | null> => {
       .maybeSingle();
 
     if (!error && data) {
-      return data.role as 'admin' | 'user';
+      return data.role as 'admin' | 'user' | 'event_organizer';
     }
 
     // Fallback: Check user metadata
@@ -112,6 +112,47 @@ export const getUserRole = async (): Promise<'admin' | 'user' | null> => {
   } catch (error) {
     console.error('Error getting user role:', error);
     return null;
+  }
+};
+
+/**
+ * Check if the current user is an event organizer
+ */
+export const isEventOrganizer = async (): Promise<boolean> => {
+  try {
+    const role = await getUserRole();
+    return role === 'event_organizer' || role === 'admin';
+  } catch (error) {
+    console.error('Error checking event organizer status:', error);
+    return false;
+  }
+};
+
+/**
+ * Get events assigned to the current event organizer
+ */
+export const getOrganizerEvents = async (): Promise<string[]> => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session?.user) {
+      return [];
+    }
+
+    const { data, error } = await supabase
+      .from('event_organizers')
+      .select('event_id')
+      .eq('user_id', session.user.id);
+
+    if (error) {
+      console.error('Error fetching organizer events:', error);
+      return [];
+    }
+
+    return (data || []).map(item => item.event_id);
+  } catch (error) {
+    console.error('Error getting organizer events:', error);
+    return [];
   }
 };
 
@@ -270,11 +311,22 @@ export const requireAdmin = async (): Promise<boolean> => {
 /**
  * Check if an email has an accepted internship application
  * This can be used before signup to verify eligibility
+ * Uses an RPC function to bypass RLS for unauthenticated users
  */
 export const hasAcceptedApplication = async (email: string): Promise<boolean> => {
   try {
     const normalizedEmail = email.toLowerCase().trim();
     
+    // First, try using the RPC function (works for unauthenticated users)
+    const { data: rpcData, error: rpcError } = await supabase
+      .rpc('check_accepted_application', { check_email: normalizedEmail });
+
+    if (!rpcError && rpcData === true) {
+      return true;
+    }
+
+    // Fallback: Try direct query (works if RLS allows it)
+    // This is useful if the RPC function doesn't exist yet
     let { data, error } = await supabase
       .from('applications')
       .select('id, email, status, type')
@@ -299,8 +351,22 @@ export const hasAcceptedApplication = async (email: string): Promise<boolean> =>
       }
     }
 
+    // If RPC function worked, return its result
+    if (!rpcError && rpcData !== null) {
+      return rpcData === true;
+    }
+
+    // If RPC function doesn't exist or failed, try direct query
+    if (rpcError) {
+      console.warn('RPC function check_accepted_application not available, using direct query:', rpcError.message);
+    }
+
     if (error) {
-      console.error('Error checking application status:', error);
+      console.error('Error checking application status (Direct query):', error);
+      // If it's an RLS/permission error, suggest running the SQL script
+      if (error.code === '42501' || error.message?.includes('permission') || error.message?.includes('policy')) {
+        console.error('RLS policy blocking access. Please run the SQL script: docs/scripts/fix-elearning-access-check.sql');
+      }
       return false;
     }
 

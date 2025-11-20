@@ -11,11 +11,13 @@ import {
   FaInfoCircle,
   FaMapMarkerAlt,
   FaNewspaper,
+  FaProjectDiagram,
   FaQrcode,
   FaSignOutAlt,
   FaTicketAlt,
   FaTimes,
-  FaUser
+  FaUser,
+  FaUserPlus
 } from 'react-icons/fa';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { isAdmin, isCommissionSeller } from '../../services/auth';
@@ -90,6 +92,8 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
   const menuItems = [
     { icon: FaQrcode, label: 'Verify Tickets', path: '/admin/verify', color: 'text-cyan-600 bg-cyan-50' },
     { icon: FaCalendarAlt, label: 'Events', path: '/admin/events', color: 'text-blue-600 bg-blue-50' },
+    { icon: FaProjectDiagram, label: 'Event Projects', path: '/admin/event-projects', color: 'text-violet-600 bg-violet-50' },
+    { icon: FaUserPlus, label: 'Event Organizers', path: '/admin/event-organizers', color: 'text-emerald-600 bg-emerald-50' },
     { icon: FaNewspaper, label: 'Categories', path: '/admin/categories', color: 'text-green-600 bg-green-50' },
     { icon: FaMapMarkerAlt, label: 'Destinations', path: '/admin/destinations', color: 'text-purple-600 bg-purple-50' },
     { icon: FaImages, label: 'Gallery', path: '/admin/gallery', color: 'text-pink-600 bg-pink-50' },
