@@ -126,3 +126,31 @@ $$;
 GRANT EXECUTE ON FUNCTION assign_event_organizer_role(TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION assign_organizer_to_event(UUID, TEXT, BOOLEAN) TO authenticated;
 
+-- Also grant to anon role if needed (for some Supabase configurations)
+GRANT EXECUTE ON FUNCTION assign_event_organizer_role(TEXT) TO anon;
+GRANT EXECUTE ON FUNCTION assign_organizer_to_event(UUID, TEXT, BOOLEAN) TO anon;
+
+-- Verify functions were created
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_proc p
+    JOIN pg_namespace n ON p.pronamespace = n.oid
+    WHERE n.nspname = 'public' AND p.proname = 'assign_event_organizer_role'
+  ) THEN
+    RAISE NOTICE 'WARNING: assign_event_organizer_role function was not created successfully';
+  ELSE
+    RAISE NOTICE 'SUCCESS: assign_event_organizer_role function created';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_proc p
+    JOIN pg_namespace n ON p.pronamespace = n.oid
+    WHERE n.nspname = 'public' AND p.proname = 'assign_organizer_to_event'
+  ) THEN
+    RAISE NOTICE 'WARNING: assign_organizer_to_event function was not created successfully';
+  ELSE
+    RAISE NOTICE 'SUCCESS: assign_organizer_to_event function created';
+  END IF;
+END $$;
+

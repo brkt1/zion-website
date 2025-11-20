@@ -84,24 +84,42 @@ const EventOrganizers = () => {
       });
 
       if (error) {
+        console.error('RPC Error Details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+        });
+
         // Check if RPC function doesn't exist
-        if (error.code === '42883' || error.message?.includes('function') || error.message?.includes('does not exist')) {
+        if (error.code === '42883' || error.code === 'P0001' || error.message?.includes('function') || error.message?.includes('does not exist')) {
           throw new Error('RPC function not found. Please run the SQL script: docs/scripts/create-event-organizer-rpc-functions.sql in your Supabase SQL Editor.');
         }
         
         // Check if user doesn't exist
-        if (error.message?.includes('User not found')) {
+        if (error.message?.includes('User not found') || error.message?.includes('user not found')) {
           throw new Error('User not found. The user must sign up first before you can assign them the event_organizer role.');
         }
+
+        // Check if permission denied
+        if (error.code === '42501' || error.message?.includes('permission') || error.message?.includes('Only admins')) {
+          throw new Error('Permission denied. Only admins can assign event_organizer roles.');
+        }
         
-        // Other errors
-        throw new Error(`Unable to assign role: ${error.message}`);
+        // Other errors - show full error details
+        const errorMsg = error.message || error.details || 'Unknown error';
+        throw new Error(`Unable to assign role: ${errorMsg}${error.hint ? ` (Hint: ${error.hint})` : ''}`);
       }
 
-      alert('Event organizer role assigned successfully!');
-      setShowRoleModal(false);
-      setRoleFormData({ userEmail: '' });
+      if (data) {
+        alert('Event organizer role assigned successfully!');
+        setShowRoleModal(false);
+        setRoleFormData({ userEmail: '' });
+      } else {
+        throw new Error('No data returned from server');
+      }
     } catch (error: any) {
+      console.error('Assign role error:', error);
       alert('Error: ' + error.message);
     }
   };
