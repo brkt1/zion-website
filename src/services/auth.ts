@@ -212,12 +212,8 @@ export const isCommissionSeller = async (): Promise<boolean> => {
       return false;
     }
 
-    if (data) {
-      console.log('Commission seller found:', data);
-    } else {
-      console.log('Commission seller not found for email:', normalizedEmail);
-    }
-
+    // Return true if commission seller found, false otherwise
+    // Don't log - this is a normal check that happens frequently
     return !!data;
   } catch (error) {
     console.error('Error checking commission seller status:', error);

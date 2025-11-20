@@ -84,10 +84,18 @@ const EventOrganizers = () => {
       });
 
       if (error) {
-        // Fallback: Manual role assignment via direct insert
-        // Note: This requires the user to exist in auth.users
-        // We'll show a helpful error message
-        throw new Error(`Unable to assign role automatically. Please ensure the user has signed up first, or assign the role manually in Supabase dashboard. Error: ${error.message}`);
+        // Check if RPC function doesn't exist
+        if (error.code === '42883' || error.message?.includes('function') || error.message?.includes('does not exist')) {
+          throw new Error('RPC function not found. Please run the SQL script: docs/scripts/create-event-organizer-rpc-functions.sql in your Supabase SQL Editor.');
+        }
+        
+        // Check if user doesn't exist
+        if (error.message?.includes('User not found')) {
+          throw new Error('User not found. The user must sign up first before you can assign them the event_organizer role.');
+        }
+        
+        // Other errors
+        throw new Error(`Unable to assign role: ${error.message}`);
       }
 
       alert('Event organizer role assigned successfully!');
@@ -100,6 +108,11 @@ const EventOrganizers = () => {
 
   const handleAssignToEvent = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.eventId) {
+      alert('Please select an event');
+      return;
+    }
+    
     try {
       await adminApi.eventOrganizers.assign(
         formData.eventId,
@@ -111,7 +124,18 @@ const EventOrganizers = () => {
       setFormData({ userEmail: '', eventId: selectedEventId, autoAssignRole: true });
       loadOrganizers();
     } catch (error: any) {
-      alert('Error: ' + error.message);
+      // Show more helpful error messages
+      let errorMessage = error.message || 'Unknown error occurred';
+      
+      if (errorMessage.includes('RPC function not found')) {
+        errorMessage = 'RPC function not found. Please run the SQL script: docs/scripts/create-event-organizer-rpc-functions.sql in your Supabase SQL Editor.';
+      } else if (errorMessage.includes('User not found')) {
+        errorMessage = 'User not found. The user must sign up first before you can assign them to events.';
+      } else if (errorMessage.includes('must have event_organizer')) {
+        errorMessage = 'User must have the event_organizer role. Please assign the role first using "Assign Event Organizer Role" button, or enable "Automatically assign event_organizer role" option.';
+      }
+      
+      alert('Error: ' + errorMessage);
     }
   };
 
