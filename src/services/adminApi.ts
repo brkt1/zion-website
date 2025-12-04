@@ -1081,17 +1081,26 @@ export const adminApi = {
         const { data: progressData, error: rpcError } = await supabase
           .rpc('get_learning_progress_by_email', { check_email: normalizedEmail });
 
-        if (!rpcError && progressData && progressData.length > 0) {
-          // Calculate statistics
-          const totalLessons = progressData.length;
-          const completedLessons = progressData.filter((p: any) => p.completed).length;
-          const viewedLessons = progressData.filter((p: any) => p.viewed).length;
+        // If RPC function works (no error)
+        // - Empty array = user doesn't exist
+        // - Array with null lesson_id = user exists but no progress
+        // - Array with lesson data = user exists and has progress
+        if (!rpcError) {
+          // Filter out marker rows (where lesson_id is null) for stats calculation
+          const validProgress = (progressData || []).filter((p: any) => p.lesson_id !== null);
+          
+          // Check if user exists: if we got any data (even marker row), user exists
+          const hasAccount = progressData && progressData.length > 0 && progressData[0]?.user_id !== null;
+          
+          const totalLessons = validProgress.length;
+          const completedLessons = validProgress.filter((p: any) => p.completed).length;
+          const viewedLessons = validProgress.filter((p: any) => p.viewed).length;
           const completionPercentage = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
           const viewPercentage = totalLessons > 0 ? Math.round((viewedLessons / totalLessons) * 100) : 0;
 
           return {
-            hasAccount: true,
-            progress: progressData,
+            hasAccount,
+            progress: validProgress, // Return only valid progress, not marker rows
             stats: {
               totalLessons,
               completedLessons,
@@ -1102,39 +1111,29 @@ export const adminApi = {
           };
         }
 
-        // If RPC function doesn't exist or returned no data, check if it's an error
-        if (rpcError) {
-          // If function doesn't exist, return empty progress
-          if (rpcError.code === '42883' || rpcError.message?.includes('function') || rpcError.message?.includes('does not exist')) {
-            console.warn('RPC function get_learning_progress_by_email not available. Please run docs/scripts/get-learning-progress-by-email.sql');
-            return {
-              hasAccount: false,
-              progress: [],
-              stats: {
-                totalLessons: 0,
-                completedLessons: 0,
-                viewedLessons: 0,
-                completionPercentage: 0,
-                viewPercentage: 0,
-              },
-            };
-          }
-          // Other errors (like permission denied)
-          throw rpcError;
+        // If RPC function doesn't exist, try fallback approach
+        if (rpcError && (rpcError.code === '42883' || rpcError.message?.includes('function') || rpcError.message?.includes('does not exist'))) {
+          console.warn('RPC function get_learning_progress_by_email not available. Please run docs/scripts/get-learning-progress-by-email.sql');
+          
+          // Fallback: We can't easily query auth.users from client, so we'll need the RPC function
+          // For now, return that the function is required
+          return {
+            hasAccount: false,
+            progress: [],
+            stats: {
+              totalLessons: 0,
+              completedLessons: 0,
+              viewedLessons: 0,
+              completionPercentage: 0,
+              viewPercentage: 0,
+            },
+            error: 'RPC function required',
+          };
         }
 
-        // No progress data found - user might not have an account or no progress yet
-        return {
-          hasAccount: progressData !== null, // If we got empty array, user exists but no progress
-          progress: [],
-          stats: {
-            totalLessons: 0,
-            completedLessons: 0,
-            viewedLessons: 0,
-            completionPercentage: 0,
-            viewPercentage: 0,
-          },
-        };
+        // Other RPC errors (like permission denied)
+        console.error('RPC function error:', rpcError);
+        throw rpcError;
       } catch (error: any) {
         console.error('Error fetching learning progress:', error);
         // Return empty progress on error
