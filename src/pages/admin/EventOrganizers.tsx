@@ -105,6 +105,11 @@ const EventOrganizers = () => {
         if (error.code === '42501' || error.message?.includes('permission') || error.message?.includes('Only admins')) {
           throw new Error('Permission denied. Only admins can assign event_organizer roles.');
         }
+
+        // Check if constraint violation (role not allowed in check constraint)
+        if (error.code === '23514' || error.message?.includes('check constraint') || error.message?.includes('user_roles_role_check')) {
+          throw new Error('Database constraint error: The user_roles table does not allow "event_organizer" role. Please run the SQL script: docs/scripts/update-user-roles-constraint.sql in your Supabase SQL Editor to fix this.');
+        }
         
         // Other errors - show full error details
         const errorMsg = error.message || error.details || 'Unknown error';

@@ -1071,6 +1071,86 @@ export const adminApi = {
       if (error) throw error;
       return { success: true };
     },
+
+    // Get learning progress for an applicant by email
+    getLearningProgress: async (email: string) => {
+      try {
+        const normalizedEmail = email.toLowerCase().trim();
+
+        // Try using RPC function first (recommended approach)
+        const { data: progressData, error: rpcError } = await supabase
+          .rpc('get_learning_progress_by_email', { check_email: normalizedEmail });
+
+        if (!rpcError && progressData && progressData.length > 0) {
+          // Calculate statistics
+          const totalLessons = progressData.length;
+          const completedLessons = progressData.filter((p: any) => p.completed).length;
+          const viewedLessons = progressData.filter((p: any) => p.viewed).length;
+          const completionPercentage = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+          const viewPercentage = totalLessons > 0 ? Math.round((viewedLessons / totalLessons) * 100) : 0;
+
+          return {
+            hasAccount: true,
+            progress: progressData,
+            stats: {
+              totalLessons,
+              completedLessons,
+              viewedLessons,
+              completionPercentage,
+              viewPercentage,
+            },
+          };
+        }
+
+        // If RPC function doesn't exist or returned no data, check if it's an error
+        if (rpcError) {
+          // If function doesn't exist, return empty progress
+          if (rpcError.code === '42883' || rpcError.message?.includes('function') || rpcError.message?.includes('does not exist')) {
+            console.warn('RPC function get_learning_progress_by_email not available. Please run docs/scripts/get-learning-progress-by-email.sql');
+            return {
+              hasAccount: false,
+              progress: [],
+              stats: {
+                totalLessons: 0,
+                completedLessons: 0,
+                viewedLessons: 0,
+                completionPercentage: 0,
+                viewPercentage: 0,
+              },
+            };
+          }
+          // Other errors (like permission denied)
+          throw rpcError;
+        }
+
+        // No progress data found - user might not have an account or no progress yet
+        return {
+          hasAccount: progressData !== null, // If we got empty array, user exists but no progress
+          progress: [],
+          stats: {
+            totalLessons: 0,
+            completedLessons: 0,
+            viewedLessons: 0,
+            completionPercentage: 0,
+            viewPercentage: 0,
+          },
+        };
+      } catch (error: any) {
+        console.error('Error fetching learning progress:', error);
+        // Return empty progress on error
+        return {
+          hasAccount: false,
+          progress: [],
+          stats: {
+            totalLessons: 0,
+            completedLessons: 0,
+            viewedLessons: 0,
+            completionPercentage: 0,
+            viewPercentage: 0,
+          },
+        };
+      }
+    },
   },
 
   // Event Projects - Project management for events
