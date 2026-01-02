@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FaAward, FaBook, FaCalendarAlt, FaCertificate, FaCheckCircle, FaChevronDown, FaChevronRight, FaClock, FaDownload, FaFileAlt, FaGraduationCap, FaLanguage, FaPlayCircle, FaRocket, FaSignOutAlt, FaSpinner, FaStar, FaTrophy, FaUser, FaUsers, FaVideo, FaYoutube } from 'react-icons/fa';
+import { FaAward, FaBook, FaCalendarAlt, FaCertificate, FaCheckCircle, FaChevronDown, FaChevronRight, FaClock, FaDownload, FaFileAlt, FaGraduationCap, FaLanguage, FaPlayCircle, FaRocket, FaSignOutAlt, FaSpinner, FaStar, FaTrophy, FaUser, FaVideo, FaYoutube } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../Components/layout/Layout';
 import CourseTest from '../components/elearning/CourseTest';
@@ -60,6 +60,12 @@ const Elearning = () => {
   const [showCelebration, setShowCelebration] = useState(false);
   const [currentDay, setCurrentDay] = useState<number | null>(null);
   const [courseAccessMessage, setCourseAccessMessage] = useState<string | null>(null);
+  const [courseSchedule, setCourseSchedule] = useState<{
+    start_day: number;
+    end_day: number;
+    duration_days: number;
+    days_remaining: number;
+  } | null>(null);
 
   // Get user's current day and accessible courses
   const getUserCurrentDay = async (userId: string): Promise<number> => {
@@ -67,7 +73,27 @@ const Elearning = () => {
       const { data, error } = await supabase
         .rpc('get_user_current_day', { check_user_id: userId });
       
-      if (error) throw error;
+      if (error) {
+        // If function doesn't exist, try fallback
+        if (error.code === '42883' || error.message.includes('does not exist')) {
+          console.warn('get_user_current_day function not found, using fallback');
+          // Fallback: get from user_enrollment table or default to 1
+          const { data: enrollment } = await supabase
+            .from('user_enrollment')
+            .select('enrollment_date, current_day')
+            .eq('user_id', userId)
+            .single();
+          
+          if (enrollment) {
+            const daysSinceEnrollment = Math.floor(
+              (new Date().getTime() - new Date(enrollment.enrollment_date).getTime()) / (1000 * 60 * 60 * 24)
+            ) + 1;
+            return Math.max(1, Math.min(daysSinceEnrollment, 49));
+          }
+          return 1;
+        }
+        throw error;
+      }
       return data || 1;
     } catch (error) {
       console.error('Error getting user current day:', error);
@@ -81,7 +107,46 @@ const Elearning = () => {
       const { data, error } = await supabase
         .rpc('get_accessible_courses_for_user', { check_user_id: userId });
       
-      if (error) throw error;
+      if (error) {
+        // If function doesn't exist, use fallback
+        if (error.code === '42883' || error.message.includes('does not exist')) {
+          console.warn('get_accessible_courses_for_user function not found, using fallback');
+          // Fallback: get all active courses with schedule
+          const { data: courses, error: coursesError } = await supabase
+            .from('courses')
+            .select(`
+              id,
+              title,
+              course_schedule (
+                start_day,
+                end_day,
+                duration_days
+              )
+            `)
+            .eq('is_active', true)
+            .order('display_order', { ascending: true });
+          
+          if (coursesError) throw coursesError;
+          
+          const userDay = await getUserCurrentDay(userId);
+          
+          return (courses || []).map((course: any) => {
+            const schedule = course.course_schedule?.[0];
+            if (!schedule) return null;
+            
+            return {
+              course_id: course.id,
+              course_title: course.title,
+              start_day: schedule.start_day,
+              end_day: schedule.end_day,
+              current_day: userDay,
+              is_current_course: userDay >= schedule.start_day && userDay <= schedule.end_day,
+              days_remaining: Math.max(0, schedule.end_day - userDay),
+            };
+          }).filter(Boolean);
+        }
+        throw error;
+      }
       return data || [];
     } catch (error) {
       console.error('Error getting accessible courses:', error);
@@ -130,9 +195,20 @@ const Elearning = () => {
       
       if (!currentCourseData) {
         console.warn('No current course found');
+        setCourseAccessMessage(
+          `No course is available for Day ${userDay}. Please contact support if you believe this is an error.`
+        );
         setWeeks([]);
         return;
       }
+
+      // Store course schedule info
+      setCourseSchedule({
+        start_day: currentCourseData.start_day,
+        end_day: currentCourseData.end_day,
+        duration_days: currentCourseData.end_day - currentCourseData.start_day + 1,
+        days_remaining: currentCourseData.days_remaining || 0,
+      });
 
       // Check if course is accessible
       const hasAccess = await checkCourseAccess(currentCourseData.course_id, userId);
@@ -177,9 +253,16 @@ const Elearning = () => {
         .eq('id', currentCourseData.course_id)
         .single();
 
-      if (courseError) throw courseError;
+      if (courseError) {
+        console.error('Error loading course:', courseError);
+        setCourseAccessMessage('Error loading course. Please try refreshing the page.');
+        setWeeks([]);
+        return;
+      }
+      
       if (!course) {
         console.warn('Course not found');
+        setCourseAccessMessage('Course not found. Please contact support.');
         setWeeks([]);
         return;
       }
@@ -198,8 +281,16 @@ const Elearning = () => {
         .eq('course_id', course.id)
         .order('week_number', { ascending: true });
 
-      if (weeksError) throw weeksError;
+      if (weeksError) {
+        console.error('Error loading course weeks:', weeksError);
+        setCourseAccessMessage('Error loading course content. Please try refreshing the page.');
+        setWeeks([]);
+        return;
+      }
+      
       if (!courseWeeks || courseWeeks.length === 0) {
+        console.warn('No weeks found for course:', course.id);
+        setCourseAccessMessage('No course content found. Please contact support.');
         setWeeks([]);
         return;
       }
@@ -213,7 +304,12 @@ const Elearning = () => {
         .order('display_order', { ascending: true })
         .order('lesson_id', { ascending: true });
 
-      if (lessonsError) throw lessonsError;
+      if (lessonsError) {
+        console.error('Error loading course lessons:', lessonsError);
+        setCourseAccessMessage('Error loading course lessons. Please try refreshing the page.');
+        setWeeks([]);
+        return;
+      }
 
       // Map database structure to component structure
       const mappedWeeks: Week[] = courseWeeks.map(week => {
@@ -260,9 +356,19 @@ const Elearning = () => {
       if (userId) {
         await loadTest(course.id);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading course data:', error);
+      setCourseAccessMessage(
+        error?.message || 'An error occurred while loading course data. Please try refreshing the page.'
+      );
       setWeeks([]);
+      
+      // If it's a database function error, provide helpful message
+      if (error?.code === '42883' || error?.message?.includes('does not exist')) {
+        setCourseAccessMessage(
+          'Database functions not set up. Please run the SQL setup scripts in Supabase.'
+        );
+      }
     }
   };
 
@@ -618,12 +724,16 @@ const Elearning = () => {
   const selectedLessonData = getSelectedLessonData();
 
   // Calculate progress
-  const totalLessons = weeks.reduce((sum, week) => sum + week.lessons.length, 0);
+  // Calculate progress from weeks
+  const totalLessons = weeks.reduce((sum, week) => sum + (week.lessons?.length || 0), 0);
   const completedLessons = weeks.reduce(
-    (sum, week) => sum + week.lessons.filter(l => l.completed).length,
+    (sum, week) => sum + (week.lessons?.filter(l => l.completed).length || 0),
     0
   );
   const progress = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
+  
+  // Calculate overall program progress (across all 5 courses)
+  const programProgress = currentDay ? (currentDay / 49) * 100 : 0;
 
   // Check if course is completed and show celebration
   useEffect(() => {
@@ -717,23 +827,42 @@ const Elearning = () => {
                   <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 md:p-4">
                     <div className="flex items-center space-x-2 mb-1">
                       <FaClock className="text-white/80 text-sm md:text-base" />
-                      <span className="text-xs md:text-sm text-white/90">Duration</span>
+                      <span className="text-xs md:text-sm text-white/90">Course Duration</span>
                     </div>
-                    <p className="text-lg md:text-xl font-bold">4 Weeks</p>
+                    <p className="text-lg md:text-xl font-bold">
+                      {courseSchedule ? `${courseSchedule.duration_days} Days` : '7 Weeks'}
+                    </p>
+                    {courseSchedule && currentDay && (
+                      <p className="text-xs text-white/70 mt-1">
+                        Days {courseSchedule.start_day}-{courseSchedule.end_day}
+                      </p>
+                    )}
                   </div>
                   <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 md:p-4">
                     <div className="flex items-center space-x-2 mb-1">
                       <FaBook className="text-white/80 text-sm md:text-base" />
                       <span className="text-xs md:text-sm text-white/90">Lessons</span>
                     </div>
-                    <p className="text-lg md:text-xl font-bold">{totalLessons} Lessons</p>
+                    <p className="text-lg md:text-xl font-bold">{totalLessons || 0} Lessons</p>
+                    {courseSchedule && (
+                      <p className="text-xs text-white/70 mt-1">
+                        {courseSchedule.days_remaining} days remaining
+                      </p>
+                    )}
                   </div>
                   <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 md:p-4">
                     <div className="flex items-center space-x-2 mb-1">
-                      <FaUsers className="text-white/80 text-sm md:text-base" />
-                      <span className="text-xs md:text-sm text-white/90">Level</span>
+                      <FaCalendarAlt className="text-white/80 text-sm md:text-base" />
+                      <span className="text-xs md:text-sm text-white/90">Program Progress</span>
                     </div>
-                    <p className="text-lg md:text-xl font-bold">Beginner</p>
+                    <p className="text-lg md:text-xl font-bold">
+                      {currentDay ? `Day ${currentDay}/49` : 'Day 1/49'}
+                    </p>
+                    {currentDay && (
+                      <p className="text-xs text-white/70 mt-1">
+                        Week {Math.ceil(currentDay / 7)} of 7
+                      </p>
+                    )}
                   </div>
                   <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 md:p-4">
                     <div className="flex items-center space-x-2 mb-1">
