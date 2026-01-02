@@ -58,26 +58,132 @@ const Elearning = () => {
   const [isGraduated, setIsGraduated] = useState(false);
   const [courseCompleted, setCourseCompleted] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [currentDay, setCurrentDay] = useState<number | null>(null);
+  const [courseAccessMessage, setCourseAccessMessage] = useState<string | null>(null);
+
+  // Get user's current day and accessible courses
+  const getUserCurrentDay = async (userId: string): Promise<number> => {
+    try {
+      const { data, error } = await supabase
+        .rpc('get_user_current_day', { check_user_id: userId });
+      
+      if (error) throw error;
+      return data || 1;
+    } catch (error) {
+      console.error('Error getting user current day:', error);
+      return 1;
+    }
+  };
+
+  // Get accessible courses for user
+  const getAccessibleCourses = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .rpc('get_accessible_courses_for_user', { check_user_id: userId });
+      
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error getting accessible courses:', error);
+      return [];
+    }
+  };
+
+  // Check if course is accessible
+  const checkCourseAccess = async (courseId: string, userId: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase
+        .rpc('is_course_accessible_for_user', { 
+          check_course_id: courseId,
+          check_user_id: userId 
+        });
+      
+      if (error) throw error;
+      return data || false;
+    } catch (error) {
+      console.error('Error checking course access:', error);
+      return false;
+    }
+  };
 
   // Load course data from database
   const loadCourseData = async () => {
+    if (!userId) return;
+    
     try {
-      // Get the first active course
-      const { data: courses, error: coursesError } = await supabase
-        .from('courses')
-        .select('*')
-        .eq('is_active', true)
-        .order('display_order', { ascending: true })
-        .limit(1);
+      // Get user's current day
+      const userDay = await getUserCurrentDay(userId);
+      setCurrentDay(userDay);
 
-      if (coursesError) throw coursesError;
-      if (!courses || courses.length === 0) {
-        console.warn('No active courses found');
+      // Get accessible courses
+      const accessibleCourses = await getAccessibleCourses(userId);
+      
+      if (accessibleCourses.length === 0) {
+        console.warn('No accessible courses found');
+        setCourseAccessMessage('No courses are currently available. Please contact support.');
         setWeeks([]);
         return;
       }
 
-      const course = courses[0];
+      // Get the current course (the one that matches user's current day)
+      const currentCourseData = accessibleCourses.find((c: any) => c.is_current_course) || accessibleCourses[0];
+      
+      if (!currentCourseData) {
+        console.warn('No current course found');
+        setWeeks([]);
+        return;
+      }
+
+      // Check if course is accessible
+      const hasAccess = await checkCourseAccess(currentCourseData.course_id, userId);
+      
+      if (!hasAccess) {
+        // Find previous course to check completion
+        const previousCourse = accessibleCourses.find((c: any) => c.end_day < currentCourseData.start_day);
+        
+        if (previousCourse) {
+          // Check if previous course is completed
+          const { data: isCompleted } = await supabase
+            .rpc('is_course_completed', {
+              check_course_id: previousCourse.course_id,
+              check_user_id: userId
+            });
+          
+          if (!isCompleted) {
+            setCourseAccessMessage(
+              `You must complete "${previousCourse.course_title}" before accessing "${currentCourseData.course_title}". ` +
+              `You are currently on Day ${userDay} of 49.`
+            );
+            setWeeks([]);
+            return;
+          }
+        } else {
+          setCourseAccessMessage(
+            `Course "${currentCourseData.course_title}" is not yet available. ` +
+            `You are currently on Day ${userDay} of 49.`
+          );
+          setWeeks([]);
+          return;
+        }
+      }
+
+      // Clear access message if access is granted
+      setCourseAccessMessage(null);
+
+      // Get course details
+      const { data: course, error: courseError } = await supabase
+        .from('courses')
+        .select('*')
+        .eq('id', currentCourseData.course_id)
+        .single();
+
+      if (courseError) throw courseError;
+      if (!course) {
+        console.warn('Course not found');
+        setWeeks([]);
+        return;
+      }
+
       setSelectedCourseId(course.id);
       setCurrentCourse({
         id: course.id,
@@ -340,7 +446,27 @@ const Elearning = () => {
             week.lessons.length > 0 && week.lessons.every(lesson => progressMap[lesson.id] || false)
           );
           
-          if (allCompleted && selectedCourseId) {
+          if (allCompleted && selectedCourseId && userId) {
+            // Check if course is completed and unlock next course
+            (async () => {
+              try {
+                const { data: isCourseCompleted } = await supabase
+                  .rpc('is_course_completed', {
+                    check_course_id: selectedCourseId,
+                    check_user_id: userId
+                  });
+                
+                if (isCourseCompleted) {
+                  // Course is completed, reload course data to potentially unlock next course
+                  setTimeout(() => {
+                    loadCourseData();
+                  }, 1000);
+                }
+              } catch (error) {
+                console.error('Error checking course completion:', error);
+              }
+            })();
+            
             // Load test if not already loaded
             loadTest(selectedCourseId);
           }
@@ -439,6 +565,28 @@ const Elearning = () => {
     // Save to database
     try {
       await saveProgress(userId, lessonId, weekNumber, newCompletedStatus);
+      
+      // Check if course is now completed after this update
+      if (newCompletedStatus && selectedCourseId) {
+        (async () => {
+          try {
+            const { data: isCourseCompleted } = await supabase
+              .rpc('is_course_completed', {
+                check_course_id: selectedCourseId,
+                check_user_id: userId
+              });
+            
+            if (isCourseCompleted) {
+              // Course completed! Reload course data to unlock next course
+              setTimeout(() => {
+                loadCourseData();
+              }, 500);
+            }
+          } catch (error) {
+            console.error('Error checking course completion:', error);
+          }
+        })();
+      }
     } catch (error) {
       console.error('Error saving progress:', error);
       // Revert on error
@@ -674,6 +822,51 @@ const Elearning = () => {
               </div>
             </div>
           </div>
+
+          {/* Course Access Message */}
+          {courseAccessMessage && (
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 md:p-6 mb-6 md:mb-8 rounded-r-lg">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <FaClock className="text-yellow-600 text-xl md:text-2xl" />
+                </div>
+                <div className="ml-3 md:ml-4">
+                  <h3 className="text-lg md:text-xl font-bold text-yellow-800 mb-2">
+                    Course Access Information
+                  </h3>
+                  <p className="text-sm md:text-base text-yellow-700">
+                    {courseAccessMessage}
+                  </p>
+                  {currentDay && (
+                    <div className="mt-3 pt-3 border-t border-yellow-200">
+                      <p className="text-xs md:text-sm text-yellow-600">
+                        <strong>Progress:</strong> Day {currentDay} of 49 ({Math.round((currentDay / 49) * 100)}% through the program)
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Current Day Display */}
+          {currentDay && !courseAccessMessage && (
+            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 md:p-6 mb-6 md:mb-8 rounded-r-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <FaCalendarAlt className="text-blue-600 text-xl" />
+                  <div>
+                    <h3 className="text-lg font-bold text-blue-800">Current Day: {currentDay} of 49</h3>
+                    <p className="text-sm text-blue-600">Week {Math.ceil(currentDay / 7)} of 7</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-blue-800">{Math.round((currentDay / 49) * 100)}%</div>
+                  <div className="text-xs text-blue-600">Complete</div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Course Overview Cards - YENEGE Branding */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
