@@ -1472,6 +1472,29 @@ export const adminApi = {
       return data || [];
     },
 
+    getByCourseId: async (courseId: string) => {
+      // Get all week IDs for this course first
+      const { data: weeks, error: weeksError } = await supabase
+        .from('course_weeks')
+        .select('id')
+        .eq('course_id', courseId);
+
+      if (weeksError) throw weeksError;
+      if (!weeks || weeks.length === 0) return [];
+
+      // Get all lessons for those weeks
+      const weekIds = weeks.map(w => w.id);
+      const { data, error } = await supabase
+        .from('course_lessons')
+        .select('*')
+        .in('week_id', weekIds)
+        .order('display_order', { ascending: true })
+        .order('lesson_id', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    },
+
     getById: async (id: string) => {
       const { data, error } = await supabase
         .from('course_lessons')

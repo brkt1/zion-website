@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import {
-    FaBook,
-    FaChevronDown,
-    FaChevronRight,
-    FaEdit,
-    FaGraduationCap,
-    FaPlus,
-    FaSpinner,
-    FaTimes,
-    FaTrash
+  FaBook,
+  FaChevronDown,
+  FaChevronRight,
+  FaEdit,
+  FaGraduationCap,
+  FaPlus,
+  FaSpinner,
+  FaTimes,
+  FaTrash
 } from 'react-icons/fa';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
@@ -225,8 +225,8 @@ const Courses = () => {
       setShowLessonModal(false);
       setEditingLesson(null);
       resetLessonForm();
-      if (lessonFormData.week_id) {
-        loadLessons(lessonFormData.week_id);
+      if (selectedCourseId) {
+        await loadAllLessonsForCourse(selectedCourseId);
       }
     } catch (error: any) {
       alert('Error: ' + error.message);
@@ -439,7 +439,7 @@ const Courses = () => {
       newExpanded.delete(weekId);
     } else {
       newExpanded.add(weekId);
-      await loadLessons(weekId);
+      // Lessons are already loaded for all weeks, no need to reload
     }
     setExpandedWeeks(newExpanded);
   };
@@ -447,7 +447,21 @@ const Courses = () => {
   const selectCourse = async (courseId: string) => {
     setSelectedCourseId(courseId);
     await loadWeeks(courseId);
+    await loadAllLessonsForCourse(courseId);
     await loadTest(courseId);
+  };
+
+  const loadAllLessonsForCourse = async (courseId: string) => {
+    try {
+      setLoadingLessons(true);
+      const data = await adminApi.courseLessons.getByCourseId(courseId);
+      setLessons(data);
+    } catch (error) {
+      console.error('Error loading lessons:', error);
+      alert('Error loading lessons: ' + (error as Error).message);
+    } finally {
+      setLoadingLessons(false);
+    }
   };
 
   const loadTest = async (courseId: string) => {
@@ -650,11 +664,7 @@ const Courses = () => {
                                           <FaPlus className="text-xs" /> Add Lesson
                                         </button>
                                       </div>
-                                      {loadingLessons ? (
-                                        <div className="flex justify-center py-2">
-                                          <FaSpinner className="animate-spin text-indigo-600" />
-                                        </div>
-                                      ) : lessons.filter(l => l.week_id === week.id).length === 0 ? (
+                                      {lessons.filter(l => l.week_id === week.id).length === 0 ? (
                                         <p className="text-xs text-gray-500">No lessons yet.</p>
                                       ) : (
                                         <div className="space-y-2">

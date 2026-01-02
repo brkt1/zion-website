@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
-import { FaAward, FaBook, FaCalendarAlt, FaCertificate, FaCheckCircle, FaChevronDown, FaChevronRight, FaClock, FaDownload, FaFileAlt, FaGraduationCap, FaLanguage, FaPlayCircle, FaSignOutAlt, FaSpinner, FaStar, FaUser, FaUsers, FaVideo, FaYoutube } from 'react-icons/fa';
+import { FaAward, FaBook, FaCalendarAlt, FaCertificate, FaCheckCircle, FaChevronDown, FaChevronRight, FaClock, FaDownload, FaFileAlt, FaGraduationCap, FaLanguage, FaPlayCircle, FaRocket, FaSignOutAlt, FaSpinner, FaStar, FaTrophy, FaUser, FaUsers, FaVideo, FaYoutube } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../Components/layout/Layout';
 import CourseTest from '../components/elearning/CourseTest';
+import StudentNotes from '../components/elearning/StudentNotes';
+import VideoPlayer from '../components/elearning/VideoPlayer';
 import { adminApi } from '../services/adminApi';
 import { isElearningUser } from '../services/auth';
 import { supabase } from '../services/supabase';
@@ -54,6 +56,8 @@ const Elearning = () => {
   const [testResult, setTestResult] = useState<any>(null);
   const [showTest, setShowTest] = useState(false);
   const [isGraduated, setIsGraduated] = useState(false);
+  const [courseCompleted, setCourseCompleted] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   // Load course data from database
   const loadCourseData = async () => {
@@ -473,6 +477,18 @@ const Elearning = () => {
   );
   const progress = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
 
+  // Check if course is completed and show celebration
+  useEffect(() => {
+    if (progress === 100 && !courseCompleted && !loading) {
+      setCourseCompleted(true);
+      setShowCelebration(true);
+      // Hide celebration after 10 seconds
+      setTimeout(() => {
+        setShowCelebration(false);
+      }, 10000);
+    }
+  }, [progress, courseCompleted, loading]);
+
   if (loading) {
     return (
       <Layout>
@@ -492,9 +508,38 @@ const Elearning = () => {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gray-50 pt-20 md:pt-24">
+      <div className={`min-h-screen pt-20 md:pt-24 transition-all duration-1000 ${
+        courseCompleted 
+          ? 'bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50' 
+          : 'bg-gray-50'
+      }`}>
+        {/* Course Completion Celebration Banner */}
+        {showCelebration && courseCompleted && (
+          <div className="fixed top-0 left-0 right-0 z-50 animate-slide-down">
+            <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-500 text-white shadow-2xl">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                <div className="flex items-center justify-center space-x-4">
+                  <FaTrophy className="text-3xl animate-bounce" />
+                  <div className="text-center">
+                    <h2 className="text-2xl md:text-3xl font-bold">🎉 Congratulations! 🎉</h2>
+                    <p className="text-lg md:text-xl">You've completed this course! Ready for the next challenge?</p>
+                  </div>
+                  <FaRocket className="text-3xl animate-bounce" style={{ animationDelay: '0.2s' }} />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Enhanced Header - Account for fixed nav - YENEGE Branding */}
-        <div className="text-white shadow-lg" style={{ background: 'linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)' }}>
+        <div 
+          className="text-white shadow-lg transition-all duration-1000" 
+          style={{ 
+            background: courseCompleted 
+              ? 'linear-gradient(135deg, #9333EA 0%, #EC4899 50%, #F59E0B 100%)'
+              : 'linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)'
+          }}
+        >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-12">
             <div className="flex flex-col md:flex-row items-start justify-between gap-4 md:gap-6">
               <div className="flex-1 w-full">
@@ -981,18 +1026,28 @@ const Elearning = () => {
                                               </div>
                                               
                                               {video.youtubeId ? (
-                                                <div className="mt-4 rounded-lg overflow-hidden shadow-lg border-2 border-gray-200">
-                                                  <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-                                                    <iframe
-                                                      className="absolute top-0 left-0 w-full h-full"
-                                                      src={`https://www.youtube.com/embed/${video.youtubeId}`}
-                                                      title={video.topic}
-                                                      frameBorder="0"
-                                                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                      allowFullScreen
-                                                    />
+                                                userId ? (
+                                                  <VideoPlayer
+                                                    youtubeId={video.youtubeId}
+                                                    videoTopic={video.topic}
+                                                    lessonId={lesson.id}
+                                                    videoIndex={idx}
+                                                    userId={userId}
+                                                  />
+                                                ) : (
+                                                  <div className="mt-4 rounded-lg overflow-hidden shadow-lg border-2 border-gray-200">
+                                                    <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                                                      <iframe
+                                                        className="absolute top-0 left-0 w-full h-full"
+                                                        src={`https://www.youtube.com/embed/${video.youtubeId}`}
+                                                        title={video.topic}
+                                                        frameBorder="0"
+                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                        allowFullScreen
+                                                      />
+                                                    </div>
                                                   </div>
-                                                </div>
+                                                )
                                               ) : (
                                                 <div className="mt-4 bg-gradient-to-br from-yellow-50 to-amber-50 border-2 border-yellow-200 rounded-lg p-6 text-center">
                                                   <div className="inline-flex items-center justify-center w-16 h-16 bg-yellow-100 rounded-full mb-3">
@@ -1025,6 +1080,14 @@ const Elearning = () => {
                                       </h5>
                                       <p className="text-gray-700 leading-relaxed">{lesson.notes}</p>
                                     </div>
+                                  )}
+
+                                  {/* Student Notes Component */}
+                                  {userId && (
+                                    <StudentNotes
+                                      lessonId={lesson.id}
+                                      userId={userId}
+                                    />
                                   )}
 
                                   {/* Mark Complete Button at End of Lesson */}
@@ -1067,21 +1130,50 @@ const Elearning = () => {
             })}
           </div>
 
-          {/* Certificate Section */}
+          {/* Certificate Section with Celebration Colors */}
           {progress === 100 && (
-            <div className="mt-6 md:mt-8 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 rounded-xl shadow-lg p-4 md:p-8 border-2 border-green-200">
+            <div className={`mt-6 md:mt-8 rounded-xl shadow-lg p-4 md:p-8 border-2 transition-all duration-1000 ${
+              courseCompleted
+                ? 'bg-gradient-to-br from-purple-100 via-pink-100 to-yellow-100 border-purple-300 animate-pulse'
+                : 'bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 border-green-200'
+            }`}>
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
                 <div className="flex items-start md:items-center space-x-3 md:space-x-4 flex-1">
-                  <div className="bg-green-500 p-3 md:p-4 rounded-xl flex-shrink-0">
+                  <div className={`p-3 md:p-4 rounded-xl flex-shrink-0 transition-all duration-1000 ${
+                    courseCompleted
+                      ? 'bg-gradient-to-br from-purple-500 to-pink-500 animate-bounce'
+                      : 'bg-green-500'
+                  }`}>
                     <FaCertificate className="text-white text-2xl md:text-4xl" />
                   </div>
                   <div className="min-w-0">
-                    <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1 md:mb-2">Congratulations! 🎉</h2>
-                    <p className="text-base md:text-lg text-gray-700 mb-1">You've completed the Event Organizing Internship course!</p>
-                    <p className="text-xs md:text-sm text-gray-600">Your certificate is ready for download.</p>
+                    <h2 className={`text-2xl md:text-3xl font-bold mb-1 md:mb-2 transition-all duration-1000 ${
+                      courseCompleted ? 'text-purple-900' : 'text-gray-900'
+                    }`}>
+                      {courseCompleted ? '🎉 Amazing Achievement! 🎉' : 'Congratulations! 🎉'}
+                    </h2>
+                    <p className={`text-base md:text-lg mb-1 transition-all duration-1000 ${
+                      courseCompleted ? 'text-purple-800' : 'text-gray-700'
+                    }`}>
+                      You've completed the {currentCourse?.title || 'Event Organizing Internship'} course!
+                    </p>
+                    {courseCompleted && (
+                      <p className="text-sm md:text-base text-purple-700 font-semibold mb-2">
+                        🚀 You're ready for the next challenge! Keep learning and growing!
+                      </p>
+                    )}
+                    <p className={`text-xs md:text-sm transition-all duration-1000 ${
+                      courseCompleted ? 'text-purple-600' : 'text-gray-600'
+                    }`}>
+                      Your certificate is ready for download.
+                    </p>
                   </div>
                 </div>
-                <button className="w-full md:w-auto bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 md:px-6 py-2 md:py-3 rounded-lg font-bold hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center space-x-2">
+                <button className={`w-full md:w-auto text-white px-4 md:px-6 py-2 md:py-3 rounded-lg font-bold transition-all shadow-lg hover:shadow-xl flex items-center justify-center space-x-2 duration-1000 ${
+                  courseCompleted
+                    ? 'bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-500 hover:from-purple-700 hover:via-pink-700 hover:to-yellow-600 animate-pulse'
+                    : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700'
+                }`}>
                   <FaDownload />
                   <span className="text-sm md:text-base">Download Certificate</span>
                 </button>
