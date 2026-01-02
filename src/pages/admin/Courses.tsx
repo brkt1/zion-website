@@ -169,7 +169,12 @@ const Courses = () => {
     try {
       setLoadingLessons(true);
       const data = await adminApi.courseLessons.getByWeekId(weekId);
-      setLessons(data);
+      console.log('Loaded lessons for week:', weekId, data);
+      // Merge with existing lessons instead of replacing
+      setLessons(prevLessons => {
+        const existing = prevLessons.filter(l => l.week_id !== weekId);
+        return [...existing, ...(data || [])];
+      });
     } catch (error) {
       console.error('Error loading lessons:', error);
       alert('Error loading lessons: ' + (error as Error).message);
@@ -301,8 +306,8 @@ const Courses = () => {
     if (!window.confirm('Are you sure you want to delete this lesson?')) return;
     try {
       await adminApi.courseLessons.delete(id);
-      if (lessonFormData.week_id) {
-        loadLessons(lessonFormData.week_id);
+      if (selectedCourseId) {
+        await loadAllLessonsForCourse(selectedCourseId);
       }
     } catch (error: any) {
       alert('Error: ' + error.message);
@@ -439,13 +444,19 @@ const Courses = () => {
       newExpanded.delete(weekId);
     } else {
       newExpanded.add(weekId);
-      // Lessons are already loaded for all weeks, no need to reload
+      // If lessons aren't loaded yet, try loading for this week as fallback
+      if (lessons.length === 0) {
+        console.log('No lessons loaded, loading for week:', weekId);
+        await loadLessons(weekId);
+      }
     }
     setExpandedWeeks(newExpanded);
   };
 
   const selectCourse = async (courseId: string) => {
     setSelectedCourseId(courseId);
+    setLessons([]); // Clear previous lessons
+    setExpandedWeeks(new Set()); // Clear expanded weeks
     await loadWeeks(courseId);
     await loadAllLessonsForCourse(courseId);
     await loadTest(courseId);
@@ -455,10 +466,12 @@ const Courses = () => {
     try {
       setLoadingLessons(true);
       const data = await adminApi.courseLessons.getByCourseId(courseId);
-      setLessons(data);
+      console.log('Loaded lessons for course:', courseId, data);
+      setLessons(data || []);
     } catch (error) {
       console.error('Error loading lessons:', error);
       alert('Error loading lessons: ' + (error as Error).message);
+      setLessons([]);
     } finally {
       setLoadingLessons(false);
     }
@@ -664,11 +677,22 @@ const Courses = () => {
                                           <FaPlus className="text-xs" /> Add Lesson
                                         </button>
                                       </div>
-                                      {lessons.filter(l => l.week_id === week.id).length === 0 ? (
-                                        <p className="text-xs text-gray-500">No lessons yet.</p>
-                                      ) : (
-                                        <div className="space-y-2">
-                                          {lessons.filter(l => l.week_id === week.id).map((lesson) => (
+                                      {(() => {
+                                        const weekLessons = lessons.filter(l => l.week_id === week.id);
+                                        if (expandedWeeks.has(week.id)) {
+                                          console.log(`Week ${week.id} (${week.theme}): ${weekLessons.length} lessons out of ${lessons.length} total`, {
+                                            weekId: week.id,
+                                            weekTheme: week.theme,
+                                            totalLessons: lessons.length,
+                                            weekLessons: weekLessons.length,
+                                            allLessonWeekIds: lessons.map(l => l.week_id)
+                                          });
+                                        }
+                                        return weekLessons.length === 0 ? (
+                                          <p className="text-xs text-gray-500">No lessons yet.</p>
+                                        ) : (
+                                          <div className="space-y-2">
+                                            {weekLessons.map((lesson) => (
                                             <div key={lesson.id} className="border border-gray-100 rounded p-2 bg-gray-50">
                                               <div className="flex items-center justify-between">
                                                 <div className="flex-1">
@@ -695,9 +719,10 @@ const Courses = () => {
                                                 </div>
                                               </div>
                                             </div>
-                                          ))}
-                                        </div>
-                                      )}
+                                            ))}
+                                          </div>
+                                        );
+                                      })()}
                                     </div>
                                   )}
                                 </div>
