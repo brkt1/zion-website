@@ -1093,10 +1093,20 @@ export const adminApi = {
           // Check both: raw progressData (for marker rows with user_id) OR validProgress (actual lessons)
           // If we have any valid progress entries, user definitely has account
           const hasAccountFromProgress = validProgress.length > 0;
-          const hasAccountFromMarker = progressData && progressData.length > 0 && progressData[0]?.user_id !== null;
+          
+          // Check for marker row: user exists but has no progress yet
+          // Marker row has: user_id is NOT null, but lesson_id IS null
+          const hasAccountFromMarker = progressData && 
+                                       progressData.length > 0 && 
+                                       progressData.some((p: any) => p.user_id !== null && p.user_id !== undefined);
           
           // User has account if they have progress OR if RPC returned a marker row with user_id
           const hasAccount = hasAccountFromProgress || hasAccountFromMarker;
+          
+          // Debug logging
+          if (hasAccountFromMarker && !hasAccountFromProgress) {
+            console.log(`Account detected via marker row for ${normalizedEmail}: user_id=${progressData.find((p: any) => p.user_id !== null)?.user_id}`);
+          }
           
           const totalLessons = validProgress.length;
           const completedLessons = validProgress.filter((p: any) => p.completed).length;
@@ -1220,41 +1230,47 @@ export const adminApi = {
       try {
         const normalizedEmail = email.toLowerCase().trim();
         
-        // Try to get user info using RPC function if available
-        // Otherwise, use learning progress function which includes user_id
-        const progressData = await adminApi.applications.getLearningProgress(email);
+        // First, try to get user info directly from RPC function
+        // This is the most reliable way to check if account exists
+        let userId: string | null = null;
+        let hasAccount = false;
         
-        // CRITICAL LOGIC: If student has ANY learning progress, they MUST have an account
-        // You cannot have progress without an account - the e-learning portal requires authentication
-        const hasProgressEntries = progressData.progress && progressData.progress.length > 0;
-        const hasAccount = progressData.hasAccount || hasProgressEntries;
-        
-        // If user has account OR has any progress entries (they MUST have an account if they have progress)
-        if (hasAccount || hasProgressEntries) {
-          // Try to get user_id from progress data
-          // If they have progress, they MUST have a user_id in the progress entries
-          let userId = null;
+        try {
+          const { data: progressFromRpc, error: rpcError } = await supabase
+            .rpc('get_learning_progress_by_email', { check_email: normalizedEmail });
           
-          if (progressData.progress && progressData.progress.length > 0) {
-            // Get user_id from first progress entry - all entries have same user_id
-            userId = progressData.progress[0]?.user_id;
-          }
-          
-          // If we don't have userId from progress, try RPC function directly
-          if (!userId) {
-            try {
-              // Try to get user info via RPC function
-              const { data: progressFromRpc, error: rpcError } = await supabase
-                .rpc('get_learning_progress_by_email', { check_email: normalizedEmail });
-              
-              if (!rpcError && progressFromRpc && progressFromRpc.length > 0) {
-                userId = progressFromRpc[0]?.user_id;
-              }
-            } catch (error) {
-              console.log('Could not get user_id from RPC');
+          if (!rpcError && progressFromRpc && progressFromRpc.length > 0) {
+            // If RPC returns any rows, user exists (either with progress or marker row)
+            const rowWithUserId = progressFromRpc.find((p: any) => p.user_id !== null && p.user_id !== undefined);
+            userId = rowWithUserId?.user_id || progressFromRpc[0]?.user_id || null;
+            hasAccount = userId !== null;
+            
+            if (hasAccount) {
+              console.log(`Account detected for ${normalizedEmail}: user_id=${userId}`);
             }
+          } else if (rpcError) {
+            console.warn(`RPC function error in getUserAccountInfo for ${normalizedEmail}:`, rpcError);
+          } else if (!progressFromRpc || progressFromRpc.length === 0) {
+            console.log(`No account found for ${normalizedEmail} via RPC`);
           }
+        } catch (error) {
+          console.log('Could not check account via RPC:', error);
+        }
+        
+        // Fallback: Try to get user info using learning progress function
+        if (!hasAccount) {
+          const progressData = await adminApi.applications.getLearningProgress(email);
+          const hasProgressEntries = progressData.progress && progressData.progress.length > 0;
+          hasAccount = progressData.hasAccount || hasProgressEntries;
           
+          // Get userId from progress if available
+          if (!userId && progressData.progress && progressData.progress.length > 0) {
+            userId = progressData.progress[0]?.user_id || null;
+          }
+        }
+        
+        // If user has account, return account info
+        if (hasAccount) {
           // Try to get user metadata if RPC function exists
           if (userId) {
             try {
@@ -1271,33 +1287,14 @@ export const adminApi = {
               // RPC function might not exist, that's okay
               console.log('RPC function get_user_info_by_email not available');
             }
-            
-            // Return basic info with has_account = true since progressData.hasAccount is true
-            return {
-              user_id: userId,
-              email: normalizedEmail,
-              has_account: true, // User definitely has account if hasAccount is true
-              account_created_at: null, // Will need RPC function for this
-            };
           }
           
-          // Even if we don't have userId, if they have progress, they MUST have an account
+          // Return basic info with has_account = true
           return {
+            user_id: userId,
             email: normalizedEmail,
-            has_account: true, // If they have progress, they have an account
-            user_id: userId || null,
-            account_created_at: null,
-          };
-        }
-        
-        // User doesn't have account - only return false if they truly have no progress AND no account flag
-        // If they have any progress entries, they MUST have an account
-        if (hasProgressEntries) {
-          return {
-            email: normalizedEmail,
-            has_account: true, // Progress exists = account exists
-            user_id: progressData.progress[0]?.user_id || null,
-            account_created_at: null,
+            has_account: true,
+            account_created_at: null, // Will need RPC function for this
           };
         }
         
