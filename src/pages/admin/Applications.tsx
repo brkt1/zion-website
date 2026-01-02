@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FaBook, FaBriefcase, FaCalendarAlt, FaCheck, FaCheckCircle, FaEnvelope, FaEye, FaGraduationCap, FaHandsHelping, FaPhone, FaSpinner, FaTimes, FaTrash, FaUser } from 'react-icons/fa';
+import { FaBook, FaBriefcase, FaCalendarAlt, FaCheck, FaCheckCircle, FaClock, FaEnvelope, FaEye, FaGraduationCap, FaHandsHelping, FaIdCard, FaInfoCircle, FaPhone, FaSpinner, FaTimes, FaTrash, FaUser, FaUserCircle } from 'react-icons/fa';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { adminApi } from '../../services/adminApi';
 import { Application } from '../../types';
@@ -17,6 +17,8 @@ const Applications = () => {
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
   const [learningProgress, setLearningProgress] = useState<any>(null);
   const [loadingProgress, setLoadingProgress] = useState(false);
+  const [userAccountInfo, setUserAccountInfo] = useState<any>(null);
+  const [loadingAccountInfo, setLoadingAccountInfo] = useState(false);
 
   useEffect(() => {
     loadApplications();
@@ -162,6 +164,19 @@ const Applications = () => {
       });
     } finally {
       setLoadingProgress(false);
+    }
+  };
+
+  const loadUserAccountInfo = async (email: string) => {
+    setLoadingAccountInfo(true);
+    try {
+      const accountInfo = await adminApi.applications.getUserAccountInfo(email);
+      setUserAccountInfo(accountInfo);
+    } catch (error: any) {
+      console.error('Error loading user account info:', error);
+      setUserAccountInfo(null);
+    } finally {
+      setLoadingAccountInfo(false);
     }
   };
 
@@ -318,13 +333,16 @@ const Applications = () => {
                             onClick={async () => {
                               setSelectedApplication(application);
                               setShowModal(true);
-                              // Load learning progress when opening modal
-                              await loadLearningProgress(application.email);
+                              // Load learning progress and user account info when opening modal
+                              await Promise.all([
+                                loadLearningProgress(application.email),
+                                loadUserAccountInfo(application.email)
+                              ]);
                             }}
                             className="text-blue-600 hover:text-blue-900"
-                            title="View details"
+                            title="View full details"
                           >
-                            View
+                            <FaEye className="inline" />
                           </button>
                           {application.status !== 'accepted' && (
                             <button
@@ -374,7 +392,7 @@ const Applications = () => {
         {/* Application Details Modal */}
         {showModal && selectedApplication && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-lg max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
               <div className="p-6 border-b border-gray-200">
                 <div className="flex items-center justify-between">
                   <h2 className="text-2xl font-bold text-gray-900">Application Details</h2>
@@ -384,6 +402,7 @@ const Applications = () => {
                       setSelectedApplication(null);
                       setStatusNotes('');
                       setLearningProgress(null);
+                      setUserAccountInfo(null);
                     }}
                     className="text-gray-400 hover:text-gray-600"
                   >
@@ -392,81 +411,168 @@ const Applications = () => {
                 </div>
               </div>
               <div className="p-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                    <div className="flex items-center text-gray-900">
-                      <FaUser className="mr-2 text-gray-400" />
-                      {selectedApplication.name}
+                {/* Personal Information Section */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <FaUserCircle className="mr-2 text-blue-600" />
+                    Personal Information
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-white rounded-lg p-4 border border-gray-200">
+                      <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Full Name</label>
+                      <div className="flex items-center text-gray-900 font-medium">
+                        <FaUser className="mr-2 text-gray-400" />
+                        {selectedApplication.name}
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 border border-gray-200">
+                      <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Application Type</label>
+                      <div className="flex items-center text-gray-900 font-medium">
+                        {selectedApplication.type === 'internship' ? (
+                          <>
+                            <FaBriefcase className="mr-2 text-blue-600" />
+                            <span className="capitalize">Internship</span>
+                          </>
+                        ) : (
+                          <>
+                            <FaHandsHelping className="mr-2 text-green-600" />
+                            <span className="capitalize">Volunteer</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 border border-gray-200">
+                      <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Email Address</label>
+                      <div className="flex items-center text-gray-900 font-medium break-all">
+                        <FaEnvelope className="mr-2 text-gray-400 flex-shrink-0" />
+                        <span className="break-all">{selectedApplication.email}</span>
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 border border-gray-200">
+                      <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Phone Number</label>
+                      <div className="flex items-center text-gray-900 font-medium">
+                        <FaPhone className="mr-2 text-gray-400" />
+                        {selectedApplication.phone || 'N/A'}
+                      </div>
+                    </div>
+                    {selectedApplication.position && (
+                      <div className="bg-white rounded-lg p-4 border border-gray-200">
+                        <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Position/Interest</label>
+                        <p className="text-gray-900 font-medium">{selectedApplication.position}</p>
+                      </div>
+                    )}
+                    {selectedApplication.availability && (
+                      <div className="bg-white rounded-lg p-4 border border-gray-200">
+                        <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Availability</label>
+                        <p className="text-gray-900 font-medium">{selectedApplication.availability}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Application Status & Dates Section */}
+                <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <FaInfoCircle className="mr-2 text-gray-600" />
+                    Application Status & Timeline
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-white rounded-lg p-4 border border-gray-200">
+                      <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Current Status</label>
+                      <span className={`px-3 py-1 inline-flex text-sm font-semibold rounded-full border mt-1 ${getStatusColor(selectedApplication.status)}`}>
+                        {selectedApplication.status.charAt(0).toUpperCase() + selectedApplication.status.slice(1)}
+                      </span>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 border border-gray-200">
+                      <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Date Applied</label>
+                      <div className="flex items-center text-gray-900 font-medium">
+                        <FaCalendarAlt className="mr-2 text-gray-400" />
+                        {formatDate(selectedApplication.created_at)}
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 border border-gray-200">
+                      <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Last Updated</label>
+                      <div className="flex items-center text-gray-900 font-medium">
+                        <FaClock className="mr-2 text-gray-400" />
+                        {formatDate(selectedApplication.updated_at || selectedApplication.created_at)}
+                      </div>
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                    <div className="flex items-center text-gray-900">
-                      {selectedApplication.type === 'internship' ? (
-                        <FaBriefcase className="mr-2 text-blue-600" />
-                      ) : (
-                        <FaHandsHelping className="mr-2 text-green-600" />
+                </div>
+
+                {/* User Account Information Section */}
+                <div className="bg-purple-50 rounded-lg p-6 border border-purple-200">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <FaIdCard className="mr-2 text-purple-600" />
+                    User Account Information
+                  </h3>
+                  {loadingAccountInfo ? (
+                    <div className="flex items-center justify-center py-8">
+                      <FaSpinner className="animate-spin text-2xl text-purple-600 mr-3" />
+                      <span className="text-gray-600">Loading account information...</span>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-white rounded-lg p-4 border border-gray-200">
+                        <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Account Status</label>
+                        <div className="flex items-center mt-1">
+                          {learningProgress?.hasAccount || userAccountInfo?.has_account ? (
+                            <>
+                              <FaCheckCircle className="text-green-500 mr-2" />
+                              <span className="text-green-700 font-medium">Account Created</span>
+                            </>
+                          ) : (
+                            <>
+                              <FaTimes className="text-red-500 mr-2" />
+                              <span className="text-red-700 font-medium">No Account Yet</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      {userAccountInfo?.user_id && (
+                        <div className="bg-white rounded-lg p-4 border border-gray-200">
+                          <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">User ID</label>
+                          <p className="text-gray-900 font-mono text-xs break-all">{userAccountInfo.user_id}</p>
+                        </div>
                       )}
-                      <span className="capitalize">{selectedApplication.type}</span>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <div className="flex items-center text-gray-900">
-                      <FaEnvelope className="mr-2 text-gray-400" />
-                      {selectedApplication.email}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                    <div className="flex items-center text-gray-900">
-                      <FaPhone className="mr-2 text-gray-400" />
-                      {selectedApplication.phone}
-                    </div>
-                  </div>
-                  {selectedApplication.position && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Position/Interest</label>
-                      <p className="text-gray-900">{selectedApplication.position}</p>
+                      {userAccountInfo?.account_created_at && (
+                        <div className="bg-white rounded-lg p-4 border border-gray-200">
+                          <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Account Created</label>
+                          <div className="flex items-center text-gray-900 font-medium">
+                            <FaCalendarAlt className="mr-2 text-gray-400" />
+                            {formatDate(userAccountInfo.account_created_at)}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
-                  {selectedApplication.availability && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Availability</label>
-                      <p className="text-gray-900">{selectedApplication.availability}</p>
+                </div>
+
+                {/* Application Details Section */}
+                <div className="bg-indigo-50 rounded-lg p-6 border border-indigo-200">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <FaBriefcase className="mr-2 text-indigo-600" />
+                    Application Details
+                  </h3>
+                  <div className="space-y-4">
+                    {selectedApplication.experience && (
+                      <div className="bg-white rounded-lg p-4 border border-gray-200">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Experience & Background</label>
+                        <p className="text-gray-900 whitespace-pre-wrap leading-relaxed">{selectedApplication.experience}</p>
+                      </div>
+                    )}
+                    <div className="bg-white rounded-lg p-4 border border-gray-200">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Motivation & Interest</label>
+                      <p className="text-gray-900 whitespace-pre-wrap leading-relaxed">{selectedApplication.motivation}</p>
                     </div>
-                  )}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                    <span className={`px-3 py-1 inline-flex text-sm font-semibold rounded-full border ${getStatusColor(selectedApplication.status)}`}>
-                      {selectedApplication.status.charAt(0).toUpperCase() + selectedApplication.status.slice(1)}
-                    </span>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Date Applied</label>
-                    <div className="flex items-center text-gray-900">
-                      <FaCalendarAlt className="mr-2 text-gray-400" />
-                      {formatDate(selectedApplication.created_at)}
-                    </div>
+                    {selectedApplication.notes && (
+                      <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Admin Notes</label>
+                        <p className="text-gray-900 whitespace-pre-wrap leading-relaxed">{selectedApplication.notes}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
-                {selectedApplication.experience && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Experience</label>
-                    <p className="text-gray-900 whitespace-pre-wrap">{selectedApplication.experience}</p>
-                  </div>
-                )}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Motivation</label>
-                  <p className="text-gray-900 whitespace-pre-wrap">{selectedApplication.motivation}</p>
-                </div>
-                {selectedApplication.notes && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Admin Notes</label>
-                    <p className="text-gray-900 whitespace-pre-wrap">{selectedApplication.notes}</p>
-                  </div>
-                )}
 
                 {/* Learning Progress Section */}
                 <div className="border-t border-gray-200 pt-6">

@@ -51,8 +51,8 @@ const AdminContact = lazy(() => import("./pages/admin/Contact"));
 const AdminSettings = lazy(() => import("./pages/admin/Settings"));
 const VerifyTicket = lazy(() => import("./pages/admin/VerifyTicket"));
 const Applications = lazy(() => import("./pages/admin/Applications"));
-const EventProjects = lazy(() => import("./pages/admin/EventProjects"));
-const EventOrganizers = lazy(() => import("./pages/admin/EventOrganizers"));
+const Students = lazy(() => import("./pages/admin/Students"));
+const AdminCourses = lazy(() => import("./pages/admin/Courses"));
 
 // E-learning pages
 const ElearningLogin = lazy(() => import("./pages/ElearningLogin"));
@@ -290,18 +290,18 @@ function App() {
             } 
           />
           <Route 
-            path="/admin/event-projects" 
+            path="/admin/students" 
             element={
-              <Suspense fallback={<LoadingState message="Loading..." />}>
-                <EventProjects />
+              <Suspense fallback={<LoadingState message="Loading students..." />}>
+                <Students />
               </Suspense>
             } 
           />
           <Route 
-            path="/admin/event-organizers" 
+            path="/admin/courses" 
             element={
-              <Suspense fallback={<LoadingState message="Loading..." />}>
-                <EventOrganizers />
+              <Suspense fallback={<LoadingState message="Loading courses..." />}>
+                <AdminCourses />
               </Suspense>
             } 
           />

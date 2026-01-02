@@ -3,7 +3,7 @@ import { supabase } from './supabase';
 export interface UserRole {
   id: string;
   user_id: string;
-  role: 'admin' | 'user' | 'event_organizer';
+  role: 'admin' | 'user';
   created_at: string;
 }
 
@@ -82,7 +82,7 @@ export const clearAdminCache = () => {
 /**
  * Get current user's role
  */
-export const getUserRole = async (): Promise<'admin' | 'user' | 'event_organizer' | null> => {
+export const getUserRole = async (): Promise<'admin' | 'user' | null> => {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     
@@ -99,7 +99,7 @@ export const getUserRole = async (): Promise<'admin' | 'user' | 'event_organizer
       .maybeSingle();
 
     if (!error && data) {
-      return data.role as 'admin' | 'user' | 'event_organizer';
+      return data.role as 'admin' | 'user';
     }
 
     // Fallback: Check user metadata
@@ -112,47 +112,6 @@ export const getUserRole = async (): Promise<'admin' | 'user' | 'event_organizer
   } catch (error) {
     console.error('Error getting user role:', error);
     return null;
-  }
-};
-
-/**
- * Check if the current user is an event organizer
- */
-export const isEventOrganizer = async (): Promise<boolean> => {
-  try {
-    const role = await getUserRole();
-    return role === 'event_organizer' || role === 'admin';
-  } catch (error) {
-    console.error('Error checking event organizer status:', error);
-    return false;
-  }
-};
-
-/**
- * Get events assigned to the current event organizer
- */
-export const getOrganizerEvents = async (): Promise<string[]> => {
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session?.user) {
-      return [];
-    }
-
-    const { data, error } = await supabase
-      .from('event_organizers')
-      .select('event_id')
-      .eq('user_id', session.user.id);
-
-    if (error) {
-      console.error('Error fetching organizer events:', error);
-      return [];
-    }
-
-    return (data || []).map(item => item.event_id);
-  } catch (error) {
-    console.error('Error getting organizer events:', error);
-    return [];
   }
 };
 

@@ -1,4 +1,4 @@
-import { Application, CommissionSeller, CreateApplicationData, CreateCommissionSellerData, CreateEventProjectData, CreateTicketScannerData, EventProject, TicketScanner, UpdateApplicationData, UpdateCommissionSellerData, UpdateEventProjectData, UpdateTicketScannerData } from '../types';
+import { Application, CommissionSeller, CreateApplicationData, CreateCommissionSellerData, CreateTicketScannerData, TicketScanner, UpdateApplicationData, UpdateCommissionSellerData, UpdateTicketScannerData } from '../types';
 import { AboutContent, Category, ContactInfo, Destination, Event, GalleryItem, HomeContent, SiteConfig } from './api';
 import { supabase } from './supabase';
 
@@ -1089,8 +1089,14 @@ export const adminApi = {
           // Filter out marker rows (where lesson_id is null) for stats calculation
           const validProgress = (progressData || []).filter((p: any) => p.lesson_id !== null);
           
-          // Check if user exists: if we got any data (even marker row), user exists
-          const hasAccount = progressData && progressData.length > 0 && progressData[0]?.user_id !== null;
+          // CRITICAL: If student has ANY progress entries, they MUST have an account
+          // Check both: raw progressData (for marker rows with user_id) OR validProgress (actual lessons)
+          // If we have any valid progress entries, user definitely has account
+          const hasAccountFromProgress = validProgress.length > 0;
+          const hasAccountFromMarker = progressData && progressData.length > 0 && progressData[0]?.user_id !== null;
+          
+          // User has account if they have progress OR if RPC returned a marker row with user_id
+          const hasAccount = hasAccountFromProgress || hasAccountFromMarker;
           
           const totalLessons = validProgress.length;
           const completedLessons = validProgress.filter((p: any) => p.completed).length;
@@ -1150,110 +1156,225 @@ export const adminApi = {
         };
       }
     },
+
+    // Get all accepted students with their course progress
+    getAllAcceptedStudents: async () => {
+      try {
+        // Get all accepted internship applications
+        const { data: applications, error: appsError } = await supabase
+          .from('applications')
+          .select('*')
+          .eq('status', 'accepted')
+          .eq('type', 'internship')
+          .order('created_at', { ascending: false });
+
+        if (appsError) throw appsError;
+
+        // For each application, get learning progress and course info
+        const studentsWithProgress = await Promise.all(
+          (applications || []).map(async (app) => {
+            try {
+              const progress = await adminApi.applications.getLearningProgress(app.email);
+              const accountInfo = await adminApi.applications.getUserAccountInfo(app.email);
+              
+              return {
+                ...app,
+                learningProgress: progress,
+                accountInfo: accountInfo,
+              };
+            } catch (error) {
+              console.error(`Error loading progress for ${app.email}:`, error);
+              return {
+                ...app,
+                learningProgress: {
+                  hasAccount: false,
+                  progress: [],
+                  stats: {
+                    totalLessons: 0,
+                    completedLessons: 0,
+                    viewedLessons: 0,
+                    completionPercentage: 0,
+                    viewPercentage: 0,
+                  },
+                },
+                accountInfo: {
+                  email: app.email,
+                  has_account: false,
+                  user_id: null,
+                  account_created_at: null,
+                },
+              };
+            }
+          })
+        );
+
+        return studentsWithProgress;
+      } catch (error: any) {
+        console.error('Error fetching accepted students:', error);
+        throw error;
+      }
+    },
+
+    // Get full user account information by email (for admin)
+    getUserAccountInfo: async (email: string) => {
+      try {
+        const normalizedEmail = email.toLowerCase().trim();
+        
+        // Try to get user info using RPC function if available
+        // Otherwise, use learning progress function which includes user_id
+        const progressData = await adminApi.applications.getLearningProgress(email);
+        
+        // CRITICAL LOGIC: If student has ANY learning progress, they MUST have an account
+        // You cannot have progress without an account - the e-learning portal requires authentication
+        const hasProgressEntries = progressData.progress && progressData.progress.length > 0;
+        const hasAccount = progressData.hasAccount || hasProgressEntries;
+        
+        // If user has account OR has any progress entries (they MUST have an account if they have progress)
+        if (hasAccount || hasProgressEntries) {
+          // Try to get user_id from progress data
+          // If they have progress, they MUST have a user_id in the progress entries
+          let userId = null;
+          
+          if (progressData.progress && progressData.progress.length > 0) {
+            // Get user_id from first progress entry - all entries have same user_id
+            userId = progressData.progress[0]?.user_id;
+          }
+          
+          // If we don't have userId from progress, try RPC function directly
+          if (!userId) {
+            try {
+              // Try to get user info via RPC function
+              const { data: progressFromRpc, error: rpcError } = await supabase
+                .rpc('get_learning_progress_by_email', { check_email: normalizedEmail });
+              
+              if (!rpcError && progressFromRpc && progressFromRpc.length > 0) {
+                userId = progressFromRpc[0]?.user_id;
+              }
+            } catch (error) {
+              console.log('Could not get user_id from RPC');
+            }
+          }
+          
+          // Try to get user metadata if RPC function exists
+          if (userId) {
+            try {
+              const { data: userData, error: rpcError } = await supabase
+                .rpc('get_user_info_by_email', { check_email: normalizedEmail });
+              
+              if (!rpcError && userData) {
+                return {
+                  ...userData,
+                  has_account: true,
+                };
+              }
+            } catch (error) {
+              // RPC function might not exist, that's okay
+              console.log('RPC function get_user_info_by_email not available');
+            }
+            
+            // Return basic info with has_account = true since progressData.hasAccount is true
+            return {
+              user_id: userId,
+              email: normalizedEmail,
+              has_account: true, // User definitely has account if hasAccount is true
+              account_created_at: null, // Will need RPC function for this
+            };
+          }
+          
+          // Even if we don't have userId, if they have progress, they MUST have an account
+          return {
+            email: normalizedEmail,
+            has_account: true, // If they have progress, they have an account
+            user_id: userId || null,
+            account_created_at: null,
+          };
+        }
+        
+        // User doesn't have account - only return false if they truly have no progress AND no account flag
+        // If they have any progress entries, they MUST have an account
+        if (hasProgressEntries) {
+          return {
+            email: normalizedEmail,
+            has_account: true, // Progress exists = account exists
+            user_id: progressData.progress[0]?.user_id || null,
+            account_created_at: null,
+          };
+        }
+        
+        // User doesn't have account and no progress
+        return {
+          email: normalizedEmail,
+          has_account: false,
+          user_id: null,
+          account_created_at: null,
+        };
+      } catch (error: any) {
+        console.error('Error fetching user account info:', error);
+        return {
+          email: email.toLowerCase().trim(),
+          has_account: false,
+          user_id: null,
+          account_created_at: null,
+        };
+      }
+    },
   },
 
-  // Event Projects - Project management for events
-  eventProjects: {
-    getAll: async (eventId?: string) => {
-      let query = supabase
-        .from('event_projects')
+  // Courses CRUD
+  courses: {
+    getAll: async () => {
+      const { data, error } = await supabase
+        .from('courses')
         .select('*')
+        .order('display_order', { ascending: true })
         .order('created_at', { ascending: false });
 
-      if (eventId) {
-        query = query.eq('event_id', eventId);
-      }
-
-      const { data, error } = await query;
-
       if (error) throw error;
-      return data as EventProject[];
+      return data || [];
     },
 
     getById: async (id: string) => {
       const { data, error } = await supabase
-        .from('event_projects')
+        .from('courses')
         .select('*')
         .eq('id', id)
         .single();
 
       if (error) throw error;
-      return data as EventProject;
+      return data;
     },
 
-    getByEventId: async (eventId: string) => {
+    create: async (course: { title: string; description?: string; is_active?: boolean; display_order?: number }) => {
       const { data, error } = await supabase
-        .from('event_projects')
-        .select('*')
-        .eq('event_id', eventId)
-        .order('due_date', { ascending: true, nullsFirst: false })
-        .order('priority', { ascending: false })
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data as EventProject[];
-    },
-
-    create: async (projectData: CreateEventProjectData) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      const { data, error } = await supabase
-        .from('event_projects')
-        .insert([{
-          event_id: projectData.event_id,
-          title: projectData.title,
-          description: projectData.description || null,
-          status: projectData.status || 'pending',
-          priority: projectData.priority || 'medium',
-          assignee_email: projectData.assignee_email || null,
-          assignee_name: projectData.assignee_name || null,
-          due_date: projectData.due_date || null,
-          created_by: user?.id || null,
-        }])
+        .from('courses')
+        .insert({
+          title: course.title,
+          description: course.description || null,
+          is_active: course.is_active !== undefined ? course.is_active : true,
+          display_order: course.display_order || 0,
+        })
         .select()
         .single();
 
       if (error) throw error;
-      return data as EventProject;
+      return data;
     },
 
-    update: async (id: string, projectData: UpdateEventProjectData) => {
-      const updateData: any = {
-        updated_at: new Date().toISOString(),
-      };
-
-      if (projectData.title !== undefined) updateData.title = projectData.title;
-      if (projectData.description !== undefined) updateData.description = projectData.description || null;
-      if (projectData.status !== undefined) {
-        updateData.status = projectData.status;
-        // Set completed_at when status is set to completed
-        if (projectData.status === 'completed') {
-          updateData.completed_at = new Date().toISOString();
-        } else {
-          // Clear completed_at if status changes from completed to something else
-          updateData.completed_at = null;
-        }
-      }
-      if (projectData.priority !== undefined) updateData.priority = projectData.priority;
-      if (projectData.assignee_email !== undefined) updateData.assignee_email = projectData.assignee_email || null;
-      if (projectData.assignee_name !== undefined) updateData.assignee_name = projectData.assignee_name || null;
-      if (projectData.due_date !== undefined) updateData.due_date = projectData.due_date || null;
-      if (projectData.completed_at !== undefined) updateData.completed_at = projectData.completed_at || null;
-
+    update: async (id: string, updates: { title?: string; description?: string; is_active?: boolean; display_order?: number }) => {
       const { data, error } = await supabase
-        .from('event_projects')
-        .update(updateData)
+        .from('courses')
+        .update(updates)
         .eq('id', id)
         .select()
         .single();
 
       if (error) throw error;
-      return data as EventProject;
+      return data;
     },
 
     delete: async (id: string) => {
       const { error } = await supabase
-        .from('event_projects')
+        .from('courses')
         .delete()
         .eq('id', id);
 
@@ -1262,123 +1383,488 @@ export const adminApi = {
     },
   },
 
-  // Event Organizers - Manage event organizer assignments
-  eventOrganizers: {
-    getAll: async (eventId?: string) => {
-      let query = supabase
-        .from('event_organizers')
+  // Course Weeks CRUD
+  courseWeeks: {
+    getByCourseId: async (courseId: string) => {
+      const { data, error } = await supabase
+        .from('course_weeks')
         .select('*')
-        .order('created_at', { ascending: false });
+        .eq('course_id', courseId)
+        .order('week_number', { ascending: true });
 
-      if (eventId) {
-        query = query.eq('event_id', eventId);
+      if (error) throw error;
+      return data || [];
+    },
+
+    getById: async (id: string) => {
+      const { data, error } = await supabase
+        .from('course_weeks')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+
+    create: async (week: {
+      course_id: string;
+      week_number: number;
+      theme: string;
+      goal: string;
+      display_order?: number;
+    }) => {
+      const { data, error } = await supabase
+        .from('course_weeks')
+        .insert({
+          course_id: week.course_id,
+          week_number: week.week_number,
+          theme: week.theme,
+          goal: week.goal,
+          display_order: week.display_order || 0,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+
+    update: async (id: string, updates: {
+      week_number?: number;
+      theme?: string;
+      goal?: string;
+      display_order?: number;
+    }) => {
+      const { data, error } = await supabase
+        .from('course_weeks')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+
+    delete: async (id: string) => {
+      const { error } = await supabase
+        .from('course_weeks')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return { success: true };
+    },
+  },
+
+  // Course Lessons CRUD
+  courseLessons: {
+    getByWeekId: async (weekId: string) => {
+      const { data, error } = await supabase
+        .from('course_lessons')
+        .select('*')
+        .eq('week_id', weekId)
+        .order('display_order', { ascending: true })
+        .order('lesson_id', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    },
+
+    getById: async (id: string) => {
+      const { data, error } = await supabase
+        .from('course_lessons')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+
+    create: async (lesson: {
+      week_id: string;
+      lesson_id: string;
+      date: string;
+      topic: string;
+      time: string;
+      activity: string;
+      deliverables: string;
+      content?: string;
+      key_concepts?: string[];
+      videos?: Array<{ topic: string; youtubeId?: string; description?: string }>;
+      notes?: string;
+      display_order?: number;
+    }) => {
+      const { data, error } = await supabase
+        .from('course_lessons')
+        .insert({
+          week_id: lesson.week_id,
+          lesson_id: lesson.lesson_id,
+          date: lesson.date,
+          topic: lesson.topic,
+          time: lesson.time,
+          activity: lesson.activity,
+          deliverables: lesson.deliverables,
+          content: lesson.content || null,
+          key_concepts: lesson.key_concepts || [],
+          videos: lesson.videos ? JSON.stringify(lesson.videos) : null,
+          notes: lesson.notes || null,
+          display_order: lesson.display_order || 0,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      // Parse videos JSON if it's a string
+      if (data && typeof data.videos === 'string') {
+        try {
+          data.videos = JSON.parse(data.videos);
+        } catch (e) {
+          data.videos = null;
+        }
+      }
+      return data;
+    },
+
+    update: async (id: string, updates: {
+      lesson_id?: string;
+      date?: string;
+      topic?: string;
+      time?: string;
+      activity?: string;
+      deliverables?: string;
+      content?: string;
+      key_concepts?: string[];
+      videos?: Array<{ topic: string; youtubeId?: string; description?: string }>;
+      notes?: string;
+      display_order?: number;
+    }) => {
+      const updateData: any = { ...updates };
+      if (updates.videos !== undefined) {
+        updateData.videos = updates.videos ? JSON.stringify(updates.videos) : null;
+      }
+
+      const { data, error } = await supabase
+        .from('course_lessons')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      // Parse videos JSON if it's a string
+      if (data && typeof data.videos === 'string') {
+        try {
+          data.videos = JSON.parse(data.videos);
+        } catch (e) {
+          data.videos = null;
+        }
+      }
+      return data;
+    },
+
+    delete: async (id: string) => {
+      const { error } = await supabase
+        .from('course_lessons')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return { success: true };
+    },
+  },
+
+  // Course Tests CRUD
+  courseTests: {
+    getByCourseId: async (courseId: string) => {
+      const { data, error } = await supabase
+        .from('course_tests')
+        .select('*')
+        .eq('course_id', courseId)
+        .eq('is_active', true)
+        .order('display_order', { ascending: true })
+        .limit(1);
+
+      if (error) throw error;
+      return data && data.length > 0 ? data[0] : null;
+    },
+
+    getById: async (id: string) => {
+      const { data, error } = await supabase
+        .from('course_tests')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+
+    getAll: async () => {
+      const { data, error } = await supabase
+        .from('course_tests')
+        .select('*')
+        .order('display_order', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    },
+
+    create: async (test: {
+      course_id: string;
+      title: string;
+      description?: string;
+      passing_score?: number;
+      time_limit?: number;
+      max_attempts?: number;
+      is_active?: boolean;
+      display_order?: number;
+    }) => {
+      const { data, error } = await supabase
+        .from('course_tests')
+        .insert({
+          course_id: test.course_id,
+          title: test.title,
+          description: test.description || null,
+          passing_score: test.passing_score || 75,
+          time_limit: test.time_limit || null,
+          max_attempts: test.max_attempts || 3,
+          is_active: test.is_active !== undefined ? test.is_active : true,
+          display_order: test.display_order || 0,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+
+    update: async (id: string, updates: {
+      title?: string;
+      description?: string;
+      passing_score?: number;
+      time_limit?: number;
+      max_attempts?: number;
+      is_active?: boolean;
+      display_order?: number;
+    }) => {
+      const { data, error } = await supabase
+        .from('course_tests')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+
+    delete: async (id: string) => {
+      const { error } = await supabase
+        .from('course_tests')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return { success: true };
+    },
+  },
+
+  // Test Questions CRUD
+  testQuestions: {
+    getByTestId: async (testId: string) => {
+      const { data, error } = await supabase
+        .from('test_questions')
+        .select('*')
+        .eq('test_id', testId)
+        .order('display_order', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    },
+
+    getById: async (id: string) => {
+      const { data, error } = await supabase
+        .from('test_questions')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+
+    create: async (question: {
+      test_id: string;
+      question_text: string;
+      question_type?: 'multiple_choice' | 'true_false' | 'short_answer';
+      options?: Array<{ text: string; is_correct: boolean }>;
+      correct_answer?: string;
+      points?: number;
+      display_order?: number;
+    }) => {
+      const { data, error } = await supabase
+        .from('test_questions')
+        .insert({
+          test_id: question.test_id,
+          question_text: question.question_text,
+          question_type: question.question_type || 'multiple_choice',
+          options: question.options ? JSON.stringify(question.options) : null,
+          correct_answer: question.correct_answer || null,
+          points: question.points || 1,
+          display_order: question.display_order || 0,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      // Parse options JSON if it's a string
+      if (data && typeof data.options === 'string') {
+        try {
+          data.options = JSON.parse(data.options);
+        } catch (e) {
+          data.options = null;
+        }
+      }
+      return data;
+    },
+
+    update: async (id: string, updates: {
+      question_text?: string;
+      question_type?: 'multiple_choice' | 'true_false' | 'short_answer';
+      options?: Array<{ text: string; is_correct: boolean }>;
+      correct_answer?: string;
+      points?: number;
+      display_order?: number;
+    }) => {
+      const updateData: any = { ...updates };
+      if (updates.options !== undefined) {
+        updateData.options = updates.options ? JSON.stringify(updates.options) : null;
+      }
+
+      const { data, error } = await supabase
+        .from('test_questions')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      // Parse options JSON if it's a string
+      if (data && typeof data.options === 'string') {
+        try {
+          data.options = JSON.parse(data.options);
+        } catch (e) {
+          data.options = null;
+        }
+      }
+      return data;
+    },
+
+    delete: async (id: string) => {
+      const { error } = await supabase
+        .from('test_questions')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return { success: true };
+    },
+  },
+
+  // Test Results
+  testResults: {
+    getUserResults: async (testId: string, userId: string) => {
+      const { data, error } = await supabase
+        .from('test_results')
+        .select('*')
+        .eq('test_id', testId)
+        .eq('user_id', userId)
+        .order('attempt_number', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    },
+
+    getLatestResult: async (testId: string, userId: string) => {
+      const { data, error } = await supabase
+        .from('test_results')
+        .select('*')
+        .eq('test_id', testId)
+        .eq('user_id', userId)
+        .order('attempt_number', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows returned
+      return data || null;
+    },
+
+    submitResult: async (result: {
+      test_id: string;
+      user_id: string;
+      score: number;
+      total_questions: number;
+      correct_answers: number;
+      passed: boolean;
+      answers: Array<{ question_id: string; answer: string }>;
+      time_taken?: number;
+      attempt_number: number;
+    }) => {
+      const { data, error } = await supabase
+        .from('test_results')
+        .insert({
+          test_id: result.test_id,
+          user_id: result.user_id,
+          score: result.score,
+          total_questions: result.total_questions,
+          correct_answers: result.correct_answers,
+          passed: result.passed,
+          answers: JSON.stringify(result.answers),
+          time_taken: result.time_taken || null,
+          attempt_number: result.attempt_number,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      // Parse answers JSON if it's a string
+      if (data && typeof data.answers === 'string') {
+        try {
+          data.answers = JSON.parse(data.answers);
+        } catch (e) {
+          data.answers = [];
+        }
+      }
+      return data;
+    },
+
+    getAllResults: async (testId?: string) => {
+      let query = supabase
+        .from('test_results')
+        .select('*')
+        .order('completed_at', { ascending: false });
+
+      if (testId) {
+        query = query.eq('test_id', testId);
       }
 
       const { data, error } = await query;
 
       if (error) throw error;
-      return data;
-    },
-
-    getByEventId: async (eventId: string) => {
-      const { data, error } = await supabase
-        .from('event_organizers')
-        .select('*')
-        .eq('event_id', eventId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data;
-    },
-
-    getByUserId: async (userId: string) => {
-      const { data, error } = await supabase
-        .from('event_organizers')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data;
-    },
-
-    // Assign event_organizer role to a user
-    assignRole: async (userEmail: string) => {
-      // Use RPC function if available
-      const { data, error } = await supabase.rpc('assign_event_organizer_role', {
-        user_email: userEmail.toLowerCase()
-      });
-
-      if (error) {
-        // If RPC function doesn't exist, provide helpful error message
-        if (error.code === '42883' || error.message.includes('function') || error.message.includes('does not exist')) {
-          throw new Error('RPC function not found. Please run the SQL script: docs/scripts/create-event-organizer-rpc-functions.sql in your Supabase SQL Editor.');
+      // Parse answers JSON for all results
+      return (data || []).map(result => {
+        if (typeof result.answers === 'string') {
+          try {
+            result.answers = JSON.parse(result.answers);
+          } catch (e) {
+            result.answers = [];
+          }
         }
-        throw new Error(`Unable to assign role: ${error.message}. User may need to sign up first.`);
-      }
-
-      return data;
-    },
-
-    // Assign organizer to an event (user must already have event_organizer role)
-    assignToEvent: async (eventId: string, userEmail: string, autoAssignRole: boolean = false) => {
-      // Use RPC function if available
-      const { data, error } = await supabase.rpc('assign_organizer_to_event', {
-        p_event_id: eventId,
-        p_user_email: userEmail.toLowerCase(),
-        p_auto_assign_role: autoAssignRole
+        return result;
       });
-
-      if (error) {
-        // If RPC function doesn't exist, provide helpful error message
-        if (error.code === '42883' || error.message.includes('function') || error.message.includes('does not exist')) {
-          throw new Error('RPC function not found. Please run the SQL script: docs/scripts/create-event-organizer-rpc-functions.sql in your Supabase SQL Editor.');
-        }
-        throw new Error(`Unable to assign organizer: ${error.message}`);
-      }
-
-      return data;
-    },
-
-    assign: async (eventId: string, userEmail: string, assignRoleIfNeeded: boolean = true) => {
-      // Use RPC function which handles both role assignment and event assignment
-      try {
-        return await adminApi.eventOrganizers.assignToEvent(eventId, userEmail, assignRoleIfNeeded);
-      } catch (error: any) {
-        throw error; // Re-throw with the helpful error message
-      }
-    },
-
-    unassign: async (eventId: string, userId: string) => {
-      const { error } = await supabase
-        .from('event_organizers')
-        .delete()
-        .eq('event_id', eventId)
-        .eq('user_id', userId);
-
-      if (error) throw error;
-      return { success: true };
-    },
-
-    unassignByEmail: async (eventId: string, userEmail: string) => {
-      const { data: organizers } = await supabase
-        .from('event_organizers')
-        .select('id, user_id')
-        .eq('event_id', eventId)
-        .eq('user_email', userEmail.toLowerCase());
-
-      if (!organizers || organizers.length === 0) {
-        throw new Error('Organizer not found for this event');
-      }
-
-      const { error } = await supabase
-        .from('event_organizers')
-        .delete()
-        .eq('event_id', eventId)
-        .eq('user_email', userEmail.toLowerCase());
-
-      if (error) throw error;
-      return { success: true };
     },
   },
 };

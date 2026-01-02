@@ -1,23 +1,23 @@
 import { useEffect, useState } from 'react';
 import {
-  FaBars,
-  FaBriefcase,
-  FaCalendarAlt,
-  FaChartLine,
-  FaCog,
-  FaEnvelope,
-  FaHome,
-  FaImages,
-  FaInfoCircle,
-  FaMapMarkerAlt,
-  FaNewspaper,
-  FaProjectDiagram,
-  FaQrcode,
-  FaSignOutAlt,
-  FaTicketAlt,
-  FaTimes,
-  FaUser,
-  FaUserPlus
+    FaBars,
+    FaBook,
+    FaBriefcase,
+    FaCalendarAlt,
+    FaChartLine,
+    FaCog,
+    FaEnvelope,
+    FaGraduationCap,
+    FaHome,
+    FaImages,
+    FaInfoCircle,
+    FaMapMarkerAlt,
+    FaNewspaper,
+    FaQrcode,
+    FaSignOutAlt,
+    FaTicketAlt,
+    FaTimes,
+    FaUser
 } from 'react-icons/fa';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { isAdmin, isCommissionSeller } from '../../services/auth';
@@ -92,8 +92,6 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
   const menuItems = [
     { icon: FaQrcode, label: 'Verify Tickets', path: '/admin/verify', color: 'text-cyan-600 bg-cyan-50' },
     { icon: FaCalendarAlt, label: 'Events', path: '/admin/events', color: 'text-blue-600 bg-blue-50' },
-    { icon: FaProjectDiagram, label: 'Event Projects', path: '/admin/event-projects', color: 'text-violet-600 bg-violet-50' },
-    { icon: FaUserPlus, label: 'Event Organizers', path: '/admin/event-organizers', color: 'text-emerald-600 bg-emerald-50' },
     { icon: FaNewspaper, label: 'Categories', path: '/admin/categories', color: 'text-green-600 bg-green-50' },
     { icon: FaMapMarkerAlt, label: 'Destinations', path: '/admin/destinations', color: 'text-purple-600 bg-purple-50' },
     { icon: FaImages, label: 'Gallery', path: '/admin/gallery', color: 'text-pink-600 bg-pink-50' },
@@ -103,6 +101,8 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
     { icon: FaTicketAlt, label: 'Commission Sellers', path: '/admin/commission-sellers', color: 'text-orange-600 bg-orange-50' },
     { icon: FaQrcode, label: 'Ticket Scanners', path: '/admin/ticket-scanners', color: 'text-blue-600 bg-blue-50' },
     { icon: FaBriefcase, label: 'Applications', path: '/admin/applications', color: 'text-teal-600 bg-teal-50' },
+    { icon: FaGraduationCap, label: 'Students', path: '/admin/students', color: 'text-indigo-600 bg-indigo-50' },
+    { icon: FaBook, label: 'Courses', path: '/admin/courses', color: 'text-blue-600 bg-blue-50' },
     { icon: FaCog, label: 'Site Settings', path: '/admin/settings', color: 'text-gray-600 bg-gray-50' },
   ];
 
