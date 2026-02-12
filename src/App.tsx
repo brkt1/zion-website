@@ -51,12 +51,9 @@ const AdminContact = lazy(() => import("./pages/admin/Contact"));
 const AdminSettings = lazy(() => import("./pages/admin/Settings"));
 const VerifyTicket = lazy(() => import("./pages/admin/VerifyTicket"));
 const Applications = lazy(() => import("./pages/admin/Applications"));
-const Students = lazy(() => import("./pages/admin/Students"));
-const AdminCourses = lazy(() => import("./pages/admin/Courses"));
 
-// E-learning pages
-const ElearningLogin = lazy(() => import("./pages/ElearningLogin"));
-const Elearning = lazy(() => import("./pages/Elearning"));
+
+
 
 function App() {
   return (
@@ -107,23 +104,7 @@ function App() {
           } 
         />
         
-        {/* E-learning Routes */}
-        <Route 
-          path="/elearning/login" 
-          element={
-            <Suspense fallback={<LoadingState message="Loading login..." />}>
-              <ElearningLogin />
-            </Suspense>
-          } 
-        />
-        <Route 
-          path="/elearning" 
-          element={
-            <Suspense fallback={<LoadingState message="Loading e-learning portal..." />}>
-              <Elearning />
-            </Suspense>
-          } 
-        />
+
         
         {/* Admin Routes */}
         <Route 
@@ -289,22 +270,7 @@ function App() {
               </Suspense>
             } 
           />
-          <Route 
-            path="/admin/students" 
-            element={
-              <Suspense fallback={<LoadingState message="Loading students..." />}>
-                <Students />
-              </Suspense>
-            } 
-          />
-          <Route 
-            path="/admin/courses" 
-            element={
-              <Suspense fallback={<LoadingState message="Loading courses..." />}>
-                <AdminCourses />
-              </Suspense>
-            } 
-          />
+          
         </Route>
       </Routes>
     </Router>

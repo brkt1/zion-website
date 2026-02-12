@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FaBook, FaBriefcase, FaCalendarAlt, FaCheck, FaCheckCircle, FaClock, FaEnvelope, FaEye, FaGraduationCap, FaHandsHelping, FaIdCard, FaInfoCircle, FaPhone, FaSpinner, FaTimes, FaTrash, FaUser, FaUserCircle } from 'react-icons/fa';
+import { FaBriefcase, FaCalendarAlt, FaCheck, FaClock, FaEnvelope, FaEye, FaHandsHelping, FaInfoCircle, FaPhone, FaSpinner, FaTimes, FaTrash, FaUser, FaUserCircle } from 'react-icons/fa';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { adminApi } from '../../services/adminApi';
 import { Application } from '../../types';
@@ -15,10 +15,6 @@ const Applications = () => {
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [statusNotes, setStatusNotes] = useState('');
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
-  const [learningProgress, setLearningProgress] = useState<any>(null);
-  const [loadingProgress, setLoadingProgress] = useState(false);
-  const [userAccountInfo, setUserAccountInfo] = useState<any>(null);
-  const [loadingAccountInfo, setLoadingAccountInfo] = useState(false);
 
   useEffect(() => {
     loadApplications();
@@ -144,41 +140,6 @@ const Applications = () => {
     }
   };
 
-  const loadLearningProgress = async (email: string) => {
-    setLoadingProgress(true);
-    try {
-      const progress = await adminApi.applications.getLearningProgress(email);
-      setLearningProgress(progress);
-    } catch (error: any) {
-      console.error('Error loading learning progress:', error);
-      setLearningProgress({
-        hasAccount: false,
-        progress: [],
-        stats: {
-          totalLessons: 0,
-          completedLessons: 0,
-          viewedLessons: 0,
-          completionPercentage: 0,
-          viewPercentage: 0,
-        },
-      });
-    } finally {
-      setLoadingProgress(false);
-    }
-  };
-
-  const loadUserAccountInfo = async (email: string) => {
-    setLoadingAccountInfo(true);
-    try {
-      const accountInfo = await adminApi.applications.getUserAccountInfo(email);
-      setUserAccountInfo(accountInfo);
-    } catch (error: any) {
-      console.error('Error loading user account info:', error);
-      setUserAccountInfo(null);
-    } finally {
-      setLoadingAccountInfo(false);
-    }
-  };
 
   const filteredApplications = applications.filter(app => {
     const typeMatch = filter === 'all' || app.type === filter;
@@ -333,11 +294,6 @@ const Applications = () => {
                             onClick={async () => {
                               setSelectedApplication(application);
                               setShowModal(true);
-                              // Load learning progress and user account info when opening modal
-                              await Promise.all([
-                                loadLearningProgress(application.email),
-                                loadUserAccountInfo(application.email)
-                              ]);
                             }}
                             className="text-blue-600 hover:text-blue-900"
                             title="View full details"
@@ -401,8 +357,6 @@ const Applications = () => {
                       setShowModal(false);
                       setSelectedApplication(null);
                       setStatusNotes('');
-                      setLearningProgress(null);
-                      setUserAccountInfo(null);
                     }}
                     className="text-gray-400 hover:text-gray-600"
                   >
@@ -500,53 +454,6 @@ const Applications = () => {
                   </div>
                 </div>
 
-                {/* User Account Information Section */}
-                <div className="bg-purple-50 rounded-lg p-6 border border-purple-200">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <FaIdCard className="mr-2 text-purple-600" />
-                    User Account Information
-                  </h3>
-                  {loadingAccountInfo ? (
-                    <div className="flex items-center justify-center py-8">
-                      <FaSpinner className="animate-spin text-2xl text-purple-600 mr-3" />
-                      <span className="text-gray-600">Loading account information...</span>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-white rounded-lg p-4 border border-gray-200">
-                        <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Account Status</label>
-                        <div className="flex items-center mt-1">
-                          {learningProgress?.hasAccount || userAccountInfo?.has_account ? (
-                            <>
-                              <FaCheckCircle className="text-green-500 mr-2" />
-                              <span className="text-green-700 font-medium">Account Created</span>
-                            </>
-                          ) : (
-                            <>
-                              <FaTimes className="text-red-500 mr-2" />
-                              <span className="text-red-700 font-medium">No Account Yet</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                      {userAccountInfo?.user_id && (
-                        <div className="bg-white rounded-lg p-4 border border-gray-200">
-                          <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">User ID</label>
-                          <p className="text-gray-900 font-mono text-xs break-all">{userAccountInfo.user_id}</p>
-                        </div>
-                      )}
-                      {userAccountInfo?.account_created_at && (
-                        <div className="bg-white rounded-lg p-4 border border-gray-200">
-                          <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Account Created</label>
-                          <div className="flex items-center text-gray-900 font-medium">
-                            <FaCalendarAlt className="mr-2 text-gray-400" />
-                            {formatDate(userAccountInfo.account_created_at)}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
 
                 {/* Application Details Section */}
                 <div className="bg-indigo-50 rounded-lg p-6 border border-indigo-200">
@@ -574,130 +481,6 @@ const Applications = () => {
                   </div>
                 </div>
 
-                {/* Learning Progress Section */}
-                <div className="border-t border-gray-200 pt-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <FaGraduationCap className="mr-2 text-blue-600" />
-                    Learning Progress
-                  </h3>
-                  
-                  {loadingProgress ? (
-                    <div className="flex items-center justify-center py-8">
-                      <FaSpinner className="animate-spin text-2xl text-blue-600 mr-3" />
-                      <span className="text-gray-600">Loading learning progress...</span>
-                    </div>
-                  ) : learningProgress ? (
-                    <div className="space-y-4">
-                      {learningProgress.hasAccount ? (
-                        <>
-                          {/* Progress Statistics */}
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <p className="text-sm text-gray-600">Total Lessons</p>
-                                  <p className="text-2xl font-bold text-gray-900">{learningProgress.stats.totalLessons}</p>
-                                </div>
-                                <FaBook className="text-3xl text-blue-500 opacity-50" />
-                              </div>
-                            </div>
-                            <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <p className="text-sm text-gray-600">Completed</p>
-                                  <p className="text-2xl font-bold text-gray-900">{learningProgress.stats.completedLessons}</p>
-                                </div>
-                                <FaCheckCircle className="text-3xl text-green-500 opacity-50" />
-                              </div>
-                            </div>
-                            <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <p className="text-sm text-gray-600">Viewed</p>
-                                  <p className="text-2xl font-bold text-gray-900">{learningProgress.stats.viewedLessons}</p>
-                                </div>
-                                <FaEye className="text-3xl text-purple-500 opacity-50" />
-                              </div>
-                            </div>
-                            <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <p className="text-sm text-gray-600">Completion</p>
-                                  <p className="text-2xl font-bold text-gray-900">{learningProgress.stats.completionPercentage}%</p>
-                                </div>
-                                <FaGraduationCap className="text-3xl text-indigo-500 opacity-50" />
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Progress Bar */}
-                          <div className="bg-gray-200 rounded-full h-4 overflow-hidden">
-                            <div
-                              className="bg-gradient-to-r from-blue-500 to-indigo-600 h-full transition-all duration-500 rounded-full flex items-center justify-center"
-                              style={{ width: `${learningProgress.stats.completionPercentage}%` }}
-                            >
-                              {learningProgress.stats.completionPercentage > 10 && (
-                                <span className="text-xs font-semibold text-white">
-                                  {learningProgress.stats.completionPercentage}%
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          {learningProgress.stats.completionPercentage <= 10 && (
-                            <p className="text-sm text-gray-600 text-center">
-                              {learningProgress.stats.completionPercentage}% Complete
-                            </p>
-                          )}
-
-                          {/* Progress Details by Week */}
-                          {learningProgress.progress && learningProgress.progress.length > 0 && (
-                            <div className="mt-6">
-                              <h4 className="text-sm font-semibold text-gray-700 mb-3">Progress by Week</h4>
-                              <div className="space-y-3 max-h-64 overflow-y-auto">
-                                {Array.from(new Set(learningProgress.progress.map((p: any) => p.week_number)))
-                                  .sort((a: any, b: any) => a - b)
-                                  .map((weekNum: any) => {
-                                    const weekProgress = learningProgress.progress.filter((p: any) => p.week_number === weekNum);
-                                    const weekCompleted = weekProgress.filter((p: any) => p.completed).length;
-                                    const weekTotal = weekProgress.length;
-                                    const weekPercentage = weekTotal > 0 ? Math.round((weekCompleted / weekTotal) * 100) : 0;
-                                    
-                                    return (
-                                      <div key={weekNum} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                                        <div className="flex items-center justify-between mb-2">
-                                          <span className="text-sm font-medium text-gray-900">Week {weekNum}</span>
-                                          <span className="text-xs text-gray-600">
-                                            {weekCompleted} / {weekTotal} lessons
-                                          </span>
-                                        </div>
-                                        <div className="bg-gray-200 rounded-full h-2 overflow-hidden">
-                                          <div
-                                            className="bg-blue-500 h-full transition-all duration-300 rounded-full"
-                                            style={{ width: `${weekPercentage}%` }}
-                                          />
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
-                              </div>
-                            </div>
-                          )}
-                        </>
-                      ) : (
-                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                          <p className="text-yellow-800 text-sm">
-                            <FaGraduationCap className="inline mr-2" />
-                            This applicant hasn't created an account yet or hasn't started the learning program.
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                      <p className="text-gray-600 text-sm">Click "View" to load learning progress.</p>
-                    </div>
-                  )}
-                </div>
                 
                 {/* Status Update Section */}
                 <div className="border-t border-gray-200 pt-6">

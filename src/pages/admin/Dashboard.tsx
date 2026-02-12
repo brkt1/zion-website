@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
     FaBan,
-    FaBook,
     FaCalendarAlt,
     FaChartLine,
     FaCheckCircle,
@@ -11,7 +10,6 @@ import {
     FaEnvelope,
     FaEye,
     FaGlobe,
-    FaGraduationCap,
     FaHome,
     FaImages,
     FaInfoCircle,
@@ -57,8 +55,6 @@ interface Stats {
   uniqueVisitorsToday: number;
   totalVisits: number;
   dailyVisitStats: Array<{ date: string; count: number; unique_visitors: number }>;
-  totalCourses: number;
-  enrolledStudents: number;
 }
 
 const Dashboard = () => {
@@ -88,8 +84,6 @@ const Dashboard = () => {
     uniqueVisitorsToday: 0,
     totalVisits: 0,
     dailyVisitStats: [],
-    totalCourses: 0,
-    enrolledStudents: 0,
   });
   const [loadingStats, setLoadingStats] = useState(true);
   const [ticketFilter, setTicketFilter] = useState<'all' | 'success' | 'pending' | 'failed'>('all');
@@ -116,15 +110,13 @@ const Dashboard = () => {
       today.setHours(0, 0, 0, 0);
       const todayStr = today.toISOString().split('T')[0];
       
-      const [events, categories, gallery, destinations, allTickets, eventsData, courses, applications] = await Promise.all([
+      const [events, categories, gallery, destinations, allTickets, eventsData] = await Promise.all([
         supabase.from('events').select('id', { count: 'exact', head: true }).gte('date', todayStr), // Only upcoming events
         supabase.from('categories').select('id', { count: 'exact', head: true }),
         supabase.from('gallery').select('id', { count: 'exact', head: true }),
         supabase.from('destinations').select('id', { count: 'exact', head: true }),
         adminApi.tickets.getAll(),
         supabase.from('events').select('attendees').gte('date', todayStr), // Only upcoming events for attendees
-        supabase.from('courses').select('id', { count: 'exact', head: true }),
-        supabase.from('applications').select('id', { count: 'exact', head: true }).eq('status', 'accepted').eq('type', 'internship'),
       ]);
 
       const totalTickets = allTickets?.length || 0;
@@ -237,8 +229,6 @@ const Dashboard = () => {
         uniqueVisitorsToday,
         totalVisits,
         dailyVisitStats,
-        totalCourses: courses.count || 0,
-        enrolledStudents: applications.count || 0,
       });
     } catch (error) {
       console.error('Error loading stats:', error);
@@ -626,7 +616,7 @@ const Dashboard = () => {
           </div>
 
           {/* Secondary Stats */}
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-xs sm:text-sm font-medium text-gray-600">Categories</p>
@@ -658,28 +648,6 @@ const Dashboard = () => {
                 <div className="animate-pulse h-6 sm:h-8 bg-gray-200 rounded w-12 sm:w-16"></div>
               ) : (
                 <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.totalDestinations}</p>
-              )}
-            </div>
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-xs sm:text-sm font-medium text-gray-600">Courses</p>
-                <FaBook className="text-indigo-500 w-4 h-4 sm:w-5 sm:h-5" />
-              </div>
-              {loadingStats ? (
-                <div className="animate-pulse h-6 sm:h-8 bg-gray-200 rounded w-12 sm:w-16"></div>
-              ) : (
-                <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.totalCourses}</p>
-              )}
-            </div>
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-xs sm:text-sm font-medium text-gray-600">Enrolled Students</p>
-                <FaGraduationCap className="text-blue-500 w-4 h-4 sm:w-5 sm:h-5" />
-              </div>
-              {loadingStats ? (
-                <div className="animate-pulse h-6 sm:h-8 bg-gray-200 rounded w-12 sm:w-16"></div>
-              ) : (
-                <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.enrolledStudents}</p>
               )}
             </div>
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
