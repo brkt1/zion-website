@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react';
 import {
-  FaBan,
   FaCalendarAlt,
   FaChartLine,
   FaCheckCircle,
-  FaClock,
   FaCog,
   FaDollarSign,
   FaEnvelope,
@@ -19,7 +17,6 @@ import {
   FaRedo,
   FaStar,
   FaTicketAlt,
-  FaTimesCircle,
   FaUser,
   FaUsers
 } from 'react-icons/fa';
@@ -254,20 +251,7 @@ const Dashboard = () => {
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'success':
-        return <FaCheckCircle className="text-green-500" />;
-      case 'pending':
-        return <FaClock className="text-yellow-500" />;
-      case 'failed':
-        return <FaTimesCircle className="text-red-500" />;
-      case 'cancelled':
-        return <FaBan className="text-gray-500" />;
-      default:
-        return null;
-    }
-  };
+
 
   const getStatusColor = (status: string) => {
     switch (status) {

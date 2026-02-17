@@ -177,7 +177,7 @@ const PaymentSuccess = () => {
       console.error('Error saving ticket to database:', error);
       // Don't show error to user, ticket display will still work
     }
-  }, [quantityParam, eventIdParam, eventTitleParam, commissionSellerIdParam, ticketSaved, commissionSeller]);
+  }, [quantityParam, eventIdParam, eventTitleParam, commissionSellerIdParam, ticketSaved, commissionSeller, validCommissionSellerId]);
 
   // Function to send WhatsApp thank you message
   const sendWhatsAppMessage = useCallback(async (paymentData: any, txRef: string | null) => {

@@ -15,7 +15,7 @@ const EventDetail = () => {
   const [searchParams] = useSearchParams();
   const { event, isLoading, mutate: refetchEvent } = useEvent(id);
   const { contactInfo } = useContactInfo();
-  const { sellers: allSellers, isLoading: sellersLoading } = useActiveCommissionSellers();
+  const { sellers: allSellers } = useActiveCommissionSellers();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -93,35 +93,7 @@ const EventDetail = () => {
   }, [selectedSeller, basePrice, paymentForm.quantity, event]);
 
   // Helper function to calculate discount (uses memoized result when possible)
-  const calculateDiscount = (price: number, qty: number) => {
-    // If parameters match memoized calculation, return cached result
-    const currentQty = paymentForm.quantity || 1;
-    if (price === basePrice && qty === currentQty) {
-      return discountCalculation;
-    }
-    
-    // Otherwise calculate on the fly (for edge cases with different parameters)
-    if (!selectedSeller || !selectedSeller.discount_rate || !selectedSeller.discount_type || price === 0 || !event) {
-      return { discountAmount: 0, discountText: '', selectedSeller: null };
-    }
-
-    const subtotal = price * qty;
-    let discountAmount = 0;
-
-    if (selectedSeller.discount_type === 'percentage') {
-      discountAmount = (subtotal * selectedSeller.discount_rate) / 100;
-    } else {
-      discountAmount = selectedSeller.discount_rate * qty;
-    }
-
-    discountAmount = Math.min(discountAmount, subtotal);
-
-    const discountText = selectedSeller.discount_type === 'percentage'
-      ? `${selectedSeller.discount_rate}% off`
-      : `${selectedSeller.discount_rate} ${event.currency} off`;
-
-    return { discountAmount, discountText, selectedSeller };
-  };
+  // Helper function removed as it was unused and identical logic is memoized in discountCalculation
 
   // Pre-fetch Chapa public key when payment modal opens (for faster checkout)
   // Also check localStorage cache immediately for instant access
@@ -282,7 +254,7 @@ const EventDetail = () => {
 
         // Sanitize event title for Chapa (only letters, numbers, hyphens, underscores, spaces, and dots)
         const sanitizeTitle = (text: string): string => {
-          return text.replace(/[^a-zA-Z0-9_\s.\-]/g, '').trim();
+          return text.replace(/[^a-zA-Z0-9_\s.-]/g, '').trim();
         };
         const sanitizedTitle = sanitizeTitle(event.title);
         const title = sanitizedTitle.length > 16 ? sanitizedTitle.substring(0, 16) : sanitizedTitle;
