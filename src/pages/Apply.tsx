@@ -118,7 +118,7 @@ const Apply = () => {
               Join Our Team
             </h1>
             <p className="text-gray-600 text-base md:text-lg leading-relaxed max-w-2xl mx-auto">
-              We're always looking for passionate individuals to join us as interns or volunteers. Be part of creating amazing experiences!
+              Help us build the future of African events. We're looking for innovative minds to join our ecosystem as interns or volunteers and scale world-class experiences.
             </p>
           </div>
 

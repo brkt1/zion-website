@@ -156,7 +156,7 @@ const Contact = () => {
                 Get in Touch
               </h1>
               <p className="text-gray-600 text-base md:text-lg leading-relaxed mb-6">
-                Have questions, suggestions, or want to collaborate? Reach out to us through any of the channels below.
+                Ready to revolutionize your events? Whether you're an organizer, business potential partner, or student leader, our team is here to help you scale and succeed.
               </p>
             </div>
 

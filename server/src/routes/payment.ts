@@ -196,11 +196,16 @@ router.post('/initialize', async (req: Request, res: Response) => {
         errorStatus = error.status || error.statusCode;
       }
       
-      const errorMessage = error.message || errorResponse.message || 'Unknown error occurred';
+      const errorMessage = (typeof error.message === 'string' ? error.message : null) || 
+                          (errorResponse.message && typeof errorResponse.message === 'string' ? errorResponse.message : null) || 
+                          'Unknown error occurred';
       
       // Log error concisely (only in development or for critical errors)
-      if (process.env.NODE_ENV === 'development') {
+      if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV !== 'production') {
         console.error('Chapa API Error:', errorMessage, errorStatus ? `(${errorStatus})` : '');
+        if (typeof errorResponse.message === 'object') {
+          console.error('Error details object:', JSON.stringify(errorResponse.message));
+        }
       }
 
       // Check if using production key
@@ -291,7 +296,7 @@ router.post('/initialize', async (req: Request, res: Response) => {
       }
 
       // Handle other Chapa API errors
-      const chapaMessage = errorResponse.message || errorMessage;
+      const chapaMessage = (typeof errorResponse.message === 'string' ? errorResponse.message : null) || errorMessage;
       return res.status(400).json({
         success: false,
         message: chapaMessage || 'Failed to initialize payment with Chapa',
