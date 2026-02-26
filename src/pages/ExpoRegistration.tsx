@@ -41,6 +41,7 @@ const ExpoRegistration: React.FC = () => {
     if (presetBooth && ['premium', 'standard', 'shared'].includes(presetBooth)) {
       setFormData(prev => ({ ...prev, boothType: presetBooth }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchContactInfo = async () => {

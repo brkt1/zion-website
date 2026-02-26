@@ -1024,7 +1024,7 @@ export const adminApi = {
     },
 
     create: async (applicationData: CreateApplicationData) => {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('applications')
         .insert([{
           name: applicationData.name,

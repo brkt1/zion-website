@@ -78,8 +78,6 @@ const ExpoInfo: React.FC = () => {
     { icon: <FiHeart />, label: 'Beauty & Wellness' }
   ];
 
-  const lightBg = "#FAF9F6"; // Warm Pearl
-  const primaryText = "#1A1A1A"; // Deep Charcoal
   const yenegeYellow = "#FFD447";
   const coralOrange = "#FF6F5E";
   const indigoDeep = "#1C2951";
