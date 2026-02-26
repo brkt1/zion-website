@@ -17,7 +17,9 @@ const Header = () => {
   const navLinks = config?.navigation || [
     { path: "/", label: "Home" },
     { path: "/events", label: "Events" },
+    { path: "/expo-info", label: "Wedding Expo" },
     { path: "/travel", label: "Travel & Adventures" },
+
     { path: "/community", label: "Community" },
     { path: "/about", label: "About" },
     { path: "/contact", label: "Contact" },

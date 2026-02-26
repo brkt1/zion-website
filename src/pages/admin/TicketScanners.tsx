@@ -1,5 +1,19 @@
 import { useEffect, useState } from 'react';
-import { FaCheckCircle, FaEdit, FaPlus, FaQrcode, FaTimes, FaTimesCircle, FaTrash } from 'react-icons/fa';
+import {
+    FaCalendarAlt,
+    FaCheckCircle,
+    FaEdit,
+    FaEnvelope,
+    FaPhoneAlt,
+    FaPlus,
+    FaQrcode,
+    FaSearch,
+    FaStickyNote,
+    FaTimes,
+    FaTimesCircle,
+    FaTrash,
+    FaUserShield
+} from 'react-icons/fa';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 import { adminApi } from '../../services/adminApi';
@@ -8,6 +22,8 @@ import { TicketScanner } from '../../types';
 const TicketScanners = () => {
   const { loading: authLoading, isAdminUser } = useAdminAuth();
   const [scanners, setScanners] = useState<TicketScanner[]>([]);
+  const [filteredScanners, setFilteredScanners] = useState<TicketScanner[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingScanner, setEditingScanner] = useState<TicketScanner | null>(null);
@@ -25,10 +41,21 @@ const TicketScanners = () => {
     }
   }, [authLoading, isAdminUser]);
 
+  useEffect(() => {
+    const query = searchQuery.toLowerCase();
+    const filtered = scanners.filter(scanner => 
+      scanner.name.toLowerCase().includes(query) || 
+      scanner.email.toLowerCase().includes(query) ||
+      (scanner.phone && scanner.phone.includes(query))
+    );
+    setFilteredScanners(filtered);
+  }, [searchQuery, scanners]);
+
   const loadScanners = async () => {
     try {
       const data = await adminApi.ticketScanners.getAll();
-      setScanners(data);
+      setScanners(data || []);
+      setFilteredScanners(data || []);
     } catch (error) {
       console.error('Error loading ticket scanners:', error);
     } finally {
@@ -107,8 +134,11 @@ const TicketScanners = () => {
   if (authLoading) {
     return (
       <AdminLayout>
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <div className="min-h-screen flex items-center justify-center bg-[#f8f9fa]">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-[#FFD447] border-t-[#FF6F5E] rounded-full animate-spin mx-auto mb-6 shadow-lg shadow-[#FFD447]/20"></div>
+            <p className="text-[#1C2951] font-bold tracking-tight">Loading Scanners Hub...</p>
+          </div>
         </div>
       </AdminLayout>
     );
@@ -117,11 +147,13 @@ const TicketScanners = () => {
   if (!isAdminUser) {
     return (
       <AdminLayout>
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <FaTimesCircle className="mx-auto mb-4 text-red-500" size={64} />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Access Denied</h3>
-            <p className="text-sm text-gray-500">You don't have permission to access this page.</p>
+        <div className="min-h-screen flex items-center justify-center bg-[#f8f9fa]">
+          <div className="text-center bg-white p-12 rounded-[40px] shadow-2xl border border-gray-100 max-w-md mx-4">
+            <div className="w-24 h-24 bg-red-50 rounded-3xl flex items-center justify-center mx-auto mb-8">
+              <FaTimesCircle className="text-red-500" size={48} />
+            </div>
+            <h3 className="text-3xl font-black text-[#1C2951] mb-4 tracking-tight">Access Denied</h3>
+            <p className="text-gray-500 font-medium leading-relaxed">You don't have the necessary administrative privileges to access this secure area.</p>
           </div>
         </div>
       </AdminLayout>
@@ -130,254 +162,281 @@ const TicketScanners = () => {
 
   return (
     <AdminLayout title="Ticket Scanners">
-      <div className="max-w-7xl mx-auto">
-        {/* Action Bar */}
-        <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Ticket Scanners</h2>
-            <p className="text-xs sm:text-sm text-gray-500 mt-1">Manage ticket scanner accounts</p>
-          </div>
-          <button
-            onClick={() => {
-              resetForm();
-              setEditingScanner(null);
-              setShowModal(true);
-            }}
-            className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 text-sm sm:text-base rounded-lg text-white transition-all shadow-md hover:shadow-lg"
-            style={{ background: 'linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)' }}
-          >
-            <FaPlus />
-            <span>Add Scanner</span>
-          </button>
-        </div>
-
-        {/* Scanners List */}
-        {loading ? (
-          <div className="bg-white rounded-lg shadow p-8">
-            <div className="animate-pulse space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-16 bg-gray-200 rounded"></div>
-              ))}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+        {/* Header Stats / Action Bar */}
+        <div className="mb-10 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+          <div className="flex-1">
+            <div className="flex items-center gap-4 mb-2">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#1C2951] to-[#2A3F75] flex items-center justify-center shadow-lg shadow-[#1C2951]/20">
+                <FaUserShield className="text-[#FFD447]" size={24} />
+              </div>
+              <div>
+                <h2 className="text-3xl font-black text-[#1C2951] tracking-tight">Scanner Registry</h2>
+                <p className="text-gray-400 font-bold uppercase text-[10px] tracking-[0.2em]">Authority Management System</p>
+              </div>
             </div>
           </div>
-        ) : scanners.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-8 sm:p-12 text-center">
-            <FaQrcode className="mx-auto mb-4 text-gray-300 w-12 h-12 sm:w-16 sm:h-16" />
-            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No ticket scanners</h3>
-            <p className="text-xs sm:text-sm text-gray-500 mb-4">Get started by adding your first ticket scanner.</p>
+
+          <div className="flex flex-col sm:flex-row gap-4 items-center w-full lg:w-auto">
+             {/* Search Bar */}
+             <div className="relative w-full sm:w-80 group">
+                <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#FF6F5E] transition-colors" size={14} />
+                <input 
+                  type="text" 
+                  placeholder="Search by name, email..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-100 rounded-2xl focus:ring-4 focus:ring-[#FFD447]/10 focus:border-[#FFD447] outline-none transition-all font-bold text-gray-700 shadow-sm"
+                />
+              </div>
+
             <button
               onClick={() => {
                 resetForm();
                 setEditingScanner(null);
                 setShowModal(true);
               }}
-              className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 text-sm sm:text-base rounded-lg text-white transition-all shadow-md hover:shadow-lg"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl text-white font-black text-sm tracking-tight transition-all shadow-xl shadow-[#FF6F5E]/20 hover:shadow-2xl hover:shadow-[#FF6F5E]/30 hover:-translate-y-0.5 active:translate-y-0 scale-100 hover:scale-[1.02] active:scale-[0.98]"
               style={{ background: 'linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)' }}
             >
               <FaPlus />
-              <span>Add Scanner</span>
+              <span>Register New Scanner</span>
             </button>
           </div>
-        ) : (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Name
-                    </th>
-                    <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
-                      Email
-                    </th>
-                    <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
-                      Phone
-                    </th>
-                    <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
-                      Created
-                    </th>
-                    <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {scanners.map((scanner) => (
-                    <tr key={scanner.id} className="hover:bg-gray-50">
-                      <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(255, 212, 71, 0.2)' }}>
-                            <FaQrcode className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: '#FF6F5E' }} />
-                          </div>
-                          <div className="ml-2 sm:ml-4 min-w-0">
-                            <div className="text-xs sm:text-sm font-medium text-gray-900 truncate">{scanner.name}</div>
-                            <div className="mt-0.5 sm:hidden text-xs text-gray-500 truncate">{scanner.email}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap hidden sm:table-cell">
-                        <div className="text-xs sm:text-sm text-gray-900 truncate">{scanner.email}</div>
-                      </td>
-                      <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap hidden md:table-cell">
-                        <div className="text-xs sm:text-sm text-gray-500">{scanner.phone || '-'}</div>
-                      </td>
-                      <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap">
-                        <button
-                          onClick={() => toggleActive(scanner)}
-                          className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            scanner.is_active
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-gray-100 text-gray-800'
-                          }`}
-                        >
-                          {scanner.is_active ? (
-                            <>
-                              <FaCheckCircle className="mr-1" size={10} />
-                              <span className="hidden sm:inline">Active</span>
-                            </>
-                          ) : (
-                            <>
-                              <FaTimesCircle className="mr-1" size={10} />
-                              <span className="hidden sm:inline">Inactive</span>
-                            </>
-                          )}
-                        </button>
-                      </td>
-                      <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500 hidden lg:table-cell">
-                        {new Date(scanner.created_at).toLocaleDateString()}
-                      </td>
-                      <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => handleEdit(scanner)}
-                            className="p-1.5 sm:p-2 rounded hover:bg-gray-100 transition-colors"
-                            style={{ color: '#FF6F5E' }}
-                            title="Edit"
-                          >
-                            <FaEdit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(scanner.id)}
-                            className="p-1.5 sm:p-2 rounded hover:bg-gray-100 transition-colors text-red-600"
-                            title="Delete"
-                          >
-                            <FaTrash className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        </div>
+
+        {/* Scanners Grid */}
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="h-64 bg-white rounded-[32px] shadow-sm border border-gray-100 animate-pulse"></div>
+            ))}
+          </div>
+        ) : filteredScanners.length === 0 ? (
+          <div className="bg-white rounded-[40px] shadow-2xl shadow-gray-200/50 p-12 sm:p-20 text-center border border-gray-50 flex flex-col items-center">
+            <div className="w-24 h-24 bg-gray-50 rounded-3xl flex items-center justify-center mb-8 relative">
+              <FaQrcode className="text-gray-300" size={48} />
+              <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-white rounded-2xl shadow-lg flex items-center justify-center border border-gray-50">
+                <FaSearch className="text-[#FF6F5E]" size={16} />
+              </div>
             </div>
+            <h3 className="text-2xl font-black text-[#1C2951] mb-3 tracking-tight">No Scanners Found</h3>
+            <p className="text-gray-500 font-medium mb-10 max-w-sm mx-auto leading-relaxed">
+              {searchQuery ? `We couldn't find any scanners matching "${searchQuery}". Try broadening your search.` : "The registry is currently empty. Get started by registering your first authorized device scanner."}
+            </p>
+            {!searchQuery && (
+              <button
+                onClick={() => setShowModal(true)}
+                className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl text-white font-black text-sm transition-all shadow-xl shadow-[#FF6F5E]/20 hover:shadow-2xl hover:shadow-[#FF6F5E]/30 hover:scale-105 active:scale-95"
+                style={{ background: 'linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)' }}
+              >
+                <FaPlus />
+                <span>Initialize First Scanner</span>
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredScanners.map((scanner) => (
+              <div 
+                key={scanner.id} 
+                className="group bg-white rounded-[32px] p-6 shadow-xl shadow-gray-200/30 border border-gray-50 hover:border-[#FFD447]/50 hover:shadow-2xl hover:shadow-[#FFD447]/10 transition-all duration-500 relative flex flex-col"
+              >
+                {/* Active/Inactive Status Badge */}
+                <div className="absolute top-6 right-6">
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      toggleActive(scanner);
+                    }}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${
+                      scanner.is_active
+                        ? 'bg-green-50 text-green-600 hover:bg-green-100'
+                        : 'bg-red-50 text-red-500 hover:bg-red-100'
+                    }`}
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full ${scanner.is_active ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+                    {scanner.is_active ? 'Active' : 'Offline'}
+                  </button>
+                </div>
+
+                {/* Profile Section */}
+                <div className="flex items-center gap-4 mb-8">
+                   <div className="relative">
+                      <div className="w-16 h-16 rounded-[22px] bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-100 transform -rotate-6 group-hover:rotate-0 transition-transform duration-500">
+                        <span className="text-white text-2xl font-black">{scanner.name.charAt(0)}</span>
+                      </div>
+                      <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-xl bg-[#FFD447] flex items-center justify-center shadow-md border-2 border-white">
+                        <FaQrcode className="text-[#1C2951]" size={10} />
+                      </div>
+                   </div>
+                   <div className="min-w-0 flex-1">
+                      <h4 className="text-xl font-black text-[#1C2951] truncate pr-16">{scanner.name}</h4>
+                      <p className="text-[10px] font-bold text-[#FF6F5E] uppercase tracking-widest mt-0.5">Authorized Scanner</p>
+                   </div>
+                </div>
+
+                {/* Info List */}
+                <div className="space-y-4 mb-8 flex-1">
+                  <div className="flex items-center gap-3 text-gray-500">
+                    <div className="w-8 h-8 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">
+                      <FaEnvelope size={12} />
+                    </div>
+                    <span className="text-sm font-bold truncate">{scanner.email}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-gray-500">
+                    <div className="w-8 h-8 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">
+                      <FaPhoneAlt size={12} />
+                    </div>
+                    <span className="text-sm font-bold">{scanner.phone || 'No Phone Registered'}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-gray-500">
+                    <div className="w-8 h-8 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">
+                      <FaCalendarAlt size={12} />
+                    </div>
+                    <span className="text-sm font-bold">Enrolled: {new Date(scanner.created_at).toLocaleDateString()}</span>
+                  </div>
+                  {scanner.notes && (
+                    <div className="mt-4 p-4 rounded-2xl bg-[#f8f9fa] border border-gray-100 border-dashed">
+                       <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#1C2951] mb-1">
+                        <FaStickyNote className="text-[#FFD447]" size={10} /> Notes
+                      </span>
+                      <p className="text-xs text-gray-500 font-medium line-clamp-2">{scanner.notes}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Actions Footer */}
+                <div className="pt-6 border-t border-gray-50 flex items-center justify-between gap-3">
+                  <button
+                    onClick={() => handleEdit(scanner)}
+                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl bg-[#1C2951] text-white text-xs font-black hover:bg-gray-800 transition-all shadow-lg shadow-gray-200 active:scale-95"
+                  >
+                    <FaEdit size={14} />
+                    <span>Re-Configure</span>
+                  </button>
+                  <button
+                    onClick={() => handleDelete(scanner.id)}
+                    className="w-12 h-12 flex items-center justify-center rounded-2xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all active:scale-95 border border-red-100 hover:border-red-500"
+                    title="Revoke Path"
+                  >
+                    <FaTrash size={16} />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
-        {/* Modal */}
+        {/* Modal - Redesigned for Premium Look */}
         {showModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-4 sm:p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-base sm:text-lg font-bold text-gray-900">
-                    {editingScanner ? 'Edit Scanner' : 'Add Scanner'}
-                  </h3>
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div 
+              className="absolute inset-0 bg-[#1C2951]/40 backdrop-blur-md transition-opacity duration-500"
+              onClick={() => {
+                setShowModal(false);
+                setEditingScanner(null);
+                resetForm();
+              }}
+            />
+            
+            <div className="relative bg-white rounded-[48px] shadow-2xl shadow-black/20 w-full max-w-xl max-h-[90vh] overflow-hidden transform transition-all duration-500 scale-100 animate-in fade-in zoom-in-95">
+              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#FFD447] to-[#FF6F5E]" />
+              
+              <div className="p-8 sm:p-12 overflow-y-auto max-h-[calc(90vh-10px)] scrollbar-hide">
+                <div className="flex items-center justify-between mb-10">
+                  <div>
+                    <h3 className="text-3xl font-black text-[#1C2951] tracking-tight">
+                      {editingScanner ? 'Modify Registry' : 'New Enrollment'}
+                    </h3>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Configure scanner credentials</p>
+                  </div>
                   <button
                     onClick={() => {
                       setShowModal(false);
                       setEditingScanner(null);
                       resetForm();
                     }}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all active:scale-90"
                   >
-                    <FaTimes />
+                    <FaTimes size={18} />
                   </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Name *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      onFocus={(e) => e.currentTarget.style.borderColor = '#FF6F5E'}
-                      onBlur={(e) => e.currentTarget.style.borderColor = ''}
-                    />
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="col-span-1 sm:col-span-2">
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3 ml-1">
+                        Full Identification Name
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Front Gate Scanner"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        className="w-full px-6 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-[#FFD447] focus:ring-4 focus:ring-[#FFD447]/10 outline-none transition-all font-bold text-gray-700 placeholder:text-gray-300"
+                      />
+                    </div>
+
+                    <div className="col-span-1 sm:col-span-2">
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3 ml-1">
+                        Secure Access Email
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        placeholder="scanner@example.com"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        className="w-full px-6 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-[#FFD447] focus:ring-4 focus:ring-[#FFD447]/10 outline-none transition-all font-bold text-gray-700 placeholder:text-gray-300"
+                      />
+                    </div>
+
+                    <div className="col-span-1 sm:col-span-2">
+                       <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3 ml-1">
+                        Contact Phone (Optional)
+                      </label>
+                      <input
+                        type="tel"
+                        placeholder="+251 9..."
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        className="w-full px-6 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-[#FFD447] focus:ring-4 focus:ring-[#FFD447]/10 outline-none transition-all font-bold text-gray-700 placeholder:text-gray-300"
+                      />
+                    </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Email *
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#FF6F5E' } as React.CSSProperties}
-                      onFocus={(e) => e.currentTarget.style.borderColor = '#FF6F5E'}
-                      onBlur={(e) => e.currentTarget.style.borderColor = ''}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Phone
-                    </label>
-                    <input
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      onFocus={(e) => e.currentTarget.style.borderColor = '#FF6F5E'}
-                      onBlur={(e) => e.currentTarget.style.borderColor = ''}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Notes
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3 ml-1">
+                      Administrative Notes
                     </label>
                     <textarea
                       value={formData.notes}
                       onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      onFocus={(e) => e.currentTarget.style.borderColor = '#FF6F5E'}
-                      onBlur={(e) => e.currentTarget.style.borderColor = ''}
+                      placeholder="Permissions, locations, or special instructions..."
+                      rows={4}
+                      className="w-full px-6 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-[#FFD447] focus:ring-4 focus:ring-[#FFD447]/10 outline-none transition-all font-bold text-gray-700 placeholder:text-gray-300 resize-none"
                     />
                   </div>
 
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="is_active"
-                      checked={formData.is_active}
-                      onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                      className="h-4 w-4 border-gray-300 rounded"
-                      style={{ accentColor: '#FF6F5E' }}
-                    />
-                    <label htmlFor="is_active" className="ml-2 block text-sm text-gray-700">
-                      Active
-                    </label>
+                  <div className="flex items-center gap-3 p-4 bg-[#f8f9fa] rounded-2xl group cursor-pointer" onClick={() => setFormData({ ...formData, is_active: !formData.is_active })}>
+                    <div className={`w-6 h-6 rounded-lg border-2 transition-all flex items-center justify-center ${formData.is_active ? 'bg-[#FF6F5E] border-[#FF6F5E]' : 'bg-white border-gray-200'}`}>
+                        {formData.is_active && <FaCheckCircle className="text-white" size={14} />}
+                    </div>
+                    <div>
+                      <span className="block text-sm font-black text-[#1C2951] tracking-tight">Immediate Authorization</span>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mt-1">Scanner will be able to verify tickets instantly</p>
+                    </div>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                  <div className="flex flex-col sm:flex-row gap-4 pt-6">
                     <button
                       type="submit"
-                      className="flex-1 text-white px-4 py-2 rounded-lg transition-all shadow-md hover:shadow-lg"
+                      className="flex-1 py-5 rounded-[22px] text-white font-black text-sm tracking-widest uppercase transition-all shadow-xl shadow-[#FF6F5E]/20 hover:shadow-2xl hover:shadow-[#FF6F5E]/30 hover:-translate-y-1 active:translate-y-0"
                       style={{ background: 'linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)' }}
                     >
-                      {editingScanner ? 'Update' : 'Create'}
+                      {editingScanner ? 'Commit Changes' : 'Complete Enrollment'}
                     </button>
                     <button
                       type="button"
@@ -386,9 +445,9 @@ const TicketScanners = () => {
                         setEditingScanner(null);
                         resetForm();
                       }}
-                      className="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                      className="sm:w-32 py-5 rounded-[22px] bg-gray-100 text-gray-500 font-black text-sm tracking-widest uppercase hover:bg-gray-200 transition-all"
                     >
-                      Cancel
+                      Dismiss
                     </button>
                   </div>
                 </form>

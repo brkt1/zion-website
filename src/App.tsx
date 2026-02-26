@@ -26,6 +26,9 @@ const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const PaymentCallback = lazy(() => import("./pages/PaymentCallback"));
 const PaymentFailed = lazy(() => import("./pages/PaymentFailed"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const ExpoInfo = lazy(() => import("./pages/ExpoInfo"));
+const ExpoRegistration = lazy(() => import("./pages/ExpoRegistration"));
+
 
 // Game pages - hidden routes (no navigation links)
 const DiceRoller = lazy(() => import("./pages/games/DiceRoller"));
@@ -51,6 +54,7 @@ const AdminContact = lazy(() => import("./pages/admin/Contact"));
 const AdminSettings = lazy(() => import("./pages/admin/Settings"));
 const VerifyTicket = lazy(() => import("./pages/admin/VerifyTicket"));
 const Applications = lazy(() => import("./pages/admin/Applications"));
+const AdminExpoApplications = lazy(() => import("./pages/admin/ExpoApplications"));
 
 
 
@@ -83,6 +87,9 @@ function App() {
                 <Route path="/about" element={<About />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/apply" element={<Apply />} />
+                <Route path="/expo-info" element={<ExpoInfo />} />
+                <Route path="/expo-registration" element={<ExpoRegistration />} />
+
                 <Route path="/payment/success" element={<PaymentSuccess />} />
                 <Route path="/payment/callback" element={<PaymentCallback />} />
                 <Route path="/payment/failed" element={<PaymentFailed />} />
@@ -267,6 +274,14 @@ function App() {
             element={
               <Suspense fallback={<LoadingState message="Loading..." />}>
                 <Applications />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="/admin/expo-applications" 
+            element={
+              <Suspense fallback={<LoadingState message="Loading..." />}>
+                <AdminExpoApplications />
               </Suspense>
             } 
           />

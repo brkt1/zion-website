@@ -1,25 +1,26 @@
 import { useEffect, useState } from 'react';
 import {
-  FaBars,
-  FaBell,
-  FaBriefcase,
-  FaCalendarAlt,
-  FaChartLine,
-  FaChevronLeft,
-  FaChevronRight,
-  FaCog,
-  FaEnvelope,
-  FaHome,
-  FaImages,
-  FaInfoCircle,
-  FaMapMarkerAlt,
-  FaNewspaper,
-  FaQrcode,
-  FaSearch,
-  FaSignOutAlt,
-  FaTicketAlt,
-  FaTimes,
-  FaUser
+    FaBars,
+    FaBell,
+    FaBriefcase,
+    FaCalendarAlt,
+    FaChartLine,
+    FaChevronLeft,
+    FaChevronRight,
+    FaCog,
+    FaEnvelope,
+    FaGlobe,
+    FaHome,
+    FaImages,
+    FaInfoCircle,
+    FaMapMarkerAlt,
+    FaNewspaper,
+    FaQrcode,
+    FaSearch,
+    FaSignOutAlt,
+    FaTicketAlt,
+    FaTimes,
+    FaUser
 } from 'react-icons/fa';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { isAdmin, isCommissionSeller } from '../../services/auth';
@@ -98,6 +99,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
     { icon: FaTicketAlt, label: 'Commission Sellers', path: '/admin/commission-sellers', color: 'from-orange-500 to-red-500' },
     { icon: FaQrcode, label: 'Ticket Scanners', path: '/admin/ticket-scanners', color: 'from-blue-400 to-cyan-500' },
     { icon: FaBriefcase, label: 'Applications', path: '/admin/applications', color: 'from-teal-500 to-green-500' },
+    { icon: FaGlobe, label: 'Expo Applications', path: '/admin/expo-applications', color: 'from-orange-400 to-amber-500' },
     { icon: FaCog, label: 'Site Settings', path: '/admin/settings', color: 'from-gray-500 to-slate-600' },
   ];
 

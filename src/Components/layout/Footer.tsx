@@ -29,7 +29,9 @@ const Footer = () => {
   const quickLinks = config?.footer?.quickLinks || [
     { path: "/", label: "Home" },
     { path: "/events", label: "Events" },
+    { path: "/expo-info", label: "Wedding Expo" },
     { path: "/about", label: "About" },
+
     { path: "/apply", label: "Apply" },
     { path: "/contact", label: "Contact" },
   ];

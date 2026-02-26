@@ -218,7 +218,7 @@ export interface UpdateTicketScannerData {
   notes?: string;
 }
 
-// Application types
+// Application types (Internship/Volunteer)
 export interface Application {
   id: string;
   name: string;
@@ -250,3 +250,38 @@ export interface UpdateApplicationData {
   status?: 'pending' | 'reviewed' | 'accepted' | 'rejected';
   notes?: string;
 }
+
+// Expo Application types (Exhibitors)
+export interface ExpoApplication {
+  id: string;
+  companyName: string;
+  contactPerson: string;
+  email: string;
+  phone: string;
+  socialMedia?: string;
+  category: string;
+  boothType: string;
+  paymentOption?: string;
+  status: 'pending' | 'reviewed' | 'accepted' | 'rejected';
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateExpoApplicationData {
+  companyName: string;
+  contactPerson: string;
+  email: string;
+  phone: string;
+  socialMedia?: string;
+  category: string;
+  boothType: string;
+  paymentOption?: string;
+}
+
+export interface UpdateExpoApplicationData {
+  status?: 'pending' | 'reviewed' | 'accepted' | 'rejected';
+  notes?: string;
+}
+
+

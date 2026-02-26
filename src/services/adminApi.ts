@@ -1,4 +1,4 @@
-import { Application, CommissionSeller, CreateApplicationData, CreateCommissionSellerData, CreateTicketScannerData, TicketScanner, UpdateApplicationData, UpdateCommissionSellerData, UpdateTicketScannerData } from '../types';
+import { Application, CommissionSeller, CreateApplicationData, CreateCommissionSellerData, CreateExpoApplicationData, CreateTicketScannerData, ExpoApplication, TicketScanner, UpdateApplicationData, UpdateCommissionSellerData, UpdateExpoApplicationData, UpdateTicketScannerData } from '../types';
 import { AboutContent, Category, ContactInfo, Destination, Event, GalleryItem, HomeContent, SiteConfig } from './api';
 import { supabase } from './supabase';
 
@@ -1035,12 +1035,10 @@ export const adminApi = {
           experience: applicationData.experience || null,
           motivation: applicationData.motivation,
           availability: applicationData.availability || null,
-        }])
-        .select()
-        .single();
+        }]);
 
       if (error) throw error;
-      return data as Application;
+      return { success: true } as any;
     },
 
     update: async (id: string, applicationData: UpdateApplicationData) => {
@@ -1065,6 +1063,98 @@ export const adminApi = {
     delete: async (id: string) => {
       const { error } = await supabase
         .from('applications')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return { success: true };
+    },
+  },
+
+  // Expo Applications - Manage exhibitor registrations
+  expoApplications: {
+    _map: (data: any): ExpoApplication => ({
+      id: data.id,
+      companyName: data.company_name,
+      contactPerson: data.contact_person,
+      email: data.email,
+      phone: data.phone,
+      socialMedia: data.social_media,
+      category: data.category,
+      boothType: data.booth_type,
+      paymentOption: data.payment_option,
+      status: data.status,
+      notes: data.notes,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+    }),
+
+    getAll: async () => {
+      const { data, error } = await supabase
+        .from('expo_applications')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return (data || []).map(adminApi.expoApplications._map);
+    },
+
+    getById: async (id: string) => {
+      const { data, error } = await supabase
+        .from('expo_applications')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      return adminApi.expoApplications._map(data);
+    },
+
+    create: async (applicationData: CreateExpoApplicationData) => {
+      const { data, error } = await supabase
+        .from('expo_applications')
+        .insert([{
+          company_name: applicationData.companyName,
+          contact_person: applicationData.contactPerson,
+          email: applicationData.email,
+          phone: applicationData.phone,
+          social_media: applicationData.socialMedia || null,
+          category: applicationData.category,
+          booth_type: applicationData.boothType,
+          payment_option: applicationData.paymentOption || null,
+        }])
+        .select();
+
+      if (error) {
+        console.error('Supabase error inserting expo application:', error);
+        throw error;
+      }
+      
+      return data && data.length > 0 ? adminApi.expoApplications._map(data[0]) : { success: true } as any;
+    },
+
+    update: async (id: string, applicationData: UpdateExpoApplicationData) => {
+      const updateData: any = {
+        updated_at: new Date().toISOString(),
+      };
+
+      if (applicationData.status !== undefined) updateData.status = applicationData.status;
+      if (applicationData.notes !== undefined) updateData.notes = applicationData.notes || null;
+
+      const { data, error } = await supabase
+        .from('expo_applications')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return adminApi.expoApplications._map(data);
+    },
+
+    delete: async (id: string) => {
+      const { error } = await supabase
+        .from('expo_applications')
         .delete()
         .eq('id', id);
 

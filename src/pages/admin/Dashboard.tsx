@@ -1,24 +1,26 @@
 import { useEffect, useState } from 'react';
 import {
-  FaCalendarAlt,
-  FaChartLine,
-  FaCheckCircle,
-  FaCog,
-  FaDollarSign,
-  FaEnvelope,
-  FaEye,
-  FaGlobe,
-  FaHome,
-  FaImages,
-  FaInfoCircle,
-  FaMapMarkerAlt,
-  FaNewspaper,
-  FaQrcode,
-  FaRedo,
-  FaStar,
-  FaTicketAlt,
-  FaUser,
-  FaUsers
+    FaBuilding,
+    FaCalendarAlt,
+    FaChartLine,
+    FaCheckCircle,
+    FaClipboardList,
+    FaCog,
+    FaDollarSign,
+    FaEnvelope,
+    FaEye,
+    FaGlobe,
+    FaHome,
+    FaImages,
+    FaInfoCircle,
+    FaMapMarkerAlt,
+    FaNewspaper,
+    FaQrcode,
+    FaRedo,
+    FaStar,
+    FaTicketAlt,
+    FaUser,
+    FaUsers
 } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import AdminLayout from '../../Components/admin/AdminLayout';
@@ -58,6 +60,8 @@ const Dashboard = () => {
   const { sellers: commissionSellers } = useCommissionSellers();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loadingTickets, setLoadingTickets] = useState(true);
+  const [expoStats, setExpoStats] = useState({ total: 0, pending: 0, accepted: 0 });
+  const [loadingExpoStats, setLoadingExpoStats] = useState(true);
   const [stats, setStats] = useState<Stats>({
     totalEvents: 0,
     totalCategories: 0,
@@ -95,8 +99,25 @@ const Dashboard = () => {
   useEffect(() => {
     loadStats();
     loadTickets();
+    loadExpoStats();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ticketFilter]);
+
+  const loadExpoStats = async () => {
+    try {
+      setLoadingExpoStats(true);
+      const data = await adminApi.expoApplications.getAll();
+      setExpoStats({
+        total: data.length,
+        pending: data.filter(a => a.status === 'pending').length,
+        accepted: data.filter(a => a.status === 'accepted').length,
+      });
+    } catch (err) {
+      console.error('Error loading expo stats:', err);
+    } finally {
+      setLoadingExpoStats(false);
+    }
+  };
 
   const loadStats = async () => {
     try {
@@ -290,6 +311,7 @@ const Dashboard = () => {
   const menuItems = [
     { icon: FaQrcode, label: 'Verify Tickets', path: '/admin/verify', color: 'text-cyan-600 bg-cyan-50' },
     { icon: FaCalendarAlt, label: 'Events', path: '/admin/events', color: 'text-blue-600 bg-blue-50' },
+    { icon: FaBuilding, label: 'Expo Applications', path: '/admin/expo-applications', color: 'text-amber-600 bg-amber-50' },
     { icon: FaNewspaper, label: 'Categories', path: '/admin/categories', color: 'text-green-600 bg-green-50' },
     { icon: FaMapMarkerAlt, label: 'Destinations', path: '/admin/destinations', color: 'text-purple-600 bg-purple-50' },
     { icon: FaImages, label: 'Gallery', path: '/admin/gallery', color: 'text-pink-600 bg-pink-50' },
@@ -396,6 +418,63 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
+
+          {/* ── Expo 2026 Applications Feature Card ───────────────────── */}
+          <Link
+            to="/admin/expo-applications"
+            className="group relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#1C2951] to-[#2d3d6b] border border-[#FFD447]/20 shadow-2xl shadow-[#1C2951]/30 p-8 mb-10 flex flex-col md:flex-row md:items-center justify-between gap-8 transition-all duration-500 hover:shadow-[#FFD447]/20 hover:scale-[1.01] block"
+          >
+            {/* Glow blobs */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-[#FFD447]/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-[80px] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#FF6F5E]/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-[60px] pointer-events-none" />
+
+            {/* Left side */}
+            <div className="relative z-10 flex items-center gap-6">
+              <div className="w-20 h-20 rounded-[20px] bg-gradient-to-br from-[#FFD447] to-[#FF6F5E] flex items-center justify-center shadow-2xl shadow-[#FF6F5E]/30 flex-shrink-0 group-hover:scale-110 transition-transform duration-500">
+                <FaBuilding className="text-white" size={32} />
+              </div>
+              <div>
+                <p className="text-[10px] font-black text-[#FFD447] uppercase tracking-[0.4em] mb-1">Yene Ken Expo 2026</p>
+                <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight leading-tight">
+                  Exhibitor Applications
+                </h2>
+                <p className="text-sm text-white/50 font-medium mt-1">Review, approve and manage booth registrations</p>
+              </div>
+            </div>
+
+            {/* Right side — live stats */}
+            <div className="relative z-10 flex items-center gap-4 md:gap-6 flex-shrink-0">
+              <div className="text-center">
+                {loadingExpoStats ? (
+                  <div className="h-10 w-12 bg-white/10 rounded-xl animate-pulse mx-auto" />
+                ) : (
+                  <p className="text-4xl font-black text-white">{expoStats.total}</p>
+                )}
+                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mt-1">Total</p>
+              </div>
+              <div className="w-px h-12 bg-white/10" />
+              <div className="text-center">
+                {loadingExpoStats ? (
+                  <div className="h-10 w-12 bg-white/10 rounded-xl animate-pulse mx-auto" />
+                ) : (
+                  <p className="text-4xl font-black text-[#FFD447]">{expoStats.pending}</p>
+                )}
+                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mt-1">Pending</p>
+              </div>
+              <div className="w-px h-12 bg-white/10" />
+              <div className="text-center">
+                {loadingExpoStats ? (
+                  <div className="h-10 w-12 bg-white/10 rounded-xl animate-pulse mx-auto" />
+                ) : (
+                  <p className="text-4xl font-black text-emerald-400">{expoStats.accepted}</p>
+                )}
+                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mt-1">Accepted</p>
+              </div>
+              <div className="ml-2 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-[#FFD447]/20 transition-all">
+                <FaClipboardList className="text-white/60 group-hover:text-[#FFD447] transition-colors" size={16} />
+              </div>
+            </div>
+          </Link>
 
           {/* Earnings Section */}
           {stats.totalCommissionPaid > 0 && (
