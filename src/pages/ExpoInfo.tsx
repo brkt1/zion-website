@@ -207,7 +207,7 @@ const ExpoInfo: React.FC = () => {
               <FiCalendar className="text-amber-600 text-2xl" />
               <div className="text-left border-l border-amber-500/20 pl-5">
                 <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Schedule</p>
-                <p className="font-bold text-slate-800 tracking-tight">መጋቢት 27–28</p>
+                <p className="font-bold text-slate-800 tracking-tight">መጋቢት 19-20</p>
               </div>
             </div>
             <div className="flex items-center gap-5 glass-light px-10 py-5 rounded-[2rem] luxury-border-light">
