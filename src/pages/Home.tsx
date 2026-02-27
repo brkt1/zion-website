@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { FaArrowRight, FaBriefcase, FaCalendarAlt, FaHandsHelping, FaMapMarkerAlt, FaWhatsapp } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import expoHero from "../assets/expo/hero.png";
+import zionLogoImg from "../assets/expo/zion-logo.png";
 import Gallery from "../Components/Gallery";
 import Hero from "../Components/Hero";
 import { LocationButton } from "../Components/ui/LocationButton";
@@ -116,7 +117,7 @@ const Home = () => {
               <div className="lg:w-1/2 relative min-h-[300px] lg:min-h-full overflow-hidden">
                 <img 
                   src={expoHero} 
-                  alt="Yene Ken Wedding Expo" 
+                  alt="Zion Expo" 
                   className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-[2s]"
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent"></div>
@@ -129,6 +130,11 @@ const Home = () => {
               
               <div className="lg:w-1/2 p-12 lg:p-20 bg-white flex flex-col justify-center relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-amber-50 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 opacity-50" />
+                
+                <div className="flex flex-col items-start mb-4 relative z-10">
+                  <span className="text-slate-500 font-sans text-[8px] uppercase tracking-[0.3em] font-black mb-2">Promoted By</span>
+                  <img src={zionLogoImg} alt="Promoter" className="w-20 md:w-28 object-contain drop-shadow-md" />
+                </div>
                 
                 <h3 className="font-serif text-4xl lg:text-6xl text-slate-900 mb-6 tracking-tight relative z-10 leading-none">
                   Yene Ken <br />

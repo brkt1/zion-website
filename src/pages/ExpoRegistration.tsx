@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { FiArrowLeft, FiCheckCircle, FiChevronDown, FiEdit2, FiGlobe, FiInstagram, FiLoader, FiMail, FiPhone, FiSend, FiShield, FiUser } from 'react-icons/fi';
 import { Link, useLocation } from 'react-router-dom';
+import zionLogoImg from '../assets/expo/zion-logo.png';
 import { adminApi } from '../services/adminApi';
 import { api, ContactInfo } from '../services/api';
 
@@ -452,6 +453,10 @@ const ExpoRegistration: React.FC = () => {
 
       {/* Hero */}
       <div className="relative pt-40 pb-12 px-6 text-center max-w-2xl mx-auto leading-relaxed">
+        <div className="flex flex-col items-center justify-center mb-6">
+          <span className="text-slate-500 font-sans text-[8px] uppercase tracking-[0.3em] font-black mb-2">Promoted By</span>
+          <img src={zionLogoImg} alt="Promoter" className="w-24 md:w-32 object-contain drop-shadow-md" />
+        </div>
         <h1 className="font-serif text-4xl md:text-5xl mb-4 tracking-tighter text-slate-900 leading-tight">
           Exhibitor Application <br />
           <span className="italic text-gold-gradient text-3xl md:text-5xl">የኔ ቀን ኤክስፖ የኤግዚቢተር ምዝገባ</span>

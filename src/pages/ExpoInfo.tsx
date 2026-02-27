@@ -7,6 +7,7 @@ import heroImg from '../assets/expo/hero.png';
 import pkg200kImg from '../assets/expo/package_200k.png';
 import pkgCommonImg from '../assets/expo/package_common.png';
 import vendorsImg from '../assets/expo/vendors.png';
+import zionLogoImg from '../assets/expo/zion-logo.png';
 
 const ExpoInfo: React.FC = () => {
   useEffect(() => {
@@ -191,6 +192,11 @@ const ExpoInfo: React.FC = () => {
         <div className="container mx-auto px-4 relative z-10 text-center">
           <div className="inline-block px-5 py-1.5 mb-8 border border-amber-500/20 rounded-full bg-amber-500/5 backdrop-blur-sm">
             <span className="text-amber-600 font-sans tracking-[0.4em] text-[10px] uppercase font-black">March 27–28 • Ghion Hotel</span>
+          </div>
+          
+          <div className="flex flex-col items-center justify-center mb-6">
+            <span className="text-slate-500 font-sans text-[10px] uppercase tracking-[0.3em] font-black mb-3">Promoted By</span>
+            <img src={zionLogoImg} alt="Promoter" className="w-32 sm:w-40 md:w-48 object-contain drop-shadow-xl" />
           </div>
           
           <h1 className="font-serif text-5xl sm:text-6xl md:text-8xl lg:text-9xl mb-8 leading-[1.1] text-slate-900 tracking-tight">
