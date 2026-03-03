@@ -191,7 +191,7 @@ const ExpoInfo: React.FC = () => {
 
         <div className="container mx-auto px-4 relative z-10 text-center">
           <div className="inline-block px-5 py-1.5 mb-8 border border-amber-500/20 rounded-full bg-amber-500/5 backdrop-blur-sm">
-            <span className="text-amber-600 font-sans tracking-[0.4em] text-[10px] uppercase font-black">March 27–28 • Ghion Hotel</span>
+            <span className="text-amber-600 font-sans tracking-[0.4em] text-[10px] uppercase font-black">መጋቢት 19-20 • Ghion Hotel</span>
           </div>
           
           <div className="flex flex-col items-center justify-center mb-6">
@@ -292,9 +292,9 @@ const ExpoInfo: React.FC = () => {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-12 text-center">
             {[
-              { val: '5,000+', label: 'Elite Visitors' },
+              { val: '800 - 1000', label: 'Elite Visitors' },
               { val: '120+', label: 'Luxury Brands' },
-              { val: 'March', label: 'Summit 2026' },
+              { val: 'መጋቢት', label: 'Summit 2026' },
               { val: '30M+', label: 'Social Echo' }
             ].map((stat, i) => (
               <div key={i} className="space-y-2">

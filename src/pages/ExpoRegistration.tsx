@@ -466,7 +466,7 @@ const ExpoRegistration: React.FC = () => {
         <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-6 text-[10px] uppercase tracking-[0.3em] font-black text-slate-500">
           <div className="flex items-center gap-3">
             <div className="w-1.5 h-1.5 rounded-full bg-[#FFD447]" />
-            <span>መጋቢት 27–28</span>
+            <span>መጋቢት 19-20</span>
           </div>
           <div className="flex items-center gap-3">
             <div className="w-1.5 h-1.5 rounded-full bg-[#FFD447]" />

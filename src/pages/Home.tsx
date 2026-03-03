@@ -144,7 +144,7 @@ const Home = () => {
                 <div className="flex flex-wrap gap-8 mb-10 relative z-10">
                   <div className="space-y-1 text-left border-l-2 border-amber-500/20 pl-4">
                     <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Schedule</p>
-                    <p className="font-sans font-black text-slate-800 text-sm">March 27–28</p>
+                    <p className="font-sans font-black text-slate-800 text-sm">መጋቢት 19-20</p>
                   </div>
                   <div className="space-y-1 text-left border-l-2 border-amber-500/20 pl-4">
                     <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Venue</p>
