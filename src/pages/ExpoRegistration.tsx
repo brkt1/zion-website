@@ -33,17 +33,22 @@ const ExpoRegistration: React.FC = () => {
   const location = useLocation();
 
   useEffect(() => {
+    // Scroll to top on mount
     window.scrollTo(0, 0);
     fetchContactInfo();
+  }, []);
 
-    // Pre-fill booth type from URL query param (?booth=premium|standard|shared)
+  useEffect(() => {
+    // Pre-fill booth type from URL query param (?booth=premium|standard|shared|artisan)
     const params = new URLSearchParams(location.search);
     const presetBooth = params.get('booth');
-    if (presetBooth && ['premium', 'standard', 'shared'].includes(presetBooth)) {
+    if (presetBooth && ['premium', 'standard', 'shared', 'artisan'].includes(presetBooth)) {
       setFormData(prev => ({ ...prev, boothType: presetBooth }));
+    } else {
+      // Clear if invalid or missing
+      setFormData(prev => ({ ...prev, boothType: '' }));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [location.search]);
 
   const fetchContactInfo = async () => {
     try {
@@ -119,6 +124,7 @@ const ExpoRegistration: React.FC = () => {
       premium: 'Premium Platinum — 200,000 ETB',
       standard: 'Diamond Inline — 100,000 ETB',
       shared: 'Shared / Creative — 75,000 ETB',
+      artisan: 'Artisan Studio — 40,000 ETB',
     };
     return map[id] || id;
   };
@@ -567,11 +573,13 @@ const ExpoRegistration: React.FC = () => {
                     {formData.boothType === 'premium' && 'Premium Platinum'}
                     {formData.boothType === 'standard' && 'Diamond Inline'}
                     {formData.boothType === 'shared' && 'Shared / Creative'}
+                    {formData.boothType === 'artisan' && 'Artisan Studio'}
                   </h3>
                   <p className="font-sans text-slate-400 text-sm mt-1">
                     {formData.boothType === 'premium' && '12m² · 200,000 ETB · Prime Location'}
                     {formData.boothType === 'standard' && '9m² · 100,000 ETB · Main Rows'}
                     {formData.boothType === 'shared' && '4m² · 75,000 ETB · Creative Zone'}
+                    {formData.boothType === 'artisan' && '3m² · 40,000 ETB · Creative Artists'}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -607,7 +615,8 @@ const ExpoRegistration: React.FC = () => {
                 {[
                   { id: 'premium', label: 'Premium Platinum', price: '200,000 ETB', desc: 'Prime location, 12m²' },
                   { id: 'standard', label: 'Diamond Inline', price: '100,000 ETB', desc: 'Main rows, 9m²' },
-                  { id: 'shared', label: 'Shared / Creative', price: '75,000 ETB', desc: 'Startups, 4m²' }
+                  { id: 'shared', label: 'Shared / Creative', price: '75,000 ETB', desc: 'Startups, 4m²' },
+                  { id: 'artisan', label: 'Artisan Studio', price: '40,000 ETB', desc: 'Creative Artists, 3m²' }
                 ].map((booth) => (
                   <label
                     key={booth.id}

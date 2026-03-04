@@ -139,6 +139,7 @@ const ExpoApplications = () => {
       case 'premium': return 'Premium Platinum';
       case 'standard': return 'Diamond Inline';
       case 'shared': return 'Shared / Creative';
+      case 'artisan': return 'Artisan Studio';
       default: return type;
     }
   };

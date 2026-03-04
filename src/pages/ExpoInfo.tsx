@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 // Assets
 import heroImg from '../assets/expo/hero.png';
 import pkg200kImg from '../assets/expo/package_200k.png';
+import pkg40kImg from '../assets/expo/package_40k.png';
 import pkgCommonImg from '../assets/expo/package_common.png';
 import vendorsImg from '../assets/expo/vendors.png';
 import zionLogoImg from '../assets/expo/zion-logo.png';
@@ -60,6 +61,23 @@ const ExpoInfo: React.FC = () => {
         'Access to vendor networking hub',
         'General event security',
         'Entry-level visibility'
+      ],
+      popular: false,
+      color: 'from-slate-50 to-slate-100'
+    },
+    {
+      id: 'artisan',
+      title: 'Artisan Studio',
+      size: '3m²',
+      price: '40,000 ETB',
+      image: pkg40kImg,
+      features: [
+        'Recommended for Artists',
+        'Optimized for Makeup & Visual artists',
+        'Company listing in Expo Guide',
+        'Power outlet & lighting included',
+        'Dedicated branding wall',
+        'Direct access to visual hub'
       ],
       popular: false,
       color: 'from-slate-50 to-slate-100'
@@ -227,7 +245,7 @@ const ExpoInfo: React.FC = () => {
 
           <div className="flex flex-wrap justify-center gap-4">
             <Link 
-              to="/expo-registration" 
+              to="/expo-registration?booth=standard" 
               className="glow-button-light w-full max-w-[280px] py-5 rounded-2xl font-sans font-bold flex items-center justify-center gap-3 active:scale-95 transition-all shadow-xl shadow-amber-900/10"
             >
               Become an Exhibitor <FiArrowRight className="text-lg" />
@@ -316,60 +334,85 @@ const ExpoInfo: React.FC = () => {
             <p className="font-sans text-slate-500 text-lg font-medium leading-relaxed">Each space is architected to maximize your brand's presence and facilitate seamless connections.</p>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-10">
+          <div className="grid md:grid-cols-2 gap-16">
             {boothPackages.map((pkg, idx) => (
               <div 
                 key={idx}
-                className={`group relative rounded-[3.5rem] bg-white transition-all duration-700 h-full flex flex-col ${
-                  pkg.popular ? 'lg:-translate-y-8 shadow-[0_40px_100px_rgba(212,175,55,0.08)] ring-1 ring-amber-500/10' : 'hover:-translate-y-4 shadow-2xl shadow-slate-200/50'
+                className={`group relative rounded-[4rem] bg-white transition-all duration-700 flex flex-col ${
+                  pkg.popular ? 'shadow-[0_40px_100px_rgba(255,212,71,0.12)] border-2 border-amber-500/20' : 'shadow-2xl shadow-slate-200/50 hover:shadow-slate-300'
                 }`}
               >
-                {/* Image Wrap */}
-                <div className="h-80 relative overflow-hidden rounded-t-[3.5rem]">
-                  <img src={pkg.image} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" alt={pkg.title} />
-                  <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent opacity-80" />
-                  {pkg.slots && (
-                    <div className="absolute top-8 right-8 bg-amber-500 text-white px-5 py-1.5 rounded-full text-[10px] font-black tracking-widest uppercase shadow-lg">
-                      {pkg.slots}
+                {/* Image Wrap - Larger & Clearer */}
+                <div className="h-[450px] sm:h-[550px] relative overflow-hidden rounded-[4rem] p-4">
+                  <div className="w-full h-full relative overflow-hidden rounded-[3.2rem]">
+                    <img 
+                      src={pkg.image} 
+                      className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" 
+                      alt={pkg.title} 
+                    />
+                    {/* Minimalist Overlay for depth only at extreme bottom */}
+                    <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-60" />
+                    
+                    {/* Floating Price Badge */}
+                    <div className="absolute top-8 left-8 glass-light px-8 py-4 rounded-3xl border border-white/40 shadow-2xl">
+                      <p className="text-[10px] uppercase tracking-widest font-black text-amber-600 mb-1">Position Price</p>
+                      <p className="font-serif text-3xl text-slate-900 tracking-tighter">{pkg.price}</p>
                     </div>
-                  )}
+
+                    {pkg.slots && (
+                      <div className="absolute top-8 right-8 bg-amber-500 text-white px-6 py-2 rounded-2xl text-[10px] font-black tracking-widest uppercase shadow-xl animate-pulse">
+                        {pkg.slots}
+                      </div>
+                    )}
+
+                    {/* Quick Specs Overlay */}
+                    <div className="absolute bottom-10 left-10 right-10 flex items-center justify-between">
+                      <div className="glass-light backdrop-blur-md px-6 py-3 rounded-2xl border border-white/20">
+                         <span className="font-sans font-black text-xs text-slate-800 tracking-widest uppercase">{pkg.size} Premium Space</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Content */}
-                <div className="p-12 space-y-10 flex flex-col flex-grow">
-                  <div className="space-y-3">
-                    <h3 className="font-serif text-4xl text-slate-800 tracking-tight">{pkg.title}</h3>
-                    <div className="flex items-center gap-3">
-                      <div className="h-px w-8 bg-amber-500/40" />
-                      <p className="font-sans text-amber-700 font-black text-[10px] tracking-[0.2em] uppercase">{pkg.size} Luxury Module</p>
+                <div className="p-12 pb-16 space-y-10 flex flex-col flex-grow">
+                  <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 overflow-hidden">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-4">
+                        <div className="h-[2px] w-12 bg-amber-500" />
+                        <span className="text-amber-600 font-sans tracking-[0.4em] uppercase text-[10px] font-black">Luxury Module</span>
+                      </div>
+                      <h3 className="font-serif text-5xl md:text-6xl text-slate-900 tracking-tighter leading-none">{pkg.title}</h3>
                     </div>
                   </div>
 
-                  <div className="font-serif text-4xl text-slate-900 tracking-tighter">{pkg.price}</div>
-
-                  <ul className="space-y-5 flex-grow">
+                  <div className="grid sm:grid-cols-2 gap-x-12 gap-y-6 flex-grow">
                     {pkg.features.map((f, i) => (
-                      <li key={i} className="flex items-start gap-4 text-sm text-slate-500 font-medium">
-                        <FiCheckCircle className="text-amber-500 mt-0.5 shrink-0" />
-                        <span className="font-sans leading-tight">{f}</span>
-                      </li>
+                      <div key={i} className="flex items-start gap-4">
+                        <div className="w-6 h-6 rounded-full bg-amber-50 flex items-center justify-center shrink-0 mt-0.5">
+                          <FiCheckCircle className="text-amber-500 size={14}" />
+                        </div>
+                        <span className="font-sans text-sm text-slate-500 font-medium leading-snug">{f}</span>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
 
                   <Link 
                     to={`/expo-registration?booth=${pkg.id}`}
-                    className={`block w-full py-6 rounded-[2rem] font-sans font-black text-xs tracking-widest uppercase transition-all text-center ${
+                    className={`block w-full py-7 rounded-3xl font-sans font-black text-xs tracking-[0.3em] uppercase transition-all text-center shadow-xl ${
                       pkg.popular 
-                        ? 'glow-button-light shadow-xl shadow-amber-500/20' 
-                        : 'bg-slate-50 text-slate-800 active:bg-slate-900 active:text-white'
+                        ? 'glow-button-light shadow-amber-500/30' 
+                        : 'bg-slate-900 text-white hover:bg-slate-800'
                     }`}
                   >
-                    Select {pkg.title}
+                    Request {pkg.title}
                   </Link>
                 </div>
               </div>
             ))}
           </div>
+
+
         </div>
       </section>
 
@@ -434,7 +477,7 @@ const ExpoInfo: React.FC = () => {
       {/* App Floating Button - Integrated UX */}
       <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-md z-50 hidden md:block">
         <Link 
-          to="/expo-registration" 
+          to="/expo-registration?booth=standard" 
           className="glow-button-light flex items-center justify-center gap-4 py-5 rounded-2xl shadow-2xl shadow-amber-500/30 font-sans font-black text-sm tracking-widest uppercase transition-transform active:scale-95"
         >
           Secure Your Space <FiArrowRight className="text-lg" />
