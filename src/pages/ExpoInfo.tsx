@@ -20,8 +20,8 @@ const ExpoInfo: React.FC = () => {
       id: 'shared',
       title: 'Creative Booth',
       size: '4m²',
-      price: '75,000 ETB',
-      pricePerDay: '37,500 ETB',
+      price: '50,000 ETB',
+      pricePerDay: '25,000 ETB',
       image: pkgCommonImg,
       features: [
         'Perfect for startups & designers',

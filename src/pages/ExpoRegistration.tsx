@@ -123,7 +123,7 @@ const ExpoRegistration: React.FC = () => {
     const map: Record<string, string> = {
       premium: 'Premium Platinum — 100,000 ETB / Day (200k Total)',
       standard: 'Diamond Inline — 50,000 ETB / Day (100k Total)',
-      shared: 'Shared / Creative — 37,500 ETB / Day (75k Total)',
+      shared: 'Shared / Creative — 25,000 ETB / Day (50k Total)',
       artisan: 'Artisan Studio — 20,000 ETB / Day (40k Total)',
     };
     return map[id] || id;
@@ -578,7 +578,7 @@ const ExpoRegistration: React.FC = () => {
                   <p className="font-sans text-slate-400 text-sm mt-1">
                     {formData.boothType === 'premium' && '12m² · 100k/Day (200k Total) · Prime Location'}
                     {formData.boothType === 'standard' && '9m² · 50k/Day (100k Total) · Main Rows'}
-                    {formData.boothType === 'shared' && '4m² · 37.5k/Day (75k Total) · Creative Zone'}
+                    {formData.boothType === 'shared' && '4m² · 25k/Day (50k Total) · Creative Zone'}
                     {formData.boothType === 'artisan' && '3m² · 20k/Day (40k Total) · Creative Artists'}
                   </p>
                 </div>
@@ -613,7 +613,7 @@ const ExpoRegistration: React.FC = () => {
 
               <div className="grid gap-6">
                 {[
-                  { id: 'shared', label: 'Shared / Creative', daily: '37,500 ETB / Day', total: '75,000 ETB Total', desc: 'Startups, 4m²' },
+                  { id: 'shared', label: 'Shared / Creative', daily: '25,000 ETB / Day', total: '50,000 ETB Total', desc: 'Startups, 4m²' },
                   { id: 'standard', label: 'Diamond Inline', daily: '50,000 ETB / Day', total: '100,000 ETB Total', desc: 'Main rows, 9m²' },
                   { id: 'premium', label: 'Premium Platinum', daily: '100,000 ETB / Day', total: '200,000 ETB Total', desc: 'Prime location, 12m²' },
                   { id: 'artisan', label: 'Artisan Studio', daily: '20,000 ETB / Day', total: '40,000 ETB Total', desc: 'Creative Artists, 3m²' }
