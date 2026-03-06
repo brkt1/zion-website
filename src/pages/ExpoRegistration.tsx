@@ -121,10 +121,10 @@ const ExpoRegistration: React.FC = () => {
 
   const getBoothLabel = (id: string) => {
     const map: Record<string, string> = {
-      premium: 'Premium Platinum — 200,000 ETB',
-      standard: 'Diamond Inline — 100,000 ETB',
-      shared: 'Shared / Creative — 75,000 ETB',
-      artisan: 'Artisan Studio — 40,000 ETB',
+      premium: 'Premium Platinum — 100,000 ETB / Day (200k Total)',
+      standard: 'Diamond Inline — 50,000 ETB / Day (100k Total)',
+      shared: 'Shared / Creative — 37,500 ETB / Day (75k Total)',
+      artisan: 'Artisan Studio — 20,000 ETB / Day (40k Total)',
     };
     return map[id] || id;
   };
@@ -576,10 +576,10 @@ const ExpoRegistration: React.FC = () => {
                     {formData.boothType === 'artisan' && 'Artisan Studio'}
                   </h3>
                   <p className="font-sans text-slate-400 text-sm mt-1">
-                    {formData.boothType === 'premium' && '12m² · 200,000 ETB · Prime Location'}
-                    {formData.boothType === 'standard' && '9m² · 100,000 ETB · Main Rows'}
-                    {formData.boothType === 'shared' && '4m² · 75,000 ETB · Creative Zone'}
-                    {formData.boothType === 'artisan' && '3m² · 40,000 ETB · Creative Artists'}
+                    {formData.boothType === 'premium' && '12m² · 100k/Day (200k Total) · Prime Location'}
+                    {formData.boothType === 'standard' && '9m² · 50k/Day (100k Total) · Main Rows'}
+                    {formData.boothType === 'shared' && '4m² · 37.5k/Day (75k Total) · Creative Zone'}
+                    {formData.boothType === 'artisan' && '3m² · 20k/Day (40k Total) · Creative Artists'}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -613,10 +613,10 @@ const ExpoRegistration: React.FC = () => {
 
               <div className="grid gap-6">
                 {[
-                  { id: 'premium', label: 'Premium Platinum', price: '200,000 ETB', desc: 'Prime location, 12m²' },
-                  { id: 'standard', label: 'Diamond Inline', price: '100,000 ETB', desc: 'Main rows, 9m²' },
-                  { id: 'shared', label: 'Shared / Creative', price: '75,000 ETB', desc: 'Startups, 4m²' },
-                  { id: 'artisan', label: 'Artisan Studio', price: '40,000 ETB', desc: 'Creative Artists, 3m²' }
+                  { id: 'premium', label: 'Premium Platinum', daily: '100,000 ETB / Day', total: '200,000 ETB Total', desc: 'Prime location, 12m²' },
+                  { id: 'standard', label: 'Diamond Inline', daily: '50,000 ETB / Day', total: '100,000 ETB Total', desc: 'Main rows, 9m²' },
+                  { id: 'shared', label: 'Shared / Creative', daily: '37,500 ETB / Day', total: '75,000 ETB Total', desc: 'Startups, 4m²' },
+                  { id: 'artisan', label: 'Artisan Studio', daily: '20,000 ETB / Day', total: '40,000 ETB Total', desc: 'Creative Artists, 3m²' }
                 ].map((booth) => (
                   <label
                     key={booth.id}
@@ -636,7 +636,10 @@ const ExpoRegistration: React.FC = () => {
                         <p className="text-[10px] text-slate-400 uppercase tracking-[0.2em] mt-1 font-bold">{booth.desc}</p>
                       </div>
                     </div>
-                    <div className="font-serif text-3xl text-slate-900 font-bold tracking-tighter">{booth.price}</div>
+                    <div className="text-right">
+                      <div className="font-serif text-3xl text-slate-900 font-bold tracking-tighter">{booth.daily}</div>
+                      <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{booth.total}</div>
+                    </div>
                   </label>
                 ))}
               </div>

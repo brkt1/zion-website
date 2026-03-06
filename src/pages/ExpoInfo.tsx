@@ -21,6 +21,7 @@ const ExpoInfo: React.FC = () => {
       title: 'Premium Platinum',
       size: '12m²',
       price: '200,000 ETB',
+      pricePerDay: '100,000 ETB',
       image: pkg200kImg,
       slots: 'Only 6 Slots',
       features: [
@@ -38,6 +39,7 @@ const ExpoInfo: React.FC = () => {
       title: 'Diamond Inline',
       size: '9m²',
       price: '100,000 ETB',
+      pricePerDay: '50,000 ETB',
       image: pkgCommonImg,
       features: [
         'Strategic main row positioning',
@@ -54,6 +56,7 @@ const ExpoInfo: React.FC = () => {
       title: 'Creative Booth',
       size: '4m²',
       price: '75,000 ETB',
+      pricePerDay: '37,500 ETB',
       image: pkgCommonImg,
       features: [
         'Perfect for startups & designers',
@@ -70,6 +73,7 @@ const ExpoInfo: React.FC = () => {
       title: 'Artisan Studio',
       size: '3m²',
       price: '40,000 ETB',
+      pricePerDay: '20,000 ETB',
       image: pkg40kImg,
       features: [
         'Recommended for Artists',
@@ -355,8 +359,12 @@ const ExpoInfo: React.FC = () => {
                     
                     {/* Floating Price Badge */}
                     <div className="absolute top-8 left-8 glass-light px-8 py-4 rounded-3xl border border-white/40 shadow-2xl">
-                      <p className="text-[10px] uppercase tracking-widest font-black text-amber-600 mb-1">Position Price</p>
-                      <p className="font-serif text-3xl text-slate-900 tracking-tighter">{pkg.price}</p>
+                      <p className="text-[10px] uppercase tracking-widest font-black text-amber-600 mb-1">Starting from</p>
+                      <div className="flex items-baseline gap-1">
+                        <p className="font-serif text-4xl text-slate-900 tracking-tighter">{pkg.pricePerDay.split(' ')[0]}</p>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-tighter">ETB / Day</p>
+                      </div>
+                      <p className="text-[9px] text-slate-400 font-medium uppercase tracking-tight mt-1">Full Position: {pkg.price}</p>
                     </div>
 
                     {pkg.slots && (
