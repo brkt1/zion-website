@@ -17,41 +17,6 @@ const ExpoInfo: React.FC = () => {
 
   const boothPackages = [
     {
-      id: 'premium',
-      title: 'Premium Platinum',
-      size: '12m²',
-      price: '200,000 ETB',
-      pricePerDay: '100,000 ETB',
-      image: pkg200kImg,
-      slots: 'Only 6 Slots',
-      features: [
-        'Prime high-traffic locations',
-        'Featured interview in Expo documentary',
-        'Full page feature in Expo Guide',
-        'Social media spotlight campaign',
-        'VIP networking dinner access'
-      ],
-      popular: true,
-      color: 'from-amber-100 to-amber-200'
-    },
-    {
-      id: 'standard',
-      title: 'Diamond Inline',
-      size: '9m²',
-      price: '100,000 ETB',
-      pricePerDay: '50,000 ETB',
-      image: pkgCommonImg,
-      features: [
-        'Strategic main row positioning',
-        'Half page feature in Expo Guide',
-        'Standard social media feature',
-        'Booth furniture & lighting included',
-        'Networking access'
-      ],
-      popular: false,
-      color: 'from-slate-50 to-slate-100'
-    },
-    {
       id: 'shared',
       title: 'Creative Booth',
       size: '4m²',
@@ -67,6 +32,41 @@ const ExpoInfo: React.FC = () => {
       ],
       popular: false,
       color: 'from-slate-50 to-slate-100'
+    },
+    {
+      id: 'standard',
+      title: 'Diamond Inline',
+      size: '9m²',
+      price: '100,000 ETB',
+      pricePerDay: '50,000 ETB',
+      image: pkgCommonImg,
+      features: [
+        'Strategic main row positioning',
+        'Half page feature in Expo Guide',
+        'Standard social media feature',
+        'Booth furniture & lighting included',
+        'Networking access'
+      ],
+      popular: true,
+      color: 'from-slate-50 to-slate-100'
+    },
+    {
+      id: 'premium',
+      title: 'Premium Platinum',
+      size: '12m²',
+      price: '200,000 ETB',
+      pricePerDay: '100,000 ETB',
+      image: pkg200kImg,
+      slots: 'Only 6 Slots',
+      features: [
+        'Prime high-traffic locations',
+        'Featured interview in Expo documentary',
+        'Full page feature in Expo Guide',
+        'Social media spotlight campaign',
+        'VIP networking dinner access'
+      ],
+      popular: false,
+      color: 'from-amber-100 to-amber-200'
     },
     {
       id: 'artisan',
@@ -91,14 +91,14 @@ const ExpoInfo: React.FC = () => {
   const vendorTypes = [
     { icon: <FiUsers />, label: 'Wedding Planners' },
     { icon: <FiLayout />, label: 'Decor & Rental' },
-    { icon: <FiCamera />, label: 'Photo & Video' },
     { icon: <FiStar />, label: 'Makeup Artists' },
     { icon: <FiShoppingBag />, label: 'Bridal Designers' },
     { icon: <FiAward />, label: 'Jewelry Brands' },
     { icon: <FiSmartphone />, label: 'Catering Services' },
     { icon: <FiMapPin />, label: 'Hotels & Venues' },
     { icon: <FiTruck />, label: 'Honeymoon Travel' },
-    { icon: <FiHeart />, label: 'Beauty & Wellness' }
+    { icon: <FiHeart />, label: 'Beauty & Wellness' },
+    { icon: <FiCamera />, label: 'Photo & Video' }
   ];
 
   const yenegeYellow = "#FFD447";

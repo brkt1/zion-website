@@ -544,13 +544,13 @@ const ExpoRegistration: React.FC = () => {
                     <option value="">Select Category</option>
                     <option value="planners">Wedding Planners &amp; Architects</option>
                     <option value="decor">Floral &amp; Scenography Designers</option>
-                    <option value="photo">Visual Storytellers (Photo/Video)</option>
                     <option value="makeup">Bridal Beauty &amp; Makeup Artistry</option>
                     <option value="bridal">Bridal Fashion &amp; Haute Couture</option>
                     <option value="jewelry">High Jewelry &amp; Goldsmiths</option>
                     <option value="catering">Gastronomic Services</option>
                     <option value="travel">Travel &amp; Honeymoon Designers</option>
                     <option value="other">Other Premium Services</option>
+                    <option value="photo">Visual Storytellers (Photo/Video)</option>
                   </select>
                   <FiGlobe className="input-icon" />
                   <FiChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none" />
@@ -613,9 +613,9 @@ const ExpoRegistration: React.FC = () => {
 
               <div className="grid gap-6">
                 {[
-                  { id: 'premium', label: 'Premium Platinum', daily: '100,000 ETB / Day', total: '200,000 ETB Total', desc: 'Prime location, 12m²' },
-                  { id: 'standard', label: 'Diamond Inline', daily: '50,000 ETB / Day', total: '100,000 ETB Total', desc: 'Main rows, 9m²' },
                   { id: 'shared', label: 'Shared / Creative', daily: '37,500 ETB / Day', total: '75,000 ETB Total', desc: 'Startups, 4m²' },
+                  { id: 'standard', label: 'Diamond Inline', daily: '50,000 ETB / Day', total: '100,000 ETB Total', desc: 'Main rows, 9m²' },
+                  { id: 'premium', label: 'Premium Platinum', daily: '100,000 ETB / Day', total: '200,000 ETB Total', desc: 'Prime location, 12m²' },
                   { id: 'artisan', label: 'Artisan Studio', daily: '20,000 ETB / Day', total: '40,000 ETB Total', desc: 'Creative Artists, 3m²' }
                 ].map((booth) => (
                   <label
