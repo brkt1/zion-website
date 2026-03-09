@@ -83,8 +83,8 @@ const Contact = () => {
       number: "02",
       icon: FaEnvelope,
       title: "Email",
-      content: contactInfo.email || "bereketyosef49@gmail.com",
-      link: `mailto:${contactInfo.email || "bereketyosef49@gmail.com"}`,
+      content: contactInfo.email || "yenegeevents@gmail.com",
+      link: `mailto:${contactInfo.email || "yenegeevents@gmail.com"}`,
     },
     {
       number: "03",

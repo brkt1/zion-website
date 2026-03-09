@@ -144,13 +144,13 @@ const Footer = () => {
             <ul className="space-y-5">
               <li>
                 <a
-                  href={`mailto:${contactInfo?.email || "bereketyosef49@gmail.com"}`}
+                  href={`mailto:${contactInfo?.email || "yenegeevents@gmail.com"}`}
                   className="group flex items-start gap-3 text-sm text-gray-400 hover:text-white transition-all duration-300"
                 >
                   <div className="mt-0.5 p-2 rounded-lg bg-white/5 group-hover:bg-gradient-to-br group-hover:from-[#FFD447] group-hover:to-[#FF6F5E] transition-all duration-300 flex-shrink-0">
                     <FaEnvelope size={14} className="group-hover:text-white transition-colors" />
                   </div>
-                  <span className="break-all pt-1.5">{contactInfo?.email || "bereketyosef49@gmail.com"}</span>
+                  <span className="break-all pt-1.5">{contactInfo?.email || "yenegeevents@gmail.com"}</span>
                 </a>
               </li>
               <li>

@@ -163,17 +163,17 @@ const Header = () => {
             {/* Contact Info - Desktop Only (mobile uses bottom nav) */}
             <div className="hidden md:flex items-center gap-5">
               <a
-                href={`mailto:${contactInfo?.email || "bereketyosef49@gmail.com"}`}
+                href={`mailto:${contactInfo?.email || "yenegeevents@gmail.com"}`}
                 className={`flex items-center gap-2 text-xs font-medium transition-all duration-300 ${
                   isHomePage && !isScrolled
                     ? "text-white/70 hover:text-white"
                     : "text-gray-600 hover:text-gray-900"
                 }`}
                 style={{ minHeight: '44px', minWidth: '44px', padding: '8px 12px' }}
-                aria-label={`Send email to ${contactInfo?.email || "bereketyosef49@gmail.com"}`}
+                aria-label={`Send email to ${contactInfo?.email || "yenegeevents@gmail.com"}`}
               >
                 <FaEnvelope size={14} aria-hidden="true" />
-                <span className="hidden xl:inline">{contactInfo?.email || "bereketyosef49@gmail.com"}</span>
+                <span className="hidden xl:inline">{contactInfo?.email || "yenegeevents@gmail.com"}</span>
               </a>
               <a
                 href={`https://wa.me/${contactInfo?.phone?.replace(/\D/g, '') || '251978639887'}`}

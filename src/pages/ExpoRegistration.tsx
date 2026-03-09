@@ -117,7 +117,7 @@ const ExpoRegistration: React.FC = () => {
   // Resolved contact values with smart fallbacks
   const displayPhone = contactInfo?.phoneFormatted || contactInfo?.phone || '+251 978 639 887';
   const displayPhoneRaw = contactInfo?.phone || '+251978639887';
-  const displayEmail = contactInfo?.email || 'bereketyosef49@gmail.com';
+  const displayEmail = contactInfo?.email || 'yenegeevents@gmail.com';
 
   const getBoothLabel = (id: string) => {
     const map: Record<string, string> = {

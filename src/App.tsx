@@ -2,12 +2,11 @@ import { Suspense, lazy } from "react";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import AdminRoute from "./Components/admin/AdminRoute";
 import Layout from "./Components/layout/Layout";
-import NotificationManager from "./Components/NotificationManager";
 import PageTracker from "./Components/PageTracker";
 import ScrollToTop from "./Components/ScrollToTop";
 import { BrowserCompatibility } from "./Components/ui/BrowserCompatibility";
 import { LoadingState } from "./Components/ui/LoadingState";
-import PWAInstallPrompt from "./Components/ui/PWAInstallPrompt";
+
 import VisitTracker from "./Components/VisitTracker";
 
 // Use React 18's startTransition for non-urgent updates
@@ -71,8 +70,8 @@ function App() {
       <ScrollToTop />
       <PageTracker />
       <VisitTracker />
-      <NotificationManager />
-      <PWAInstallPrompt />
+
+
       <Routes>
         {/* Public Routes */}
         <Route path="/*" element={

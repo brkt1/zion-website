@@ -5,7 +5,7 @@
 -- Option 1: Update existing record to match login email
 UPDATE ticket_scanners
 SET email = 'bereketyosef16@gmail.com'
-WHERE email = 'bereketyosef49@gmail.com';
+WHERE email = 'yenegeevents@gmail.com';
 
 -- Option 2: If the update doesn't work, insert a new record (will fail if email already exists)
 -- INSERT INTO ticket_scanners (name, email, phone, is_active)

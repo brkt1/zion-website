@@ -328,8 +328,8 @@ WHERE NOT EXISTS (SELECT 1 FROM events WHERE events.title = v.title AND events.d
 
 -- Contact Info
 INSERT INTO contact_info (email, phone, phone_formatted, location)
-SELECT 'bereketyosef49@gmail.com', '+251978639887', '+251 978 639 887', 'Addis Ababa, Ethiopia'
-WHERE NOT EXISTS (SELECT 1 FROM contact_info WHERE email = 'bereketyosef49@gmail.com');
+SELECT 'yenegeevents@gmail.com', '+251978639887', '+251 978 639 887', 'Addis Ababa, Ethiopia'
+WHERE NOT EXISTS (SELECT 1 FROM contact_info WHERE email = 'yenegeevents@gmail.com');
 
 -- Social Links
 INSERT INTO social_links (platform, url, display_order)

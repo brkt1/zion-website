@@ -6,8 +6,8 @@ import App from './App';
 import ErrorBoundary from './Components/ui/ErrorBoundary';
 import './index.css';
 import { initGoogleAnalytics } from './services/googleAnalytics';
-import { initializePolyfills, requestIdleCallbackPolyfill } from './utils/polyfills';
-import * as serviceWorkerRegistration from './utils/serviceWorkerRegistration';
+import { initializePolyfills } from './utils/polyfills';
+
 
 // Extend Window interface to include Sentry
 declare global {
@@ -99,33 +99,4 @@ root.render(
 
 // Defer service worker registration to avoid blocking main thread
 // Register after page load to improve initial performance
-const registerServiceWorker = () => {
-  serviceWorkerRegistration.register({
-    onSuccess: () => {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Service Worker registered successfully');
-      }
-    },
-    onUpdate: (registration) => {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('New service worker available. Reload to update.');
-      }
-      // Optionally show update notification to user
-      if (window.confirm('New version available! Reload to update?')) {
-        registration.waiting?.postMessage({ type: 'SKIP_WAITING' });
-        window.location.reload();
-      }
-    },
-    onOfflineReady: () => {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('App is ready to work offline');
-      }
-    },
-  });
-  serviceWorkerRegistration.listenForUpdates();
-};
 
-if (typeof window !== 'undefined' && window) {
-  // Register service worker using idle callback (or setTimeout fallback)
-  requestIdleCallbackPolyfill(registerServiceWorker, { timeout: 2000 });
-}

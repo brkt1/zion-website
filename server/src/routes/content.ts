@@ -357,7 +357,7 @@ Every event we organize, every trip we plan, and every gathering we host is desi
 router.get('/content/contact', async (req: Request, res: Response) => {
   try {
     const contactInfo = {
-      email: "bereketyosef49@gmail.com",
+      email: "yenegeevents@gmail.com",
       phone: "+251978639887",
       phoneFormatted: "+251 978 639 887",
       location: "Addis Ababa, Ethiopia",

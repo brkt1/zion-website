@@ -104,7 +104,7 @@ npm run build
 
 ## 🔗 Contact Information
 
-- **Email**: bereketyosef49@gmail.com
+- **Email**: yenegeevents@gmail.com
 - **Phone**: +251 978 639 887
 - **Location**: Addis Ababa, Ethiopia
 
