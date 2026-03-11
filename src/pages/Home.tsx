@@ -1,8 +1,6 @@
 import { useMemo } from "react";
-import { FaArrowRight, FaBriefcase, FaCalendarAlt, FaHandsHelping, FaMapMarkerAlt, FaWhatsapp } from "react-icons/fa";
+import { FaArrowRight, FaBriefcase, FaCalendarAlt, FaGraduationCap, FaHandsHelping, FaMapMarkerAlt, FaWhatsapp } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import expoHero from "../assets/expo/hero.png";
-import zionLogoImg from "../assets/expo/zion-logo.png";
 import Gallery from "../Components/Gallery";
 import Hero from "../Components/Hero";
 import { LocationButton } from "../Components/ui/LocationButton";
@@ -91,92 +89,6 @@ const Home = () => {
       {/* Hero Section with Auto-Changing Destinations */}
       <Hero />
 
-      {/* Wedding Expo Featured Banner */}
-      <section className="relative overflow-hidden py-24 bg-white border-y border-slate-50">
-        <div className="container mx-auto px-6">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <div className="h-[2px] w-12 bg-amber-500" />
-                <span className="text-amber-600 font-sans tracking-[0.4em] uppercase text-[10px] font-black">Spotlight</span>
-              </div>
-              <h2 className="font-serif text-5xl md:text-7xl text-slate-900 tracking-tight leading-none">
-                Featured <span className="italic text-gold-gradient">Masterpiece</span>
-              </h2>
-            </div>
-            <p className="font-sans text-slate-400 uppercase tracking-[0.4em] text-[10px] font-black hidden md:block">
-              Event Curation 2026
-            </p>
-          </div>
-
-          <Link 
-            to="/expo-info"
-            className="group block relative rounded-[4rem] overflow-hidden shadow-2xl transition-all duration-700 hover:scale-[1.01] border border-slate-100 luxury-card"
-          >
-            <div className="lg:flex items-stretch min-h-[500px]">
-              <div className="lg:w-1/2 relative min-h-[300px] lg:min-h-full overflow-hidden">
-                <img 
-                  src={expoHero} 
-                  alt="Zion Expo" 
-                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-[2s]"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent"></div>
-                <div className="absolute top-10 left-10">
-                  <div className="bg-white/90 backdrop-blur-md text-slate-900 px-6 py-2 rounded-full text-[10px] font-black tracking-widest uppercase shadow-xl">
-                    Exclusive Access
-                  </div>
-                </div>
-              </div>
-              
-              <div className="lg:w-1/2 p-12 lg:p-20 bg-white flex flex-col justify-center relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-amber-50 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 opacity-50" />
-                
-                <div className="flex flex-col items-start mb-4 relative z-10">
-                  <span className="text-slate-500 font-sans text-[8px] uppercase tracking-[0.3em] font-black mb-2">Promoted By</span>
-                  <img src={zionLogoImg} alt="Promoter" className="w-20 md:w-28 object-contain drop-shadow-md" />
-                </div>
-                
-                <h3 className="font-serif text-4xl lg:text-6xl text-slate-900 mb-6 tracking-tight relative z-10 leading-none">
-                  Yene Ken <br />
-                  <span className="italic text-gold-gradient">Wedding Expo</span>
-                </h3>
-                
-                <div className="flex flex-wrap gap-8 mb-10 relative z-10">
-                  <div className="space-y-1 text-left border-l-2 border-amber-500/20 pl-4">
-                    <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Schedule</p>
-                    <p className="font-sans font-black text-slate-800 text-sm">መጋቢት 19-20</p>
-                  </div>
-                  <div className="space-y-1 text-left border-l-2 border-amber-500/20 pl-4">
-                    <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Venue</p>
-                    <p className="font-sans font-black text-slate-800 text-sm">Ghion Hotel</p>
-                  </div>
-                </div>
-
-                <p className="text-slate-500 mb-12 max-w-lg leading-relaxed text-lg font-medium relative z-10">
-                  Step into Ethiopia's most prestigious gathering of luxury wedding artisans. An curated ecosystem designed for the elite.
-                </p>
-
-                <div className="flex flex-col sm:flex-row items-center gap-8 relative z-10">
-                  <span className="glow-button-light px-12 py-5 rounded-2xl shadow-xl shadow-amber-500/20 active:scale-95 transition-all text-xs tracking-widest uppercase">
-                    Explore Exhibition
-                  </span>
-                  
-                  <div className="flex items-center gap-3">
-                    <div className="flex -space-x-3">
-                      {[1, 2, 3].map((i) => (
-                        <div key={i} className="w-10 h-10 rounded-full border-4 border-white bg-slate-100 overflow-hidden shadow-sm">
-                          <img src={`https://i.pravatar.cc/100?u=expo${i}`} alt="user" className="w-full h-full object-cover" />
-                        </div>
-                      ))}
-                    </div>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">+200 Brands</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Link>
-        </div>
-      </section>
 
       {/* Gallery Section */}
 
@@ -433,6 +345,59 @@ const Home = () => {
               <div className="w-12 h-px bg-amber-500/20 group-hover:w-20 group-hover:bg-amber-500 transition-all" />
               <FaArrowRight className="group-hover:translate-x-2 transition-transform" />
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Academy/Certification Section */}
+      <section className="py-24 md:py-48 bg-[#1C2951] relative overflow-hidden">
+        <div className="container mx-auto px-4">
+          <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-16 lg:gap-32">
+            <div className="flex-1 space-y-10 lg:pl-8">
+              <div className="inline-flex items-center gap-4 px-5 py-2 rounded-full bg-white/5 border border-white/10 text-amber-500 font-sans tracking-[0.4em] text-[10px] font-black uppercase">
+                <FaGraduationCap className="text-sm" /> Professional Academy
+              </div>
+              <h2 className="text-5xl md:text-8xl font-black text-white leading-[0.95] tracking-tight">
+                Architect Your <br />
+                <span className="italic text-[#FF6F5E]">Mastery.</span>
+              </h2>
+              <p className="text-xl md:text-2xl text-gray-400 font-light leading-relaxed max-w-xl">
+                The Event Management Certification program. 8 weeks of intensive, system-driven training to professionalize your craft.
+              </p>
+              <div className="pt-8 flex flex-wrap gap-8 items-center text-center lg:text-left">
+                <Link 
+                  to="/masterclass" 
+                  className="px-12 py-6 rounded-full bg-white text-slate-900 font-black text-sm tracking-widest uppercase hover:bg-amber-400 transition-all hover:scale-105 active:scale-95 shadow-2xl"
+                >
+                  Join Masterclass
+                </Link>
+                <div className="hidden sm:flex items-center gap-4 text-white/40">
+                   <div className="w-12 h-px bg-white/20" />
+                   <span className="text-[10px] font-black uppercase tracking-widest">Enroll Now</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex-1 relative">
+              <div className="aspect-[4/5] rounded-[4rem] overflow-hidden border border-white/10 shadow-2xl relative group">
+                <OptimizedImage 
+                  src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=800&auto=format&fit=crop" 
+                  alt="Academy Training" 
+                  className="w-full h-full object-cover opacity-60 grayscale group-hover:grayscale-0 transition-all duration-1000" 
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1C2951] to-transparent opacity-80" />
+                
+                {/* Featured Lesson Badge */}
+                <div className="absolute bottom-12 left-12 right-12 p-8 backdrop-blur-md bg-white/5 rounded-[2rem] border border-white/10">
+                   <p className="text-amber-500 text-[10px] font-black uppercase tracking-widest mb-3">Featured Module</p>
+                   <h3 className="text-2xl font-bold text-white mb-2 text-left">Crowd & Guest Experience</h3>
+                   <p className="text-white/40 text-sm font-light text-left">Mastering the flow of high-profile event operations.</p>
+                </div>
+              </div>
+              
+              {/* Accents */}
+              <div className="absolute -top-12 -right-12 w-64 h-64 bg-amber-500/10 rounded-full blur-[100px]" />
+            </div>
           </div>
         </div>
       </section>

@@ -31,7 +31,7 @@ const Footer = () => {
     { path: "/events", label: "Events" },
     { path: "/expo-info", label: "Wedding Expo" },
     { path: "/about", label: "About" },
-
+    { path: "/masterclass", label: "Masterclass" },
     { path: "/apply", label: "Apply" },
     { path: "/contact", label: "Contact" },
   ];

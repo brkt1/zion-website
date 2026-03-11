@@ -21,6 +21,7 @@ const Header = () => {
     { path: "/travel", label: "Travel & Adventures" },
 
     { path: "/community", label: "Community" },
+    { path: "/masterclass", label: "Masterclass" },
     { path: "/about", label: "About" },
     { path: "/contact", label: "Contact" },
   ];

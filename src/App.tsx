@@ -27,6 +27,8 @@ const PaymentFailed = lazy(() => import("./pages/PaymentFailed"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const ExpoInfo = lazy(() => import("./pages/ExpoInfo"));
 const ExpoRegistration = lazy(() => import("./pages/ExpoRegistration"));
+const Certification = lazy(() => import("./pages/Certification"));
+const Masterclass = lazy(() => import("./pages/Masterclass"));
 
 
 // Game pages - hidden routes (no navigation links)
@@ -88,6 +90,8 @@ function App() {
                 <Route path="/apply" element={<Apply />} />
                 <Route path="/expo-info" element={<ExpoInfo />} />
                 <Route path="/expo-registration" element={<ExpoRegistration />} />
+                <Route path="/certification" element={<Certification />} />
+                <Route path="/masterclass" element={<Masterclass />} />
 
                 <Route path="/payment/success" element={<PaymentSuccess />} />
                 <Route path="/payment/callback" element={<PaymentCallback />} />

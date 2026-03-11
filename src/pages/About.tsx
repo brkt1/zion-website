@@ -228,6 +228,50 @@ Every event we organize, every trip we plan, and every gathering we host is desi
         </div>
       </section>
 
+      {/* Academy CTA Section */}
+      <section className="py-24 bg-[#1C2951] relative overflow-hidden">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-12 lg:gap-20">
+             <div className="flex-1 space-y-8">
+                <div className="inline-block px-4 py-1 bg-white/10 text-[#FFD447] rounded-full text-xs font-bold uppercase tracking-widest border border-white/20">Learning Ecosystem</div>
+                <h2 className="text-4xl md:text-6xl font-black text-white tracking-tight leading-none">The Academy of <br /><span className="text-[#FF6F5E] italic">Event Masters.</span></h2>
+                <p className="text-xl text-gray-400 font-light leading-relaxed">
+                  Join our Professional Event Management Certification. An intensive, system-driven program designed to turn passion into professional precision.
+                </p>
+                <div className="pt-4 flex flex-wrap gap-4">
+                   <Link 
+                    to="/certification" 
+                    className="glow-button-light px-10 py-5 rounded-2xl font-black text-xs tracking-widest uppercase shadow-xl shadow-amber-500/10 active:scale-95 transition-all"
+                   >
+                     Explore Program
+                   </Link>
+                   <a 
+                    href="https://learn.yenege.com" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="px-10 py-5 rounded-2xl border border-white/10 text-white font-bold text-xs tracking-widest uppercase hover:bg-white/5 transition-all"
+                   >
+                     Go to E-Learning
+                   </a>
+                </div>
+             </div>
+             <div className="flex-1 relative">
+                <div className="aspect-[4/3] rounded-[3rem] overflow-hidden border border-white/10 shadow-2xl relative group">
+                   <img 
+                    src="https://images.unsplash.com/photo-1524178232363-1fb28f74b0cd?q=80&w=800&auto=format&fit=crop" 
+                    className="w-full h-full object-cover opacity-60 grayscale group-hover:grayscale-0 transition-all duration-1000" 
+                    alt="Academy Class" 
+                   />
+                   <div className="absolute inset-0 bg-gradient-to-t from-[#1C2951] to-transparent opacity-80" />
+                   <div className="absolute inset-0 flex items-center justify-center">
+                      <FaGraduationCap className="text-white/20 text-9xl group-hover:scale-110 transition-transform duration-700" />
+                   </div>
+                </div>
+             </div>
+          </div>
+        </div>
+      </section>
+
       {/* Mission & Vision & Philosophy */}
       <section className="py-20 md:py-32 bg-gray-50 overflow-hidden">
         <div className="container mx-auto px-4">
