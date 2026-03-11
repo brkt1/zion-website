@@ -344,6 +344,16 @@ Every event we organize, every trip we plan, and every gathering we host is desi
         { year: "2024", title: "Growth", description: "Expanded to include travel adventures and corporate events" },
         { year: "Future", title: "Expansion", description: "Building towards becoming Ethiopia's premier lifestyle platform" },
       ],
+      ceo: {
+        name: "Bereket Yosef",
+        title: "Founder & CEO",
+        bio: "Bereket Yosef is a visionary entrepreneur dedicated to redefining the experience economy in Ethiopia. With a background in strategic event management and community development, he founded Yenege to create a platform that balances professional execution with transformative education. His mission is to empower a new generation of creatives while delivering world-class lifestyle experiences.",
+        quote: "We don't just organize events; we architect the moments that define a lifetime.",
+        image: "",
+        socialLinks: [
+          { platform: "LinkedIn", url: "https://www.linkedin.com/in/bereket-yosef-b99a0622a/" }
+        ]
+      }
     };
 
     res.json(aboutContent);

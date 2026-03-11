@@ -1,9 +1,25 @@
 import { FaArrowRight, FaGraduationCap, FaNetworkWired, FaRocket, FaUsers, FaWhatsapp } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import { useContactInfo } from "../hooks/useApi";
+import OptimizedImage from "../Components/ui/OptimizedImage";
+import { useAboutContent, useContactInfo } from "../hooks/useApi";
 
 const About = () => {
   const { contactInfo } = useContactInfo();
+  const { content } = useAboutContent();
+  
+  // Use data from API or fallback to standard content
+  const story = content?.story || {
+    title: "The Yenege Dream",
+    content: `Yenege was born from a simple yet powerful vision: to bring happiness to life through meaningful connections and unforgettable experiences.
+
+We believe that life's greatest moments happen when people come together—whether it's over a board game, on a weekend adventure, or simply sharing stories in a welcoming community space.
+
+What started as a dream to create a space where people could escape the daily grind and truly connect has grown into a vibrant community of individuals who value joy, friendship, and living life to the fullest.
+
+Every event we organize, every trip we plan, and every gathering we host is designed with one goal in mind: to bring a little more happiness into your life.`
+  };
+  
+  const ceo = content?.ceo;
 
   return (
     <div className="min-h-screen bg-white">
@@ -93,14 +109,13 @@ const About = () => {
           <div className="flex flex-col md:flex-row items-center gap-12 lg:gap-20 max-w-6xl mx-auto">
             <div className="flex-1">
               <div className="h-1 w-16 mb-6 rounded-full bg-gradient-to-r from-[#FFD447] to-[#FF6F5E]"></div>
-              <h2 className="text-3xl md:text-5xl font-bold mb-8 text-[#1a1a1a] tracking-tight">The Beginning</h2>
+              <h2 className="text-3xl md:text-5xl font-bold mb-8 text-[#1a1a1a] tracking-tight">{story.title}</h2>
               <div className="space-y-6 text-lg text-gray-600 leading-relaxed font-light">
                 <p className="text-2xl font-medium text-[#1C2951]">Yenege started with a powerful observation:</p>
                 <p className="bg-yellow-50 p-4 border-l-4 border-[#FFD447] italic">"People attend events. Few understand how to build them."</p>
-                <p>
-                  While many companies focus only on organizing occasions, we saw a bigger opportunity — to build a platform that both executes events and trains the next generation of event professionals.
-                </p>
-                <p className="font-semibold text-[#FF6F5E]">That dual model is what makes Yenege different.</p>
+                {story.content.split('\n\n').map((para, i) => (
+                  <p key={i}>{para}</p>
+                ))}
               </div>
             </div>
             <div className="flex-1 relative">
@@ -221,13 +236,13 @@ const About = () => {
               <div className="bg-white p-10 md:p-14 rounded-[3rem] shadow-sm border border-gray-100">
                 <h3 className="text-xl font-bold uppercase tracking-widest text-[#FF6F5E] mb-6">Our Mission</h3>
                 <p className="text-2xl md:text-3xl font-light text-gray-800 leading-tight">
-                  To build Ethiopia’s most trusted experience and event education platform — empowering individuals while delivering exceptional events.
+                  {content?.mission?.content || "To build Ethiopia’s most trusted experience and event education platform — empowering individuals while delivering exceptional events."}
                 </p>
               </div>
               <div className="bg-white p-10 md:p-14 rounded-[3rem] shadow-sm border border-gray-100">
                 <h3 className="text-xl font-bold uppercase tracking-widest text-[#FFD447] mb-6">Our Vision</h3>
                 <p className="text-2xl md:text-3xl font-light text-gray-800 leading-tight">
-                  To become the leading ecosystem for event professionals and curated experiences across Ethiopia and beyond.
+                  {content?.vision?.content || "To become the leading ecosystem for event professionals and curated experiences across Ethiopia and beyond."}
                 </p>
               </div>
             </div>
@@ -258,6 +273,86 @@ const About = () => {
               
               {/* Accents */}
               <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#FFD447] rounded-full blur-[100px] opacity-20"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CEO Section - Professional & Modern */}
+      <section className="py-24 md:py-32 bg-white overflow-hidden relative">
+        <div className="container mx-auto px-4">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
+              {/* Image Column */}
+              <div className="w-full lg:w-5/12 relative">
+                <div className="relative z-10 aspect-[4/5] rounded-[2.5rem] md:rounded-[4rem] overflow-hidden shadow-2xl luxury-border-light">
+                  {ceo?.image ? (
+                    <OptimizedImage 
+                      src={ceo.image} 
+                      alt={ceo.name} 
+                      className="w-full h-full object-cover grayscale md:grayscale hover:grayscale-0 transition-all duration-1000"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                      <FaUsers className="text-gray-300 text-8xl md:text-9xl opacity-20" />
+                    </div>
+                  )}
+                  {/* Glassmorphism Name Tag */}
+                  <div className="absolute bottom-10 left-10 right-10 p-6 md:p-8 backdrop-blur-md bg-white/10 border border-white/20 rounded-[2rem] text-white">
+                    <h3 className="text-2xl md:text-3xl font-black tracking-tight">{ceo?.name || "Bereket Yosef"}</h3>
+                    <p className="text-white/70 uppercase tracking-[0.2em] text-[10px] font-bold mt-2">{ceo?.title || "Founder & CEO"}</p>
+                  </div>
+                </div>
+                {/* Decorative Elements */}
+                <div className="absolute -top-12 -left-12 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl -z-1" />
+                <div className="absolute -bottom-12 -right-12 w-64 h-64 bg-rose-500/10 rounded-full blur-3xl -z-1" />
+              </div>
+
+              {/* Content Column */}
+              <div className="w-full lg:w-7/12 space-y-10 lg:pl-4">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <div className="h-[2px] w-12 bg-amber-500" />
+                    <span className="text-amber-500 font-sans tracking-[0.4em] uppercase text-[10px] font-black">Founder's vision</span>
+                  </div>
+                  <h2 className="text-4xl md:text-6xl font-black text-slate-900 leading-[1.1] tracking-tight">
+                    Crafting Ethiopia's <br />
+                    <span className="italic text-gold-gradient">Creative Future.</span>
+                  </h2>
+                </div>
+
+                <div className="space-y-6 text-lg md:text-xl text-slate-600 leading-relaxed font-light">
+                  {ceo?.bio ? (
+                    ceo.bio.split('\n').map((para, i) => (
+                      <p key={i}>{para}</p>
+                    ))
+                  ) : (
+                    <>
+                      <p>Bereket Yosef is a visionary entrepreneur dedicated to redefining the experience economy in Ethiopia. With a deep focus on strategic event management and community architecture, he founded Yenege to bridge the gap between world-class execution and transformative education.</p>
+                      <p>His dual model ensures that every event is not just a moment in time, but a foundation for the next generation of professional event designers.</p>
+                    </>
+                  )}
+                </div>
+
+                {ceo?.quote && (
+                  <div className="relative py-8 px-10 border-l-4 border-amber-500 bg-gray-50 rounded-r-[2rem]">
+                    <p className="text-xl md:text-2xl font-serif italic text-slate-800 leading-relaxed font-light">
+                      "{ceo.quote}"
+                    </p>
+                  </div>
+                )}
+
+                {ceo?.socialLinks && ceo.socialLinks.length > 0 && (
+                  <div className="flex items-center gap-8 pt-6">
+                    <span className="text-xs uppercase tracking-widest font-black text-slate-400">Connect</span>
+                    <div className="flex gap-6">
+                      {ceo.socialLinks.map((link, i) => (
+                        <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-amber-500 transition-colors font-bold uppercase text-[10px] tracking-widest">{link.platform}</a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

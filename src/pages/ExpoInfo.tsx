@@ -424,6 +424,59 @@ const ExpoInfo: React.FC = () => {
         </div>
       </section>
 
+      {/* Founder Message Section */}
+      <section className="py-32 bg-slate-50 relative overflow-hidden">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid lg:grid-cols-12 gap-16 items-center">
+              <div className="lg:col-span-5 relative">
+                <div className="aspect-[4/5] rounded-[3rem] overflow-hidden luxury-border-light shadow-2xl">
+                  {/* High quality professional headshot placeholder */}
+                  <img 
+                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop" 
+                    className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000" 
+                    alt="Bereket Yosef - Founder" 
+                  />
+                </div>
+                {/* Floating badge */}
+                <div className="absolute -bottom-8 -right-8 glass-light p-8 rounded-[2rem] border border-white shadow-xl">
+                  <h4 className="font-serif italic text-2xl text-slate-800">Founder's Note</h4>
+                </div>
+              </div>
+
+              <div className="lg:col-span-7 space-y-10">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <div className="h-[2px] w-12 bg-amber-500" />
+                    <span className="text-amber-600 font-sans tracking-[0.4em] uppercase text-[10px] font-black">Curator's Vision</span>
+                  </div>
+                  <h2 className="font-serif text-5xl md:text-7xl text-slate-800 tracking-tight leading-none">
+                    Elegance is in <br />
+                    <span className="italic text-gold-gradient">The Detail.</span>
+                  </h2>
+                </div>
+
+                <div className="space-y-6 text-xl text-slate-500 font-light leading-relaxed italic">
+                  <p>
+                    "Yene Ken Expo belongs to those who believe that a wedding is more than an event—it's a masterpiece. We've created this ecosystem to celebrate the artisans who transform dreams into reality with absolute precision."
+                  </p>
+                </div>
+
+                <div className="pt-8 border-t border-slate-200">
+                  <p className="font-serif text-3xl text-slate-800 tracking-tight">Bereket Yosef</p>
+                  <p className="font-sans text-[10px] uppercase tracking-[0.3em] text-amber-600 font-black mt-2">CEO & Lead Curator, Yenege</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Decorative background text */}
+        <div className="absolute top-1/2 left-0 -translate-y-1/2 text-[20rem] font-serif font-black text-slate-200/20 select-none pointer-events-none -z-1 translate-x-[-10%] whitespace-nowrap">
+          YENEGE
+        </div>
+      </section>
+
       {/* Categories Marquee */}
       <section className="py-24 bg-white border-y border-slate-50 overflow-hidden text-[#1A1A1A]">
         <div className="flex whitespace-nowrap animate-marquee">
