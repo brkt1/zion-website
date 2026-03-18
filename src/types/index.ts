@@ -285,3 +285,82 @@ export interface UpdateExpoApplicationData {
 }
 
 
+// Partner/Sponsor types
+export interface Partner {
+  id: string;
+  name: string;
+  contact_person: string;
+  email: string;
+  phone?: string;
+  website?: string;
+  logo_url?: string;
+  sponsorship_amount: number;
+  currency: string;
+  status: 'potential' | 'active' | 'past';
+  representative_id?: string;
+  representative_name?: string;
+  commission_rate?: number; // Representative's cut for this partner
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreatePartnerData {
+  name: string;
+  contact_person: string;
+  email: string;
+  phone?: string;
+  website?: string;
+  logo_url?: string;
+  sponsorship_amount: number;
+  currency: string;
+  status?: 'potential' | 'active' | 'past';
+  representative_id?: string;
+  commission_rate?: number;
+  notes?: string;
+}
+
+export interface UpdatePartnerData {
+  name?: string;
+  contact_person?: string;
+  email?: string;
+  phone?: string;
+  website?: string;
+  logo_url?: string;
+  sponsorship_amount?: number;
+  currency?: string;
+  status?: 'potential' | 'active' | 'past';
+  representative_id?: string;
+  commission_rate?: number;
+  notes?: string;
+}
+
+export interface SponsorshipRepresentative {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  default_commission_rate: number;
+  is_active: boolean;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateRepresentativeData {
+  name: string;
+  email: string;
+  phone?: string;
+  default_commission_rate: number;
+  is_active?: boolean;
+  notes?: string;
+}
+
+export interface UpdateRepresentativeData {
+  name?: string;
+  email?: string;
+  phone?: string;
+  default_commission_rate?: number;
+  is_active?: boolean;
+  notes?: string;
+}

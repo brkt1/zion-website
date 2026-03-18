@@ -1,7 +1,7 @@
 import useSWR from 'swr';
 import { adminApi } from '../services/adminApi';
 import { AboutContent, api, Category, ContactInfo, Destination, Event, GalleryItem, HomeContent, SiteConfig } from '../services/api';
-import { CommissionSeller } from '../types';
+import { CommissionSeller, Partner, SponsorshipRepresentative } from '../types';
 
 // Custom hooks for data fetching using SWR
 export const useEvents = (params?: { category?: string; featured?: boolean; limit?: number }) => {
@@ -237,6 +237,40 @@ export const useCommissionSeller = (id: string | undefined) => {
 
   return {
     seller: data,
+    isLoading,
+    isError: error,
+    mutate,
+  };
+};
+
+export const usePartners = () => {
+  const { data, error, isLoading, mutate } = useSWR<Partner[]>(
+    'partners',
+    () => adminApi.partners.getAll(),
+    {
+      revalidateOnFocus: false,
+    }
+  );
+
+  return {
+    partners: data || [],
+    isLoading,
+    isError: error,
+    mutate,
+  };
+};
+
+export const useRepresentatives = () => {
+  const { data, error, isLoading, mutate } = useSWR<SponsorshipRepresentative[]>(
+    'sponsorship-representatives',
+    () => adminApi.representatives.getAll(),
+    {
+      revalidateOnFocus: false,
+    }
+  );
+
+  return {
+    representatives: data || [],
     isLoading,
     isError: error,
     mutate,

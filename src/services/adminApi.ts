@@ -1,4 +1,4 @@
-import { Application, CommissionSeller, CreateApplicationData, CreateCommissionSellerData, CreateExpoApplicationData, CreateTicketScannerData, ExpoApplication, TicketScanner, UpdateApplicationData, UpdateCommissionSellerData, UpdateExpoApplicationData, UpdateTicketScannerData } from '../types';
+import { Application, CommissionSeller, CreateApplicationData, CreateCommissionSellerData, CreateExpoApplicationData, CreatePartnerData, CreateRepresentativeData, CreateTicketScannerData, ExpoApplication, Partner, SponsorshipRepresentative, TicketScanner, UpdateApplicationData, UpdateCommissionSellerData, UpdateExpoApplicationData, UpdatePartnerData, UpdateRepresentativeData, UpdateTicketScannerData } from '../types';
 import { AboutContent, Category, ContactInfo, Destination, Event, GalleryItem, HomeContent, SiteConfig } from './api';
 import { supabase } from './supabase';
 
@@ -1155,6 +1155,130 @@ export const adminApi = {
     delete: async (id: string) => {
       const { error } = await supabase
         .from('expo_applications')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return { success: true };
+    },
+  },
+
+  // Partners CRUD
+  partners: {
+    getAll: async () => {
+      const { data, error } = await supabase
+        .from('partners')
+        .select(`
+          *,
+          representative:sponsorship_representatives(name)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return (data || []).map(p => ({
+        ...p,
+        representative_name: p.representative?.name
+      })) as Partner[];
+    },
+
+    create: async (partnerData: CreatePartnerData) => {
+      const { data, error } = await supabase
+        .from('partners')
+        .insert([{
+          name: partnerData.name,
+          contact_person: partnerData.contact_person,
+          email: partnerData.email,
+          phone: partnerData.phone || null,
+          website: partnerData.website || null,
+          logo_url: partnerData.logo_url || null,
+          sponsorship_amount: partnerData.sponsorship_amount,
+          currency: partnerData.currency,
+          status: partnerData.status || 'potential',
+          representative_id: partnerData.representative_id || null,
+          commission_rate: partnerData.commission_rate || null,
+          notes: partnerData.notes || null,
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as Partner;
+    },
+
+    update: async (id: string, partnerData: UpdatePartnerData) => {
+      const { data, error } = await supabase
+        .from('partners')
+        .update({
+          ...partnerData,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as Partner;
+    },
+
+    delete: async (id: string) => {
+      const { error } = await supabase
+        .from('partners')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return { success: true };
+    },
+  },
+
+  // Sponsorship Representatives CRUD
+  representatives: {
+    getAll: async () => {
+      const { data, error } = await supabase
+        .from('sponsorship_representatives')
+        .select('*')
+        .order('name', { ascending: true });
+
+      if (error) throw error;
+      return data as SponsorshipRepresentative[];
+    },
+
+    create: async (repData: CreateRepresentativeData) => {
+      const { data, error } = await supabase
+        .from('sponsorship_representatives')
+        .insert([{
+          name: repData.name,
+          email: repData.email,
+          phone: repData.phone || null,
+          default_commission_rate: repData.default_commission_rate,
+          is_active: repData.is_active !== undefined ? repData.is_active : true,
+          notes: repData.notes || null,
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as SponsorshipRepresentative;
+    },
+
+    update: async (id: string, repData: UpdateRepresentativeData) => {
+      const { data, error } = await supabase
+        .from('sponsorship_representatives')
+        .update({
+          ...repData,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as SponsorshipRepresentative;
+    },
+
+    delete: async (id: string) => {
+      const { error } = await supabase
+        .from('sponsorship_representatives')
         .delete()
         .eq('id', id);
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { FaExclamationTriangle, FaHome, FaSignOutAlt } from 'react-icons/fa';
 import { Navigate, Outlet, useNavigate } from 'react-router-dom';
-import { isAdmin, isCommissionSeller } from '../../services/auth';
+import { isAdmin, isCommissionSeller, isSponsorshipRepresentative } from '../../services/auth';
 import { supabase } from '../../services/supabase';
 
 /**
@@ -12,6 +12,7 @@ const AdminRoute = () => {
   const [loading, setLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isSeller, setIsSeller] = useState(false);
+  const [isRep, setIsRep] = useState(false);
 
   useEffect(() => {
     const checkAdminAuth = async () => {
@@ -21,6 +22,7 @@ const AdminRoute = () => {
         if (!session) {
           setIsAuthorized(false);
           setIsSeller(false);
+          setIsRep(false);
           setLoading(false);
           return;
         }
@@ -28,19 +30,21 @@ const AdminRoute = () => {
         // Check if user is admin (not just has admin access)
         const admin = await isAdmin();
         const seller = await isCommissionSeller();
+        const rep = await isSponsorshipRepresentative();
         
         setIsSeller(seller && !admin);
+        setIsRep(rep && !admin);
         
         // Block commission sellers from accessing admin routes
         // Show them access denied page instead
         if (!admin) {
-          if (seller) {
-            // Commission seller trying to access admin route - show access denied
+          if (seller || rep) {
+            // Seller or Rep trying to access admin route - show access denied
             setIsAuthorized(false);
             setLoading(false);
             return;
           }
-          // Not admin and not seller - unauthorized
+          // Not admin and not authorized roles - unauthorized
           setIsAuthorized(false);
           setLoading(false);
           return;
@@ -52,6 +56,7 @@ const AdminRoute = () => {
         console.error('Admin auth check error:', error);
         setIsAuthorized(false);
         setIsSeller(false);
+        setIsRep(false);
         setLoading(false);
       }
     };
@@ -71,10 +76,11 @@ const AdminRoute = () => {
   }
 
   if (!isAuthorized) {
-    // If user is a commission seller, show access denied page
-    // Otherwise redirect to login
     if (isSeller) {
-      return <AccessDeniedForSellers />;
+      return <AccessDeniedMessage title="Access Denied" message="This area is restricted to administrators." dashboardPath="/admin/seller-dashboard" dashboardLabel="Go to Seller Dashboard" />;
+    }
+    if (isRep) {
+      return <AccessDeniedMessage title="Access Denied" message="This area is restricted to administrators." dashboardPath="/admin/representative-dashboard" dashboardLabel="Go to Representative Dashboard" />;
     }
     return <Navigate to="/admin/login?error=unauthorized" replace />;
   }
@@ -83,13 +89,13 @@ const AdminRoute = () => {
 };
 
 /**
- * Access Denied component for commission sellers trying to access admin pages
+ * Generic Access Denied message component
  */
-const AccessDeniedForSellers = () => {
+const AccessDeniedMessage = ({ title, message, dashboardPath, dashboardLabel }: { title: string, message: string, dashboardPath: string, dashboardLabel: string }) => {
   const navigate = useNavigate();
 
   const handleGoToDashboard = () => {
-    navigate('/admin/seller-dashboard', { replace: true });
+    navigate(dashboardPath, { replace: true });
   };
 
   const handleLogout = async () => {
@@ -98,35 +104,33 @@ const AccessDeniedForSellers = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
-        <div className="mb-6">
-          <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4">
-            <FaExclamationTriangle className="h-8 w-8 text-red-600" />
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 font-sans">
+      <div className="max-w-md w-full bg-white rounded-[40px] shadow-2xl p-10 text-center border border-gray-100">
+        <div className="mb-8">
+          <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-3xl bg-red-50 mb-6 group hover:scale-110 transition-transform duration-500">
+            <FaExclamationTriangle className="h-10 w-10 text-red-500" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
-          <p className="text-gray-600 mb-1">
-            You don't have permission to access this page.
-          </p>
-          <p className="text-sm text-gray-500">
-            This area is restricted to administrators only.
-          </p>
+          <h1 className="text-3xl font-black text-[#1C2951] mb-2 tracking-tight">{title}</h1>
+          <p className="text-gray-500 mb-2 font-medium">{message}</p>
+          <div className="inline-block px-4 py-1.5 bg-gray-100 rounded-full text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
+             Protocol Restricted
+          </div>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           <button
             onClick={handleGoToDashboard}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors font-medium"
+            className="w-full flex items-center justify-center gap-3 px-8 py-5 bg-[#1C2951] text-white rounded-2xl hover:bg-[#FF6F5E] transition-all font-black text-xs uppercase tracking-widest shadow-xl shadow-[#1C2951]/20 hover:shadow-[#FF6F5E]/30"
           >
             <FaHome />
-            Go to My Dashboard
+            {dashboardLabel}
           </button>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors font-medium"
+            className="w-full flex items-center justify-center gap-3 px-8 py-5 border border-gray-100 text-gray-400 rounded-2xl hover:bg-red-50 hover:text-red-500 transition-all font-black text-xs uppercase tracking-widest"
           >
             <FaSignOutAlt />
-            Logout
+            Terminate Protocol
           </button>
         </div>
       </div>

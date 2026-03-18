@@ -10,6 +10,7 @@ import {
     FaCog,
     FaEnvelope,
     FaGlobe,
+    FaHandshake,
     FaHome,
     FaImages,
     FaInfoCircle,
@@ -20,7 +21,8 @@ import {
     FaSignOutAlt,
     FaTicketAlt,
     FaTimes,
-    FaUser
+    FaUser,
+    FaUsers
 } from 'react-icons/fa';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { isAdmin, isCommissionSeller } from '../../services/auth';
@@ -96,8 +98,9 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
     { icon: FaHome, label: 'Home Content', path: '/admin/home', color: 'from-yellow-400 to-orange-500' },
     { icon: FaInfoCircle, label: 'About Content', path: '/admin/about', color: 'from-indigo-500 to-purple-500' },
     { icon: FaEnvelope, label: 'Contact Info', path: '/admin/contact', color: 'from-red-500 to-orange-500' },
+    { icon: FaHandshake, label: 'Partners & Sponsors', path: '/admin/partners', color: 'from-emerald-500 to-teal-600' },
     { icon: FaTicketAlt, label: 'Commission Sellers', path: '/admin/commission-sellers', color: 'from-orange-500 to-red-500' },
-    { icon: FaQrcode, label: 'Ticket Scanners', path: '/admin/ticket-scanners', color: 'from-blue-400 to-cyan-500' },
+    { icon: FaUsers, label: 'Ticket Scanners', path: '/admin/ticket-scanners', color: 'from-blue-400 to-cyan-500' },
     { icon: FaBriefcase, label: 'Applications', path: '/admin/applications', color: 'from-teal-500 to-green-500' },
     { icon: FaGlobe, label: 'Expo Applications', path: '/admin/expo-applications', color: 'from-orange-400 to-amber-500' },
     { icon: FaCog, label: 'Site Settings', path: '/admin/settings', color: 'from-gray-500 to-slate-600' },

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { isAdmin, isCommissionSeller, isTicketScanner } from '../../services/auth';
+import { isAdmin, isCommissionSeller, isSponsorshipRepresentative, isTicketScanner } from '../../services/auth';
 import { supabase } from '../../services/supabase';
 
 const AdminRedirect = () => {
@@ -22,8 +22,9 @@ const AdminRedirect = () => {
         const admin = await isAdmin();
         const seller = await isCommissionSeller();
         const scanner = await isTicketScanner();
+        const rep = await isSponsorshipRepresentative();
         
-        if (!admin && !seller && !scanner) {
+        if (!admin && !seller && !scanner && !rep) {
           setRedirectTo('/admin/login?error=unauthorized');
           setLoading(false);
           return;
@@ -34,6 +35,8 @@ const AdminRedirect = () => {
           setRedirectTo('/admin/dashboard');
         } else if (seller) {
           setRedirectTo('/admin/seller-dashboard');
+        } else if (rep) {
+          setRedirectTo('/admin/representative-dashboard');
         } else if (scanner) {
           setRedirectTo('/admin/scanner-dashboard');
         }

@@ -56,6 +56,8 @@ const AdminSettings = lazy(() => import("./pages/admin/Settings"));
 const VerifyTicket = lazy(() => import("./pages/admin/VerifyTicket"));
 const Applications = lazy(() => import("./pages/admin/Applications"));
 const AdminExpoApplications = lazy(() => import("./pages/admin/ExpoApplications"));
+const RepresentativeDashboard = lazy(() => import("./pages/admin/RepresentativeDashboard"));
+const AdminPartners = lazy(() => import("./pages/admin/Partners"));
 
 
 
@@ -173,8 +175,15 @@ function App() {
             </Suspense>
           } 
         />
+        <Route 
+          path="/admin/representative-dashboard" 
+          element={
+            <Suspense fallback={<LoadingState message="Loading protocol..." />}>
+              <RepresentativeDashboard />
+            </Suspense>
+          } 
+        />
         
-        {/* Admin-only routes - protected by AdminRoute */}
         <Route element={<AdminRoute />}>
           <Route 
             path="/admin/commission-sellers" 
@@ -288,6 +297,15 @@ function App() {
               </Suspense>
             } 
           />
+          <Route 
+            path="/admin/partners" 
+            element={
+              <Suspense fallback={<LoadingState message="Loading..." />}>
+                <AdminPartners />
+              </Suspense>
+            } 
+          />
+          
           
         </Route>
       </Routes>
