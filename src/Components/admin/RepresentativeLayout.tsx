@@ -1,5 +1,5 @@
 import { ReactNode, useState } from 'react';
-import { FaBars, FaChartLine, FaHandshake, FaSignOutAlt, FaTimes } from 'react-icons/fa';
+import { FaBars, FaHandshake, FaSignOutAlt, FaTimes } from 'react-icons/fa';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
 
@@ -14,7 +14,7 @@ const RepresentativeLayout = ({ children }: RepresentativeLayoutProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
-    { icon: FaChartLine, label: 'Protocol', path: '/admin/representative-dashboard' },
+    { icon: FaHandshake, label: 'Partners & Sponsorships', path: '/admin/representative-dashboard' },
   ];
 
   const handleLogout = async () => {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { isAdmin, isCommissionSeller, isTicketScanner } from '../../services/auth';
+import { isAdmin, isCommissionSeller, isSponsorshipRepresentative, isTicketScanner } from '../../services/auth';
 import { supabase } from '../../services/supabase';
 
 const Login = () => {
@@ -27,8 +27,9 @@ const Login = () => {
         const admin = await isAdmin();
         const seller = await isCommissionSeller();
         const scanner = await isTicketScanner();
+        const rep = await isSponsorshipRepresentative();
         
-        if (!admin && !seller && !scanner) {
+        if (!admin && !seller && !scanner && !rep) {
           await supabase.auth.signOut();
           setError('You do not have access. Please contact an administrator.');
           setLoading(false);
@@ -42,6 +43,8 @@ const Login = () => {
           navigate('/admin/seller-dashboard');
         } else if (scanner) {
           navigate('/admin/scanner-dashboard');
+        } else if (rep) {
+          navigate('/admin/representative-dashboard');
         }
       }
     };
@@ -53,8 +56,9 @@ const Login = () => {
     const admin = await isAdmin();
     const seller = await isCommissionSeller();
     const scanner = await isTicketScanner();
+    const rep = await isSponsorshipRepresentative();
     
-    if (!admin && !seller && !scanner) {
+    if (!admin && !seller && !scanner && !rep) {
       await supabase.auth.signOut();
       setError('You do not have access. Please contact an administrator.');
       setLoading(false);
@@ -68,6 +72,8 @@ const Login = () => {
       navigate('/admin/seller-dashboard');
     } else if (scanner) {
       navigate('/admin/scanner-dashboard');
+    } else if (rep) {
+      navigate('/admin/representative-dashboard');
     }
   };
 
