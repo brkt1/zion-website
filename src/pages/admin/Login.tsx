@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { isAdmin, isCommissionSeller, isSponsorshipRepresentative, isTicketScanner } from '../../services/auth';
+import { isAdmin, isCommissionSeller, isSponsorshipManager, isTicketScanner } from '../../services/auth';
 import { supabase } from '../../services/supabase';
 
 const Login = () => {
@@ -25,11 +25,11 @@ const Login = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         const admin = await isAdmin();
+        const manager = await isSponsorshipManager();
         const seller = await isCommissionSeller();
         const scanner = await isTicketScanner();
-        const rep = await isSponsorshipRepresentative();
         
-        if (!admin && !seller && !scanner && !rep) {
+        if (!admin && !seller && !scanner && !manager) {
           await supabase.auth.signOut();
           setError('You do not have access. Please contact an administrator.');
           setLoading(false);
@@ -39,12 +39,12 @@ const Login = () => {
         
         if (admin) {
           navigate('/admin/dashboard');
+        } else if (manager) {
+          navigate('/admin/sponsorship-department');
         } else if (seller) {
           navigate('/admin/seller-dashboard');
         } else if (scanner) {
           navigate('/admin/scanner-dashboard');
-        } else if (rep) {
-          navigate('/admin/representative-dashboard');
         }
       }
     };
@@ -54,11 +54,11 @@ const Login = () => {
 
   const redirectUser = async () => {
     const admin = await isAdmin();
+    const manager = await isSponsorshipManager();
     const seller = await isCommissionSeller();
     const scanner = await isTicketScanner();
-    const rep = await isSponsorshipRepresentative();
     
-    if (!admin && !seller && !scanner && !rep) {
+    if (!admin && !seller && !scanner && !manager) {
       await supabase.auth.signOut();
       setError('You do not have access. Please contact an administrator.');
       setLoading(false);
@@ -68,12 +68,12 @@ const Login = () => {
     
     if (admin) {
       navigate('/admin/dashboard');
+    } else if (manager) {
+      navigate('/admin/sponsorship-department');
     } else if (seller) {
       navigate('/admin/seller-dashboard');
     } else if (scanner) {
       navigate('/admin/scanner-dashboard');
-    } else if (rep) {
-      navigate('/admin/representative-dashboard');
     }
   };
 

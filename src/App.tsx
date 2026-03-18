@@ -175,16 +175,16 @@ function App() {
             </Suspense>
           } 
         />
-        <Route 
-          path="/admin/representative-dashboard" 
-          element={
-            <Suspense fallback={<LoadingState message="Loading protocol..." />}>
-              <RepresentativeDashboard />
-            </Suspense>
-          } 
-        />
         
         <Route element={<AdminRoute />}>
+          <Route 
+            path="/admin/sponsorship-department" 
+            element={
+              <Suspense fallback={<LoadingState message="Loading intelligence..." />}>
+                <RepresentativeDashboard />
+              </Suspense>
+            } 
+          />
           <Route 
             path="/admin/commission-sellers" 
             element={
@@ -294,14 +294,6 @@ function App() {
             element={
               <Suspense fallback={<LoadingState message="Loading..." />}>
                 <AdminExpoApplications />
-              </Suspense>
-            } 
-          />
-          <Route 
-            path="/admin/partners" 
-            element={
-              <Suspense fallback={<LoadingState message="Loading..." />}>
-                <AdminPartners />
               </Suspense>
             } 
           />

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { FaExclamationTriangle, FaHome, FaSignOutAlt } from 'react-icons/fa';
 import { Navigate, Outlet, useNavigate } from 'react-router-dom';
-import { isAdmin, isCommissionSeller, isSponsorshipRepresentative } from '../../services/auth';
+import { isAdmin, isCommissionSeller, isSponsorshipManager, isSponsorshipRepresentative } from '../../services/auth';
 import { supabase } from '../../services/supabase';
 
 /**
@@ -13,6 +13,7 @@ const AdminRoute = () => {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isSeller, setIsSeller] = useState(false);
   const [isRep, setIsRep] = useState(false);
+  const [isManager, setIsManager] = useState(false);
 
   useEffect(() => {
     const checkAdminAuth = async () => {
@@ -29,22 +30,22 @@ const AdminRoute = () => {
 
         // Check if user is admin (not just has admin access)
         const admin = await isAdmin();
+        const manager = await isSponsorshipManager();
         const seller = await isCommissionSeller();
         const rep = await isSponsorshipRepresentative();
         
-        setIsSeller(seller && !admin);
-        setIsRep(rep && !admin);
+        setIsSeller(seller && !admin && !manager);
+        setIsRep(rep && !admin && !manager);
+        setIsManager(manager && !admin);
         
-        // Block commission sellers from accessing admin routes
-        // Show them access denied page instead
-        if (!admin) {
+        // Block commission sellers and reps from accessing general admin routes 
+        // unless they are a manager
+        if (!admin && !manager) {
           if (seller || rep) {
-            // Seller or Rep trying to access admin route - show access denied
             setIsAuthorized(false);
             setLoading(false);
             return;
           }
-          // Not admin and not authorized roles - unauthorized
           setIsAuthorized(false);
           setLoading(false);
           return;

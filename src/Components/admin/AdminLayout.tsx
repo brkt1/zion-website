@@ -1,31 +1,31 @@
 import { useEffect, useState } from 'react';
 import {
-    FaBars,
-    FaBell,
-    FaBriefcase,
-    FaCalendarAlt,
-    FaChartLine,
-    FaChevronLeft,
-    FaChevronRight,
-    FaCog,
-    FaEnvelope,
-    FaGlobe,
-    FaHandshake,
-    FaHome,
-    FaImages,
-    FaInfoCircle,
-    FaMapMarkerAlt,
-    FaNewspaper,
-    FaQrcode,
-    FaSearch,
-    FaSignOutAlt,
-    FaTicketAlt,
-    FaTimes,
-    FaUser,
-    FaUsers
+  FaBars,
+  FaBell,
+  FaBriefcase,
+  FaCalendarAlt,
+  FaChartLine,
+  FaChevronLeft,
+  FaChevronRight,
+  FaCog,
+  FaEnvelope,
+  FaGlobe,
+  FaHandshake,
+  FaHome,
+  FaImages,
+  FaInfoCircle,
+  FaMapMarkerAlt,
+  FaNewspaper,
+  FaQrcode,
+  FaSearch,
+  FaSignOutAlt,
+  FaTicketAlt,
+  FaTimes,
+  FaUser,
+  FaUsers
 } from 'react-icons/fa';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { isAdmin, isCommissionSeller } from '../../services/auth';
+import { isAdmin, isCommissionSeller, isSponsorshipManager } from '../../services/auth';
 import { supabase } from '../../services/supabase';
 
 interface AdminLayoutProps {
@@ -35,6 +35,7 @@ interface AdminLayoutProps {
 
 const AdminLayout = ({ children, title }: AdminLayoutProps) => {
   const [user, setUser] = useState<any>(null);
+  const [isAdminUser, setIsAdminUser] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -59,8 +60,10 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
 
   const checkAdminStatus = async (userId: string) => {
     const admin = await isAdmin();
+    const manager = await isSponsorshipManager();
     const seller = await isCommissionSeller();
-    if (!admin && !seller) {
+    setIsAdminUser(admin);
+    if (!admin && !seller && !manager) {
       await supabase.auth.signOut();
       navigate('/admin/login?error=unauthorized');
       return;
@@ -90,20 +93,20 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
   };
 
   const menuItems = [
-    { icon: FaQrcode, label: 'Verify Tickets', path: '/admin/verify', color: 'from-cyan-500 to-blue-500' },
-    { icon: FaCalendarAlt, label: 'Events', path: '/admin/events', color: 'from-blue-500 to-indigo-500' },
-    { icon: FaNewspaper, label: 'Categories', path: '/admin/categories', color: 'from-green-500 to-emerald-500' },
-    { icon: FaMapMarkerAlt, label: 'Destinations', path: '/admin/destinations', color: 'from-purple-500 to-pink-500' },
-    { icon: FaImages, label: 'Gallery', path: '/admin/gallery', color: 'from-pink-500 to-rose-500' },
-    { icon: FaHome, label: 'Home Content', path: '/admin/home', color: 'from-yellow-400 to-orange-500' },
-    { icon: FaInfoCircle, label: 'About Content', path: '/admin/about', color: 'from-indigo-500 to-purple-500' },
-    { icon: FaEnvelope, label: 'Contact Info', path: '/admin/contact', color: 'from-red-500 to-orange-500' },
-    { icon: FaHandshake, label: 'Partners & Sponsors', path: '/admin/partners', color: 'from-emerald-500 to-teal-600' },
-    { icon: FaTicketAlt, label: 'Commission Sellers', path: '/admin/commission-sellers', color: 'from-orange-500 to-red-500' },
-    { icon: FaUsers, label: 'Ticket Scanners', path: '/admin/ticket-scanners', color: 'from-blue-400 to-cyan-500' },
-    { icon: FaBriefcase, label: 'Applications', path: '/admin/applications', color: 'from-teal-500 to-green-500' },
-    { icon: FaGlobe, label: 'Expo Applications', path: '/admin/expo-applications', color: 'from-orange-400 to-amber-500' },
-    { icon: FaCog, label: 'Site Settings', path: '/admin/settings', color: 'from-gray-500 to-slate-600' },
+    { icon: FaQrcode, label: 'Verify Tickets', path: '/admin/verify', color: 'from-cyan-500 to-blue-500', adminOnly: true },
+    { icon: FaCalendarAlt, label: 'Events', path: '/admin/events', color: 'from-blue-500 to-indigo-500', adminOnly: true },
+    { icon: FaNewspaper, label: 'Categories', path: '/admin/categories', color: 'from-green-500 to-emerald-500', adminOnly: true },
+    { icon: FaMapMarkerAlt, label: 'Destinations', path: '/admin/destinations', color: 'from-purple-500 to-pink-500', adminOnly: true },
+    { icon: FaImages, label: 'Gallery', path: '/admin/gallery', color: 'from-pink-500 to-rose-500', adminOnly: true },
+    { icon: FaHome, label: 'Home Content', path: '/admin/home', color: 'from-yellow-400 to-orange-500', adminOnly: true },
+    { icon: FaInfoCircle, label: 'About Content', path: '/admin/about', color: 'from-indigo-500 to-purple-500', adminOnly: true },
+    { icon: FaEnvelope, label: 'Contact Info', path: '/admin/contact', color: 'from-red-500 to-orange-500', adminOnly: true },
+    { icon: FaHandshake, label: 'Sponsorship Dept', path: '/admin/sponsorship-department', color: 'from-emerald-500 to-teal-600' },
+    { icon: FaTicketAlt, label: 'Commission Sellers', path: '/admin/commission-sellers', color: 'from-orange-500 to-red-500', adminOnly: true },
+    { icon: FaUsers, label: 'Ticket Scanners', path: '/admin/ticket-scanners', color: 'from-blue-400 to-cyan-500', adminOnly: true },
+    { icon: FaBriefcase, label: 'Applications', path: '/admin/applications', color: 'from-teal-500 to-green-500', adminOnly: true },
+    { icon: FaGlobe, label: 'Expo Applications', path: '/admin/expo-applications', color: 'from-orange-400 to-amber-500', adminOnly: true },
+    { icon: FaCog, label: 'Site Settings', path: '/admin/settings', color: 'from-gray-500 to-slate-600', adminOnly: true },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -187,7 +190,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
               {!sidebarOpen && <div className="h-px bg-gray-100 mx-4" />}
             </div>
             
-            {menuItems.map((item) => {
+            {menuItems.filter(item => !item.adminOnly || isAdminUser).map((item) => {
               const Icon = item.icon;
               const active = isActive(item.path);
               return (
@@ -236,7 +239,9 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
                     <p className="text-sm font-black text-gray-900 truncate tracking-tight">
                       {user?.email?.split('@')[0] || 'Admin'}
                     </p>
-                    <p className="text-[10px] font-bold text-gray-400 truncate uppercase mt-0.5 tracking-wider">Super Admin</p>
+                    <p className="text-[10px] font-bold text-gray-400 truncate uppercase mt-0.5 tracking-wider">
+                       {user?.user_metadata?.role === 'sponsorship_manager' ? 'Partnership Dept' : 'Super Admin'}
+                    </p>
                   </div>
                 )}
               </div>
