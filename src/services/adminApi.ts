@@ -1197,11 +1197,10 @@ export const adminApi = {
           age: resData.age,
           sex: resData.sex,
           place: resData.place,
-        }])
-        .select();
+        }]);
 
       if (error) throw error;
-      return data && data.length > 0 ? adminApi.masterclassReservations._map(data[0]) : { success: true } as any;
+      return (data as any) && (data as any).length > 0 ? adminApi.masterclassReservations._map((data as any)[0]) : { success: true } as any;
     },
 
     updateStatus: async (id: string, status: 'reviewed' | 'accepted' | 'rejected') => {
