@@ -1,4 +1,5 @@
 import { FaArrowRight, FaChartLine, FaCheckCircle, FaClipboardList, FaGavel, FaGraduationCap, FaLightbulb, FaMapMarkerAlt, FaRocket, FaShieldAlt, FaTools, FaUsers } from "react-icons/fa";
+import { Link } from "react-router-dom";
 import OptimizedImage from "../Components/ui/OptimizedImage";
 
 const Masterclass = () => {
@@ -123,17 +124,15 @@ const Masterclass = () => {
             </p>
 
             <div className="flex flex-col items-center gap-6 md:gap-8">
-              <a 
-                href="https://learn.yenege.com" 
-                target="_blank" 
-                rel="noopener noreferrer"
+              <Link
+                to="/masterclass-registration" 
                 className="group relative inline-flex items-center justify-center w-full sm:w-auto px-10 md:px-16 py-5 md:py-6 overflow-hidden rounded-full border border-slate-900 transition-all duration-500 hover:bg-slate-900"
               >
                 <span className="relative z-10 text-slate-900 font-black text-[10px] md:text-xs tracking-[0.2em] md:tracking-[0.3em] uppercase group-hover:text-white transition-colors duration-500">
                   Register for the Program
                 </span>
                 <div className="absolute inset-0 bg-slate-900 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
-              </a>
+              </Link>
 
               <div className="flex items-center gap-4">
                 <div className="w-1 md:w-1.5 h-1 md:h-1.5 rounded-full bg-amber-500" />
@@ -428,17 +427,15 @@ const Masterclass = () => {
             </p>
             
             <div className="pt-8">
-              <a 
-                href="https://learn.yenege.com" 
-                target="_blank" 
-                rel="noopener noreferrer"
+              <Link 
+                to="/masterclass-registration" 
                 className="group relative inline-flex items-center justify-center w-full sm:w-auto px-10 md:px-16 py-5 md:py-7 overflow-hidden rounded-full border border-slate-900 transition-all duration-500 hover:bg-slate-900"
               >
                 <span className="relative z-10 text-slate-900 font-black text-[10px] md:text-sm tracking-[0.2em] md:tracking-[0.3em] uppercase group-hover:text-white transition-colors duration-500">
                   Register for the Program <FaArrowRight className="inline-block ml-2 group-hover:translate-x-1 transition-transform" />
                 </span>
                 <div className="absolute inset-0 bg-slate-900 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
-              </a>
+              </Link>
               <p className="mt-8 text-slate-400 text-[8px] md:text-xs font-black uppercase tracking-[0.4em]">Launch Your Vision Today</p>
             </div>
           </div>

@@ -1,31 +1,32 @@
 import { useEffect, useState } from 'react';
 import {
-  FaBars,
-  FaBell,
-  FaBriefcase,
-  FaCalendarAlt,
-  FaChartLine,
-  FaChevronLeft,
-  FaChevronRight,
-  FaCog,
-  FaEnvelope,
-  FaGlobe,
-  FaHandshake,
-  FaHome,
-  FaImages,
-  FaInfoCircle,
-  FaMapMarkerAlt,
-  FaNewspaper,
-  FaQrcode,
-  FaSearch,
-  FaSignOutAlt,
-  FaTicketAlt,
-  FaTimes,
-  FaUser,
-  FaUsers
+    FaBars,
+    FaBell,
+    FaBriefcase,
+    FaCalendarAlt,
+    FaChartLine,
+    FaChevronLeft,
+    FaChevronRight,
+    FaCog,
+    FaEnvelope,
+    FaGlobe,
+    FaGraduationCap,
+    FaHandshake,
+    FaHome,
+    FaImages,
+    FaInfoCircle,
+    FaMapMarkerAlt,
+    FaNewspaper,
+    FaQrcode,
+    FaSearch,
+    FaSignOutAlt,
+    FaTicketAlt,
+    FaTimes,
+    FaUser,
+    FaUsers
 } from 'react-icons/fa';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { isAdmin, isCommissionSeller, isSponsorshipManager } from '../../services/auth';
+import { isAdmin, isCommissionSeller, isMasterclassManager, isSponsorshipManager } from '../../services/auth';
 import { supabase } from '../../services/supabase';
 
 interface AdminLayoutProps {
@@ -39,6 +40,8 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isManager, setIsManager] = useState(false);
+  const [isMasterclass, setIsMasterclass] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -62,14 +65,15 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
     const admin = await isAdmin();
     const manager = await isSponsorshipManager();
     const seller = await isCommissionSeller();
+    const masterclass = await isMasterclassManager();
+    
     setIsAdminUser(admin);
-    if (!admin && !seller && !manager) {
+    setIsManager(manager);
+    setIsMasterclass(masterclass);
+    
+    if (!admin && !seller && !manager && !masterclass) {
       await supabase.auth.signOut();
       navigate('/admin/login?error=unauthorized');
-      return;
-    }
-    if (seller && !admin && location.pathname !== '/admin/seller-dashboard') {
-      navigate('/admin/seller-dashboard');
       return;
     }
     setCheckingAuth(false);
@@ -106,8 +110,22 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
     { icon: FaUsers, label: 'Ticket Scanners', path: '/admin/ticket-scanners', color: 'from-blue-400 to-cyan-500', adminOnly: true },
     { icon: FaBriefcase, label: 'Applications', path: '/admin/applications', color: 'from-teal-500 to-green-500', adminOnly: true },
     { icon: FaGlobe, label: 'Expo Applications', path: '/admin/expo-applications', color: 'from-orange-400 to-amber-500', adminOnly: true },
+    { icon: FaChartLine, label: 'MC Dashboard', path: '/admin/masterclass-dashboard', color: 'from-indigo-600 to-blue-500' },
+    { icon: FaGraduationCap, label: 'MC Reservations', path: '/admin/masterclass-reservations', color: 'from-indigo-400 to-purple-500' },
     { icon: FaCog, label: 'Site Settings', path: '/admin/settings', color: 'from-gray-500 to-slate-600', adminOnly: true },
   ];
+
+  const filteredMenuItems = menuItems.filter(item => {
+    // Masterclass managers only see Masterclass items
+    if (isMasterclass && !isAdminUser) {
+      return item.path.includes('masterclass');
+    }
+    
+    if (item.adminOnly) {
+      return isAdminUser;
+    }
+    return true;
+  });
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -190,7 +208,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
               {!sidebarOpen && <div className="h-px bg-gray-100 mx-4" />}
             </div>
             
-            {menuItems.filter(item => !item.adminOnly || isAdminUser).map((item) => {
+            {filteredMenuItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.path);
               return (
@@ -240,7 +258,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
                       {user?.email?.split('@')[0] || 'Admin'}
                     </p>
                     <p className="text-[10px] font-bold text-gray-400 truncate uppercase mt-0.5 tracking-wider">
-                       {user?.user_metadata?.role === 'sponsorship_manager' ? 'Partnership Dept' : 'Super Admin'}
+                       {isAdminUser ? 'Super Admin' : isManager ? 'Partnership Dept' : isMasterclass ? 'Masterclass Manager' : 'Staff'}
                     </p>
                   </div>
                 )}
@@ -397,7 +415,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
                <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Management</span>
             </div>
 
-            {menuItems.map((item) => {
+            {filteredMenuItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.path);
               return (
@@ -435,7 +453,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
                   <p className="text-sm font-black text-gray-900 truncate tracking-tight">{user?.email?.split('@')[0] || 'Admin'}</p>
                   <p className="text-[10px] font-bold text-gray-400 tracking-wider flex items-center gap-1.5 uppercase">
                      <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                     Super Admin
+                     {isAdminUser ? 'Super Admin' : isManager ? 'Partnership Dept' : isMasterclass ? 'Masterclass Manager' : 'Staff'}
                   </p>
                 </div>
               </div>

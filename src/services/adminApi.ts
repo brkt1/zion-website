@@ -1,4 +1,4 @@
-import { Application, CommissionSeller, CreateApplicationData, CreateCommissionSellerData, CreateExpoApplicationData, CreatePartnerData, CreateRepresentativeData, CreateTicketScannerData, ExpoApplication, Partner, SponsorshipRepresentative, TicketScanner, UpdateApplicationData, UpdateCommissionSellerData, UpdateExpoApplicationData, UpdatePartnerData, UpdateRepresentativeData, UpdateTicketScannerData } from '../types';
+import { Application, CommissionSeller, CreateApplicationData, CreateCommissionSellerData, CreateExpoApplicationData, CreateMasterclassReservationData, CreatePartnerData, CreateRepresentativeData, CreateTicketScannerData, ExpoApplication, MasterclassReservation, Partner, SponsorshipRepresentative, TicketScanner, UpdateApplicationData, UpdateCommissionSellerData, UpdateExpoApplicationData, UpdatePartnerData, UpdateRepresentativeData, UpdateTicketScannerData } from '../types';
 import { AboutContent, Category, ContactInfo, Destination, Event, GalleryItem, HomeContent, SiteConfig } from './api';
 import { supabase } from './supabase';
 
@@ -1155,6 +1155,73 @@ export const adminApi = {
     delete: async (id: string) => {
       const { error } = await supabase
         .from('expo_applications')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return { success: true };
+    },
+  },
+
+  // Masterclass Reservations - Manage e-learning registrations
+  masterclassReservations: {
+    _map: (data: any): MasterclassReservation => ({
+      id: data.id,
+      name: data.name,
+      phone: data.phone,
+      age: data.age,
+      sex: data.sex,
+      place: data.place,
+      status: data.status,
+      notes: data.notes,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+    }),
+
+    getAll: async () => {
+      const { data, error } = await supabase
+        .from('masterclass_reservations')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return (data || []).map(adminApi.masterclassReservations._map);
+    },
+
+    create: async (resData: CreateMasterclassReservationData) => {
+      const { data, error } = await supabase
+        .from('masterclass_reservations')
+        .insert([{
+          name: resData.name,
+          phone: resData.phone,
+          age: resData.age,
+          sex: resData.sex,
+          place: resData.place,
+        }])
+        .select();
+
+      if (error) throw error;
+      return data && data.length > 0 ? adminApi.masterclassReservations._map(data[0]) : { success: true } as any;
+    },
+
+    updateStatus: async (id: string, status: 'reviewed' | 'accepted' | 'rejected') => {
+      const { data, error } = await supabase
+        .from('masterclass_reservations')
+        .update({
+          status,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return adminApi.masterclassReservations._map(data);
+    },
+
+    delete: async (id: string) => {
+      const { error } = await supabase
+        .from('masterclass_reservations')
         .delete()
         .eq('id', id);
 

@@ -29,6 +29,7 @@ const ExpoInfo = lazy(() => import("./pages/ExpoInfo"));
 const ExpoRegistration = lazy(() => import("./pages/ExpoRegistration"));
 const Certification = lazy(() => import("./pages/Certification"));
 const Masterclass = lazy(() => import("./pages/Masterclass"));
+const MasterclassRegistration = lazy(() => import("./pages/MasterclassRegistration"));
 
 
 // Game pages - hidden routes (no navigation links)
@@ -56,6 +57,8 @@ const AdminSettings = lazy(() => import("./pages/admin/Settings"));
 const VerifyTicket = lazy(() => import("./pages/admin/VerifyTicket"));
 const Applications = lazy(() => import("./pages/admin/Applications"));
 const AdminExpoApplications = lazy(() => import("./pages/admin/ExpoApplications"));
+const AdminMasterclassReservations = lazy(() => import("./pages/admin/MasterclassReservations"));
+const MasterclassDashboard = lazy(() => import("./pages/admin/MasterclassDashboard"));
 const RepresentativeDashboard = lazy(() => import("./pages/admin/RepresentativeDashboard"));
 const AdminPartners = lazy(() => import("./pages/admin/Partners"));
 
@@ -94,6 +97,7 @@ function App() {
                 <Route path="/expo-registration" element={<ExpoRegistration />} />
                 <Route path="/certification" element={<Certification />} />
                 <Route path="/masterclass" element={<Masterclass />} />
+                <Route path="/masterclass-registration" element={<MasterclassRegistration />} />
 
                 <Route path="/payment/success" element={<PaymentSuccess />} />
                 <Route path="/payment/callback" element={<PaymentCallback />} />
@@ -294,6 +298,22 @@ function App() {
             element={
               <Suspense fallback={<LoadingState message="Loading..." />}>
                 <AdminExpoApplications />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="/admin/masterclass-dashboard" 
+            element={
+              <Suspense fallback={<LoadingState message="Loading intelligence..." />}>
+                <MasterclassDashboard />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="/admin/masterclass-reservations" 
+            element={
+              <Suspense fallback={<LoadingState message="Loading..." />}>
+                <AdminMasterclassReservations />
               </Suspense>
             } 
           />

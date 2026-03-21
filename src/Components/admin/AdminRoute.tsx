@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { FaExclamationTriangle, FaHome, FaSignOutAlt } from 'react-icons/fa';
 import { Navigate, Outlet, useNavigate } from 'react-router-dom';
-import { isAdmin, isCommissionSeller, isSponsorshipManager, isSponsorshipRepresentative } from '../../services/auth';
+import { isAdmin, isCommissionSeller, isMasterclassManager, isSponsorshipManager, isSponsorshipRepresentative } from '../../services/auth';
 import { supabase } from '../../services/supabase';
 
 /**
@@ -14,6 +14,7 @@ const AdminRoute = () => {
   const [isSeller, setIsSeller] = useState(false);
   const [isRep, setIsRep] = useState(false);
   const [isManager, setIsManager] = useState(false);
+  const [isMasterclass, setIsMasterclass] = useState(false);
 
   useEffect(() => {
     const checkAdminAuth = async () => {
@@ -31,16 +32,18 @@ const AdminRoute = () => {
         // Check if user is admin (not just has admin access)
         const admin = await isAdmin();
         const manager = await isSponsorshipManager();
+        const masterclass = await isMasterclassManager();
         const seller = await isCommissionSeller();
         const rep = await isSponsorshipRepresentative();
         
-        setIsSeller(seller && !admin && !manager);
-        setIsRep(rep && !admin && !manager);
+        setIsSeller(seller && !admin && !manager && !masterclass);
+        setIsRep(rep && !admin && !manager && !masterclass);
         setIsManager(manager && !admin);
+        setIsMasterclass(masterclass && !admin);
         
         // Block commission sellers and reps from accessing general admin routes 
-        // unless they are a manager
-        if (!admin && !manager) {
+        // unless they are a manager or masterclass manager
+        if (!admin && !manager && !masterclass) {
           if (seller || rep) {
             setIsAuthorized(false);
             setLoading(false);

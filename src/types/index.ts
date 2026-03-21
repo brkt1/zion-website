@@ -284,6 +284,28 @@ export interface UpdateExpoApplicationData {
   notes?: string;
 }
 
+// Masterclass Reservation types
+export interface MasterclassReservation {
+  id: string;
+  name: string;
+  phone: string;
+  age: number;
+  sex: 'male' | 'female';
+  place: string;
+  status: 'pending' | 'reviewed' | 'accepted' | 'rejected';
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateMasterclassReservationData {
+  name: string;
+  phone: string;
+  age: number;
+  sex: 'male' | 'female';
+  place: string;
+}
+
 
 // Partner/Sponsor types
 export interface Partner {
