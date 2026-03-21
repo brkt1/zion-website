@@ -1,50 +1,28 @@
 import { useState } from 'react';
 import { FaArrowUp, FaChartLine, FaCheckCircle, FaEdit, FaHandshake, FaPlus, FaTimes, FaTrash, FaUsers, FaWallet } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { useSponsorshipDepartmentData } from '../../hooks/useSponsorshipDepartmentData';
 import { adminApi } from '../../services/adminApi';
 import { Partner, SponsorshipRepresentative } from '../../types';
 
 const SponsorshipDepartment = () => {
-  const { partners, representatives, stats, loading, isAuthorized, refresh } = useSponsorshipDepartmentData();
-  const navigate = useNavigate();
+  const { partners, representatives, stats, loading, refresh } = useSponsorshipDepartmentData();
   
   const [showPartnerModal, setShowPartnerModal] = useState(false);
   const [showRepModal, setShowRepModal] = useState(false);
   const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
   const [editingRep, setEditingRep] = useState<SponsorshipRepresentative | null>(null);
 
-  const [partnerForm, setPartnerForm] = useState({
-    name: '',
-    contact_person: '',
-    email: '',
-    phone: '',
-    website: '',
-    sponsorship_amount: '',
-    currency: 'ETB',
-    status: 'potential' as 'potential' | 'active' | 'past',
-    representative_id: '',
-    commission_rate: '',
-    notes: '',
-  });
 
-  const [repForm, setRepForm] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    default_commission_rate: '',
-    is_active: true,
-    notes: '',
-  });
+
+
 
   const handlePartnerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const data = {
-        ...partnerForm,
-        sponsorship_amount: parseFloat(partnerForm.sponsorship_amount),
-        commission_rate: partnerForm.commission_rate ? parseFloat(partnerForm.commission_rate) : undefined,
+        name: '',
+        sponsorship_amount: 0,
       };
 
       if (editingPartner) {
@@ -65,8 +43,8 @@ const SponsorshipDepartment = () => {
     e.preventDefault();
     try {
       const data = {
-        ...repForm,
-        default_commission_rate: parseFloat(repForm.default_commission_rate),
+        name: '',
+        default_commission_rate: 0,
       };
 
       if (editingRep) {

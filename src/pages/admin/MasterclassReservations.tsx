@@ -12,7 +12,6 @@ const MasterclassReservations = () => {
   const [showModal, setShowModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'reviewed' | 'accepted' | 'rejected'>('all');
   const [regionFilter, setRegionFilter] = useState<string>('all');
-  const [updatingStatus, setUpdatingStatus] = useState(false);
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {

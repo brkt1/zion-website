@@ -13,8 +13,6 @@ const AdminRoute = () => {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isSeller, setIsSeller] = useState(false);
   const [isRep, setIsRep] = useState(false);
-  const [isManager, setIsManager] = useState(false);
-  const [isMasterclass, setIsMasterclass] = useState(false);
 
   useEffect(() => {
     const checkAdminAuth = async () => {
@@ -38,8 +36,6 @@ const AdminRoute = () => {
         
         setIsSeller(seller && !admin && !manager && !masterclass);
         setIsRep(rep && !admin && !manager && !masterclass);
-        setIsManager(manager && !admin);
-        setIsMasterclass(masterclass && !admin);
         
         // Block commission sellers and reps from accessing general admin routes 
         // unless they are a manager or masterclass manager

@@ -60,7 +60,6 @@ const AdminExpoApplications = lazy(() => import("./pages/admin/ExpoApplications"
 const AdminMasterclassReservations = lazy(() => import("./pages/admin/MasterclassReservations"));
 const MasterclassDashboard = lazy(() => import("./pages/admin/MasterclassDashboard"));
 const RepresentativeDashboard = lazy(() => import("./pages/admin/RepresentativeDashboard"));
-const AdminPartners = lazy(() => import("./pages/admin/Partners"));
 
 
 

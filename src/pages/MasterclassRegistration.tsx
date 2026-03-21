@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { FiArrowLeft, FiCheckCircle, FiChevronDown, FiLoader, FiMapPin, FiPhone, FiSend, FiUser } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import { adminApi } from '../services/adminApi';
-import { api, ContactInfo } from '../services/api';
 
 const MasterclassRegistration: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -19,21 +18,12 @@ const MasterclassRegistration: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null);
+
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    fetchContactInfo();
   }, []);
 
-  const fetchContactInfo = async () => {
-    try {
-      const data = await api.getContactInfo();
-      setContactInfo(data);
-    } catch (err) {
-      console.warn('Could not load contact info:', err);
-    }
-  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
