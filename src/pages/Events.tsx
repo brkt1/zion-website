@@ -9,7 +9,7 @@ import {
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { EventsSkeleton } from "../Components/ui/EventsSkeleton";
 import OptimizedImage from "../Components/ui/OptimizedImage";
-import { useCategories, useEvents } from "../hooks/useApi";
+import { useEvents } from "../hooks/useApi";
 import { useScrollReveal } from "../hooks/useScrollReveal";
 
 /* ─── Shared design tokens ─────────────────────────────────────────────────── */
@@ -91,76 +91,33 @@ const Events = () => {
   }, []);
 
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const categoryParam = searchParams.get("category") || "all";
-  const [selectedCategory, setSelectedCategory] = useState<string>(categoryParam);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory] = useState<string>(categoryParam);
+  const searchQuery = "";
 
   const { events, isLoading: eventsLoading } = useEvents({
     category: selectedCategory === "all" ? undefined : (selectedCategory as any),
   });
 
-  const { categories: apiCategories } = useCategories();
 
-  const categoriesList = useMemo(() => {
-    const allCategories = [{ id: "all", name: "All", slug: "all" }];
-    
-    // Filter out categories user doesn't want: Community, Corporate, Game Nights
-    const excludedIds = ["community", "corporate", "game"];
-    
-    if (apiCategories && apiCategories.length > 0) {
-      apiCategories.forEach((cat) => {
-        if (!excludedIds.includes(cat.id.toLowerCase())) {
-          allCategories.push({
-            id: cat.id,
-            name: cat.name,
-            slug: cat.slug,
-          });
-        }
-      });
-    } else {
-      allCategories.push(
-        { id: "travel", name: "Travel", slug: "travel" }
-      );
-    }
-    return allCategories;
-  }, [apiCategories]);
 
   const filteredEvents = useMemo(() => {
     // Excluded IDs for manual filtering
     const excludedIds = ["community", "corporate", "game"];
     
     return (events || []).filter((event) => {
-      // 1. First ensure we filter out the excluded categories even if on "All"
+      // 1. First ensure we filter out the excluded categories
       if (excludedIds.includes(event.category?.toLowerCase())) return false;
 
       // 2. Then apply the category filter
       const matchesCategory =
         selectedCategory === "all" || event.category === selectedCategory;
-      const matchesSearch =
-        event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        event.description.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesCategory && matchesSearch;
+      return matchesCategory;
     });
-  }, [events, selectedCategory, searchQuery]);
+  }, [events, selectedCategory]);
 
-  const handleCategoryChange = (categoryId: string) => {
-    if (categoryId === "travel") {
-      navigate("/travel");
-      return;
-    }
-    if (categoryId === "community") {
-      navigate("/community");
-      return;
-    }
 
-    setSelectedCategory(categoryId);
-    if (categoryId === "all") {
-      setSearchParams({});
-    } else {
-      setSearchParams({ category: categoryId });
-    }
-  };
 
   if (eventsLoading || !events) {
     return <EventsSkeleton />;
