@@ -1,9 +1,72 @@
-import { useState } from "react";
-import { FaEnvelope, FaInstagram, FaMapMarkerAlt, FaPhone, FaTelegram, FaTiktok, FaWhatsapp, FaYoutube } from "react-icons/fa";
+import { useEffect, useState } from "react";
+import {
+    FaEnvelope,
+    FaInstagram,
+    FaMapMarkerAlt,
+    FaPhone,
+    FaTelegram,
+    FaTiktok,
+    FaWhatsapp,
+    FaYoutube
+} from "react-icons/fa";
 import { ContactSkeleton } from "../Components/ui/ContactSkeleton";
 import { useContactInfo } from "../hooks/useApi";
+import { useScrollReveal } from "../hooks/useScrollReveal";
+
+/* ─── Shared design tokens ─────────────────────────────────────────────────── */
+const BRAND = {
+  navy: "#0F172A",
+  navyLight: "#1E293B",
+  gold: "#E4E821",
+  coral: "#FF6F5E",
+  cream: "#FAF9F6",
+  white: "#FFFFFF",
+  gray100: "#F0F2F5",
+  gray400: "#9CA3AF",
+  gray500: "#6B7280",
+  gray600: "#4B5563",
+};
+
+const GRADIENT = {
+  brand: "linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%)",
+  textDark: "linear-gradient(135deg, #111827 0%, #374151 100%)",
+};
+
+/* ─── Sub-components ────────────────────────────────────────────────────────── */
+
+const SectionLabel = ({ children }: { children: React.ReactNode }) => (
+  <div
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "8px",
+      padding: "6px 18px",
+      borderRadius: "999px",
+      background: "rgba(228,232,33,0.1)",
+      border: "1px solid rgba(228,232,33,0.3)",
+      marginBottom: "20px",
+    }}
+  >
+    <span
+      className="yg-font-sans"
+      style={{
+        background: GRADIENT.brand,
+        WebkitBackgroundClip: "text",
+        WebkitTextFillColor: "transparent",
+        backgroundClip: "text",
+        fontSize: "11px",
+        fontWeight: 800,
+        letterSpacing: "0.2em",
+        textTransform: "uppercase",
+      }}
+    >
+      {children}
+    </span>
+  </div>
+);
 
 const Contact = () => {
+  useScrollReveal();
   const { contactInfo, isLoading } = useContactInfo();
   const [formData, setFormData] = useState({
     name: "",
@@ -14,8 +77,10 @@ const Contact = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
 
-  // Show skeleton loading while loading or if contact info is not available yet
-  // The hook will keep retrying automatically until contact info loads
+  useEffect(() => {
+    document.title = "Contact Us | YENEGE";
+  }, []);
+
   if (isLoading || !contactInfo) {
     return <ContactSkeleton />;
   }
@@ -25,21 +90,17 @@ const Contact = () => {
     setIsSubmitting(true);
     
     try {
-      // Format the message with form data
       const whatsappMessage = `Hello! I'm ${formData.name}.\n\n` +
         `Email: ${formData.email}\n` +
         (formData.phone ? `Phone: ${formData.phone}\n` : '') +
         `\nMessage:\n${formData.message}`;
       
-      // Create WhatsApp URL (phone number without + or spaces)
       const phoneNumber = contactInfo?.phone?.replace(/\D/g, '') || "251978639887";
       const encodedMessage = encodeURIComponent(whatsappMessage);
       const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
       
-      // Open WhatsApp in a new tab
       window.open(whatsappUrl, '_blank');
       
-      // Reset form and show success message
       setIsSubmitting(false);
       setSubmitStatus("success");
       setFormData({ name: "", email: "", phone: "", message: "" });
@@ -60,7 +121,6 @@ const Contact = () => {
     });
   };
 
-  // Icon mapping
   const iconMap: { [key: string]: any } = {
     email: FaEnvelope,
     phone: FaPhone,
@@ -73,457 +133,226 @@ const Contact = () => {
 
   const contactInfoItems = [
     {
-      number: "01",
-      icon: FaMapMarkerAlt,
-      title: "Office Location",
+      num: "01",
+      icon: <FaMapMarkerAlt />,
+      title: "Our Studio",
       content: contactInfo.location || "Addis Ababa, Ethiopia",
       link: null,
     },
     {
-      number: "02",
-      icon: FaEnvelope,
-      title: "Email",
+      num: "02",
+      icon: <FaEnvelope />,
+      title: "Email Us",
       content: contactInfo.email || "yenegeevents@gmail.com",
       link: `mailto:${contactInfo.email || "yenegeevents@gmail.com"}`,
     },
     {
-      number: "03",
-      icon: FaPhone,
-      title: "Phone",
+      num: "03",
+      icon: <FaPhone />,
+      title: "Call Us",
       content: contactInfo.phoneFormatted || contactInfo.phone || "+251 978 639 887",
       link: `tel:${contactInfo.phone?.replace(/\D/g, '') || '251978639887'}`,
     },
   ];
 
-  const socialLinks = contactInfo.socialLinks?.map(link => {
-    const Icon = iconMap[link.platform.toLowerCase()] || FaInstagram;
-    const gradients: { [key: string]: string } = {
-      instagram: "linear-gradient(135deg, #E4405F 0%, #833AB4 100%)",
-      telegram: "linear-gradient(135deg, #0088cc 0%, #006699 100%)",
-      tiktok: "linear-gradient(135deg, #000000 0%, #333333 100%)",
-      youtube: "linear-gradient(135deg, #FF0000 0%, #CC0000 100%)",
-    };
-    return {
-      icon: Icon,
-      href: link.url,
-      label: link.platform,
-      gradient: gradients[link.platform.toLowerCase()] || "linear-gradient(135deg, #E4405F 0%, #833AB4 100%)",
-    };
-  }) || [
-    { icon: FaInstagram, href: "https://instagram.com/yenege", label: "Instagram", gradient: "linear-gradient(135deg, #E4405F 0%, #833AB4 100%)" },
-    { icon: FaTelegram, href: "https://t.me/yenege", label: "Telegram", gradient: "linear-gradient(135deg, #0088cc 0%, #006699 100%)" },
-    { icon: FaTiktok, href: "https://tiktok.com/@yenege", label: "TikTok", gradient: "linear-gradient(135deg, #000000 0%, #333333 100%)" },
-    { icon: FaYoutube, href: "https://youtube.com/@yenege", label: "YouTube", gradient: "linear-gradient(135deg, #FF0000 0%, #CC0000 100%)" },
-  ];
-
   return (
-    <div className="min-h-screen bg-gray-50 md:bg-white">
-      {/* Mobile App-like Header Section */}
-      <div className="md:hidden sticky top-0 z-30 bg-white border-b border-gray-100 shadow-sm">
-        <div className="px-4 py-4">
-          <h1 
-            className="text-2xl font-bold tracking-tight"
-            style={{
-              background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
-          >
-            Contact Us
-          </h1>
-          <p className="text-gray-500 text-sm mt-1">
-            Get in touch with us
-          </p>
+    <div style={{ minHeight: "100vh", background: BRAND.white }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Manrope:wght@300;400;500;600;700;800&display=swap');
+
+        .yg-font-serif { font-family: 'Playfair Display', Georgia, serif; }
+        .yg-font-sans  { font-family: 'Manrope', system-ui, sans-serif; }
+
+        .yg-contact-input {
+          width: 100%;
+          padding: 16px 24px;
+          background: ${BRAND.cream};
+          border: 1px solid rgba(0,0,0,0.05);
+          border-radius: 16px;
+          font-family: 'Manrope', sans-serif;
+          font-size: 15px;
+          color: ${BRAND.navy};
+          transition: all 0.3s;
+        }
+        .yg-contact-input:focus {
+          outline: none;
+          background: #fff;
+          border-color: ${BRAND.coral};
+          box-shadow: 0 0 0 4px rgba(255,111,94,0.1);
+        }
+
+        .yg-btn-submit {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          width: 100%;
+          padding: 20px;
+          border-radius: 16px;
+          background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+          color: #fff;
+          font-family: 'Manrope', sans-serif;
+          font-weight: 800;
+          font-size: 14px;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          border: none;
+          cursor: pointer;
+          transition: all 0.3s;
+          box-shadow: 0 12px 30px rgba(37,211,102,0.25);
+        }
+        .yg-btn-submit:hover {
+          transform: translateY(-2px);
+          filter: brightness(1.05);
+          box-shadow: 0 20px 40px rgba(37,211,102,0.35);
+        }
+
+        .yg-social-btn {
+          width: 56px;
+          height: 56px;
+          border-radius: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #fff;
+          font-size: 20px;
+          transition: all 0.3s;
+          box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+        .yg-social-btn:hover {
+          transform: translateY(-4px) scale(1.1);
+          box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+
+        @media (max-width: 768px) {
+          .yg-grid-mobile { grid-template-columns: 1fr !important; gap: 40px !important; }
+        }
+      `}</style>
+
+      {/* ── Page Header ─────────────────────────────────────────────────── */}
+      <section style={{ padding: "180px 0 80px", background: BRAND.white }}>
+        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
+          <div style={{ maxWidth: "800px" }}>
+            <SectionLabel>Get in Touch</SectionLabel>
+            <h1
+              className="yg-font-serif"
+              style={{
+                fontSize: "clamp(52px, 8vw, 92px)",
+                fontWeight: 900,
+                color: BRAND.navy,
+                lineHeight: 1,
+                letterSpacing: "-0.04em",
+                marginBottom: "32px",
+              }}
+            >
+              Let's Build Your <br />
+              <span
+                style={{
+                  background: GRADIENT.brand,
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                  fontStyle: "italic",
+                }}
+              >
+                Next Story.
+              </span>
+            </h1>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <div className="container mx-auto px-4 sm:px-6 py-6 md:py-12 lg:py-24">
-        <div className="grid lg:grid-cols-2 gap-6 md:gap-8 lg:gap-12 max-w-6xl mx-auto">
-          {/* Contact Information */}
-          <div>
-            {/* Desktop Header */}
-            <div className="hidden md:block mb-8 md:mb-12">
-              <h1 
-                className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 md:mb-6 tracking-tight"
-                style={{
-                  background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                Get in Touch
-              </h1>
-              <p className="text-gray-600 text-base md:text-lg leading-relaxed mb-6">
-                Ready to revolutionize your events? Whether you're an organizer, business potential partner, or student leader, our team is here to help you scale and succeed.
-              </p>
-            </div>
-
-            {/* Mobile: Contact Info Cards - App-like Design */}
-            <div className="md:hidden space-y-3 mb-6">
-              {contactInfoItems.map((info, index) => {
-                const Icon = info.icon;
-                const content = info.link ? (
-                  <a 
-                    href={info.link} 
-                    className="text-gray-900 font-medium active:text-[#FF6F5E] transition-colors duration-200"
-                  >
-                    {info.content}
-                  </a>
-                ) : (
-                  <p className="text-gray-900 font-medium">{info.content}</p>
-                );
-
-                return (
-                  <div
-                    key={index}
-                    className="relative overflow-hidden rounded-2xl p-4 bg-white border border-gray-100 active:scale-[0.98] transition-transform duration-150"
-                    style={{
-                      boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
-                    }}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div 
-                        className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-                        style={{
-                          background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
-                        }}
-                      >
-                        <Icon className="text-[#1C2951] text-lg" />
-                      </div>
-                      <div className="flex-grow min-w-0">
-                        <h3 className="font-semibold text-gray-500 text-xs mb-1 uppercase tracking-wide whitespace-nowrap">
-                          {info.title}
-                        </h3>
-                        <div className="text-sm break-words">
-                          {content}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Desktop: Contact Info Cards */}
-            <div className="hidden md:block space-y-4 md:space-y-6 mb-8 md:mb-12">
-              {contactInfoItems.map((info, index) => {
-                const Icon = info.icon;
-                const content = info.link ? (
-                  <a 
-                    href={info.link} 
-                    className="text-gray-700 hover:text-[#FF6F5E] transition-colors duration-300"
-                  >
-                    {info.content}
-                  </a>
-                ) : (
-                  <p className="text-gray-700">{info.content}</p>
-                );
-
-                return (
-                  <div
-                    key={index}
-                    className="group relative overflow-hidden rounded-2xl md:rounded-3xl p-6 md:p-8 transition-all duration-700 border border-gray-100 hover:border-transparent"
-                    style={{
-                      background: "linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%)",
-                      boxShadow: "0 4px 24px rgba(0, 0, 0, 0.06)",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (window.innerWidth >= 768) {
-                        e.currentTarget.style.transform = "translateX(8px)";
-                        e.currentTarget.style.boxShadow = "0 20px 40px rgba(255, 111, 94, 0.15)";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = "translateX(0)";
-                      e.currentTarget.style.boxShadow = "0 4px 24px rgba(0, 0, 0, 0.06)";
-                    }}
-                  >
-                    {/* Abstract shape background */}
-                    <div 
-                      className="absolute top-0 right-0 w-24 h-24 md:w-32 md:h-32 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-3xl"
-                      style={{
-                        background: "linear-gradient(135deg, rgba(255, 212, 71, 0.3) 0%, rgba(255, 111, 94, 0.3) 100%)",
-                        transform: "translate(30%, -30%)",
-                      }}
-                    ></div>
-
-                    {/* Number indicator */}
-                    <div className="absolute top-4 left-4 md:top-6 md:left-6">
-                      <div 
-                        className="text-3xl md:text-4xl font-black opacity-5 group-hover:opacity-10 transition-opacity duration-700"
-                        style={{
-                          background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
-                          WebkitBackgroundClip: "text",
-                          WebkitTextFillColor: "transparent",
-                          backgroundClip: "text",
-                          lineHeight: 1,
-                        }}
-                      >
-                        {info.number}
-                      </div>
-                    </div>
-
-                    <div className="relative z-10 flex items-start gap-4 md:gap-6 pt-6 md:pt-8">
-                      <div 
-                        className="w-12 h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110"
-                        style={{
-                          background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
-                          boxShadow: "0 4px 15px rgba(255, 111, 94, 0.3)",
-                        }}
-                      >
-                        <Icon className="text-[#1C2951] text-lg md:text-xl" />
-                      </div>
-                      <div className="flex-grow">
-                        <h3 
-                          className="font-bold text-gray-900 mb-2 text-base md:text-lg"
-                          style={{
-                            background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)",
-                            WebkitBackgroundClip: "text",
-                            WebkitTextFillColor: "transparent",
-                            backgroundClip: "text",
-                          }}
-                        >
-                          {info.title}
-                        </h3>
-                        <div className="text-sm md:text-base">
-                          {content}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Social Media */}
+      {/* ── Contact Section ─────────────────────────────────────────────── */}
+      <section style={{ padding: "40px 0 140px", background: BRAND.white }}>
+        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
+          <div className="yg-grid-mobile" style={{ display: "grid", gridTemplateColumns: "1fr 1.1fr", gap: "100px", alignItems: "start" }}>
+            
+            {/* Left Column: Info */}
             <div>
-              <h3 
-                className="font-bold text-gray-900 mb-4 md:mb-6 text-base md:text-lg lg:text-xl"
-                style={{
-                  background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                Follow Us
-              </h3>
-              <div className="flex gap-3 md:gap-4">
-                {socialLinks.map((social, index) => {
-                  const Icon = social.icon;
-                  return (
-                    <a
-                      key={index}
-                      href={social.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group relative w-12 h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center text-white transition-all duration-300 overflow-hidden active:scale-95"
-                      style={{
-                        background: social.gradient,
-                        boxShadow: "0 4px 15px rgba(0, 0, 0, 0.2)",
-                      }}
-                      onMouseEnter={(e) => {
-                        if (window.innerWidth >= 768) {
-                          e.currentTarget.style.transform = "translateY(-4px) scale(1.1)";
-                          e.currentTarget.style.boxShadow = "0 8px 25px rgba(0, 0, 0, 0.3)";
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = "translateY(0) scale(1)";
-                        e.currentTarget.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.2)";
-                      }}
-                      aria-label={social.label}
-                    >
-                      <Icon className="text-lg md:text-xl relative z-10" />
+              <p className="yg-font-sans" style={{ fontSize: "20px", color: BRAND.gray600, lineHeight: 1.6, marginBottom: "64px" }}>
+                Ready to revolutionize your events? Whether you're an organizer, partner, or student, our team is here to help you scale and succeed.
+              </p>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "48px" }}>
+                {contactInfoItems.map((item, i) => (
+                  <div key={i} style={{ display: "flex", gap: "24px", alignItems: "start" }}>
+                    <div style={{ position: "relative" }}>
+                       <span style={{ fontSize: "64px", fontWeight: 900, color: "rgba(15,23,42,0.04)", position: "absolute", top: "-24px", left: "-16px", zIndex: 0 }}>{item.num}</span>
+                       <div style={{ position: "relative", zIndex: 1, color: BRAND.coral, fontSize: "24px", marginTop: "12px" }}>{item.icon}</div>
+                    </div>
+                    <div>
+                       <h3 className="yg-font-serif" style={{ fontSize: "20px", fontWeight: 800, color: BRAND.navy, marginBottom: "8px" }}>{item.title}</h3>
+                       {item.link ? (
+                         <a href={item.link} className="yg-font-sans" style={{ fontSize: "17px", color: BRAND.gray500, textDecoration: "none" }}>{item.content}</a>
+                       ) : (
+                         <p className="yg-font-sans" style={{ fontSize: "17px", color: BRAND.gray500 }}>{item.content}</p>
+                       )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ marginTop: "80px" }}>
+                <h3 className="yg-font-serif" style={{ fontSize: "20px", fontWeight: 800, color: BRAND.navy, marginBottom: "24px" }}>Follow Our Journey</h3>
+                <div style={{ display: "flex", gap: "16px" }}>
+                  {[
+                    { icon: <FaInstagram />, href: "https://instagram.com/yenege_event", bg: "linear-gradient(135deg, #E4405F 0%, #833AB4 100%)" },
+                    { icon: <FaTelegram />, href: "https://t.me/yenegeevents", bg: "linear-gradient(135deg, #0088cc 0%, #006699 100%)" },
+                    { icon: <FaTiktok />, href: "https://tiktok.com/@yenegeevents", bg: "linear-gradient(135deg, #000000 0%, #333333 100%)" },
+                    { icon: <FaYoutube />, href: "https://youtube.com/@yenegeevents", bg: "linear-gradient(135deg, #FF0000 0%, #CC0000 100%)" },
+                  ].map((social, i) => (
+                    <a key={i} href={social.href} target="_blank" rel="noopener noreferrer" className="yg-social-btn" style={{ background: social.bg }}>
+                      {social.icon}
                     </a>
-                  );
-                })}
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Contact Form */}
-          <div className="group relative overflow-hidden rounded-2xl md:rounded-3xl p-5 md:p-6 lg:p-10 border border-gray-100 transition-all duration-700 bg-white"
-            style={{
-              boxShadow: "0 4px 24px rgba(0, 0, 0, 0.06)",
-            }}
-            onMouseEnter={(e) => {
-              if (window.innerWidth >= 768) {
-                e.currentTarget.style.boxShadow = "0 20px 40px rgba(255, 111, 94, 0.1)";
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = "0 4px 24px rgba(0, 0, 0, 0.06)";
-            }}
-          >
-            {/* Abstract shape background */}
-            <div 
-              className="hidden md:block absolute top-0 right-0 w-40 h-40 md:w-64 md:h-64 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-3xl"
-              style={{
-                background: "linear-gradient(135deg, rgba(255, 212, 71, 0.2) 0%, rgba(255, 111, 94, 0.2) 100%)",
-                transform: "translate(30%, -30%)",
-              }}
-            ></div>
+            {/* Right Column: Form */}
+            <div style={{ background: BRAND.white, borderRadius: "40px", border: "1px solid rgba(0,0,0,0.06)", padding: "60px", boxShadow: "0 40px 100px -20px rgba(15,23,42,0.1)" }}>
+               <h2 className="yg-font-serif" style={{ fontSize: "32px", fontWeight: 900, marginBottom: "40px", color: BRAND.navy }}>Send a Message</h2>
+               
+               {submitStatus === "success" && (
+                 <div style={{ padding: "20px", borderRadius: "12px", background: "rgba(37,211,102,0.1)", color: "#128C7E", marginBottom: "32px", fontSize: "14px", fontWeight: 600 }}>
+                   Opening WhatsApp... If it didn't open, please check your browser settings.
+                 </div>
+               )}
 
-            <div className="relative z-10">
-              <div 
-                className="h-1 w-16 md:w-20 mb-5 md:mb-6 rounded-full"
-                style={{
-                  background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
-                }}
-              ></div>
-              <h2 
-                className="text-xl md:text-2xl lg:text-3xl font-bold mb-5 md:mb-6 lg:mb-8 tracking-tight"
-                style={{
-                  background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                Send us a Message
-              </h2>
-              
-              {submitStatus === "success" && (
-                <div className="mb-5 md:mb-6 p-4 rounded-xl text-sm md:text-base"
-                  style={{
-                    background: "rgba(34, 197, 94, 0.1)",
-                    border: "1px solid rgba(34, 197, 94, 0.3)",
-                    color: "#16a34a",
-                  }}
-                >
-                  Opening WhatsApp... If it didn't open, please check your browser settings.
-                </div>
-              )}
+               <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }} className="yg-grid-mobile">
+                    <div>
+                      <label style={{ display: "block", fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: BRAND.gray500, marginBottom: "10px" }}>Full Name *</label>
+                      <input type="text" name="name" required placeholder="John Doe" value={formData.name} onChange={handleChange} className="yg-contact-input" />
+                    </div>
+                    <div>
+                      <label style={{ display: "block", fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: BRAND.gray500, marginBottom: "10px" }}>Email Address *</label>
+                      <input type="email" name="email" required placeholder="john@example.com" value={formData.email} onChange={handleChange} className="yg-contact-input" />
+                    </div>
+                 </div>
+                 
+                 <div>
+                   <label style={{ display: "block", fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: BRAND.gray500, marginBottom: "10px" }}>Phone Number</label>
+                   <input type="tel" name="phone" placeholder="+251 9XX XXX XXX" value={formData.phone} onChange={handleChange} className="yg-contact-input" />
+                 </div>
 
-              {submitStatus === "error" && (
-                <div className="mb-5 md:mb-6 p-4 rounded-xl text-sm md:text-base"
-                  style={{
-                    background: "rgba(239, 68, 68, 0.1)",
-                    border: "1px solid rgba(239, 68, 68, 0.3)",
-                    color: "#dc2626",
-                  }}
-                >
-                  Something went wrong. Please try again or contact us directly.
-                </div>
-              )}
+                 <div>
+                   <label style={{ display: "block", fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: BRAND.gray500, marginBottom: "10px" }}>How can we help? *</label>
+                   <textarea name="message" required rows={5} placeholder="Tell us about your next project or goal..." value={formData.message} onChange={handleChange} className="yg-contact-input" style={{ resize: "none" }} />
+                 </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5 lg:space-y-6">
-                <div>
-                  <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
-                    Name *
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    required
-                    value={formData.name}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3.5 md:py-3 text-base border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF6F5E] focus:border-transparent transition-all duration-300 bg-white"
-                    placeholder="Your name"
-                    style={{
-                      minHeight: '48px',
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
-                    Email *
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    required
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3.5 md:py-3 text-base border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF6F5E] focus:border-transparent transition-all duration-300 bg-white"
-                    placeholder="your.email@example.com"
-                    style={{
-                      minHeight: '48px',
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">
-                    Phone
-                  </label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3.5 md:py-3 text-base border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF6F5E] focus:border-transparent transition-all duration-300 bg-white"
-                    placeholder="+251 9XX XXX XXX"
-                    style={{
-                      minHeight: '48px',
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="message" className="block text-sm font-semibold text-gray-700 mb-2">
-                    Message *
-                  </label>
-                  <textarea
-                    id="message"
-                    name="message"
-                    required
-                    rows={6}
-                    value={formData.message}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3.5 md:py-3 text-base border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF6F5E] focus:border-transparent resize-none transition-all duration-300 bg-white"
-                    placeholder="Tell us what's on your mind..."
-                  ></textarea>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="group w-full py-4 md:py-3 lg:py-4 rounded-xl font-semibold transition-all duration-300 relative overflow-hidden text-base disabled:opacity-50 disabled:cursor-not-allowed text-white active:scale-[0.98]"
-                  style={{
-                    background: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)",
-                    boxShadow: "0 4px 20px rgba(37, 211, 102, 0.3)",
-                    minHeight: '52px',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (window.innerWidth >= 768 && !isSubmitting) {
-                      e.currentTarget.style.transform = "translateY(-2px)";
-                      e.currentTarget.style.boxShadow = "0 8px 30px rgba(37, 211, 102, 0.4)";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "0 4px 20px rgba(37, 211, 102, 0.3)";
-                  }}
-                >
-                  <span className="relative z-10 inline-flex items-center justify-center">
-                    {isSubmitting ? (
-                      <>
-                        Opening WhatsApp...
-                      </>
-                    ) : (
-                      <>
-                        <FaWhatsapp className="mr-2 md:mr-3 relative z-10" size={20} />
-                        Send via WhatsApp
-                      </>
-                    )}
-                  </span>
-                </button>
-              </form>
+                 <button type="submit" disabled={isSubmitting} className="yg-btn-submit">
+                   {isSubmitting ? "Processing..." : <><FaWhatsapp size={18} /> Send via WhatsApp</>}
+                 </button>
+               </form>
             </div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 };
 
 export default Contact;
+
 

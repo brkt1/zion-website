@@ -1,14 +1,12 @@
 import { useMemo } from "react";
 import {
   FaArrowRight,
-  FaBriefcase,
   FaCalendarAlt,
   FaGraduationCap,
-  FaHandsHelping,
   FaMapMarkerAlt,
   FaStar,
   FaUsers,
-  FaWhatsapp,
+  FaWhatsapp
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import Gallery from "../Components/Gallery";
@@ -505,7 +503,9 @@ const Home = () => {
             }}
           >
             {homeContent?.categories && homeContent.categories.length > 0 ? (
-              homeContent.categories.map((category, index) => (
+              homeContent.categories
+                .filter(cat => !["community", "corporate", "game"].includes(cat.title.toLowerCase()) && !["community", "corporate", "game"].includes(cat.id?.toLowerCase()))
+                .map((category, index) => (
                 <Link
                   key={category.id || index}
                   to={category.link}
@@ -601,15 +601,9 @@ const Home = () => {
                 {[
                   {
                     number: "01",
-                    title: "Events",
-                    desc: "Fun-filled evenings with board games, trivia, and interactive challenges. Perfect for making new friends!",
-                    link: "/events",
-                  },
-                  {
-                    number: "02",
-                    title: "Community",
-                    desc: "Join a vibrant community of happy people. Share stories, connect, and build lasting friendships.",
-                    link: "/community",
+                    title: "Travel",
+                    desc: "Explore breathtaking destinations across Ethiopia and beyond. From desert safaris to mountain escapes.",
+                    link: "/events?category=travel",
                   },
                 ].map((s, i) => (
                   <Link
@@ -1200,250 +1194,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ── 7. Community ─────────────────────────────────────────────────────── */}
-      <section
-        aria-labelledby="community-heading"
-        style={{
-          padding: "100px 0",
-          background: BRAND.white,
-        }}
-      >
-        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
-          <div
-            style={{
-              background: BRAND.cream,
-              border: `1px solid ${BRAND.gray100}`,
-              borderRadius: "32px",
-              overflow: "hidden",
-            }}
-          >
-            <div
-              className="yg-community-grid"
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-              }}
-            >
-              {/* Image panel */}
-              <div
-                className="yg-community-images"
-                style={{
-                  background: GRADIENT.navyVert,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "20px",
-                  padding: "48px 40px",
-                  justifyContent: "center",
-                  minHeight: "460px",
-                }}
-              >
-                {/* Intern card */}
-                <div
-                  style={{
-                    background: "rgba(255,255,255,0.08)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    borderRadius: "20px",
-                    padding: "24px",
-                    backdropFilter: "blur(10px)",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "16px",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: "52px",
-                      height: "52px",
-                      borderRadius: "14px",
-                      background: GRADIENT.brand,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <FaBriefcase size={20} style={{ color: BRAND.navy }} />
-                  </div>
-                  <div>
-                    <p
-                      className="yg-font-sans"
-                      style={{
-                        color: BRAND.gold,
-                        fontSize: "10px",
-                        fontWeight: 800,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.18em",
-                        marginBottom: "4px",
-                      }}
-                    >
-                      Internship
-                    </p>
-                    <p
-                      className="yg-font-serif"
-                      style={{
-                        color: BRAND.white,
-                        fontSize: "18px",
-                        fontWeight: 700,
-                      }}
-                    >
-                      Gain Real Experience
-                    </p>
-                    <p
-                      className="yg-font-sans"
-                      style={{
-                        color: "rgba(255,255,255,0.5)",
-                        fontSize: "13px",
-                        lineHeight: 1.4,
-                      }}
-                    >
-                      Work alongside our team on live events.
-                    </p>
-                  </div>
-                </div>
 
-                {/* Volunteer card */}
-                <div
-                  style={{
-                    background: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    borderRadius: "20px",
-                    padding: "24px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "16px",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: "52px",
-                      height: "52px",
-                      borderRadius: "14px",
-                      background: "rgba(255,111,94,0.15)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <FaHandsHelping
-                      size={20}
-                      style={{ color: BRAND.coral }}
-                    />
-                  </div>
-                  <div>
-                    <p
-                      className="yg-font-sans"
-                      style={{
-                        color: BRAND.coral,
-                        fontSize: "10px",
-                        fontWeight: 800,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.18em",
-                        marginBottom: "4px",
-                      }}
-                    >
-                      Volunteer
-                    </p>
-                    <p
-                      className="yg-font-serif"
-                      style={{
-                        color: BRAND.white,
-                        fontSize: "18px",
-                        fontWeight: 700,
-                      }}
-                    >
-                      Give Back & Grow
-                    </p>
-                    <p
-                      className="yg-font-sans"
-                      style={{
-                        color: "rgba(255,255,255,0.5)",
-                        fontSize: "13px",
-                        lineHeight: 1.4,
-                      }}
-                    >
-                      Be the heartbeat of our community events.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Text panel */}
-              <div
-                style={{
-                  padding: "64px 56px",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  gap: "0",
-                }}
-              >
-                <SectionLabel>Community</SectionLabel>
-
-                <h2
-                  id="community-heading"
-                  className="yg-font-serif"
-                  style={{
-                    fontSize: "clamp(32px, 4vw, 48px)",
-                    fontWeight: 900,
-                    color: BRAND.navy,
-                    lineHeight: 1.15,
-                    marginBottom: "20px",
-                    letterSpacing: "-0.02em",
-                  }}
-                >
-                  Be Part of{" "}
-                  <span
-                    style={{
-                      background: GRADIENT.brand,
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                      backgroundClip: "text",
-                      fontStyle: "italic",
-                    }}
-                  >
-                    The Journey.
-                  </span>
-                </h2>
-
-                <p
-                  className="yg-font-sans"
-                  style={{
-                    fontSize: "16px",
-                    color: BRAND.gray500,
-                    lineHeight: 1.75,
-                    marginBottom: "40px",
-                    maxWidth: "380px",
-                  }}
-                >
-                  We're always looking for passionate people to join us as
-                  interns or volunteers. Your energy drives us forward.
-                </p>
-
-                <Link
-                  to="/apply"
-                  className="yg-btn-primary"
-                  style={{ alignSelf: "flex-start" }}
-                  aria-label="Apply to join the Yenege community team"
-                >
-                  Apply Now <FaArrowRight size={12} />
-                </Link>
-
-                <p
-                  className="yg-font-sans"
-                  style={{
-                    marginTop: "16px",
-                    fontSize: "13px",
-                    color: BRAND.gray400,
-                  }}
-                >
-                  Open to internships & volunteers — no experience required.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* ── 8. Gallery ───────────────────────────────────────────────────────── */}
       <Gallery />

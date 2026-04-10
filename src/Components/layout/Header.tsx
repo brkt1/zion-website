@@ -22,7 +22,7 @@ const Header = () => {
   const location = useLocation();
   const isHomePage = location.pathname === "/";
 
-  const navLinks = config?.navigation || [
+  const navLinks = (config?.navigation || [
     { path: "/", label: "Home" },
     { path: "/events", label: "Events" },
     { path: "/expo-info", label: "Wedding Expo" },
@@ -31,7 +31,10 @@ const Header = () => {
     { path: "/masterclass", label: "Masterclass" },
     { path: "/about", label: "About" },
     { path: "/contact", label: "Contact" },
-  ];
+  ]).filter(link => 
+    !["community", "corporate", "game", "apply"].includes(link.label.toLowerCase()) &&
+    !["/community", "/apply"].includes(link.path.toLowerCase())
+  );
 
   const isActive = (path: string) => {
     if (path === "/") return location.pathname === "/";

@@ -412,16 +412,18 @@ const Hero = () => {
             
             {homeContent?.hero?.categories && homeContent.hero.categories.length > 0 && (
               <div className="hero-categories">
-                {homeContent.hero.categories.map((category, index) => (
-                  <span key={index}>
-                    <Link to={category.path} className="category-link">
-                      {category.label}
-                    </Link>
-                    {index < homeContent.hero.categories.length - 1 && (
-                      <span className="category-separator">|</span>
-                    )}
-                  </span>
-                ))}
+                {homeContent.hero.categories
+                  .filter(cat => !["community", "corporate", "game"].includes(cat.label.toLowerCase()))
+                  .map((category, index, filteredArr) => (
+                    <span key={index}>
+                      <Link to={category.path} className="category-link">
+                        {category.label}
+                      </Link>
+                      {index < filteredArr.length - 1 && (
+                        <span className="category-separator">|</span>
+                      )}
+                    </span>
+                  ))}
               </div>
             )}
 

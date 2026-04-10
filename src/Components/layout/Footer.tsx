@@ -26,7 +26,7 @@ const Footer = () => {
     };
   }) || [];
 
-  const quickLinks = config?.footer?.quickLinks || [
+  const quickLinks = (config?.footer?.quickLinks || [
     { path: "/", label: "Home" },
     { path: "/events", label: "Events" },
     { path: "/expo-info", label: "Wedding Expo" },
@@ -34,7 +34,10 @@ const Footer = () => {
     { path: "/masterclass", label: "Masterclass" },
     { path: "/apply", label: "Apply" },
     { path: "/contact", label: "Contact" },
-  ];
+  ]).filter(link => 
+    !["community", "corporate", "game", "apply"].includes(link.label.toLowerCase()) &&
+    !["/community", "/apply"].includes(link.path.toLowerCase())
+  );
 
   return (
     <footer 

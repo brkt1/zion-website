@@ -1,425 +1,677 @@
-import { FaArrowRight, FaGraduationCap, FaNetworkWired, FaRocket, FaUsers, FaWhatsapp } from "react-icons/fa";
+import { useEffect } from "react";
+import {
+    FaArrowRight,
+    FaCheckCircle,
+    FaGraduationCap,
+    FaNetworkWired,
+    FaRocket,
+    FaUsers,
+    FaWhatsapp
+} from "react-icons/fa";
 import { Link } from "react-router-dom";
 import OptimizedImage from "../Components/ui/OptimizedImage";
 import { useAboutContent, useContactInfo } from "../hooks/useApi";
+import { useScrollReveal } from "../hooks/useScrollReveal";
+
+/* ─── Shared design tokens ─────────────────────────────────────────────────── */
+const BRAND = {
+  navy: "#0F172A",
+  navyLight: "#1E293B",
+  gold: "#E4E821",
+  coral: "#FF6F5E",
+  cream: "#FAF9F6",
+  white: "#FFFFFF",
+  gray50: "#F8F9FA",
+  gray100: "#F0F2F5",
+  gray400: "#9CA3AF",
+  gray500: "#6B7280",
+  gray600: "#4B5563",
+  gray900: "#111827",
+};
+
+const GRADIENT = {
+  brand: "linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%)",
+  navyVert: "linear-gradient(180deg, #0F172A 0%, #1E293B 100%)",
+  textDark: "linear-gradient(135deg, #111827 0%, #374151 100%)",
+};
+
+/* ─── Sub-components ────────────────────────────────────────────────────────── */
+
+const SectionLabel = ({ children }: { children: React.ReactNode }) => (
+  <div
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "8px",
+      padding: "6px 18px",
+      borderRadius: "999px",
+      background: "rgba(228,232,33,0.1)",
+      border: "1px solid rgba(228,232,33,0.3)",
+      marginBottom: "20px",
+    }}
+  >
+    <span
+      style={{
+        background: GRADIENT.brand,
+        WebkitBackgroundClip: "text",
+        WebkitTextFillColor: "transparent",
+        backgroundClip: "text",
+        fontSize: "11px",
+        fontWeight: 800,
+        letterSpacing: "0.2em",
+        textTransform: "uppercase",
+        fontFamily: "'Manrope', sans-serif",
+      }}
+    >
+      {children}
+    </span>
+  </div>
+);
+
+const AccentRule = () => (
+  <div
+    style={{
+      height: "3px",
+      width: "48px",
+      borderRadius: "99px",
+      background: GRADIENT.brand,
+      marginBottom: "24px",
+    }}
+  />
+);
 
 const About = () => {
+  useScrollReveal();
   const { contactInfo } = useContactInfo();
   const { content } = useAboutContent();
-  
-  // Use data from API or fallback to standard content
+
+  useEffect(() => {
+    document.title = "About Us | YENEGE";
+  }, []);
+
   const story = content?.story || {
-    title: "The Yenege Dream",
-    content: `Yenege was born from a simple yet powerful vision: to bring happiness to life through meaningful connections and unforgettable experiences.
-
-We believe that life's greatest moments happen when people come together—whether it's over a board game, on a weekend adventure, or simply sharing stories in a welcoming community space.
-
-What started as a dream to create a space where people could escape the daily grind and truly connect has grown into a vibrant community of individuals who value joy, friendship, and living life to the fullest.
-
-Every event we organize, every trip we plan, and every gathering we host is designed with one goal in mind: to bring a little more happiness into your life.`
+    title: "The YENEGE Dream",
+    content: `Yenege started with a powerful observation: "People attend events. Few understand how to build them." 
+    
+    Born from a simple yet powerful vision: to bring happiness to life through meaningful connections and unforgettable experiences. We believe that life's greatest moments happen when people come together—whether it's over a board game, on a weekend adventure, or simply sharing stories in a welcoming community space.`,
   };
-  
+
   const ceo = content?.ceo;
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Hero Section */}
-      <section className="pt-24 pb-16 md:pt-32 md:pb-24 lg:pt-40 lg:pb-32 relative overflow-hidden bg-white">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="text-center max-w-5xl mx-auto">
-            <div className="inline-block mb-4 sm:mb-6">
-              <div 
-                className="h-1 w-24 mx-auto mb-6 rounded-full"
+    <div style={{ minHeight: "100vh", background: BRAND.cream }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Manrope:wght@300;400;500;600;700;800&display=swap');
+
+        .yg-font-serif { font-family: 'Playfair Display', Georgia, serif; }
+        .yg-font-sans  { font-family: 'Manrope', system-ui, sans-serif; }
+
+        .yg-pillar-card {
+          background: #fff;
+          border: 1px solid rgba(0,0,0,0.06);
+          border-radius: 32px;
+          padding: 48px;
+          transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
+          height: 100%;
+          position: relative;
+          overflow: hidden;
+        }
+        .yg-pillar-card:hover {
+          transform: translateY(-8px);
+          box-shadow: 0 32px 80px -16px rgba(15,23,42,0.12);
+          border-color: ${BRAND.gold}44;
+        }
+
+        .yg-btn-primary {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          padding: 16px 36px;
+          border-radius: 999px;
+          background: linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%);
+          color: #0F172A;
+          font-family: 'Manrope', sans-serif;
+          font-weight: 800;
+          font-size: 13px;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          text-decoration: none;
+          border: none;
+          cursor: pointer;
+          transition: all 0.25s;
+          box-shadow: 0 8px 30px rgba(255,111,94,0.3);
+        }
+        .yg-btn-primary:hover {
+          transform: translateY(-2px);
+          filter: brightness(1.05);
+          box-shadow: 0 16px 40px rgba(255,111,94,0.4);
+        }
+
+        .yg-btn-whatsapp {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          padding: 16px 36px;
+          border-radius: 999px;
+          background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+          color: #fff;
+          font-family: 'Manrope', sans-serif;
+          font-weight: 800;
+          font-size: 13px;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          text-decoration: none;
+          border: none;
+          cursor: pointer;
+          transition: all 0.25s;
+          box-shadow: 0 8px 30px rgba(37,211,102,0.25);
+        }
+
+        .yg-philosophy-item {
+          display: flex;
+          align-items: center;
+          gap: 20px;
+          padding: 24px;
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 20px;
+          transition: all 0.3s;
+        }
+        .yg-philosophy-item:hover {
+          background: rgba(255,255,255,0.06);
+          border-color: ${BRAND.gold}44;
+          transform: translateX(10px);
+        }
+
+        @media (max-width: 768px) {
+          .yg-grid-mobile { grid-template-columns: 1fr !important; gap: 32px !important; }
+        }
+      `}</style>
+
+      {/* ── 1. Page Header ─────────────────────────────────────────────────── */}
+      <section
+        style={{
+          padding: "180px 0 100px",
+          background: BRAND.white,
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            top: "-10%",
+            right: "-5%",
+            width: "50%",
+            height: "100%",
+            background: "radial-gradient(circle, rgba(228,232,33,0.08) 0%, transparent 70%)",
+            filter: "blur(80px)",
+          }}
+        />
+
+        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
+          <div style={{ maxWidth: "800px", textAlign: "center", margin: "0 auto" }}>
+            <SectionLabel>Architecture of Experiences</SectionLabel>
+            <h1
+              className="yg-font-serif"
+              style={{
+                fontSize: "clamp(52px, 8vw, 92px)",
+                fontWeight: 900,
+                color: BRAND.navy,
+                lineHeight: 1,
+                letterSpacing: "-0.04em",
+                marginBottom: "32px",
+              }}
+            >
+              We Build <br />
+              <span
                 style={{
-                  background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
-                }}
-              ></div>
-            </div>
-            
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black mb-6 sm:mb-8 tracking-tighter uppercase px-2">
-              <span 
-                className="block"
-                style={{
-                  background: "linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%)",
+                  background: GRADIENT.brand,
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                   backgroundClip: "text",
+                  fontStyle: "italic",
                 }}
               >
-                ABOUT YENEGE
+                Beyond Moments.
               </span>
             </h1>
-            
-            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-8 md:mb-12 text-[#FF6F5E] tracking-tight">
-              We Build Experiences That Build People.
-            </h2>
-
-            <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-gray-600 max-w-4xl mx-auto leading-relaxed px-4 font-light italic">
-              Yenege is a modern lifestyle and experience platform based in Addis Ababa.
+            <p
+              className="yg-font-sans"
+              style={{
+                fontSize: "22px",
+                color: BRAND.gray600,
+                lineHeight: 1.6,
+                maxWidth: "680px",
+                margin: "0 auto",
+                fontWeight: 400,
+              }}
+            >
+              Yenege is a modern lifestyle and experience platform based in Addis Ababa, operating at the intersection of professional execution, education, and community.
             </p>
           </div>
         </div>
+      </section>
 
-        {/* Abstract Background Elements */}
-        <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0 overflow-hidden">
-          <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[60%] rounded-full blur-[120px] opacity-10" style={{ background: "radial-gradient(circle, #FFD447 0%, transparent 70%)" }} />
-          <div className="absolute bottom-[-10%] left-[-5%] w-[40%] h-[60%] rounded-full blur-[120px] opacity-10" style={{ background: "radial-gradient(circle, #FF6F5E 0%, transparent 70%)" }} />
+      {/* ── 2. The Intersection ──────────────────────────────────────────────── */}
+      <section style={{ padding: "80px 0", background: BRAND.cream }}>
+        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
+          <div
+            className="yg-grid-mobile"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: "24px",
+            }}
+          >
+            {[
+              {
+                title: "Professional Execution",
+                icon: <FaRocket />,
+                desc: "High-level event production and logistics management.",
+              },
+              {
+                title: "Expert Education",
+                icon: <FaGraduationCap />,
+                desc: "Professional training for the next generation of event designers.",
+              },
+              {
+                title: "Vibrant Community",
+                icon: <FaUsers />,
+                desc: "A collaborative ecosystem of creatives and professionals.",
+              },
+            ].map((item, i) => (
+              <div
+                key={i}
+                style={{
+                  padding: "40px",
+                  background: BRAND.white,
+                  borderRadius: "28px",
+                  border: `1px solid ${BRAND.gray100}`,
+                  textAlign: "center",
+                }}
+              >
+                <div
+                  style={{
+                    width: "56px",
+                    height: "56px",
+                    borderRadius: "16px",
+                    background: "rgba(228,232,33,0.1)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: BRAND.coral,
+                    margin: "0 auto 24px",
+                    fontSize: "24px",
+                  }}
+                >
+                  {item.icon}
+                </div>
+                <h3 className="yg-font-serif" style={{ fontSize: "20px", fontWeight: 800, marginBottom: "12px", color: BRAND.navy }}>
+                  {item.title}
+                </h3>
+                <p className="yg-font-sans" style={{ fontSize: "14px", color: BRAND.gray500, lineHeight: 1.6 }}>
+                  {item.desc}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Intersection Section */}
-      <section className="py-16 md:py-24 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="max-w-6xl mx-auto text-center">
-             <div className="mb-12">
-               <h3 className="text-xl font-bold uppercase tracking-widest text-gray-400 mb-4">We operate at the intersection of:</h3>
-             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {[
-                { title: "Professional Event Execution", icon: <FaRocket />, color: "#FFD447" },
-                { title: "Event Organizing Education", icon: <FaGraduationCap />, color: "#FF6F5E" },
-                { title: "Community-Driven Experiences", icon: <FaUsers />, color: "#1C2951" }
-              ].map((item, idx) => (
-                <div key={idx} className="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col items-center transition-all duration-300 hover:shadow-xl hover:-translate-y-2 group">
-                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mb-6 transition-transform group-hover:rotate-12" style={{ backgroundColor: `${item.color}20`, color: item.color }}>
-                    {item.icon}
-                  </div>
-                  <h3 className="text-xl font-bold text-[#1a1a1a]">
-                    {item.title}
-                  </h3>
-                </div>
-              ))}
+      {/* ── 3. The Dream / Origin ────────────────────────────────────────────── */}
+      <section style={{ padding: "140px 0", background: BRAND.white, position: "relative" }}>
+        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
+          <div className="yg-grid-mobile" style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: "100px", alignItems: "center" }}>
+            <div>
+              <SectionLabel>Our Origin</SectionLabel>
+              <h2
+                className="yg-font-serif"
+                style={{
+                  fontSize: "clamp(40px, 5vw, 64px)",
+                  fontWeight: 900,
+                  color: BRAND.navy,
+                  lineHeight: 1.1,
+                  letterSpacing: "-0.02em",
+                  marginBottom: "32px",
+                }}
+              >
+                The Yenege <br />
+                <span style={{ fontStyle: "italic", color: BRAND.coral }}>Dream.</span>
+              </h2>
+              <div className="yg-font-sans" style={{ fontSize: "18px", color: BRAND.gray600, lineHeight: 1.8 }}>
+                <p style={{ fontSize: "24px", fontWeight: 600, color: BRAND.navy, marginBottom: "32px", lineHeight: 1.3 }}>
+                  "People attend events. <br />Few understand how to build them."
+                </p>
+                <p style={{ marginBottom: "24px" }}>
+                  Yenege was born from a simple yet powerful vision: to bring happiness to life through meaningful connections and unforgettable experiences.
+                </p>
+                <p>
+                  Every event we organize, every trip we plan, and every gathering we host is designed with one goal in mind: to bring professional precision to the art of gathering.
+                </p>
+              </div>
             </div>
 
-            <div className="mt-16 text-center">
-              <div className="inline-block p-8 md:p-12 rounded-[2.5rem] bg-white border border-gray-100 shadow-lg max-w-4xl">
-                <p className="text-xl md:text-2xl text-gray-700 leading-relaxed">
-                  Our goal is simple:<br />
-                  <span className="font-bold text-[#1C2951]">Create environments where ideas turn into experiences — and experiences turn into opportunity.</span>
-                </p>
+            <div style={{ position: "relative" }}>
+              <div
+                style={{
+                  position: "absolute",
+                  inset: "-20px",
+                  border: `2px solid ${BRAND.gold}`,
+                  borderRadius: "40px",
+                  zIndex: 0,
+                }}
+              />
+              <div
+                style={{
+                  position: "relative",
+                  zIndex: 1,
+                  aspectRatio: "1/1.2",
+                  borderRadius: "32px",
+                  overflow: "hidden",
+                  boxShadow: "0 40px 100px -20px rgba(0,0,0,0.15)",
+                }}
+              >
+                <OptimizedImage
+                  src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=1200&auto=format&fit=crop"
+                  alt="Events Architecture"
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* The Beginning */}
-      <section className="py-20 md:py-32 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center gap-12 lg:gap-20 max-w-6xl mx-auto">
-            <div className="flex-1">
-              <div className="h-1 w-16 mb-6 rounded-full bg-gradient-to-r from-[#FFD447] to-[#FF6F5E]"></div>
-              <h2 className="text-3xl md:text-5xl font-bold mb-8 text-[#1a1a1a] tracking-tight">{story.title}</h2>
-              <div className="space-y-6 text-lg text-gray-600 leading-relaxed font-light">
-                <p className="text-2xl font-medium text-[#1C2951]">Yenege started with a powerful observation:</p>
-                <p className="bg-yellow-50 p-4 border-l-4 border-[#FFD447] italic">"People attend events. Few understand how to build them."</p>
-                {story.content.split('\n\n').map((para, i) => (
-                  <p key={i}>{para}</p>
+      {/* ── 4. Difference Section ────────────────────────────────────────────── */}
+      <section style={{ padding: "140px 0", background: BRAND.navy, color: BRAND.white, position: "relative", overflow: "hidden" }}>
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "80%",
+            height: "80%",
+            background: "radial-gradient(circle, rgba(228,232,33,0.05) 0%, transparent 70%)",
+            filter: "blur(100px)",
+          }}
+        />
+
+        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", position: "relative", zIndex: 1 }}>
+          <div style={{ textAlign: "center", marginBottom: "80px" }}>
+            <SectionLabel><span style={{ color: BRAND.gold }}>The Distinction</span></SectionLabel>
+            <h2 className="yg-font-serif" style={{ fontSize: "clamp(36px, 5vw, 56px)", fontWeight: 900, marginBottom: "24px" }}>
+              What Makes Us <span style={{ fontStyle: "italic", color: BRAND.coral }}>Different.</span>
+            </h2>
+            <p className="yg-font-sans" style={{ fontSize: "20px", color: "rgba(255,255,255,0.7)", maxWidth: "700px", margin: "0 auto", lineHeight: 1.6 }}>
+              We don’t just organize events; we design complete experience systems.
+            </p>
+          </div>
+
+          <div className="yg-grid-mobile" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px", alignItems: "center" }}>
+            <div>
+              <h3 className="yg-font-serif" style={{ fontSize: "28px", fontWeight: 700, marginBottom: "32px", color: BRAND.gold }}>The Backbone of Every Event</h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                {[
+                  "Structured planning frameworks",
+                  "Vendor coordination models",
+                  "Financial strategy systems",
+                  "Operations & Logistics excellence",
+                  "Experience design principles",
+                ].map((text, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                    <FaCheckCircle style={{ color: BRAND.coral }} />
+                    <span className="yg-font-sans" style={{ fontSize: "18px", fontWeight: 500 }}>{text}</span>
+                  </div>
                 ))}
               </div>
             </div>
-            <div className="flex-1 relative">
-              <div className="aspect-square rounded-[3rem] bg-gradient-to-br from-[#FFD447] to-[#FF6F5E] overflow-hidden shadow-2xl relative z-10 flex items-center justify-center">
-                 <span className="text-8xl md:text-9xl font-black text-white/30 select-none uppercase">Origin</span>
-              </div>
-              <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#1C2951] rounded-full blur-3xl opacity-20 z-0"></div>
-              <div className="absolute -bottom-10 -left-10 w-60 h-60 bg-[#FFD447] rounded-full blur-3xl opacity-20 z-0"></div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Difference Section */}
-      <section className="py-20 md:py-32 bg-[#1C2951] text-white overflow-hidden relative">
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16 md:mb-24">
-              <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-8 tracking-tight">What Makes Yenege Different</h2>
-              <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto font-light">
-                We don’t just organize weddings, corporate functions, or community gatherings. We design complete experience systems.
+            <div
+              style={{
+                background: "rgba(255,255,255,0.05)",
+                backdropFilter: "blur(12px)",
+                padding: "48px",
+                borderRadius: "32px",
+                border: "1px solid rgba(255,255,255,0.1)",
+              }}
+            >
+              <h3 className="yg-font-serif" style={{ fontSize: "28px", fontWeight: 700, marginBottom: "20px", color: BRAND.coral }}>The Academy</h3>
+              <p className="yg-font-sans" style={{ fontSize: "18px", lineHeight: 1.7, color: "rgba(255,255,255,0.8)", marginBottom: "24px" }}>
+                Our academy teaches these professional systems to empower students with real-world skills, ensuring they can operate within world-class event structures.
+              </p>
+              <p className="yg-font-sans" style={{ fontSize: "16px", fontStyle: "italic", color: BRAND.gold }}>
+                "We professionalize the industry while keeping creativity at its heart."
               </p>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-24 items-center">
-              <div>
-                <h3 className="text-2xl font-bold mb-8 text-[#FFD447]">Behind every event is:</h3>
-                <ul className="space-y-6">
-                  {[
-                    "Structured planning frameworks",
-                    "Vendor coordination models",
-                    "Financial strategy",
-                    "Operational systems",
-                    "Experience design principles"
-                  ].map((item, idx) => (
-                    <li key={idx} className="flex items-center gap-4 text-lg md:text-xl">
-                      <div className="w-2 h-2 rounded-full bg-[#FF6F5E]"></div>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="bg-white/5 backdrop-blur-md p-10 rounded-[3rem] border border-white/10">
-                <h3 className="text-2xl font-bold mb-6 text-[#FF6F5E]">Professional Academy</h3>
-                <p className="text-lg leading-relaxed text-gray-300 font-light mb-6">
-                  Our academy teaches these professional systems without exposing proprietary internal processes.
-                </p>
-                <p className="text-lg leading-relaxed text-gray-300 font-light italic">
-                  This ensures our students gain real-world skills while Yenege maintains its competitive structure.
-                </p>
-              </div>
-            </div>
           </div>
-        </div>
-        
-        {/* Decorative background shape */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] rotate-12 opacity-5 pointer-events-none">
-          <div className="w-full h-full border-[100px] border-[#FFD447] rounded-full"></div>
         </div>
       </section>
 
-      {/* Ecosystem Section */}
-      <section className="py-20 md:py-32 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16 md:mb-24">
-            <div className="h-1 w-16 mx-auto mb-6 rounded-full bg-[#FFD447]"></div>
-            <h2 className="text-3xl md:text-6xl font-bold text-[#1a1a1a] tracking-tight mb-6">Our Ecosystem</h2>
-            <p className="text-xl text-gray-600">Yenege functions through three connected pillars</p>
+      {/* ── 5. Our Ecosystem ─────────────────────────────────────────────────── */}
+      <section style={{ padding: "140px 0", background: BRAND.white }}>
+        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
+          <div style={{ textAlign: "center", marginBottom: "80px" }}>
+            <SectionLabel>The Yenege Pillars</SectionLabel>
+            <h2 className="yg-font-serif" style={{ fontSize: "clamp(36px, 5vw, 64px)", fontWeight: 900, color: BRAND.navy }}>
+              Our <span style={{ fontStyle: "italic", color: BRAND.coral }}>Ecosystem.</span>
+            </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12 max-w-7xl mx-auto">
+          <div
+            className="yg-grid-mobile"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: "32px",
+            }}
+          >
             {[
-              { 
-                num: "1", 
-                title: "Event Production", 
+              {
+                num: "01",
+                title: "Event Production",
                 desc: "Full-scale planning and execution for private, corporate, and community events.",
-                icon: <FaRocket />
+                icon: <FaRocket />,
               },
-              { 
-                num: "2", 
-                title: "Event Organizing Academy", 
+              {
+                num: "02",
+                title: "Event Academy",
                 desc: "Structured professional training in event management — from foundation to execution.",
-                icon: <FaGraduationCap />
+                icon: <FaGraduationCap />,
               },
-              { 
-                num: "3", 
-                title: "Community & Collaboration", 
-                desc: "A growing network of creatives, planners, vendors, and partners building together.",
-                icon: <FaNetworkWired />
-              }
-            ].map((pillar, idx) => (
-              <div key={idx} className="relative group">
-                <div className="absolute -top-10 -left-6 text-9xl font-black text-gray-50 z-0 group-hover:text-[#FFD447]/10 transition-colors pointer-events-none">
-                  0{pillar.num}
+              {
+                num: "03",
+                title: "Community Hub",
+                desc: "A growing network of creatives, planners, and vendors building together.",
+                icon: <FaNetworkWired />,
+              },
+            ].map((pillar, i) => (
+              <div key={i} className="yg-pillar-card group">
+                <div
+                  className="yg-font-sans"
+                  style={{
+                    position: "absolute",
+                    top: "24px",
+                    right: "32px",
+                    fontSize: "80px",
+                    fontWeight: 900,
+                    color: "rgba(15,23,42,0.03)",
+                    lineHeight: 1,
+                  }}
+                >
+                  {pillar.num}
                 </div>
-                <div className="relative z-10 bg-white p-10 lg:p-12 rounded-[2.5rem] shadow-sm border border-gray-100 h-full flex flex-col transition-all duration-300 hover:shadow-2xl hover:-translate-y-3">
-                  <div className="text-3xl text-gray-300 group-hover:text-[#FF6F5E] transition-colors mb-8">{pillar.icon}</div>
-                  <h3 className="text-2xl font-extrabold mb-6 text-[#1a1a1a] leading-tight">{pillar.title}</h3>
-                  <p className="text-gray-600 leading-relaxed font-light">{pillar.desc}</p>
-                </div>
+                <div style={{ color: BRAND.coral, fontSize: "32px", marginBottom: "32px" }}>{pillar.icon}</div>
+                <h3 className="yg-font-serif" style={{ fontSize: "28px", fontWeight: 800, color: BRAND.navy, marginBottom: "16px" }}>{pillar.title}</h3>
+                <p className="yg-font-sans" style={{ fontSize: "17px", color: BRAND.gray500, lineHeight: 1.7 }}>
+                  {pillar.desc}
+                </p>
               </div>
             ))}
           </div>
 
-          <div className="mt-20 flex flex-wrap justify-center gap-6 text-sm md:text-lg font-bold uppercase tracking-widest text-[#1C2951]">
-             <div className="flex items-center gap-2">Execution <FaArrowRight className="text-[#FF6F5E]" /> Education</div>
-             <div className="flex items-center gap-2">Education <FaArrowRight className="text-[#FF6F5E]" /> Innovation</div>
-             <div className="flex items-center gap-2">Community <FaArrowRight className="text-[#FF6F5E]" /> Growth</div>
+          <div
+            className="yg-font-sans"
+            style={{
+              marginTop: "80px",
+              display: "flex",
+              justifyContent: "center",
+              gap: "48px",
+              flexWrap: "wrap",
+              fontSize: "13px",
+              fontWeight: 800,
+              textTransform: "uppercase",
+              letterSpacing: "0.2em",
+              color: BRAND.gray400,
+            }}
+          >
+            <span>Execution • Education</span>
+            <span>Education • Innovation</span>
+            <span>Community • Growth</span>
           </div>
         </div>
       </section>
 
-      {/* Academy CTA Section */}
-      <section className="py-24 bg-[#1C2951] relative overflow-hidden">
-        <div className="container mx-auto px-4">
-          <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-12 lg:gap-20">
-             <div className="flex-1 space-y-8">
-                <div className="inline-block px-4 py-1 bg-white/10 text-[#FFD447] rounded-full text-xs font-bold uppercase tracking-widest border border-white/20">Learning Ecosystem</div>
-                <h2 className="text-4xl md:text-6xl font-black text-white tracking-tight leading-none">The Academy of <br /><span className="text-[#FF6F5E] italic">Event Masters.</span></h2>
-                <p className="text-xl text-gray-400 font-light leading-relaxed">
-                  Join our Professional Event Management Certification. An intensive, system-driven program designed to turn passion into professional precision.
-                </p>
-                <div className="pt-4 flex flex-wrap gap-4">
-                   <Link 
-                    to="/certification" 
-                    className="glow-button-light px-10 py-5 rounded-2xl font-black text-xs tracking-widest uppercase shadow-xl shadow-amber-500/10 active:scale-95 transition-all"
-                   >
-                     Explore Program
-                   </Link>
-                   <a 
-                    href="https://learn.yenege.com" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="px-10 py-5 rounded-2xl border border-white/10 text-white font-bold text-xs tracking-widest uppercase hover:bg-white/5 transition-all"
-                   >
-                     Go to E-Learning
-                   </a>
-                </div>
-             </div>
-             <div className="flex-1 relative">
-                <div className="aspect-[4/3] rounded-[3rem] overflow-hidden border border-white/10 shadow-2xl relative group">
-                   <img 
-                    src="https://images.unsplash.com/photo-1524178232363-1fb28f74b0cd?q=80&w=800&auto=format&fit=crop" 
-                    className="w-full h-full object-cover opacity-60 grayscale group-hover:grayscale-0 transition-all duration-1000" 
-                    alt="Academy Class" 
-                   />
-                   <div className="absolute inset-0 bg-gradient-to-t from-[#1C2951] to-transparent opacity-80" />
-                   <div className="absolute inset-0 flex items-center justify-center">
-                      <FaGraduationCap className="text-white/20 text-9xl group-hover:scale-110 transition-transform duration-700" />
-                   </div>
-                </div>
-             </div>
+      {/* ── 6. Mission & Vision ──────────────────────────────────────────────── */}
+      <section style={{ padding: "140px 0", background: BRAND.cream }}>
+        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
+          <div className="yg-grid-mobile" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "40px" }}>
+            <div style={{ padding: "60px", background: BRAND.white, borderRadius: "40px" }}>
+              <SectionLabel>Our Mission</SectionLabel>
+              <h3 className="yg-font-serif" style={{ fontSize: "32px", fontWeight: 800, color: BRAND.navy, marginBottom: "24px" }}>
+                Creating Accessible <br /><span style={{ color: BRAND.coral }}>Happiness.</span>
+              </h3>
+              <p className="yg-font-sans" style={{ fontSize: "18px", color: BRAND.gray600, lineHeight: 1.8 }}>
+                {content?.mission?.content || "To create a vibrant community platform that brings people together through engaging events, adventures, and connections."}
+              </p>
+            </div>
+
+            <div style={{ padding: "60px", background: BRAND.navy, borderRadius: "40px", color: BRAND.white }}>
+              <SectionLabel><span style={{ color: BRAND.gold }}>Our Vision</span></SectionLabel>
+              <h3 className="yg-font-serif" style={{ fontSize: "32px", fontWeight: 800, marginBottom: "24px" }}>
+                The Hub of <br /><span style={{ color: BRAND.gold }}>Experiences.</span>
+              </h3>
+              <p className="yg-font-sans" style={{ fontSize: "18px", color: "rgba(255,255,255,0.7)", lineHeight: 1.8 }}>
+                {content?.vision?.content || "To become the leading lifestyle and events platform in Ethiopia, known for building a community where every member feels valued."}
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Mission & Vision & Philosophy */}
-      <section className="py-20 md:py-32 bg-gray-50 overflow-hidden">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 max-w-7xl mx-auto">
-            <div className="space-y-12">
-              <div className="bg-white p-10 md:p-14 rounded-[3rem] shadow-sm border border-gray-100">
-                <h3 className="text-xl font-bold uppercase tracking-widest text-[#FF6F5E] mb-6">Our Mission</h3>
-                <p className="text-2xl md:text-3xl font-light text-gray-800 leading-tight">
-                  {content?.mission?.content || "To build Ethiopia’s most trusted experience and event education platform — empowering individuals while delivering exceptional events."}
-                </p>
+      {/* ── 7. Founder Section ───────────────────────────────────────────────── */}
+      <section style={{ padding: "140px 0", background: BRAND.white }}>
+        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
+          <div className="yg-grid-mobile" style={{ display: "grid", gridTemplateColumns: "0.9fr 1.1fr", gap: "80px", alignItems: "center" }}>
+            <div style={{ position: "relative" }}>
+              <div
+                style={{
+                  borderRadius: "40px",
+                  overflow: "hidden",
+                  boxShadow: "0 60px 120px -30px rgba(15,23,42,0.2)",
+                  background: BRAND.gray100,
+                  aspectRatio: "4/5",
+                }}
+              >
+                {ceo?.image ? (
+                  <OptimizedImage
+                    src={ceo.image}
+                    alt="Bereket Yosef"
+                    className="w-full h-full object-cover grayscale"
+                  />
+                ) : (
+                  <div style={{ padding: "40px", textAlign: "center", display: "flex", flexDirection: "column", justifyContent: "center", height: "100%" }}>
+                    <FaUsers size={64} style={{ margin: "0 auto 24px", color: BRAND.gray400 }} />
+                    <span className="yg-font-serif" style={{ fontSize: "24px", fontWeight: 700, color: BRAND.gray400 }}>Founder Image</span>
+                  </div>
+                )}
               </div>
-              <div className="bg-white p-10 md:p-14 rounded-[3rem] shadow-sm border border-gray-100">
-                <h3 className="text-xl font-bold uppercase tracking-widest text-[#FFD447] mb-6">Our Vision</h3>
-                <p className="text-2xl md:text-3xl font-light text-gray-800 leading-tight">
-                  {content?.vision?.content || "To become the leading ecosystem for event professionals and curated experiences across Ethiopia and beyond."}
-                </p>
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: "32px",
+                  right: "-20px",
+                  background: BRAND.gold,
+                  padding: "24px 40px",
+                  borderRadius: "20px",
+                  boxShadow: "0 20px 40px rgba(0,0,0,0.1)",
+                }}
+              >
+                <div className="yg-font-sans" style={{ fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em", color: BRAND.navy, opacity: 0.6, marginBottom: "4px" }}>Founder & CEO</div>
+                <div className="yg-font-serif" style={{ fontSize: "24px", fontWeight: 900, color: BRAND.navy }}>Bereket Yosef</div>
               </div>
             </div>
 
-            <div className="relative">
-              <div className="h-full bg-[#1a1a1a] text-white p-10 md:p-16 rounded-[4rem] flex flex-col justify-center">
-                <h2 className="text-xl font-bold uppercase tracking-widest text-[#FF6F5E] mb-8">Our Philosophy</h2>
-                <p className="text-2xl md:text-3xl font-bold mb-12 leading-tight">We believe events are not decorations and schedules.</p>
-                <div className="space-y-8">
-                  {[
-                    "Economic opportunities",
-                    "Community builders",
-                    "Career launchpads",
-                    "Memory creators"
-                  ].map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-6 group">
-                      <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-xl font-bold group-hover:bg-[#FFD447] group-hover:text-black transition-all">
-                        {idx + 1}
-                      </div>
-                      <span className="text-xl md:text-2xl font-light text-gray-300 italic group-hover:text-white transition-colors">{item}</span>
-                    </div>
+            <div>
+              <SectionLabel>Founder's Vision</SectionLabel>
+              <h2
+                className="yg-font-serif"
+                style={{
+                  fontSize: "clamp(36px, 5vw, 56px)",
+                  fontWeight: 900,
+                  color: BRAND.navy,
+                  lineHeight: 1.1,
+                  letterSpacing: "-0.02em",
+                  marginBottom: "32px",
+                }}
+              >
+                Crafting Ethiopia's <br />
+                <span style={{ fontStyle: "italic", color: BRAND.coral }}>Creative Future.</span>
+              </h2>
+              <div className="yg-font-sans" style={{ fontSize: "18px", color: BRAND.gray600, lineHeight: 1.8 }}>
+                <p style={{ marginBottom: "24px" }}>
+                  Bereket Yosef is a visionary entrepreneur dedicated to redefining the experience economy in Ethiopia. With a focus on strategic management and community architecture.
+                </p>
+                <p>
+                  He founded Yenege to bridge the gap between world-class execution and transformative education, ensuring every event foundations for the next generation.
+                </p>
+              </div>
+
+              {ceo?.socialLinks && (
+                <div style={{ marginTop: "40px", display: "flex", gap: "24px" }}>
+                  {ceo.socialLinks.map((s, i) => (
+                    <a key={i} href={s.url} style={{ fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: BRAND.navy, textDecoration: "none" }}>
+                      {s.platform}
+                    </a>
                   ))}
                 </div>
-                <p className="mt-16 text-lg text-gray-400 font-light border-t border-white/10 pt-8">
-                  Yenege exists to professionalize the industry while keeping creativity at its core.
-                </p>
-              </div>
-              
-              {/* Accents */}
-              <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#FFD447] rounded-full blur-[100px] opacity-20"></div>
+              )}
             </div>
           </div>
         </div>
       </section>
 
-      {/* CEO Section - Professional & Modern */}
-      <section className="py-24 md:py-32 bg-white overflow-hidden relative">
-        <div className="container mx-auto px-4">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
-              {/* Image Column */}
-              <div className="w-full lg:w-5/12 relative">
-                <div className="relative z-10 aspect-[4/5] rounded-[2.5rem] md:rounded-[4rem] overflow-hidden shadow-2xl luxury-border-light">
-                  {ceo?.image ? (
-                    <OptimizedImage 
-                      src={ceo.image} 
-                      alt={ceo.name} 
-                      className="w-full h-full object-cover grayscale md:grayscale hover:grayscale-0 transition-all duration-1000"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                      <FaUsers className="text-gray-300 text-8xl md:text-9xl opacity-20" />
-                    </div>
-                  )}
-                  {/* Glassmorphism Name Tag */}
-                  <div className="absolute bottom-10 left-10 right-10 p-6 md:p-8 backdrop-blur-md bg-white/10 border border-white/20 rounded-[2rem] text-white">
-                    <h3 className="text-2xl md:text-3xl font-black tracking-tight">{ceo?.name || "Bereket Yosef"}</h3>
-                    <p className="text-white/70 uppercase tracking-[0.2em] text-[10px] font-bold mt-2">{ceo?.title || "Founder & CEO"}</p>
-                  </div>
-                </div>
-                {/* Decorative Elements */}
-                <div className="absolute -top-12 -left-12 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl -z-1" />
-                <div className="absolute -bottom-12 -right-12 w-64 h-64 bg-rose-500/10 rounded-full blur-3xl -z-1" />
-              </div>
-
-              {/* Content Column */}
-              <div className="w-full lg:w-7/12 space-y-10 lg:pl-4">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <div className="h-[2px] w-12 bg-amber-500" />
-                    <span className="text-amber-500 font-sans tracking-[0.4em] uppercase text-[10px] font-black">Founder's vision</span>
-                  </div>
-                  <h2 className="text-4xl md:text-6xl font-black text-slate-900 leading-[1.1] tracking-tight">
-                    Crafting Ethiopia's <br />
-                    <span className="italic text-gold-gradient">Creative Future.</span>
-                  </h2>
-                </div>
-
-                <div className="space-y-6 text-lg md:text-xl text-slate-600 leading-relaxed font-light">
-                  {ceo?.bio ? (
-                    ceo.bio.split('\n').map((para, i) => (
-                      <p key={i}>{para}</p>
-                    ))
-                  ) : (
-                    <>
-                      <p>Bereket Yosef is a visionary entrepreneur dedicated to redefining the experience economy in Ethiopia. With a deep focus on strategic event management and community architecture, he founded Yenege to bridge the gap between world-class execution and transformative education.</p>
-                      <p>His dual model ensures that every event is not just a moment in time, but a foundation for the next generation of professional event designers.</p>
-                    </>
-                  )}
-                </div>
-
-                {ceo?.quote && (
-                  <div className="relative py-8 px-10 border-l-4 border-amber-500 bg-gray-50 rounded-r-[2rem]">
-                    <p className="text-xl md:text-2xl font-serif italic text-slate-800 leading-relaxed font-light">
-                      "{ceo.quote}"
-                    </p>
-                  </div>
-                )}
-
-                {ceo?.socialLinks && ceo.socialLinks.length > 0 && (
-                  <div className="flex items-center gap-8 pt-6">
-                    <span className="text-xs uppercase tracking-widest font-black text-slate-400">Connect</span>
-                    <div className="flex gap-6">
-                      {ceo.socialLinks.map((link, i) => (
-                        <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-amber-500 transition-colors font-bold uppercase text-[10px] tracking-widest">{link.platform}</a>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Action Footer */}
-      <section className="py-20 md:py-32 bg-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-5xl font-bold mb-12 tracking-tight text-[#1a1a1a]">Ready to build something together?</h2>
-          <div className="flex flex-col sm:flex-row justify-center gap-6 max-w-2xl mx-auto">
-            <Link 
-              to="/apply" 
-              className="flex-1 py-5 px-10 rounded-full bg-[#1C2951] text-white font-bold text-lg hover:bg-[#FF6F5E] transition-all flex items-center justify-center gap-3 shadow-xl"
-            >
-              Join the Academy <FaArrowRight />
+      {/* ── 8. Final CTA ─────────────────────────────────────────────────────── */}
+      <section style={{ padding: "140px 0", background: BRAND.cream }}>
+        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", textAlign: "center" }}>
+          <SectionLabel>Connect With Us</SectionLabel>
+          <h2
+            className="yg-font-serif"
+            style={{
+              fontSize: "clamp(40px, 6vw, 64px)",
+              fontWeight: 900,
+              color: BRAND.navy,
+              lineHeight: 1.1,
+              marginBottom: "32px",
+            }}
+          >
+            Ready to Build <br />
+            <span style={{ fontStyle: "italic", color: BRAND.coral }}>Something Together?</span>
+          </h2>
+          <div style={{ display: "flex", justifyContent: "center", gap: "20px", flexWrap: "wrap", marginTop: "48px" }}>
+            <Link to="/apply" className="yg-btn-primary">
+              Join The Academy <FaArrowRight size={12} />
             </Link>
-            <a 
-              href={`https://wa.me/${contactInfo?.phone?.replace(/\D/g, '') || '251978639887'}`}
+            <a
+              href={`https://wa.me/${contactInfo?.phone?.replace(/\D/g, "") || "251978639887"}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 py-5 px-10 rounded-full border-2 border-[#1C2951] text-[#1C2951] font-bold text-lg hover:bg-gray-50 transition-all flex items-center justify-center gap-3"
+              className="yg-btn-whatsapp"
             >
-              <FaWhatsapp className="text-green-500" /> WhatsApp Us
+              <FaWhatsapp size={18} /> Contact via WhatsApp
             </a>
           </div>
         </div>
@@ -429,3 +681,4 @@ Every event we organize, every trip we plan, and every gathering we host is desi
 };
 
 export default About;
+
