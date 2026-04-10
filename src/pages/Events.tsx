@@ -6,7 +6,7 @@ import {
   FaUsers,
   FaWhatsapp
 } from "react-icons/fa";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { EventsSkeleton } from "../Components/ui/EventsSkeleton";
 import OptimizedImage from "../Components/ui/OptimizedImage";
 import { useEvents } from "../hooks/useApi";
@@ -90,11 +90,9 @@ const Events = () => {
     }
   }, []);
 
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const categoryParam = searchParams.get("category") || "all";
   const [selectedCategory] = useState<string>(categoryParam);
-  const searchQuery = "";
 
   const { events, isLoading: eventsLoading } = useEvents({
     category: selectedCategory === "all" ? undefined : (selectedCategory as any),
