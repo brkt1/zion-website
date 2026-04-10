@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-    FaArrowRight,
-    FaCalendarAlt,
-    FaMapMarkerAlt,
-    FaSearch,
-    FaUsers,
-    FaWhatsapp,
+  FaArrowRight,
+  FaCalendarAlt,
+  FaMapMarkerAlt,
+  FaUsers,
+  FaWhatsapp
 } from "react-icons/fa";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { EventsSkeleton } from "../Components/ui/EventsSkeleton";
@@ -86,7 +85,7 @@ const Events = () => {
     if (metaDescription) {
       metaDescription.setAttribute(
         "content",
-        "Yenege - Discover amazing events and experiences in Ethiopia. Join us for exciting game nights, travel adventures, corporate events, and community gatherings."
+        "Yenege - Exclusive Event Portfolio. Bespoke travels and curated events across Ethiopia. Discover Ethiopia's most refined experiences."
       );
     }
   }, []);
@@ -128,7 +127,14 @@ const Events = () => {
   }, [apiCategories]);
 
   const filteredEvents = useMemo(() => {
-    return events.filter((event) => {
+    // Excluded IDs for manual filtering
+    const excludedIds = ["community", "corporate", "game"];
+    
+    return (events || []).filter((event) => {
+      // 1. First ensure we filter out the excluded categories even if on "All"
+      if (excludedIds.includes(event.category?.toLowerCase())) return false;
+
+      // 2. Then apply the category filter
       const matchesCategory =
         selectedCategory === "all" || event.category === selectedCategory;
       const matchesSearch =
@@ -250,144 +256,35 @@ const Events = () => {
         }
       `}</style>
 
-      {/* ── 1. Page Header ─────────────────────────────────────────────────── */}
+      {/* ── 2. Events Grid (Start of page) ─────────────────────────────────── */}
       <section
         style={{
-          padding: "80px 0 20px",
-          background: BRAND.white,
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
-        {/* Subtle mesh/gradient effect */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            top: "-10%",
-            right: "-5%",
-            width: "40%",
-            height: "100%",
-            background: "radial-gradient(circle, rgba(228,232,33,0.07) 0%, transparent 70%)",
-            filter: "blur(60px)",
-          }}
-        />
-
-        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
-          <div style={{ maxWidth: "800px" }}>
-            <SectionLabel>Explore</SectionLabel>
-            <h1
-              className="yg-font-serif"
-              style={{
-                fontSize: "clamp(32px, 5vw, 56px)",
-                fontWeight: 900,
-                color: BRAND.navy,
-                lineHeight: 1.1,
-                letterSpacing: "-0.02em",
-                marginBottom: "12px",
-              }}
-            >
-              Event <br />
-              <span
-                style={{
-                  background: GRADIENT.brand,
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                  fontStyle: "italic",
-                }}
-              >
-                Portfolio
-              </span>
-            </h1>
-            <p
-              className="yg-font-sans"
-              style={{
-                fontSize: "18px",
-                color: BRAND.gray600,
-                lineHeight: 1.6,
-                maxWidth: "600px",
-              }}
-            >
-              Bespoke travels and curated events across Ethiopia.
-            </p>
-          </div>
-
-          {/* Search & Filters container */}
-          <div
-            style={{
-              marginTop: "32px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "20px",
-            }}
-          >
-            {/* Search Bar */}
-            <div style={{ position: "relative", maxWidth: "600px" }}>
-              <FaSearch
-                style={{
-                  position: "absolute",
-                  left: "24px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: BRAND.gray400,
-                }}
-                size={18}
-              />
-              <input
-                type="text"
-                placeholder="Search experiences..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="yg-search-input yg-font-sans"
-                style={{
-                  width: "100%",
-                  padding: "20px 24px 20px 64px",
-                  borderRadius: "20px",
-                  border: `1px solid ${BRAND.gray100}`,
-                  background: BRAND.gray50,
-                  fontSize: "16px",
-                  color: BRAND.navy,
-                  outline: "none",
-                  transition: "all 0.3s",
-                }}
-              />
-            </div>
-
-            {/* Categories */}
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "32px",
-                alignItems: "center",
-              }}
-            >
-              {categoriesList.map((category) => (
-                <button
-                  key={category.id}
-                  onClick={() => handleCategoryChange(category.id)}
-                  className={`yg-category-btn ${
-                    selectedCategory === category.id ? "active" : ""
-                  }`}
-                >
-                  {category.name}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 2. Events Grid ─────────────────────────────────────────────────── */}
-      <section
-        style={{
-          padding: "100px 0 140px",
+          padding: "160px 0 140px",
           background: BRAND.cream,
         }}
       >
         <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
-          {filteredEvents.length === 0 ? (
+          {eventsLoading ? (
+            <div style={{ textAlign: "center", padding: "100px 0" }}>
+              <div
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  border: `3px solid ${BRAND.gray100}`,
+                  borderTopColor: BRAND.gold,
+                  borderRadius: "50%",
+                  animation: "spin 1s linear infinite",
+                  margin: "0 auto 24px",
+                }}
+              />
+              <p className="yg-font-sans" style={{ color: BRAND.gray400, fontSize: "14px", letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                Curating Experiences...
+              </p>
+              <style>{`
+                @keyframes spin { to { transform: rotate(360deg); } }
+              `}</style>
+            </div>
+          ) : filteredEvents.length === 0 ? (
             <div
               style={{
                 textAlign: "center",

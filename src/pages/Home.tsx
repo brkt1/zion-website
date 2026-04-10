@@ -441,7 +441,7 @@ const Home = () => {
         >
           {/* Section header */}
           <div style={{ textAlign: "center", marginBottom: "64px" }}>
-            <SectionLabel>What We Do</SectionLabel>
+            <SectionLabel>The Portfolio</SectionLabel>
             <h2
               id="services-heading"
               className="yg-font-serif"
@@ -454,7 +454,7 @@ const Home = () => {
                 letterSpacing: "-0.02em",
               }}
             >
-              Curated Experiences,{" "}
+              Selected Destinations,{" "}
               <span
                 style={{
                   background: GRADIENT.brand,
@@ -464,7 +464,7 @@ const Home = () => {
                   fontStyle: "italic",
                 }}
               >
-                Endless Joy
+                Exclusive Moments
               </span>
             </h2>
             <p
@@ -472,13 +472,13 @@ const Home = () => {
               style={{
                 fontSize: "17px",
                 color: BRAND.gray500,
-                maxWidth: "520px",
+                maxWidth: "600px",
                 margin: "0 auto",
                 lineHeight: 1.7,
               }}
             >
-              From game nights to world-class travel, every offering is
-              designed to bring people together.
+              Bespoke travels and curated moments designed for the discerning explorer. 
+              Discover the soul of Ethiopia through our exclusive collection.
             </p>
           </div>
 
@@ -487,8 +487,8 @@ const Home = () => {
             className="yg-service-grid"
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(450px, 1fr))",
-              gap: "32px",
+              gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))",
+              gap: "40px",
             }}
           >
             {homeContent?.categories && homeContent.categories.length > 0 ? (
