@@ -26,7 +26,7 @@ export const useScrollReveal = () => {
     
     // Slight delay to allow DOM to render to catch all elements
     setTimeout(() => {
-      document.querySelectorAll('.reveal-wrapper').forEach(el => observer.observe(el));
+      elements.forEach(el => observer.observe(el));
     }, 100);
 
     return () => observer.disconnect();

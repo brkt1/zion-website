@@ -121,15 +121,7 @@ const Contact = () => {
     });
   };
 
-  const iconMap: { [key: string]: any } = {
-    email: FaEnvelope,
-    phone: FaPhone,
-    location: FaMapMarkerAlt,
-    instagram: FaInstagram,
-    telegram: FaTelegram,
-    tiktok: FaTiktok,
-    youtube: FaYoutube,
-  };
+
 
   const contactInfoItems = [
     {

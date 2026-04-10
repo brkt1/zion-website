@@ -68,17 +68,7 @@ const SectionLabel = ({ children }: { children: React.ReactNode }) => (
   </div>
 );
 
-const AccentRule = () => (
-  <div
-    style={{
-      height: "3px",
-      width: "48px",
-      borderRadius: "99px",
-      background: GRADIENT.brand,
-      marginBottom: "24px",
-    }}
-  />
-);
+
 
 const About = () => {
   useScrollReveal();
@@ -89,12 +79,7 @@ const About = () => {
     document.title = "About Us | YENEGE";
   }, []);
 
-  const story = content?.story || {
-    title: "The YENEGE Dream",
-    content: `Yenege started with a powerful observation: "People attend events. Few understand how to build them." 
-    
-    Born from a simple yet powerful vision: to bring happiness to life through meaningful connections and unforgettable experiences. We believe that life's greatest moments happen when people come together—whether it's over a board game, on a weekend adventure, or simply sharing stories in a welcoming community space.`,
-  };
+
 
   const ceo = content?.ceo;
 

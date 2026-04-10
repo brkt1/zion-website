@@ -82,18 +82,7 @@ const SectionLabel = ({ children }: { children: React.ReactNode }) => (
   </div>
 );
 
-/** Gold accent rule */
-const AccentRule = () => (
-  <div
-    style={{
-      height: "3px",
-      width: "48px",
-      borderRadius: "99px",
-      background: GRADIENT.brand,
-      marginBottom: "16px",
-    }}
-  />
-);
+
 
 /** Modern stat item for trust section */
 const StatBadge = ({
