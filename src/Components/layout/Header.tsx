@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
-import { FaEnvelope, FaWhatsapp } from "react-icons/fa";
+import {
+  FaEnvelope,
+  FaInstagram,
+  FaLinkedin,
+  FaPhoneAlt,
+  FaTelegramPlane,
+  FaTiktok,
+  FaWhatsapp
+} from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
 import { useContactInfo, useSiteConfig } from "../../hooks/useApi";
 import { handleLinkHover } from "../../utils/prefetch";
@@ -19,7 +27,6 @@ const Header = () => {
     { path: "/events", label: "Events" },
     { path: "/expo-info", label: "Wedding Expo" },
     { path: "/travel", label: "Travel & Adventures" },
-
     { path: "/community", label: "Community" },
     { path: "/masterclass", label: "Masterclass" },
     { path: "/about", label: "About" },
@@ -27,9 +34,7 @@ const Header = () => {
   ];
 
   const isActive = (path: string) => {
-    if (path === "/") {
-      return location.pathname === "/";
-    }
+    if (path === "/") return location.pathname === "/";
     return location.pathname.startsWith(path);
   };
 
@@ -38,16 +43,12 @@ const Header = () => {
       const currentScrollY = window.scrollY;
       setIsScrolled(currentScrollY > 20);
       
-      // Hide header on mobile when scrolling down, show when scrolling up or at top
       if (window.innerWidth < 768 && isHomePage) {
         if (currentScrollY < 10) {
-          // At the top - always show
           setIsScrolledDown(false);
         } else if (currentScrollY > lastScrollY && currentScrollY > 50) {
-          // Scrolling down - hide
           setIsScrolledDown(true);
         } else if (currentScrollY < lastScrollY) {
-          // Scrolling up - show
           setIsScrolledDown(false);
         }
       } else {
@@ -61,29 +62,72 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY, isHomePage]);
 
+  // Derive phone & email from API or use fallbacks
+  const contactPhone = contactInfo?.phone || "+251978639887";
+  const waLink = `https://wa.me/${contactPhone.replace(/\D/g, '')}`;
+  const contactEmail = contactInfo?.email || "yenegeevents@gmail.com";
+
   return (
     <header
       role="banner"
       aria-label="Site header"
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         isScrolled
-          ? isHomePage
-            ? "bg-white/95 backdrop-blur-xl shadow-lg"
-            : "bg-white/95 backdrop-blur-xl shadow-lg"
+          ? "bg-white/95 backdrop-blur-xl shadow-lg"
           : isHomePage
           ? "bg-transparent"
           : "bg-white/95 backdrop-blur-xl"
       } ${
-        // Hide header on mobile except on home page
         !isHomePage ? "md:block hidden" : ""
       } ${
-        // Hide header when scrolling down on mobile home page
         isHomePage && isScrolledDown ? "md:translate-y-0 -translate-y-full" : "translate-y-0"
       }`}
     >
+      {/* ── Top Bar (Contact Info & Socials) ── */}
+      <div 
+        className={`hidden md:block transition-colors duration-500 border-b ${
+          isHomePage && !isScrolled
+            ? "bg-white/10 border-white/20 text-white" 
+            : "bg-[#0F172A] border-transparent text-white"
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-10 flex items-center justify-between text-xs font-semibold tracking-wide">
+          <div className="flex items-center gap-6 opacity-90">
+            <a href={`mailto:${contactEmail}`} className="flex items-center gap-2 hover:text-[#E4E821] transition-colors">
+              <FaEnvelope size={12} />
+              {contactEmail}
+            </a>
+            <a href={`tel:${contactPhone}`} className="flex items-center gap-2 hover:text-[#E4E821] transition-colors">
+              <FaPhoneAlt size={12} />
+              {contactPhone}
+            </a>
+          </div>
+          
+          <div className="flex items-center gap-5">
+            <a href={waLink} target="_blank" rel="noopener noreferrer" className="hover:text-[#25D366] transition-colors flex items-center gap-1">
+              <FaWhatsapp size={14} /> WhatsApp
+            </a>
+            <div className="w-px h-4 bg-white/20 mx-1"></div>
+            {/* Social Icons */}
+            <a href="https://instagram.com/yenege_event" target="_blank" rel="noopener noreferrer" className="hover:text-[#E4E821] transition-colors" aria-label="Instagram">
+              <FaInstagram size={14} />
+            </a>
+            <a href="https://t.me/yenegeevents" target="_blank" rel="noopener noreferrer" className="hover:text-[#E4E821] transition-colors" aria-label="Telegram">
+              <FaTelegramPlane size={14} />
+            </a>
+            <a href="https://tiktok.com/@yenegeevents" target="_blank" rel="noopener noreferrer" className="hover:text-[#E4E821] transition-colors" aria-label="TikTok">
+              <FaTiktok size={14} />
+            </a>
+            <a href="https://linkedin.com/company/yenegeevents" target="_blank" rel="noopener noreferrer" className="hover:text-[#E4E821] transition-colors" aria-label="LinkedIn">
+              <FaLinkedin size={14} />
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Main Navbar ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className={`flex items-center h-20 md:h-24 ${
-          // Center logo on mobile, justify-between on desktop
           isHomePage ? "justify-center md:justify-between" : "justify-between"
         }`}>
           {/* Logo */}
@@ -108,7 +152,7 @@ const Header = () => {
             />
           </Link>
 
-          {/* Desktop Navigation - Hidden on mobile home page */}
+          {/* Desktop Navigation */}
           <nav 
             role="navigation"
             aria-label="Main navigation"
@@ -140,7 +184,7 @@ const Header = () => {
                     className={`absolute -bottom-1 left-0 right-0 h-0.5 rounded-full transition-all duration-300 ${
                       isHomePage && !isScrolled
                         ? "bg-white"
-                        : "bg-gradient-to-r from-[#FFD447] to-[#FF6F5E]"
+                        : "bg-gradient-to-r from-[#E4E821] to-[#FF6F5E]"
                     }`}
                   />
                 )}
@@ -149,56 +193,20 @@ const Header = () => {
                     className={`absolute -bottom-1 left-0 right-0 h-0.5 scale-x-0 rounded-full transition-transform duration-300 origin-left ${
                       isHomePage && !isScrolled
                         ? "bg-white"
-                        : "bg-gradient-to-r from-[#FFD447] to-[#FF6F5E]"
+                        : "bg-gradient-to-r from-[#E4E821] to-[#FF6F5E]"
                     }`}
                   />
                 )}
               </Link>
             ))}
           </nav>
-
-          {/* Right Side - Contact & Desktop Menu - Hidden on mobile home page */}
-          <div className={`flex items-center gap-6 ${
-            isHomePage ? "hidden md:flex" : ""
-          }`}>
-            {/* Contact Info - Desktop Only (mobile uses bottom nav) */}
-            <div className="hidden md:flex items-center gap-5">
-              <a
-                href={`mailto:${contactInfo?.email || "yenegeevents@gmail.com"}`}
-                className={`flex items-center gap-2 text-xs font-medium transition-all duration-300 ${
-                  isHomePage && !isScrolled
-                    ? "text-white/70 hover:text-white"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
-                style={{ minHeight: '44px', minWidth: '44px', padding: '8px 12px' }}
-                aria-label={`Send email to ${contactInfo?.email || "yenegeevents@gmail.com"}`}
-              >
-                <FaEnvelope size={14} aria-hidden="true" />
-                <span className="hidden xl:inline">{contactInfo?.email || "yenegeevents@gmail.com"}</span>
-              </a>
-              <a
-                href={`https://wa.me/${contactInfo?.phone?.replace(/\D/g, '') || '251978639887'}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`flex items-center gap-2 text-xs font-medium transition-all duration-300 ${
-                  isHomePage && !isScrolled
-                    ? "text-white/70 hover:text-white"
-                    : "text-gray-600 hover:text-[#25D366]"
-                }`}
-                style={{ minHeight: '44px', minWidth: '44px', padding: '8px 12px' }}
-                aria-label="Contact via WhatsApp"
-              >
-                <FaWhatsapp size={14} aria-hidden="true" />
-                <span className="hidden xl:inline">WhatsApp</span>
-              </a>
-            </div>
-          </div>
+          
+          {/* Mobile spacing adjustment block when nav is centered */}
+          {isHomePage && <div className="md:hidden w-12" />} 
         </div>
-
       </div>
     </header>
   );
 };
 
 export default Header;
-

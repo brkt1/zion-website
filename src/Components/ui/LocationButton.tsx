@@ -4,9 +4,10 @@ interface LocationButtonProps {
   location: string;
   className?: string;
   showIcon?: boolean;
+  style?: React.CSSProperties;
 }
 
-export const LocationButton = ({ location, className = '', showIcon = true }: LocationButtonProps) => {
+export const LocationButton = ({ location, className = '', showIcon = true, style }: LocationButtonProps) => {
   // Check if location is already a Google Maps URL (including share links)
   const isGoogleMapsUrl = 
     location.includes('maps.google.com') || 
@@ -72,7 +73,8 @@ export const LocationButton = ({ location, className = '', showIcon = true }: Lo
         padding: hasCustomPadding ? undefined : '8px 12px',
         display: 'inline-flex',
         alignItems: 'center',
-        boxSizing: 'border-box'
+        boxSizing: 'border-box',
+        ...style
       }}
       title={`View location on Google Maps`}
       aria-label={`View location on Google Maps: ${displayText}`}
