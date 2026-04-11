@@ -825,25 +825,25 @@ const EventDetail = () => {
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-black/40 uppercase tracking-widest pl-1">Tickets</label>
-                    <div className="flex items-center bg-slate-50 rounded-2xl border border-slate-100 px-2">
+                    <div className="flex items-center bg-slate-50 rounded-2xl border border-slate-100 p-1 h-16 overflow-hidden">
                       <button
                         type="button"
                         onClick={() => paymentForm.quantity > 1 && setPaymentForm({...paymentForm, quantity: paymentForm.quantity - 1})}
-                        className="w-12 h-12 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors"
+                        className="w-12 h-full flex-shrink-0 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all"
                       >
-                        <FaChevronLeft size={14} />
+                        <FaChevronLeft size={16} />
                       </button>
                       <input
-                        type="number" name="quantity" min="1" required
-                        value={paymentForm.quantity} onChange={handleInputChange}
-                        className="flex-1 bg-transparent border-none text-center focus:ring-0 ed-font-sans font-black py-4 text-lg"
+                        type="text" name="quantity" readOnly
+                        value={paymentForm.quantity}
+                        className="w-10 min-w-0 flex-1 bg-transparent border-none text-center focus:ring-0 ed-font-sans font-black text-xl text-slate-900 px-0"
                       />
                       <button
                         type="button"
                         onClick={() => setPaymentForm({...paymentForm, quantity: paymentForm.quantity + 1})}
-                        className="w-12 h-12 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors"
+                        className="w-12 h-full flex-shrink-0 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all"
                       >
-                        <FaChevronRight size={14} />
+                        <FaChevronRight size={16} />
                       </button>
                     </div>
                   </div>
@@ -971,22 +971,21 @@ const EventDetail = () => {
                     value={paymentForm.phone_number} onChange={handleInputChange}
                     className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-[#FFD447]/50 transition-all font-bold text-sm font-sans"
                   />
-                  
-                  <div className="flex items-center gap-4 pt-2 font-sans">
+                                   <div className="flex items-center gap-4 pt-2 font-sans">
                     <span className="text-[10px] font-black text-black/40 uppercase tracking-widest min-w-[80px]">Tickets</span>
-                    <div className="flex-1 flex items-center bg-slate-50 rounded-2xl border border-slate-100 px-2 h-14">
+                    <div className="flex-1 flex items-center bg-slate-50 rounded-2xl border border-slate-100 p-1 h-14 overflow-hidden">
                       <button
                         type="button" onClick={() => paymentForm.quantity > 1 && setPaymentForm({...paymentForm, quantity: paymentForm.quantity - 1})}
-                        className="w-10 h-10 flex items-center justify-center text-slate-400"
-                      > <FaChevronLeft size={10} /> </button>
+                        className="w-12 h-full flex-shrink-0 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all"
+                      > <FaChevronLeft size={16} /> </button>
                       <input
-                        type="number" value={paymentForm.quantity} readOnly
-                        className="flex-1 bg-transparent border-none text-center font-bold"
+                        type="text" value={paymentForm.quantity} readOnly
+                        className="w-10 min-w-0 flex-1 bg-transparent border-none text-center font-black text-slate-900 focus:ring-0 text-lg px-0"
                       />
                       <button
                         type="button" onClick={() => setPaymentForm({...paymentForm, quantity: paymentForm.quantity + 1})}
-                        className="w-10 h-10 flex items-center justify-center text-slate-400"
-                      > <FaChevronRight size={10} /> </button>
+                        className="w-12 h-full flex-shrink-0 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all"
+                      > <FaChevronRight size={16} /> </button>
                     </div>
                   </div>
 
