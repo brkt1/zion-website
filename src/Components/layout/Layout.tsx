@@ -14,11 +14,12 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
   const isHomePage = location.pathname === "/";
+  const isRegistrationPage = location.pathname === "/expo-registration" || location.pathname === "/masterclass-registration";
 
   return (
     <div className="min-h-screen flex flex-col">
       <SkipToContent />
-      <Header />
+      {!isRegistrationPage && <Header />}
       <main 
         id="main-content" 
         className="flex-grow" 
@@ -27,13 +28,13 @@ const Layout = ({ children }: LayoutProps) => {
       >
         {children}
       </main>
-      {!isHomePage && (
+      {!isHomePage && !isRegistrationPage && (
         <Suspense fallback={<div className="h-24" />}>
           <Footer />
         </Suspense>
       )}
-      {/* Mobile Bottom Navigation - shown on all pages */}
-      <MobileBottomNav />
+      {/* Mobile Bottom Navigation - hidden on registration pages */}
+      {!isRegistrationPage && <MobileBottomNav />}
     </div>
   );
 };

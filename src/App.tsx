@@ -123,7 +123,7 @@ function App() {
         <Route 
           path="/admin" 
           element={
-            <Suspense fallback={<LoadingState message="Loading..." />}>
+            <Suspense fallback={<LoadingState />}>
               <AdminRedirect />
             </Suspense>
           } 
@@ -139,7 +139,7 @@ function App() {
         <Route 
           path="/admin/seller-dashboard" 
           element={
-            <Suspense fallback={<LoadingState message="Loading..." />}>
+            <Suspense fallback={<LoadingState />}>
               <SellerDashboard />
             </Suspense>
           } 
@@ -147,7 +147,7 @@ function App() {
         <Route 
           path="/admin/seller-sales" 
           element={
-            <Suspense fallback={<LoadingState message="Loading..." />}>
+            <Suspense fallback={<LoadingState />}>
               <SellerSales />
             </Suspense>
           } 
@@ -155,7 +155,7 @@ function App() {
         <Route 
           path="/admin/seller-goals" 
           element={
-            <Suspense fallback={<LoadingState message="Loading..." />}>
+            <Suspense fallback={<LoadingState />}>
               <SellerGoals />
             </Suspense>
           } 
@@ -163,7 +163,7 @@ function App() {
         <Route 
           path="/admin/seller-profile" 
           element={
-            <Suspense fallback={<LoadingState message="Loading..." />}>
+            <Suspense fallback={<LoadingState />}>
               <SellerProfile />
             </Suspense>
           } 
@@ -171,7 +171,7 @@ function App() {
         <Route 
           path="/admin/scanner-dashboard" 
           element={
-            <Suspense fallback={<LoadingState message="Loading..." />}>
+            <Suspense fallback={<LoadingState />}>
               <ScannerDashboard />
             </Suspense>
           } 
@@ -189,7 +189,7 @@ function App() {
           <Route 
             path="/admin/commission-sellers" 
             element={
-              <Suspense fallback={<LoadingState message="Loading..." />}>
+              <Suspense fallback={<LoadingState />}>
                 <CommissionSellers />
               </Suspense>
             } 
@@ -197,7 +197,7 @@ function App() {
           <Route 
             path="/admin/ticket-scanners" 
             element={
-              <Suspense fallback={<LoadingState message="Loading..." />}>
+              <Suspense fallback={<LoadingState />}>
                 <TicketScanners />
               </Suspense>
             } 
@@ -245,7 +245,7 @@ function App() {
           <Route 
             path="/admin/about" 
             element={
-              <Suspense fallback={<LoadingState message="Loading..." />}>
+              <Suspense fallback={<LoadingState />}>
                 <AdminAbout />
               </Suspense>
             } 
@@ -253,7 +253,7 @@ function App() {
           <Route 
             path="/admin/home" 
             element={
-              <Suspense fallback={<LoadingState message="Loading..." />}>
+              <Suspense fallback={<LoadingState />}>
                 <AdminHome />
               </Suspense>
             } 
@@ -261,7 +261,7 @@ function App() {
           <Route 
             path="/admin/contact" 
             element={
-              <Suspense fallback={<LoadingState message="Loading..." />}>
+              <Suspense fallback={<LoadingState />}>
                 <AdminContact />
               </Suspense>
             } 
@@ -277,7 +277,7 @@ function App() {
           <Route 
             path="/admin/verify" 
             element={
-              <Suspense fallback={<LoadingState message="Loading..." />}>
+              <Suspense fallback={<LoadingState />}>
                 <VerifyTicket />
               </Suspense>
             } 
@@ -285,7 +285,7 @@ function App() {
           <Route 
             path="/admin/applications" 
             element={
-              <Suspense fallback={<LoadingState message="Loading..." />}>
+              <Suspense fallback={<LoadingState />}>
                 <Applications />
               </Suspense>
             } 
@@ -293,7 +293,7 @@ function App() {
           <Route 
             path="/admin/expo-applications" 
             element={
-              <Suspense fallback={<LoadingState message="Loading..." />}>
+              <Suspense fallback={<LoadingState />}>
                 <AdminExpoApplications />
               </Suspense>
             } 
@@ -309,7 +309,7 @@ function App() {
           <Route 
             path="/admin/masterclass-reservations" 
             element={
-              <Suspense fallback={<LoadingState message="Loading..." />}>
+              <Suspense fallback={<LoadingState />}>
                 <AdminMasterclassReservations />
               </Suspense>
             } 

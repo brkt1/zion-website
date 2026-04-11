@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { FaArrowUp, FaCalendarAlt, FaEnvelope, FaHome, FaUsers } from "react-icons/fa";
+import { FaArrowUp, FaCalendarAlt, FaEnvelope, FaHome, FaInfoCircle, FaUsers } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
+import { useSiteConfig } from "../../hooks/useApi";
 
 const MobileBottomNav = () => {
   const location = useLocation();
@@ -23,12 +24,24 @@ const MobileBottomNav = () => {
     });
   };
 
-  const navItems = [
-    { path: "/", label: "Home", icon: FaHome },
-    { path: "/events", label: "Events", icon: FaCalendarAlt },
-    { path: "/contact", label: "Contact", icon: FaEnvelope },
-    { path: "/community", label: "Community", icon: FaUsers },
-  ];
+  const { config } = useSiteConfig();
+
+  const navItems = (config?.navigation || [
+    { path: "/", label: "Home" },
+    { path: "/events", label: "Events" },
+    { path: "/contact", label: "Contact" },
+    { path: "/community", label: "Community" },
+  ]).map(item => {
+    let icon = FaHome;
+    const label = item.label.toLowerCase();
+    if (label.includes('home')) icon = FaHome;
+    else if (label.includes('event')) icon = FaCalendarAlt;
+    else if (label.includes('contact')) icon = FaEnvelope;
+    else if (label.includes('community')) icon = FaUsers;
+    else if (label.includes('about')) icon = FaInfoCircle;
+    
+    return { ...item, icon };
+  }).slice(0, 4);
 
   const isActive = (path: string) => {
     if (path === "/") {
