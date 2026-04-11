@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import {
-  FaEnvelope,
-  FaInstagram,
-  FaLinkedin,
-  FaPhoneAlt,
-  FaTelegramPlane,
-  FaTiktok,
-  FaWhatsapp
+    FaEnvelope,
+    FaInstagram,
+    FaLinkedin,
+    FaPhoneAlt,
+    FaTelegramPlane,
+    FaTiktok,
+    FaWhatsapp
 } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
 import { useContactInfo, useSiteConfig } from "../../hooks/useApi";
@@ -91,7 +91,7 @@ const Header = () => {
         className={`hidden md:block transition-colors duration-500 border-b ${
           isHomePage && !isScrolled
             ? "bg-white/10 border-white/20 text-white" 
-            : "bg-[#0F172A] border-transparent text-white"
+            : "bg-[#01211C] border-transparent text-white"
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-10 flex items-center justify-between text-xs font-semibold tracking-wide">

@@ -15,6 +15,7 @@ import { LocationButton } from "../Components/ui/LocationButton";
 import OptimizedImage from "../Components/ui/OptimizedImage";
 import { useContactInfo, useEvents, useHomeContent } from "../hooks/useApi";
 import { useScrollReveal } from "../hooks/useScrollReveal";
+import { BRAND, GRADIENT } from "../styles/theme";
 import { optimizeImageUrl } from "../utils/imageOptimizer";
 import { handleLinkHover } from "../utils/prefetch";
 
@@ -27,26 +28,6 @@ const formatDateShort = (dateString: string) => {
 };
 
 /* ─── Shared design tokens ─────────────────────────────────────────────────── */
-const BRAND = {
-  navy: "#0F172A",
-  navyLight: "#1E293B",
-  gold: "#E4E821",
-  coral: "#FF6F5E",
-  cream: "#FAF9F6",
-  white: "#FFFFFF",
-  gray50: "#F8F9FA",
-  gray100: "#F0F2F5",
-  gray400: "#9CA3AF",
-  gray500: "#6B7280",
-  gray600: "#4B5563",
-  gray900: "#111827",
-};
-
-const GRADIENT = {
-  brand: "linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%)",
-  navyVert: "linear-gradient(180deg, #0F172A 0%, #1E293B 100%)",
-  textDark: "linear-gradient(135deg, #111827 0%, #374151 100%)",
-};
 
 /* ─── Sub-components ────────────────────────────────────────────────────────── */
 

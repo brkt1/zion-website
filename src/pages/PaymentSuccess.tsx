@@ -5,6 +5,7 @@ import { useCommissionSeller } from "../hooks/useApi";
 import { verifyPayment } from "../services/payment";
 import { getTicketByTxRef, saveTicket, updateTicket } from "../services/ticket";
 import { sendWhatsAppThankYou } from "../services/whatsapp";
+import { BRAND, GRADIENT } from "../styles/theme";
 import { logger } from "../utils/logger";
 
 // Lazy load QRCode component to reduce initial bundle size (only needed after payment)
@@ -246,6 +247,34 @@ const PaymentSuccess = () => {
         return;
       }
 
+      // Handle free registration bypass
+      if (txRef.startsWith("free_reg_")) {
+        logger.log("Free registration detected, bypassing Chapa verification");
+        const firstName = searchParams.get("first_name") || "Guest";
+        const lastName = searchParams.get("last_name") || "";
+        const email = searchParams.get("email") || "";
+        const phone = searchParams.get("phone") || "";
+        const quantity = parseInt(searchParams.get("quantity") || "1", 10);
+        
+        const mockPaymentData = {
+          first_name: firstName,
+          last_name: lastName,
+          email: email,
+          phone_number: phone,
+          amount: 0,
+          currency: "ETB",
+          status: "success",
+          created_at: new Date().toISOString(),
+          tx_ref: txRef
+        };
+        
+        setPaymentData(mockPaymentData);
+        setVerificationStatus("success");
+        saveTicketToDatabase(mockPaymentData, txRef);
+        // Note: WhatsApp message for free reg is handled by the registration hook, but we can send a backup here too if needed
+        return;
+      }
+
       try {
         const response = await verifyPayment(txRef);
         logger.log("Verification response (attempt " + (attempt + 1) + ")");
@@ -405,7 +434,7 @@ const PaymentSuccess = () => {
   }, [paymentData, txRef, ticketQuantity]);
 
   return (
-    <div className="payment-success-container" style={{ minHeight: "100vh", background: "#FAF9F6" }}>
+    <div className="payment-success-container" style={{ minHeight: "100vh", background: BRAND.cream }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Manrope:wght@300;400;500;600;700;800&display=swap');
 
@@ -435,7 +464,7 @@ const PaymentSuccess = () => {
           position: absolute;
           width: 30px;
           height: 30px;
-          background: #FAF9F6;
+          background: ${BRAND.cream};
           border-radius: 50%;
           left: 50%;
           transform: translateX(-50%);
@@ -450,8 +479,8 @@ const PaymentSuccess = () => {
           gap: 10px;
           padding: 16px 36px;
           border-radius: 999px;
-          background: linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%);
-          color: #0F172A;
+          background: ${GRADIENT.brand};
+          color: ${BRAND.navy};
           font-family: 'Manrope', sans-serif;
           font-weight: 800;
           font-size: 13px;
@@ -475,7 +504,7 @@ const PaymentSuccess = () => {
           padding: 16px 36px;
           border-radius: 999px;
           background: #FFFFFF;
-          color: #0F172A;
+          color: ${BRAND.navy};
           font-family: 'Manrope', sans-serif;
           font-weight: 700;
           font-size: 13px;
@@ -486,7 +515,7 @@ const PaymentSuccess = () => {
         }
         .yg-btn-secondary:hover {
           background: #F8F9FA;
-          border-color: #0F172A;
+          border-color: ${BRAND.navy};
         }
 
         @media (max-width: 768px) {
@@ -506,8 +535,8 @@ const PaymentSuccess = () => {
       {(verificationStatus === "loading" || verificationStatus === "pending") && (
         <div className="min-h-screen flex items-center justify-center px-4">
           <div className="max-w-md w-full text-center">
-            <FaSpinner className="mx-auto text-5xl text-[#E4E821] animate-spin mb-8" />
-            <h1 className="yg-font-serif text-3xl font-black text-[#0F172A] mb-4">
+            <FaSpinner className="mx-auto text-5xl text-[#FFD447] animate-spin mb-8" />
+            <h1 className="yg-font-serif text-3xl font-black text-[#01211C] mb-4">
               {verificationStatus === "pending" ? "Almost There..." : "Verifying Payment"}
             </h1>
             <p className="yg-font-sans text-gray-500 tracking-wide">
@@ -621,21 +650,21 @@ const PaymentSuccess = () => {
 
               {/* Stub / QR Section */}
               <div className="ticket-divider" />
-              <div className="bg-[#0F172A] p-10 md:p-14 flex flex-col items-center justify-center text-center">
+              <div className="bg-[#01211C] p-10 md:p-14 flex flex-col items-center justify-center text-center">
                 <div className="mb-10 text-white">
                   <h3 className="yg-font-serif text-3xl font-black mb-2">Ticket</h3>
-                  <div className="h-1 w-12 bg-gradient-to-r from-[#E4E821] to-[#FF6F5E] mx-auto rounded-full" />
+                  <div className="h-1 w-12 bg-gradient-to-r from-[#FFD447] to-[#FF6F5E] mx-auto rounded-full" />
                 </div>
 
                 {/* QR Code Container */}
                 <div className="p-6 bg-white rounded-3xl mb-10 shadow-2xl">
                   {qrCodeData && (
-                    <Suspense fallback={<FaSpinner className="animate-spin text-[#0F172A]" />}>
+                    <Suspense fallback={<FaSpinner className="animate-spin text-[#01211C]" />}>
                       <QRCode
                         value={qrCodeData}
                         size={170}
                         level="Q"
-                        fgColor="#0F172A"
+                        fgColor="#01211C"
                         bgColor="#FFFFFF"
                         className="max-w-full h-auto"
                       />
@@ -645,7 +674,7 @@ const PaymentSuccess = () => {
 
                 <div className="text-white space-y-2">
                   <p className="yg-font-sans text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Ticket Number</p>
-                  <p className="yg-font-serif text-2xl font-black text-[#E4E821] tracking-wider">
+                  <p className="yg-font-serif text-2xl font-black text-[#FFD447] tracking-wider">
                     {getShortTxRef(paymentData?.tx_ref || txRef)}
                   </p>
                 </div>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { FaCalendarAlt, FaChevronLeft, FaChevronRight, FaExternalLinkAlt, FaInstagram, FaMapMarkerAlt, FaSpinner, FaTelegram, FaTimes, FaUsers, FaWhatsapp } from "react-icons/fa";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import "../Components/Gallery.css";
 import { EventDetailSkeleton } from "../Components/ui/EventDetailSkeleton";
 import { LocationButton } from "../Components/ui/LocationButton";
@@ -11,6 +11,7 @@ import { registerForFreeEvent } from "../services/ticket";
 import { PaymentRequest } from "../types";
 
 const EventDetail = () => {
+  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const { event, isLoading, mutate: refetchEvent } = useEvent(id);
@@ -416,41 +417,28 @@ const EventDetail = () => {
       // Refresh event data to update attendee count
       refetchEvent();
       
-      setRegistrationSuccess(true);
-      setIsProcessing(false);
+      // Generate a special tx_ref for free registrations
+      const freeTxRef = generateTransactionReference('FREE', 10);
       
-      // Redirect to Telegram group if link is available
-      if (event.telegram_link && event.telegram_link.trim() !== '') {
-        // Wait 2 seconds to show success message, then redirect
-        setTimeout(() => {
-          window.open(event.telegram_link, '_blank', 'noopener,noreferrer');
-          // Close modal and reset form
-          setShowRegistrationModal(false);
-          setRegistrationSuccess(false);
-          setPaymentForm({
-            first_name: "",
-            last_name: "",
-            email: "",
-            phone_number: "",
-            quantity: 1,
-            commission_seller_id: "",
-          });
-        }, 2000);
-      } else {
-        // If no Telegram link, just close modal after 3 seconds
-        setTimeout(() => {
-          setShowRegistrationModal(false);
-          setRegistrationSuccess(false);
-          setPaymentForm({
-            first_name: "",
-            last_name: "",
-            email: "",
-            phone_number: "",
-            quantity: 1,
-            commission_seller_id: "",
-          });
-        }, 3000);
-      }
+      // Build success URL with all necessary parameters for the ticket
+      const successParams = new URLSearchParams();
+      successParams.set('tx_ref', `free_reg_${freeTxRef}`);
+      successParams.set('event_id', id);
+      successParams.set('event_title', event.title);
+      successParams.set('quantity', (paymentForm.quantity || 1).toString());
+      successParams.set('first_name', paymentForm.first_name);
+      successParams.set('last_name', paymentForm.last_name);
+      successParams.set('email', paymentForm.email);
+      successParams.set('phone', paymentForm.phone_number);
+      
+      // Redirect to Telegram if exists, but after the success page is visible or handled
+      // Actually, standard behavior should be to show the ticket first
+      
+      navigate(`/payment/success?${successParams.toString()}`);
+      
+      // Reset states
+      setShowRegistrationModal(false);
+      setIsProcessing(false);
     } catch (error: any) {
       console.error('Registration error:', error);
       alert(error.message || 'Failed to register. Please try again.');
@@ -546,7 +534,7 @@ const EventDetail = () => {
               <div className="mb-4 sm:mb-0">
                 <div className="flex items-center gap-2 sm:gap-3 mb-2">
                   <FaCalendarAlt className="text-gray-400 flex-shrink-0" size={16} />
-                  <span className="text-xs sm:text-sm text-gray-500 uppercase tracking-wide">Date & Time</span>
+                  <span className="text-xs sm:text-sm text-gray-500 uppercase tracking-wide">Date &amp; Time</span>
                 </div>
                 <div className="font-medium text-sm sm:text-base text-gray-900">{formatDate(event.date)}</div>
                 {event.time && <div className="text-xs sm:text-sm text-gray-600 mt-1">{event.time}</div>}
