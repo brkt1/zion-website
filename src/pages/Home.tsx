@@ -148,17 +148,14 @@ const Home = () => {
         }
 
         @media (min-width: 1025px) {
-          .yg-creative-grid { grid-template-columns: 1fr !important; gap: 80px !important; max-width: 900px; margin: 0 auto; }
           .yg-creative-card { transform: none !important; }
         }
 
         @media (max-width: 1024px) {
-          .yg-creative-grid { grid-template-columns: 1fr !important; gap: 60px !important; }
           .sidebrand { display: none; }
         }
 
         @media (max-width: 768px) {
-          .yg-creative-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
           .yg-creative-card { transform: none !important; }
           .yg-creative-header { flex-direction: column; margin-bottom: 60px !important; }
         }
@@ -808,7 +805,7 @@ const Home = () => {
             
             <div className="hidden lg:block pb-4 text-right border-r-2 border-[#FFD447]/20 pr-8">
                 <p className="text-[11px] font-bold text-white/40 uppercase tracking-[0.3em] max-w-[250px] leading-relaxed">
-                  Exclusive travels and <br />
+                  Exclusive events and <br />
                   bespoke moments designed <br />
                   for the discerning soul.
                 </p>
@@ -819,12 +816,7 @@ const Home = () => {
           {/* Event cards grid */}
           {featuredEvents.length > 0 ? (
             <div
-              className="yg-creative-grid"
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
-                gap: "40px",
-              }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-14 w-full"
             >
               {featuredEvents.map((event, index) => (
                 <Link
