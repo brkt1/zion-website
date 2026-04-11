@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FaCheckCircle, FaDownload, FaSpinner } from "react-icons/fa";
+import { FaDownload, FaSpinner } from "react-icons/fa";
 import { Link, useSearchParams } from "react-router-dom";
-import { useCommissionSeller } from "../hooks/useApi";
+import { useCommissionSeller, useEvent } from "../hooks/useApi";
 import { verifyPayment } from "../services/payment";
 import { getTicketByTxRef, saveTicket, updateTicket } from "../services/ticket";
 import { sendWhatsAppThankYou } from "../services/whatsapp";
@@ -24,6 +24,9 @@ const PaymentSuccess = () => {
   const [ticketSaved, setTicketSaved] = useState(false);
   const [whatsappSent, setWhatsappSent] = useState(false);
   const ticketRef = useRef<HTMLDivElement>(null);
+  
+  // Fetch event details for the background image
+  const { event } = useEvent(eventIdParam || undefined);
   
   // Use cached hook for commission seller
   const validCommissionSellerId = commissionSellerIdParam && commissionSellerIdParam.trim() !== '' 
@@ -563,18 +566,24 @@ const PaymentSuccess = () => {
                   console.log('html2canvas imported');
                   
                   const canvas = await html2canvas(ticketRef.current, {
-                    backgroundColor: '#FFFFFF',
-                    scale: 1.5,
+                    backgroundColor: '#01211C',
+                    scale: 2,
                     logging: true,
                     useCORS: true,
                     allowTaint: false,
                     onclone: (clonedDoc) => {
-                      // Ensure everything is static and visible
-                      const svgs = clonedDoc.querySelectorAll('svg');
-                      svgs.forEach(svg => {
-                        svg.setAttribute('focusable', 'false');
-                        svg.setAttribute('aria-hidden', 'true');
+                      // Fix for html2canvas not supporting backdrop-filter
+                      const glassElements = clonedDoc.querySelectorAll('.backdrop-blur-xl') as NodeListOf<HTMLElement>;
+                      glassElements.forEach(el => {
+                        el.style.backdropFilter = 'none';
+                        el.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'; // Solid fallback for capture
                       });
+                      
+                      const ticketVisual = clonedDoc.querySelector('.aspect-\\[1\\/1\\.6\\]') as HTMLElement;
+                      if (ticketVisual) {
+                        ticketVisual.style.display = 'flex';
+                        ticketVisual.style.flexDirection = 'column';
+                      }
                     }
                   });
                   
@@ -610,112 +619,93 @@ const PaymentSuccess = () => {
             </button>
           </div>
 
-          <div ref={ticketRef} className="w-full max-w-5xl px-4">
-            <div className="premium-ticket ticket-grid grid grid-cols-[1.5fr_1fr] bg-white">
-              {/* Main Ticket Area */}
-              <div className="p-10 md:p-14 relative">
-                {/* Logo & Header */}
-                <div className="flex justify-between items-start mb-14">
-                  <div>
-                    <img 
-                      src="/logo.png" 
-                      alt="YENEGE" 
-                      className="h-16 w-auto mb-6" 
-                      crossOrigin="anonymous"
-                      loading="eager"
-                    />
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-50 text-green-600 text-[10px] font-bold uppercase tracking-widest border border-green-100">
-                      <FaCheckCircle size={10} /> Confirmed
-                    </div>
-                  </div>
+          {/* Ticket Visual - Ultra-Minimal Full-Image Pass */}
+          <div ref={ticketRef} className="w-full max-w-[400px] mx-auto overflow-hidden p-4 bg-[#01211C]">
+            <div className="relative aspect-[1/1.6] bg-black rounded-[40px] shadow-2xl overflow-hidden flex flex-col text-white font-sans">
+              
+              {/* Full Bleed Background Image */}
+              <div className="absolute inset-0">
+                <img 
+                  src={event?.image || (event?.gallery && event.gallery[0]) || "/logo.png"} 
+                  alt="Background" 
+                  className="w-full h-full object-cover opacity-60" 
+                  crossOrigin="anonymous"
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/20 to-black/90" />
+              </div>
+
+              {/* Content Overlay */}
+              <div className="relative h-full flex flex-col p-10">
+                {/* Header */}
+                <div className="flex justify-between items-start mb-auto">
+                  <img src="/logo.png" alt="ZION" className="h-8 w-auto brightness-0 invert" crossOrigin="anonymous" />
                   <div className="text-right">
-                    <h2 className="yg-font-serif text-4xl font-black text-[#0F172A] mb-1">Receipt</h2>
-                    <p className="yg-font-sans text-[11px] font-bold text-gray-400 uppercase tracking-[0.2em]">Transaction Verified</p>
+                    <p className="text-[10px] font-black tracking-[0.3em] uppercase opacity-50">Curation Pass</p>
+                    <p className="text-[9px] font-bold tracking-widest text-[#FFD447]">#{getShortTxRef(paymentData?.tx_ref || txRef)}</p>
                   </div>
                 </div>
 
-                {/* Event Details */}
-                <div className="mb-14">
-                  <h3 className="yg-font-sans text-[10px] font-extrabold text-[#FF6F5E] uppercase tracking-[0.3em] mb-4">Event Details</h3>
-                  <h1 className="yg-font-serif text-3xl md:text-4xl font-black text-[#0F172A] mb-8 leading-tight">
-                    {eventTitleParam || "Official Event"}
+                {/* Center Piece */}
+                <div className="mb-10">
+                  <h1 className="yg-font-serif text-5xl font-black leading-[1.1] mb-4 tracking-tight">
+                    {eventTitleParam || event?.title || "Exclusive"}
                   </h1>
+                  <div className="h-1 w-12 bg-[#FFD447]" />
+                </div>
+
+                {/* Details Grid - Glassmorphism style */}
+                <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-6 border border-white/10 space-y-6 mb-8">
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-1">
+                      <p className="text-[8px] font-black uppercase tracking-widest opacity-40">Identity</p>
+                      <p className="text-sm font-black truncate">
+                        {paymentData?.first_name || searchParams.get("first_name")}
+                      </p>
+                    </div>
+                    <div className="space-y-1 text-right">
+                      <p className="text-[8px] font-black uppercase tracking-widest opacity-40">Temporal</p>
+                      <p className="text-sm font-black">
+                        {paymentData ? formatDate(paymentData.created_at) : formatDate()}
+                      </p>
+                    </div>
+                  </div>
                   
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-                    <div>
-                      <p className="yg-font-sans text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Date</p>
-                      <p className="yg-font-sans text-sm font-bold text-[#0F172A]">{paymentData ? formatDate(paymentData.created_at) : formatDate()}</p>
+                  <div className="grid grid-cols-2 gap-6 pt-4 border-t border-white/5">
+                    <div className="space-y-1">
+                      <p className="text-[8px] font-black uppercase tracking-widest opacity-40">Admissions</p>
+                      <p className="text-sm font-black">{ticketQuantity} Tickets</p>
                     </div>
-                    <div>
-                      <p className="yg-font-sans text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Time</p>
-                      <p className="yg-font-sans text-sm font-bold text-[#0F172A]">{paymentData ? formatTime(paymentData.created_at) : formatTime()}</p>
-                    </div>
-                    <div>
-                      <p className="yg-font-sans text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Quantity</p>
-                      <p className="yg-font-sans text-sm font-bold text-[#0F172A]">{ticketQuantity} Tickets</p>
-                    </div>
-                    <div>
-                      <p className="yg-font-sans text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Amount</p>
-                      <p className="yg-font-sans text-sm font-bold text-[#0F172A]">{paymentData ? `${formatAmount(getAmount())} ${paymentData.currency || 'ETB'}` : 'N/A'}</p>
+                    <div className="space-y-1 text-right">
+                      <p className="text-[8px] font-black uppercase tracking-widest opacity-40">Status</p>
+                      <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Confirmed</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Footer Info */}
-                <div className="pt-10 border-t border-gray-100">
-                  <div className="flex flex-wrap items-center gap-x-10 gap-y-4">
-                    <div>
-                      <p className="yg-font-sans text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Customer</p>
-                      <p className="yg-font-sans text-xs font-bold text-[#0F172A]">
-                        {paymentData?.first_name || ""} {paymentData?.last_name || ""}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="yg-font-sans text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Reference</p>
-                      <p className="yg-font-sans text-[10px] font-bold text-gray-400 tracking-wider">
-                        {paymentData?.tx_ref || txRef}
-                      </p>
-                    </div>
+                {/* QR Section */}
+                <div className="flex items-center justify-between gap-8 pt-4">
+                  <div className="flex-1">
+                     <p className="text-[8px] font-black uppercase tracking-[0.4em] opacity-30 mb-2">Secure Entry QR</p>
+                     <p className="text-[9px] text-white/40 leading-relaxed font-medium">
+                       Validated on ZION Protocol.<br/>Presented at the main curation entrance.
+                     </p>
+                  </div>
+                  <div className="p-3 bg-white rounded-2xl shadow-xl">
+                    {qrCodeData && (
+                      <QRCode
+                        value={qrCodeData}
+                        size={80}
+                        level="M"
+                        fgColor="#000000"
+                        bgColor="#FFFFFF"
+                      />
+                    )}
                   </div>
                 </div>
-
-                {/* Decorative element */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-[#E4E821]/10 to-transparent rounded-bl-full pointer-events-none" />
               </div>
 
-              {/* Stub / QR Section */}
-              <div className="ticket-divider" />
-              <div className="bg-[#01211C] p-10 md:p-14 flex flex-col items-center justify-center text-center">
-                <div className="mb-10 text-white">
-                  <h3 className="yg-font-serif text-3xl font-black mb-2">Ticket</h3>
-                  <div className="h-1 w-12 bg-gradient-to-r from-[#FFD447] to-[#FF6F5E] mx-auto rounded-full" />
-                </div>
-
-                {/* QR Code Container */}
-                <div className="p-6 bg-white rounded-3xl mb-10 shadow-2xl">
-                  {qrCodeData && (
-                    <QRCode
-                      value={qrCodeData}
-                      size={170}
-                      level="Q"
-                      fgColor="#01211C"
-                      bgColor="#FFFFFF"
-                      className="max-w-full h-auto"
-                    />
-                  )}
-                </div>
-
-                <div className="text-white space-y-2">
-                  <p className="yg-font-sans text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Ticket Number</p>
-                  <p className="yg-font-serif text-2xl font-black text-[#FFD447] tracking-wider">
-                    {getShortTxRef(paymentData?.tx_ref || txRef)}
-                  </p>
-                </div>
-
-                <p className="mt-10 yg-font-sans text-[9px] text-gray-500 max-w-[200px] leading-relaxed">
-                  Present this QR code at the entrance for verification. Valid for {ticketQuantity} entries.
-                </p>
-              </div>
+              {/* Security Strip */}
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#FFD447] to-transparent opacity-50" />
             </div>
           </div>
 

@@ -7,6 +7,7 @@ import { LocationButton } from "../Components/ui/LocationButton";
 import OptimizedImage from "../Components/ui/OptimizedImage";
 import ShatterSlideshow from "../Components/ui/ShatterSlideshow";
 import { useActiveCommissionSellers, useContactInfo, useEvent } from "../hooks/useApi";
+import { useScrollReveal } from "../hooks/useScrollReveal";
 import { generateTransactionReference, getChapaPublicKey, initializePayment, submitChapaHTMLCheckout } from "../services/payment";
 import { registerForFreeEvent } from "../services/ticket";
 import { BRAND } from "../styles/theme";
@@ -17,6 +18,10 @@ const EventDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const { event, isLoading, mutate: refetchEvent } = useEvent(id);
+  
+  // Initialize scroll reveal animations
+  useScrollReveal();
+  
   const { contactInfo } = useContactInfo();
   const { sellers: allSellers } = useActiveCommissionSellers();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -578,7 +583,7 @@ const EventDetail = () => {
             <FaChevronLeft size={14} /> Back to Events
           </button>
 
-          <div className="max-w-3xl">
+          <div className="max-w-3xl reveal-wrapper">
             <div className="mb-4">
               <span className="inline-block px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[#FFD447] text-xs font-bold uppercase tracking-widest">
                 {event.category}
@@ -599,7 +604,7 @@ const EventDetail = () => {
           <div className="lg:col-span-8 flex flex-col gap-12">
             
             {/* Quick Info Bar */}
-            <div className="bg-white rounded-[32px] p-8 border border-black/5 shadow-xl shadow-black/5 grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-white rounded-[32px] p-8 border border-black/5 shadow-xl shadow-black/5 grid grid-cols-1 md:grid-cols-3 gap-8 reveal-wrapper reveal-delay-300">
               <div className="flex items-center gap-4">
                 <div className="ed-info-icon-wrap">
                   <FaCalendarAlt size={20} />
@@ -656,7 +661,7 @@ const EventDetail = () => {
             <div className="sticky top-24 flex flex-col gap-6">
               {/* Perspective Series - Now in Sidebar */}
               {event.gallery && event.gallery.length > 0 && (
-                <div className="space-y-4">
+                <div className="space-y-4 reveal-wrapper">
                   <div className="flex items-center gap-3 px-2">
                     <div className="h-px flex-1 bg-black/5" />
                     <h4 className="ed-font-serif text-lg font-black text-slate-900 italic">Perspective Series</h4>
@@ -666,7 +671,7 @@ const EventDetail = () => {
                 </div>
               )}
 
-              <div className="ed-sidebar-card p-8 md:p-10">
+              <div className="ed-sidebar-card p-8 md:p-10 reveal-wrapper reveal-delay-200">
                 <div className="flex justify-between items-baseline mb-8">
                   <div>
                     <span className="text-[11px] font-extrabold text-[#01211C]/40 uppercase tracking-[0.2em] block mb-1">
