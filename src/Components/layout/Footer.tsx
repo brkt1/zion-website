@@ -49,7 +49,7 @@ const Footer = () => {
       <div 
         className="absolute top-0 left-0 right-0 h-px opacity-50"
         style={{
-          background: "linear-gradient(90deg, transparent 0%, #E4E821 50%, transparent 100%)",
+          background: "linear-gradient(90deg, transparent 0%, #FFD447 50%, transparent 100%)",
         }}
       />
       
@@ -102,7 +102,7 @@ const Footer = () => {
               <div 
                 className="h-0.5 w-8 rounded-full"
                 style={{
-                  background: "linear-gradient(90deg, #E4E821 0%, #FF6F5E 100%)",
+                  background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
                 }}
               />
               <h3 className="text-white font-bold text-sm tracking-wider uppercase">
@@ -119,7 +119,7 @@ const Footer = () => {
                     <span 
                       className="w-0 h-0.5 rounded-full transition-all duration-300 group-hover:w-3"
                       style={{
-                        background: "linear-gradient(90deg, #E4E821 0%, #FF6F5E 100%)",
+                        background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
                       }}
                     />
                     <span className="group-hover:translate-x-1 transition-transform duration-300">
@@ -137,7 +137,7 @@ const Footer = () => {
               <div 
                 className="h-0.5 w-8 rounded-full"
                 style={{
-                  background: "linear-gradient(90deg, #E4E821 0%, #FF6F5E 100%)",
+                  background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
                 }}
               />
               <h3 className="text-white font-bold text-sm tracking-wider uppercase">
@@ -150,7 +150,7 @@ const Footer = () => {
                   href={`mailto:${contactInfo?.email || "yenegeevents@gmail.com"}`}
                   className="group flex items-start gap-3 text-sm text-gray-400 hover:text-white transition-all duration-300"
                 >
-                  <div className="mt-0.5 p-2 rounded-lg bg-white/5 group-hover:bg-gradient-to-br group-hover:from-[#E4E821] group-hover:to-[#FF6F5E] transition-all duration-300 flex-shrink-0">
+                  <div className="mt-0.5 p-2 rounded-lg bg-white/5 group-hover:bg-gradient-to-br group-hover:from-[#FFD447] group-hover:to-[#FF6F5E] transition-all duration-300 flex-shrink-0">
                     <FaEnvelope size={14} className="group-hover:text-white transition-colors" />
                   </div>
                   <span className="break-all pt-1.5">{contactInfo?.email || "yenegeevents@gmail.com"}</span>
@@ -184,7 +184,7 @@ const Footer = () => {
               <div 
                 className="h-0.5 w-8 rounded-full"
                 style={{
-                  background: "linear-gradient(90deg, #E4E821 0%, #FF6F5E 100%)",
+                  background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
                 }}
               />
               <h3 className="text-white font-bold text-sm tracking-wider uppercase">
@@ -199,14 +199,14 @@ const Footer = () => {
                 <input
                   type="email"
                   placeholder="Enter your email"
-                  className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 text-sm focus:outline-none focus:border-[#E4E821] focus:ring-2 focus:ring-[#E4E821]/20 transition-all duration-300"
+                  className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 text-sm focus:outline-none focus:border-[#FFD447] focus:ring-2 focus:ring-[#FFD447]/20 transition-all duration-300"
                 />
               </div>
               <button
                 type="submit"
-                className="group w-full px-6 py-3.5 text-sm font-semibold text-gray-900 rounded-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg hover:shadow-[#E4E821]/25 flex items-center justify-center gap-2"
+                className="group w-full px-6 py-3.5 text-sm font-semibold text-gray-900 rounded-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg hover:shadow-[#FFD447]/25 flex items-center justify-center gap-2"
                 style={{
-                  background: "linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%)",
+                  background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
                 }}
               >
                 <span>Subscribe</span>
@@ -231,7 +231,7 @@ const Footer = () => {
                 <span 
                   className="absolute -bottom-1 left-0 w-0 h-0.5 rounded-full group-hover:w-full transition-all duration-300"
                   style={{
-                    background: "linear-gradient(90deg, #E4E821 0%, #FF6F5E 100%)",
+                    background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
                   }}
                 />
               </Link>
@@ -243,7 +243,7 @@ const Footer = () => {
                 <span 
                   className="absolute -bottom-1 left-0 w-0 h-0.5 rounded-full group-hover:w-full transition-all duration-300"
                   style={{
-                    background: "linear-gradient(90deg, #E4E821 0%, #FF6F5E 100%)",
+                    background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
                   }}
                 />
               </Link>

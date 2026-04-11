@@ -222,7 +222,7 @@ const Home = () => {
           gap: 10px;
           padding: 16px 36px;
           border-radius: 999px;
-          background: linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%);
+          background: linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%);
           color: #0F172A;
           font-family: 'Manrope', sans-serif;
           font-weight: 800;
@@ -348,7 +348,7 @@ const Home = () => {
           font-size: clamp(36px, 5vw, 52px);
           font-weight: 900;
           line-height: 1;
-          background: linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%);
+          background: linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
@@ -434,7 +434,7 @@ const Home = () => {
             left: 0,
             right: 0,
             height: "2px",
-            background: "linear-gradient(90deg, transparent, #E4E821, #FF6F5E, transparent)",
+            background: "linear-gradient(90deg, transparent, #FFD447, #FF6F5E, transparent)",
           }}
         />
         {/* Bottom gradient border */}
@@ -796,27 +796,21 @@ const Home = () => {
         <div className="reveal-wrapper" style={{ maxWidth: "1500px", margin: "0 auto", padding: "0 40px", position: 'relative', zIndex: 2 }}>
           {/* Creative Header: Asymmetrical & Bold */}
           <div
-            className="yg-creative-header"
-            style={{
-              display: "flex",
-              alignItems: "flex-start",
-              justifyContent: "space-between",
-              marginBottom: "120px",
-              width: "100%"
-            }}
+            className="yg-creative-header flex flex-col lg:flex-row lg:items-end justify-between w-full mb-16 md:mb-32"
           >
-            <div style={{ maxWidth: '600px' }}>
+            <div className="max-w-2xl">
               <SectionLabel>Available Experiences</SectionLabel>
-              <h2 className="yg-font-serif text-white text-6xl md:text-8xl font-black leading-tight tracking-tighter mt-8">
+              <h2 className="yg-font-serif text-white text-6xl md:text-8xl font-black leading-[0.9] tracking-tighter mt-8">
                 The <span className="italic" style={{ color: BRAND.gold }}>Curation</span> <br />
-                <span className="text-[14px] font-black uppercase tracking-[0.6em] text-white/30 block mt-4">Selected Portfolio 2024</span>
+                <span className="text-[12px] md:text-[14px] font-black uppercase tracking-[0.6em] text-white/30 block mt-6">Selected Portfolio 2024</span>
               </h2>
             </div>
             
-            <div className="hidden lg:block pt-32">
-                <div className="w-24 h-px bg-[#E4E821]/30" />
-                <p className="text-[11px] font-bold text-white/40 uppercase tracking-[0.3em] mt-8 max-w-[200px] leading-loose">
-                  Exclusive travels and bespoke moments designed for the discerning soul.
+            <div className="hidden lg:block pb-4 text-right border-r-2 border-[#FFD447]/20 pr-8">
+                <p className="text-[11px] font-bold text-white/40 uppercase tracking-[0.3em] max-w-[250px] leading-relaxed">
+                  Exclusive travels and <br />
+                  bespoke moments designed <br />
+                  for the discerning soul.
                 </p>
             </div>
           </div>
@@ -864,7 +858,7 @@ const Home = () => {
                       />
                     ) : (
                       <div className="w-full h-full bg-[#0F172A] flex items-center justify-center">
-                        <FaCalendarAlt size={40} className="text-[#E4E821]/20" />
+                        <FaCalendarAlt size={40} className="text-[#FFD447]/20" />
                       </div>
                     )}
 
@@ -882,20 +876,20 @@ const Home = () => {
                     <div className="absolute bottom-10 left-10 right-10 flex flex-col items-start">
                        <div className="flex items-center gap-3 mb-4">
                           <span className="px-3 py-1.5 rounded-full border border-white/10 bg-white/10 backdrop-blur-md text-[8px] font-black text-white uppercase tracking-widest">{event.category}</span>
-                          <span className="h-1 w-1 bg-[#E4E821] rounded-full" />
+                          <span className="h-1 w-1 bg-[#FFD447] rounded-full" />
                           <span className="text-[8px] font-black text-white/50 uppercase tracking-[0.3em]">{event.location}</span>
                        </div>
                        
-                       <h3 className="yg-font-serif text-2xl font-black text-white leading-[1.1] mb-8 group-hover:text-[#E4E821] transition-colors">
+                       <h3 className="yg-font-serif text-2xl font-black text-white leading-[1.1] mb-8 group-hover:text-[#FFD447] transition-colors">
                          {event.title}
                        </h3>
 
                        <div className="flex items-center justify-between w-full">
-                         <div className="bg-[#0F172A] text-[#E4E821] py-2 px-4 rounded-xl text-sm font-serif italic font-black shadow-lg">
+                         <div className="bg-[#0F172A] text-[#FFD447] py-2 px-4 rounded-xl text-sm font-serif italic font-black shadow-lg">
                            {event.price === "Free" ? "Gratis" : `${event.price} ${event.currency}`}
                          </div>
                          
-                         <div className="arrow-circle w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-white transition-all duration-500 group-hover:bg-[#0F172A] group-hover:text-[#E4E821] group-hover:rotate-[-45deg]">
+                         <div className="arrow-circle w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-white transition-all duration-500 group-hover:bg-[#0F172A] group-hover:text-[#FFD447] group-hover:rotate-[-45deg]">
                            <FaArrowRight size={12} />
                          </div>
                        </div>

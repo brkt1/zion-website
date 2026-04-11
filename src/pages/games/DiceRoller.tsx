@@ -147,8 +147,8 @@ const DiceRoller = () => {
                     }`}
                     style={{
                       background: result.rolling
-                        ? "linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%)"
-                        : "linear-gradient(135deg, #FF6F5E 0%, #E4E821 100%)",
+                        ? "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)"
+                        : "linear-gradient(135deg, #FF6F5E 0%, #FFD447 100%)",
                       boxShadow: result.rolling
                         ? "0 8px 25px rgba(255, 111, 94, 0.5)"
                         : "0 4px 15px rgba(255, 111, 94, 0.3)",
@@ -165,14 +165,14 @@ const DiceRoller = () => {
                   <div 
                     className="h-0.5 w-12 md:w-16 mx-auto mb-3 md:mb-4 rounded-full"
                     style={{
-                      background: "linear-gradient(90deg, #E4E821 0%, #FF6F5E 100%)",
+                      background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
                     }}
                   ></div>
                   <p className="text-gray-600 mb-1 md:mb-2 text-sm md:text-base font-semibold">Total</p>
                   <p 
                     className="text-3xl sm:text-4xl md:text-5xl font-bold"
                     style={{
-                      background: "linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%)",
+                      background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
                       WebkitBackgroundClip: "text",
                       WebkitTextFillColor: "transparent",
                       backgroundClip: "text",
@@ -251,7 +251,7 @@ const DiceRoller = () => {
                   disabled={isRolling || diceCount <= 1}
                   className="w-9 h-9 md:w-10 md:h-10 rounded-full font-bold text-white text-sm md:text-base transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
                   style={{
-                    background: "linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%)",
+                    background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
                   }}
                 >
                   -
@@ -266,7 +266,7 @@ const DiceRoller = () => {
                     setDiceCount(Math.max(1, Math.min(10, val)));
                   }}
                   disabled={isRolling}
-                  className="flex-1 text-center text-xl md:text-2xl font-bold border-2 rounded-lg py-2 px-3 md:px-4 focus:outline-none focus:ring-2 focus:ring-[#E4E821]"
+                  className="flex-1 text-center text-xl md:text-2xl font-bold border-2 rounded-lg py-2 px-3 md:px-4 focus:outline-none focus:ring-2 focus:ring-[#FFD447]"
                   style={{
                     borderColor: "#FF6F5E",
                   }}
@@ -276,7 +276,7 @@ const DiceRoller = () => {
                   disabled={isRolling || diceCount >= 10}
                   className="w-9 h-9 md:w-10 md:h-10 rounded-full font-bold text-white text-sm md:text-base transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
                   style={{
-                    background: "linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%)",
+                    background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
                   }}
                 >
                   +
@@ -296,7 +296,7 @@ const DiceRoller = () => {
                 value={diceSides}
                 onChange={(e) => setDiceSides(parseInt(e.target.value))}
                 disabled={isRolling}
-                className="w-full text-center text-base md:text-lg font-bold border-2 rounded-lg py-2.5 md:py-3 px-3 md:px-4 focus:outline-none focus:ring-2 focus:ring-[#E4E821]"
+                className="w-full text-center text-base md:text-lg font-bold border-2 rounded-lg py-2.5 md:py-3 px-3 md:px-4 focus:outline-none focus:ring-2 focus:ring-[#FFD447]"
                 style={{
                   borderColor: "#FF6F5E",
                 }}
@@ -319,7 +319,7 @@ const DiceRoller = () => {
               disabled={isRolling}
               className="flex-1 flex items-center justify-center gap-2 md:gap-3 py-3.5 md:py-4 px-6 rounded-full font-semibold text-white text-base md:text-lg transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 md:hover:scale-105 md:hover:shadow-xl"
               style={{
-                background: "linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%)",
+                background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
                 boxShadow: "0 4px 20px rgba(255, 111, 94, 0.3)",
               }}
             >

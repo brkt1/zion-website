@@ -120,7 +120,7 @@ const Events = () => {
         }
         .yg-event-card:hover .arrow-circle {
           background: #0F172A;
-          color: #E4E821;
+          color: #FFD447;
           transform: rotate(-45deg);
         }
 
@@ -137,7 +137,7 @@ const Events = () => {
 
         .price-badge {
           background: #0F172A;
-          color: #E4E821;
+          color: #FFD447;
           font-family: 'Playfair Display', serif;
           font-size: 16px;
           font-style: italic;
@@ -192,7 +192,7 @@ const Events = () => {
           left: 0;
           width: 0;
           height: 3px;
-          background: #E4E821;
+          background: #FFD447;
           transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .yg-category-btn.active::after {
@@ -417,7 +417,7 @@ const Events = () => {
                       />
                     ) : (
                       <div className="w-full h-full bg-[#0F172A] flex items-center justify-center">
-                        <FaCalendarAlt size={40} className="text-[#E4E821]/20" />
+                        <FaCalendarAlt size={40} className="text-[#FFD447]/20" />
                       </div>
                     )}
 
@@ -433,7 +433,7 @@ const Events = () => {
                     <div className="absolute bottom-10 left-10 right-10 flex flex-col items-start">
                        <div className="flex items-center gap-3 mb-4">
                           <span className="category-pill">{event.category}</span>
-                          <span className="h-1 w-1 bg-[#E4E821] rounded-full" />
+                          <span className="h-1 w-1 bg-[#FFD447] rounded-full" />
                           <span className="text-[9px] font-black text-white/50 uppercase tracking-[0.3em]">{event.location}</span>
                        </div>
                        

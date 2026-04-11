@@ -17,7 +17,7 @@ const BRAND = {
   primary: "#0F172A",
   navy: "#0F172A",
   navyLight: "#1E293B",
-  gold: "#E4E821",
+  gold: "#FFD447",
   coral: "#FF6F5E",
   cream: "#FAF9F6",
   white: "#FFFFFF",
@@ -28,7 +28,7 @@ const BRAND = {
 };
 
 const GRADIENT = {
-  brand: "linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%)",
+  brand: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
   textDark: "linear-gradient(135deg, #111827 0%, #374151 100%)",
 };
 

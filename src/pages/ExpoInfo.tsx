@@ -101,7 +101,7 @@ const ExpoInfo: React.FC = () => {
     { icon: <FiCamera />, label: 'Photo & Video' }
   ];
 
-  const yenegeYellow = "#E4E821";
+  const yenegeYellow = "#FFD447";
   const coralOrange = "#FF6F5E";
   const indigoDeep = "#1C2951";
 
@@ -246,14 +246,14 @@ const ExpoInfo: React.FC = () => {
 
           <div className="flex flex-col md:flex-row items-center justify-center gap-8 mb-20">
             <div className="flex items-center gap-5 glass-dark px-10 py-5 rounded-[2rem] border border-white/5">
-              <FiCalendar className="text-[#E4E821] text-2xl" />
+              <FiCalendar className="text-[#FFD447] text-2xl" />
               <div className="text-left border-l border-white/10 pl-5">
                 <p className="text-[10px] uppercase tracking-widest text-white/20 font-bold">Schedule</p>
                 <p className="font-bold text-white tracking-tight">መጋቢት 19-20</p>
               </div>
             </div>
             <div className="flex items-center gap-5 glass-dark px-10 py-5 rounded-[2rem] border border-white/5">
-              <FiMapPin className="text-[#E4E821] text-2xl" />
+              <FiMapPin className="text-[#FFD447] text-2xl" />
               <div className="text-left border-l border-white/10 pl-5">
                 <p className="text-[10px] uppercase tracking-widest text-white/20 font-bold">Venue</p>
                 <p className="font-bold text-white tracking-tight">GHION HOTEL</p>
@@ -295,8 +295,8 @@ const ExpoInfo: React.FC = () => {
 
             <div className="space-y-10">
               <div className="flex items-center gap-4">
-                <div className="h-[2px] w-12 bg-[#E4E821]" />
-                <span className="text-[#E4E821] font-sans tracking-[0.4em] uppercase text-xs font-black">The Vision</span>
+                <div className="h-[2px] w-12 bg-[#FFD447]" />
+                <span className="text-[#FFD447] font-sans tracking-[0.4em] uppercase text-xs font-black">The Vision</span>
               </div>
               <h2 className="font-serif text-5xl md:text-7xl leading-[1.1] text-white tracking-tight">Showcase Your <br/><span className="italic text-gold-gradient">Excellence.</span></h2>
               <p className="font-sans text-xl text-white/40 leading-relaxed max-w-xl font-light">
@@ -306,7 +306,7 @@ const ExpoInfo: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 pt-8">
                 {vendorTypes.slice(0, 4).map((type, i) => (
                   <div key={i} className="flex items-center gap-5 group">
-                    <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-[#E4E821] group-hover:border-[#E4E821] transition-all shadow-sm">
+                    <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-[#FFD447] group-hover:border-[#FFD447] transition-all shadow-sm">
                       <span className="text-2xl text-white/40 group-hover:text-[#0F172A] transition-colors">{type.icon}</span>
                     </div>
                     <span className="font-sans font-bold text-white/60 tracking-tight group-hover:text-white transition-colors">{type.label}</span>
@@ -315,7 +315,7 @@ const ExpoInfo: React.FC = () => {
               </div>
 
               <div className="pt-12">
-                <a href="#packages" className="inline-flex items-center gap-3 text-[#E4E821] font-sans font-black uppercase text-xs tracking-widest hover:gap-6 transition-all">
+                <a href="#packages" className="inline-flex items-center gap-3 text-[#FFD447] font-sans font-black uppercase text-xs tracking-widest hover:gap-6 transition-all">
                   Browse Booth Packages <FiArrowRight />
                 </a>
               </div>
@@ -337,7 +337,7 @@ const ExpoInfo: React.FC = () => {
             ].map((stat, i) => (
               <div key={i} className="space-y-2">
                 <p className="font-serif text-5xl text-white tracking-tighter">{stat.val}</p>
-                <div className="h-0.5 w-6 bg-[#E4E821] mx-auto" />
+                <div className="h-0.5 w-6 bg-[#FFD447] mx-auto" />
                 <p className="font-sans text-[10px] uppercase tracking-[0.3em] text-white/20 font-black">{stat.label}</p>
               </div>
             ))}
@@ -359,7 +359,7 @@ const ExpoInfo: React.FC = () => {
               <div 
                 key={idx}
                 className={`group relative rounded-[4rem] bg-white/5 border border-white/10 transition-all duration-700 flex flex-col ${
-                  pkg.popular ? 'shadow-[0_40px_100px_rgba(255,212,71,0.15)] border-[#E4E821]/40' : 'hover:bg-white/[0.08]'
+                  pkg.popular ? 'shadow-[0_40px_100px_rgba(255,212,71,0.15)] border-[#FFD447]/40' : 'hover:bg-white/[0.08]'
                 }`}
               >
                 {/* Image Wrap - Larger & Clearer */}
@@ -375,7 +375,7 @@ const ExpoInfo: React.FC = () => {
                     
                     {/* Floating Price Badge */}
                     <div className="absolute top-8 left-8 glass-dark px-8 py-4 rounded-3xl border border-white/10 shadow-2xl">
-                      <p className="text-[10px] uppercase tracking-widest font-black text-[#E4E821] mb-1">Starting from</p>
+                      <p className="text-[10px] uppercase tracking-widest font-black text-[#FFD447] mb-1">Starting from</p>
                       <div className="flex items-baseline gap-1">
                         <p className="font-serif text-4xl text-white tracking-tighter">{pkg.pricePerDay.split(' ')[0]}</p>
                         <p className="text-xs font-bold text-white/40 uppercase tracking-tighter">ETB / Day</p>
@@ -384,7 +384,7 @@ const ExpoInfo: React.FC = () => {
                     </div>
 
                     {pkg.slots && (
-                      <div className="absolute top-8 right-8 bg-[#E4E821] text-[#0F172A] px-6 py-2 rounded-2xl text-[10px] font-black tracking-widest uppercase shadow-xl animate-pulse">
+                      <div className="absolute top-8 right-8 bg-[#FFD447] text-[#0F172A] px-6 py-2 rounded-2xl text-[10px] font-black tracking-widest uppercase shadow-xl animate-pulse">
                         {pkg.slots}
                       </div>
                     )}
@@ -403,8 +403,8 @@ const ExpoInfo: React.FC = () => {
                   <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 overflow-hidden">
                     <div className="space-y-4">
                       <div className="flex items-center gap-4">
-                        <div className="h-[2px] w-12 bg-[#E4E821]" />
-                        <span className="text-[#E4E821] font-sans tracking-[0.4em] uppercase text-[10px] font-black">Luxury Module</span>
+                        <div className="h-[2px] w-12 bg-[#FFD447]" />
+                        <span className="text-[#FFD447] font-sans tracking-[0.4em] uppercase text-[10px] font-black">Luxury Module</span>
                       </div>
                       <h3 className="font-serif text-5xl md:text-6xl text-white tracking-tighter leading-none">{pkg.title}</h3>
                     </div>
@@ -414,7 +414,7 @@ const ExpoInfo: React.FC = () => {
                     {pkg.features.map((f, i) => (
                       <div key={i} className="flex items-start gap-4">
                         <div className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center shrink-0 mt-0.5">
-                          <FiCheckCircle className="text-[#E4E821] size={14}" />
+                          <FiCheckCircle className="text-[#FFD447] size={14}" />
                         </div>
                         <span className="font-sans text-sm text-white/40 font-medium leading-snug">{f}</span>
                       </div>
@@ -425,7 +425,7 @@ const ExpoInfo: React.FC = () => {
                     to={`/expo-registration?booth=${pkg.id}`}
                     className={`block w-full py-7 rounded-3xl font-sans font-black text-[10px] tracking-[0.3em] uppercase transition-all text-center shadow-xl ${
                       pkg.popular 
-                        ? 'glow-button shadow-[#E4E821]/20' 
+                        ? 'glow-button shadow-[#FFD447]/20' 
                         : 'bg-white text-[#0F172A] hover:bg-white/90'
                     }`}
                   >
@@ -464,8 +464,8 @@ const ExpoInfo: React.FC = () => {
               <div className="lg:col-span-7 space-y-10">
                 <div className="space-y-4">
                   <div className="flex items-center gap-4">
-                    <div className="h-[2px] w-12 bg-[#E4E821]" />
-                    <span className="text-[#E4E821] font-sans tracking-[0.4em] uppercase text-[10px] font-black">Curator's Vision</span>
+                    <div className="h-[2px] w-12 bg-[#FFD447]" />
+                    <span className="text-[#FFD447] font-sans tracking-[0.4em] uppercase text-[10px] font-black">Curator's Vision</span>
                   </div>
                   <h2 className="font-serif text-5xl md:text-7xl text-white tracking-tight leading-none">
                     Elegance is in <br />
@@ -481,7 +481,7 @@ const ExpoInfo: React.FC = () => {
 
                 <div className="pt-8 border-t border-white/5">
                   <p className="font-serif text-3xl text-white tracking-tight">Bereket Yosef</p>
-                  <p className="font-sans text-[10px] uppercase tracking-[0.3em] text-[#E4E821] font-black mt-2">CEO & Lead Curator, Yenege</p>
+                  <p className="font-sans text-[10px] uppercase tracking-[0.3em] text-[#FFD447] font-black mt-2">CEO & Lead Curator, Yenege</p>
                 </div>
               </div>
             </div>
@@ -499,9 +499,9 @@ const ExpoInfo: React.FC = () => {
         <div className="flex whitespace-nowrap animate-marquee">
           {[...vendorTypes, ...vendorTypes].map((type, i) => (
             <div key={i} className="flex items-center gap-6 mx-8 md:mx-16">
-              <span className="text-[#E4E821]/10 text-2xl md:text-3xl">{type.icon}</span>
+              <span className="text-[#FFD447]/10 text-2xl md:text-3xl">{type.icon}</span>
               <span className="font-serif italic text-3xl md:text-5xl text-white/5">{type.label}</span>
-              <div className="w-2 h-2 rounded-full bg-[#E4E821]/5" />
+              <div className="w-2 h-2 rounded-full bg-[#FFD447]/5" />
             </div>
           ))}
         </div>
@@ -515,7 +515,7 @@ const ExpoInfo: React.FC = () => {
             <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent opacity-40" />
             
             <div className="relative z-10 space-y-10">
-              <div className="flex items-center justify-center gap-4 text-[#E4E821]">
+              <div className="flex items-center justify-center gap-4 text-[#FFD447]">
                 <FiStar className="animate-pulse" />
                 <span className="font-sans text-[10px] font-black tracking-[0.5em] uppercase">Limited Availability</span>
                 <FiStar className="animate-pulse" />

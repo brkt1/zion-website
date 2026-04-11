@@ -523,7 +523,7 @@ const EventDetail = () => {
         }
 
         .ed-btn-primary {
-          background: linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%);
+          background: linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%);
           color: #0F172A;
           border-radius: 100px;
           font-weight: 800;
@@ -554,7 +554,7 @@ const EventDetail = () => {
           font-size: 14px;
         }
         .ed-back-btn:hover {
-          color: #E4E821;
+          color: #FFD447;
           transform: translateX(-4px);
         }
       `}</style>
@@ -585,7 +585,7 @@ const EventDetail = () => {
 
           <div className="max-w-3xl reveal-wrapper">
             <div className="mb-4">
-              <span className="inline-block px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[#E4E821] text-xs font-bold uppercase tracking-widest">
+              <span className="inline-block px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[#FFD447] text-xs font-bold uppercase tracking-widest">
                 {event.category}
               </span>
             </div>
@@ -623,7 +623,7 @@ const EventDetail = () => {
                 <div className="min-w-0">
                   <div className="text-[10px] font-bold text-black/40 uppercase tracking-widest mb-0.5">Location</div>
                   <div className="ed-font-sans font-bold text-slate-900">
-                    <LocationButton location={event.location} className="hover:text-[#E4E821] transition-colors truncate block" />
+                    <LocationButton location={event.location} className="hover:text-[#FFD447] transition-colors truncate block" />
                   </div>
                 </div>
               </div>
@@ -793,7 +793,7 @@ const EventDetail = () => {
                     <input
                       type="text" name="first_name" required
                       value={paymentForm.first_name} onChange={handleInputChange}
-                      className="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-[#E4E821]/50 focus:bg-white transition-all ed-font-sans font-bold"
+                      className="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-[#FFD447]/50 focus:bg-white transition-all ed-font-sans font-bold"
                       placeholder="John"
                     />
                   </div>
@@ -802,7 +802,7 @@ const EventDetail = () => {
                     <input
                       type="text" name="last_name" required
                       value={paymentForm.last_name} onChange={handleInputChange}
-                      className="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-[#E4E821]/50 focus:bg-white transition-all ed-font-sans font-bold"
+                      className="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-[#FFD447]/50 focus:bg-white transition-all ed-font-sans font-bold"
                       placeholder="Doe"
                     />
                   </div>
@@ -813,7 +813,7 @@ const EventDetail = () => {
                   <input
                     type="email" name="email" required
                     value={paymentForm.email} onChange={handleInputChange}
-                    className="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-[#E4E821]/50 focus:bg-white transition-all ed-font-sans font-bold"
+                    className="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-[#FFD447]/50 focus:bg-white transition-all ed-font-sans font-bold"
                     placeholder="john@example.com"
                   />
                 </div>
@@ -824,7 +824,7 @@ const EventDetail = () => {
                     <input
                       type="tel" name="phone_number" required
                       value={paymentForm.phone_number} onChange={handleInputChange}
-                      className="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-[#E4E821]/50 focus:bg-white transition-all ed-font-sans font-bold"
+                      className="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-[#FFD447]/50 focus:bg-white transition-all ed-font-sans font-bold"
                       placeholder="09..."
                     />
                   </div>
@@ -949,7 +949,7 @@ const EventDetail = () => {
             ) : (
               <div className="p-8 sm:p-10">
                 <div className="mb-8">
-                  <span className="text-[10px] font-black text-[#E4E821] uppercase tracking-[0.3em] block mb-1">Free Admission</span>
+                  <span className="text-[10px] font-black text-[#FFD447] uppercase tracking-[0.3em] block mb-1">Free Admission</span>
                   <h2 className="ed-font-serif text-3xl font-black text-slate-900">Join the Curation</h2>
                 </div>
                 
@@ -958,23 +958,23 @@ const EventDetail = () => {
                     <input
                       type="text" name="first_name" required placeholder="First Name"
                       value={paymentForm.first_name} onChange={handleInputChange}
-                      className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-[#E4E821]/50 transition-all font-bold text-sm"
+                      className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-[#FFD447]/50 transition-all font-bold text-sm"
                     />
                     <input
                       type="text" name="last_name" required placeholder="Last Name"
                       value={paymentForm.last_name} onChange={handleInputChange}
-                      className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-[#E4E821]/50 transition-all font-bold text-sm"
+                      className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-[#FFD447]/50 transition-all font-bold text-sm"
                     />
                   </div>
                   <input
                     type="email" name="email" required placeholder="Email Address"
                     value={paymentForm.email} onChange={handleInputChange}
-                    className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-[#E4E821]/50 transition-all font-bold text-sm font-sans"
+                    className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-[#FFD447]/50 transition-all font-bold text-sm font-sans"
                   />
                   <input
                     type="tel" name="phone_number" required placeholder="Phone (09...)"
                     value={paymentForm.phone_number} onChange={handleInputChange}
-                    className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-[#E4E821]/50 transition-all font-bold text-sm font-sans"
+                    className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-[#FFD447]/50 transition-all font-bold text-sm font-sans"
                   />
                                    <div className="flex items-center gap-4 pt-2 font-sans">
                     <span className="text-[10px] font-black text-black/40 uppercase tracking-widest min-w-[80px]">Tickets</span>

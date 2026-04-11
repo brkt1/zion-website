@@ -107,7 +107,7 @@ const ExpoRegistration: React.FC = () => {
     }
   };
 
-  const yenegeYellow = "#E4E821";
+  const yenegeYellow = "#FFD447";
   const coralOrange = "#FF6F5E";
   const indigoDeep = "#1C2951";
 
@@ -471,11 +471,11 @@ const ExpoRegistration: React.FC = () => {
 
         <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-6 text-[10px] uppercase tracking-[0.3em] font-black text-slate-500">
           <div className="flex items-center gap-3">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#E4E821]" />
+            <div className="w-1.5 h-1.5 rounded-full bg-[#FFD447]" />
             <span>መጋቢት 19-20</span>
           </div>
           <div className="flex items-center gap-3">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#E4E821]" />
+            <div className="w-1.5 h-1.5 rounded-full bg-[#FFD447]" />
             <span>Addis Ababa</span>
           </div>
         </div>
@@ -622,12 +622,12 @@ const ExpoRegistration: React.FC = () => {
                     key={booth.id}
                     className={`group relative flex flex-col md:flex-row md:items-center justify-between p-10 rounded-[2.5rem] border-2 cursor-pointer transition-all duration-500 overflow-hidden ${
                       formData.boothType === booth.id
-                        ? 'border-[#E4E821] bg-white shadow-xl shadow-amber-500/10'
+                        ? 'border-[#FFD447] bg-white shadow-xl shadow-amber-500/10'
                         : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50/50'
                     }`}
                   >
                     <div className="flex items-center gap-8 mb-6 md:mb-0">
-                      <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${formData.boothType === booth.id ? 'border-[#E4E821] bg-[#E4E821] shadow-xl' : 'border-slate-200'}`}>
+                      <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${formData.boothType === booth.id ? 'border-[#FFD447] bg-[#FFD447] shadow-xl' : 'border-slate-200'}`}>
                         {formData.boothType === booth.id && <div className="w-3 h-3 rounded-full bg-white" />}
                       </div>
                       <input required type="radio" name="boothType" value={booth.id} checked={formData.boothType === booth.id} onChange={handleChange} className="hidden" />
@@ -666,12 +666,12 @@ const ExpoRegistration: React.FC = () => {
                   key={option.id}
                   className={`group relative flex flex-col md:flex-row md:items-center justify-between p-10 rounded-[2.5rem] border-2 cursor-pointer transition-all duration-500 overflow-hidden ${
                     formData.paymentOption === option.id
-                      ? 'border-[#E4E821] bg-white shadow-xl shadow-amber-500/10'
+                      ? 'border-[#FFD447] bg-white shadow-xl shadow-amber-500/10'
                       : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50/50'
                   }`}
                 >
                   <div className="flex items-center gap-8">
-                    <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${formData.paymentOption === option.id ? 'border-[#E4E821] bg-[#E4E821] shadow-xl' : 'border-slate-200'}`}>
+                    <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${formData.paymentOption === option.id ? 'border-[#FFD447] bg-[#FFD447] shadow-xl' : 'border-slate-200'}`}>
                       {formData.paymentOption === option.id && <div className="w-3 h-3 rounded-full bg-white" />}
                     </div>
                     <input required type="radio" name="paymentOption" value={option.id} checked={formData.paymentOption === option.id} onChange={handleChange} className="hidden" />
@@ -706,7 +706,7 @@ const ExpoRegistration: React.FC = () => {
                 <label key={agreement.id} className="flex items-start gap-6 p-6 hover:bg-slate-50 rounded-3xl cursor-pointer group transition-all border border-transparent hover:border-slate-100">
                   <div className="relative mt-1">
                     <input required type="checkbox" name={agreement.id} checked={(formData as any)[agreement.id]} onChange={handleChange} className="peer w-6 h-6 opacity-0 absolute inset-0 cursor-pointer" />
-                    <div className="w-6 h-6 border-2 border-slate-200 rounded-lg transition-all peer-checked:bg-[#E4E821] peer-checked:border-[#E4E821] flex items-center justify-center">
+                    <div className="w-6 h-6 border-2 border-slate-200 rounded-lg transition-all peer-checked:bg-[#FFD447] peer-checked:border-[#FFD447] flex items-center justify-center">
                       <FiCheckCircle className="text-white scale-0 peer-checked:scale-100 transition-transform" />
                     </div>
                   </div>
@@ -738,7 +738,7 @@ const ExpoRegistration: React.FC = () => {
               <div className="absolute inset-0 bg-[#FAF9F6] blur-xl scale-125 opacity-80 pointer-events-none" />
               <button
                 type="submit"
-                className="w-full relative z-10 group overflow-hidden py-5 rounded-3xl glow-button-light font-sans font-black text-sm tracking-widest uppercase transition-all duration-500 shadow-2xl shadow-amber-500/40 hover:-translate-y-1 active:scale-95 border-2 border-[#E4E821]/30"
+                className="w-full relative z-10 group overflow-hidden py-5 rounded-3xl glow-button-light font-sans font-black text-sm tracking-widest uppercase transition-all duration-500 shadow-2xl shadow-amber-500/40 hover:-translate-y-1 active:scale-95 border-2 border-[#FFD447]/30"
               >
                 <div className="relative z-10 flex items-center justify-center gap-3">
                   <span>Review My Application</span>

@@ -133,7 +133,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
     return (
       <div className="min-h-screen bg-[#f8f9fa] flex items-center justify-center font-sans">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-[#E4E821] border-t-[#FF6F5E] rounded-full animate-spin mx-auto mb-6 shadow-lg shadow-[#E4E821]/20"></div>
+          <div className="w-16 h-16 border-4 border-[#FFD447] border-t-[#FF6F5E] rounded-full animate-spin mx-auto mb-6 shadow-lg shadow-[#FFD447]/20"></div>
           <p className="text-[#1C2951] font-bold tracking-tight">Authenticating...</p>
         </div>
       </div>
@@ -141,7 +141,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] flex font-sans selection:bg-[#E4E821] selection:text-[#1C2951]">
+    <div className="min-h-screen bg-[#f8f9fa] flex font-sans selection:bg-[#FFD447] selection:text-[#1C2951]">
       {/* Sidebar - Desktop */}
       <aside
         className={`${
@@ -153,7 +153,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
           <div className={`h-24 flex items-center ${sidebarOpen ? 'px-8 justify-between' : 'px-0 justify-center'} transition-all duration-500`}>
             {sidebarOpen ? (
               <Link to="/admin/dashboard" className="flex items-center gap-3 group">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#E4E821] to-[#FF6F5E] flex items-center justify-center shadow-lg shadow-[#FF6F5E]/30 transform group-hover:rotate-12 transition-transform duration-300">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FFD447] to-[#FF6F5E] flex items-center justify-center shadow-lg shadow-[#FF6F5E]/30 transform group-hover:rotate-12 transition-transform duration-300">
                   <FaHome className="text-white" size={20} />
                 </div>
                 <div>
@@ -164,7 +164,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
             ) : (
               <button 
                 onClick={() => setSidebarOpen(true)}
-                className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#E4E821] to-[#FF6F5E] flex items-center justify-center shadow-lg shadow-[#FF6F5E]/30 hover:scale-110 active:scale-95 transition-all duration-300"
+                className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#FFD447] to-[#FF6F5E] flex items-center justify-center shadow-lg shadow-[#FF6F5E]/30 hover:scale-110 active:scale-95 transition-all duration-300"
               >
                 <FaHome className="text-white" size={20} />
               </button>
@@ -198,7 +198,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
               {sidebarOpen && (
                 <div className="flex-1 flex items-center justify-between">
                   <span className="font-semibold text-sm">Dashboard</span>
-                  {isActive('/admin/dashboard') && <div className="w-1.5 h-1.5 rounded-full bg-[#E4E821] shadow-[0_0_8px_#E4E821]" />}
+                  {isActive('/admin/dashboard') && <div className="w-1.5 h-1.5 rounded-full bg-[#FFD447] shadow-[0_0_8px_#FFD447]" />}
                 </div>
               )}
             </Link>
@@ -231,7 +231,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
                   {sidebarOpen && (
                     <div className="flex-1 flex items-center justify-between overflow-hidden">
                       <span className="font-semibold text-sm truncate">{item.label}</span>
-                      {active && <div className="w-1.5 h-1.5 rounded-full bg-[#E4E821] shadow-[0_0_8px_#E4E821]" />}
+                      {active && <div className="w-1.5 h-1.5 rounded-full bg-[#FFD447] shadow-[0_0_8px_#FFD447]" />}
                       {!active && (
                         <FaChevronRight size={10} className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 text-gray-300" />
                       )}
@@ -296,7 +296,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
                 </button>
                 
                 {/* Search Bar Placeholder */}
-                <div className="hidden sm:flex items-center bg-gray-50 border border-gray-100 rounded-2xl px-4 py-2.5 max-w-md w-full focus-within:ring-2 focus-within:ring-[#E4E821]/20 focus-within:bg-white focus-within:border-[#E4E821] transition-all duration-300">
+                <div className="hidden sm:flex items-center bg-gray-50 border border-gray-100 rounded-2xl px-4 py-2.5 max-w-md w-full focus-within:ring-2 focus-within:ring-[#FFD447]/20 focus-within:bg-white focus-within:border-[#FFD447] transition-all duration-300">
                   <FaSearch className="text-gray-400" size={14} />
                   <input 
                     type="text" 
@@ -343,7 +343,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
           {/* Header Title for Desktop */}
           <div className="mb-8 hidden lg:block">
             <h1 className="text-4xl font-black text-[#1C2951] tracking-tight">{title || 'Dashboard'}</h1>
-            <div className="h-1.5 w-12 bg-gradient-to-r from-[#E4E821] to-[#FF6F5E] rounded-full mt-4 shadow-sm" />
+            <div className="h-1.5 w-12 bg-gradient-to-r from-[#FFD447] to-[#FF6F5E] rounded-full mt-4 shadow-sm" />
           </div>
           
           <div className="relative z-10">
@@ -351,7 +351,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
           </div>
           
           {/* Decorative background element */}
-          <div className="fixed top-1/2 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#E4E821]/5 to-[#FF6F5E]/5 rounded-full blur-[100px] pointer-events-none -z-10 translate-x-1/2" />
+          <div className="fixed top-1/2 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#FFD447]/5 to-[#FF6F5E]/5 rounded-full blur-[100px] pointer-events-none -z-10 translate-x-1/2" />
         </main>
       </div>
 
@@ -378,7 +378,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
           {/* Mobile Sidebar Header */}
           <div className="h-24 flex items-center justify-between px-8 border-b border-gray-50 flex-shrink-0">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#E4E821] to-[#FF6F5E] flex items-center justify-center shadow-lg shadow-[#FF6F5E]/30">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FFD447] to-[#FF6F5E] flex items-center justify-center shadow-lg shadow-[#FF6F5E]/30">
                 <FaHome className="text-white" size={20} />
               </div>
               <div>

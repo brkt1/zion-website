@@ -70,7 +70,7 @@ const MasterclassRegistration: React.FC = () => {
     }
   };
 
-  const yenegeYellow = "#E4E821";
+  const yenegeYellow = "#FFD447";
   const coralOrange = "#FF6F5E";
   const indigoDeep = "#1C2951";
 

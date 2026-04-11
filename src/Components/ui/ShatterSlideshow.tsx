@@ -176,7 +176,7 @@ const ShatterSlideshow: React.FC<ShatterSlideshowProps> = ({ images, interval = 
       </div>
 
       {/* Progress Line */}
-      <div className="absolute bottom-0 left-0 h-1 bg-[#E4E821] transition-all duration-300 z-20" 
+      <div className="absolute bottom-0 left-0 h-1 bg-[#FFD447] transition-all duration-300 z-20" 
            style={{ width: `${((currentIndex + 1) / images.length) * 100}%` }} />
     </div>
   );

@@ -12,7 +12,7 @@ const Certification = () => {
         { title: "The Event Planning Process", topics: ["From idea → execution", "Event lifecycle stages"] },
         { title: "Event Concept Development", topics: ["Theme creation", "Target audience identification", "Event objectives setting"] },
       ],
-      color: "#E4E821"
+      color: "#FFD447"
     },
     {
       number: "02",
@@ -301,7 +301,7 @@ const Certification = () => {
             <FaAward className="text-amber-500 text-7xl md:text-8xl mx-auto mb-8 animate-pulse" />
             <h2 className="text-4xl md:text-7xl font-black text-white leading-tight tracking-tight mb-8">
               Seal Your Future with <br />
-              <span className="italic text-[#E4E821]">Global Certification.</span>
+              <span className="italic text-[#FFD447]">Global Certification.</span>
             </h2>
             <p className="text-xl text-gray-400 font-light max-w-2xl mx-auto mb-16 leading-relaxed">
               Upon successful completion, receive a certified credential from Yenege ecosystem, validated by our industry partners.
@@ -322,7 +322,7 @@ const Certification = () => {
 
         {/* Background animation */}
         <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-          <div className="h-full w-full" style={{ background: "radial-gradient(circle at 50% 50%, #E4E821 0%, transparent 70%)" }} />
+          <div className="h-full w-full" style={{ background: "radial-gradient(circle at 50% 50%, #FFD447 0%, transparent 70%)" }} />
         </div>
       </section>
 

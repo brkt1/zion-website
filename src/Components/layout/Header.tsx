@@ -94,11 +94,11 @@ const Header = () => {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-10 flex items-center justify-between text-xs font-semibold tracking-wide">
           <div className="flex items-center gap-6 opacity-90">
-            <a href={`mailto:${contactEmail}`} className="flex items-center gap-2 hover:text-[#E4E821] transition-colors">
+            <a href={`mailto:${contactEmail}`} className="flex items-center gap-2 hover:text-[#FFD447] transition-colors">
               <FaEnvelope size={12} />
               {contactEmail}
             </a>
-            <a href={`tel:${contactPhone}`} className="flex items-center gap-2 hover:text-[#E4E821] transition-colors">
+            <a href={`tel:${contactPhone}`} className="flex items-center gap-2 hover:text-[#FFD447] transition-colors">
               <FaPhoneAlt size={12} />
               {contactPhone}
             </a>
@@ -110,16 +110,16 @@ const Header = () => {
             </a>
             <div className="w-px h-4 bg-white/20 mx-1"></div>
             {/* Social Icons */}
-            <a href="https://instagram.com/yenege_event" target="_blank" rel="noopener noreferrer" className="hover:text-[#E4E821] transition-colors" aria-label="Instagram">
+            <a href="https://instagram.com/yenege_event" target="_blank" rel="noopener noreferrer" className="hover:text-[#FFD447] transition-colors" aria-label="Instagram">
               <FaInstagram size={14} />
             </a>
-            <a href="https://t.me/yenegeevents" target="_blank" rel="noopener noreferrer" className="hover:text-[#E4E821] transition-colors" aria-label="Telegram">
+            <a href="https://t.me/yenegeevents" target="_blank" rel="noopener noreferrer" className="hover:text-[#FFD447] transition-colors" aria-label="Telegram">
               <FaTelegramPlane size={14} />
             </a>
-            <a href="https://tiktok.com/@yenegeevents" target="_blank" rel="noopener noreferrer" className="hover:text-[#E4E821] transition-colors" aria-label="TikTok">
+            <a href="https://tiktok.com/@yenegeevents" target="_blank" rel="noopener noreferrer" className="hover:text-[#FFD447] transition-colors" aria-label="TikTok">
               <FaTiktok size={14} />
             </a>
-            <a href="https://linkedin.com/company/yenegeevents" target="_blank" rel="noopener noreferrer" className="hover:text-[#E4E821] transition-colors" aria-label="LinkedIn">
+            <a href="https://linkedin.com/company/yenegeevents" target="_blank" rel="noopener noreferrer" className="hover:text-[#FFD447] transition-colors" aria-label="LinkedIn">
               <FaLinkedin size={14} />
             </a>
           </div>
@@ -176,12 +176,12 @@ const Header = () => {
                 <span className="relative z-10">{link.label}</span>
                 {isActive(link.path) && (
                   <span
-                    className={`absolute -bottom-1 left-0 right-0 h-0.5 rounded-full transition-all duration-300 bg-[#E4E821]`}
+                    className={`absolute -bottom-1 left-0 right-0 h-0.5 rounded-full transition-all duration-300 bg-[#FFD447]`}
                   />
                 )}
                 {!isActive(link.path) && (
                   <span
-                    className={`absolute -bottom-1 left-0 right-0 h-0.5 scale-x-0 rounded-full transition-transform duration-300 origin-left bg-[#E4E821]`}
+                    className={`absolute -bottom-1 left-0 right-0 h-0.5 scale-x-0 rounded-full transition-transform duration-300 origin-left bg-[#FFD447]`}
                   />
                 )}
               </Link>

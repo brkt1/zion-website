@@ -241,7 +241,7 @@ const Partners = () => {
 
       {/* Content */}
       <div className="bg-white rounded-[40px] shadow-2xl shadow-gray-200/40 border border-gray-100 overflow-hidden mb-20 relative group">
-        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#E4E821] to-[#FF6F5E]" />
+        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#FFD447] to-[#FF6F5E]" />
         
         {activeTab === 'partners' ? (
           <div className="overflow-x-auto">
@@ -259,7 +259,7 @@ const Partners = () => {
               <tbody className="divide-y divide-gray-50">
                 {partnersLoading ? (
                   <tr><td colSpan={6} className="px-8 py-20 text-center">
-                    <div className="w-12 h-12 border-4 border-[#E4E821] border-t-[#FF6F5E] rounded-full animate-spin mx-auto mb-4"></div>
+                    <div className="w-12 h-12 border-4 border-[#FFD447] border-t-[#FF6F5E] rounded-full animate-spin mx-auto mb-4"></div>
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Analyzing Partners...</p>
                   </td></tr>
                 ) : partners.length === 0 ? (
@@ -297,7 +297,7 @@ const Partners = () => {
                       <td className="px-8 py-8">
                         <div className="inline-flex items-center gap-3 px-4 py-2 bg-[#1C2951] rounded-xl text-white shadow-lg shadow-indigo-900/10">
                           <div className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center">
-                             <FaWallet size={12} className="text-[#E4E821]" />
+                             <FaWallet size={12} className="text-[#FFD447]" />
                           </div>
                           <span className="text-sm font-black tracking-tight leading-none pt-0.5">
                             {new Intl.NumberFormat('en-ET', { style: 'currency', currency: partner.currency }).format(partner.sponsorship_amount)}
@@ -365,7 +365,7 @@ const Partners = () => {
               <tbody className="divide-y divide-gray-50">
                 {repsLoading ? (
                   <tr><td colSpan={5} className="px-8 py-20 text-center">
-                     <div className="w-12 h-12 border-4 border-[#E4E821] border-t-[#FF6F5E] rounded-full animate-spin mx-auto mb-4"></div>
+                     <div className="w-12 h-12 border-4 border-[#FFD447] border-t-[#FF6F5E] rounded-full animate-spin mx-auto mb-4"></div>
                   </td></tr>
                 ) : representatives.length === 0 ? (
                   <tr><td colSpan={5} className="px-8 py-20 text-center text-gray-400">
@@ -573,7 +573,7 @@ const Partners = () => {
               </div>
 
               <div className="flex gap-6 pt-6">
-                <button type="submit" className="flex-1 bg-gradient-to-r from-[#1C2951] to-gray-900 text-white font-black py-5 rounded-[24px] shadow-2xl shadow-[#1C2951]/30 hover:shadow-[#FF6F5E]/30 hover:from-[#FF6F5E] hover:to-[#E4E821] transform hover:scale-[1.02] active:scale-95 transition-all duration-500 uppercase tracking-widest text-sm">
+                <button type="submit" className="flex-1 bg-gradient-to-r from-[#1C2951] to-gray-900 text-white font-black py-5 rounded-[24px] shadow-2xl shadow-[#1C2951]/30 hover:shadow-[#FF6F5E]/30 hover:from-[#FF6F5E] hover:to-[#FFD447] transform hover:scale-[1.02] active:scale-95 transition-all duration-500 uppercase tracking-widest text-sm">
                   {editingPartner ? 'Finalize Protocol' : 'Initiate Synergistic Link'}
                 </button>
                 <button type="button" onClick={() => { setShowPartnerModal(false); setEditingPartner(null); }} className="px-10 border-2 border-gray-100 text-gray-400 font-black rounded-[24px] hover:bg-gray-50 hover:text-gray-900 transition-all duration-300 uppercase tracking-widest text-[10px]">
@@ -588,7 +588,7 @@ const Partners = () => {
       {/* Representative Modal */}
       {showRepModal && (
         <div className="fixed inset-0 bg-gray-900/60 flex items-center justify-center z-[70] p-4 backdrop-blur-md transition-all duration-500">
-          <div className="bg-white rounded-[40px] max-w-md w-full p-10 shadow-2xl transform animate-in slide-in-from-bottom duration-500 border-b-8 border-[#E4E821]">
+          <div className="bg-white rounded-[40px] max-w-md w-full p-10 shadow-2xl transform animate-in slide-in-from-bottom duration-500 border-b-8 border-[#FFD447]">
             <div className="flex items-center justify-between mb-10">
               <div>
                  <p className="text-[10px] font-black text-[#FF6F5E] uppercase tracking-[0.4em] mb-1">Human Capital</p>
