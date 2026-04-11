@@ -405,241 +405,296 @@ const PaymentSuccess = () => {
   }, [paymentData, txRef, ticketQuantity]);
 
   return (
-    <div className="payment-success-container">
+    <div className="payment-success-container" style={{ minHeight: "100vh", background: "#FAF9F6" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Manrope:wght@300;400;500;600;700;800&display=swap');
+
+        .yg-font-serif { font-family: 'Playfair Display', Georgia, serif; }
+        .yg-font-sans  { font-family: 'Manrope', system-ui, sans-serif; }
+
+        .payment-success-body {
+          padding-top: 100px;
+          padding-bottom: 100px;
+        }
+
+        .premium-ticket {
+          background: #FFFFFF;
+          border-radius: 32px;
+          overflow: hidden;
+          box-shadow: 0 40px 100px -20px rgba(15, 23, 42, 0.15);
+          border: 1px solid rgba(15, 23, 42, 0.05);
+          position: relative;
+        }
+
+        .ticket-divider {
+          border-right: 2px dashed rgba(15, 23, 42, 0.1);
+          position: relative;
+        }
+        .ticket-divider::before, .ticket-divider::after {
+          content: '';
+          position: absolute;
+          width: 30px;
+          height: 30px;
+          background: #FAF9F6;
+          border-radius: 50%;
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 10;
+        }
+        .ticket-divider::before { top: -15px; }
+        .ticket-divider::after { bottom: -15px; }
+
+        .yg-btn-download {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          padding: 16px 36px;
+          border-radius: 999px;
+          background: linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%);
+          color: #0F172A;
+          font-family: 'Manrope', sans-serif;
+          font-weight: 800;
+          font-size: 13px;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          text-decoration: none;
+          border: none;
+          cursor: pointer;
+          transition: transform 0.25s, box-shadow 0.25s;
+          box-shadow: 0 8px 30px rgba(255,111,94,0.3);
+        }
+        .yg-btn-download:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 16px 40px rgba(255,111,94,0.4);
+        }
+
+        .yg-btn-secondary {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          padding: 16px 36px;
+          border-radius: 999px;
+          background: #FFFFFF;
+          color: #0F172A;
+          font-family: 'Manrope', sans-serif;
+          font-weight: 700;
+          font-size: 13px;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          border: 1px solid rgba(15, 23, 42, 0.1);
+          transition: all 0.3s;
+        }
+        .yg-btn-secondary:hover {
+          background: #F8F9FA;
+          border-color: #0F172A;
+        }
+
+        @media (max-width: 768px) {
+          .ticket-grid { grid-template-columns: 1fr !important; }
+          .ticket-divider {
+            border-right: none !important;
+            border-bottom: 2px dashed rgba(15, 23, 42, 0.1) !important;
+            height: 2px;
+            width: 100%;
+            margin: 40px 0;
+          }
+          .ticket-divider::before { left: -15px; top: 50%; transform: translateY(-50%); }
+          .ticket-divider::after { right: -15px; left: auto; top: 50%; transform: translateY(-50%); }
+        }
+      `}</style>
+
       {(verificationStatus === "loading" || verificationStatus === "pending") && (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-          <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center">
-            <FaSpinner className="mx-auto text-5xl text-amber-600 animate-spin mb-4" />
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              {verificationStatus === "pending" ? "Payment Processing..." : "Verifying Payment..."}
+        <div className="min-h-screen flex items-center justify-center px-4">
+          <div className="max-w-md w-full text-center">
+            <FaSpinner className="mx-auto text-5xl text-[#E4E821] animate-spin mb-8" />
+            <h1 className="yg-font-serif text-3xl font-black text-[#0F172A] mb-4">
+              {verificationStatus === "pending" ? "Almost There..." : "Verifying Payment"}
             </h1>
-            <p className="text-gray-600">
+            <p className="yg-font-sans text-gray-500 tracking-wide">
               {verificationStatus === "pending" 
-                ? `Please wait while we check your payment status${retryCount > 0 ? ` (attempt ${retryCount + 1})` : ''}...`
-                : "Please wait while we verify your payment."}
+                ? `Securing your transaction${retryCount > 0 ? ` (attempt ${retryCount + 1})` : ''}...`
+                : "Please wait while we finalize your experience."}
             </p>
-            {txRef && (
-              <p className="text-sm text-gray-500 mt-2 font-mono">{txRef}</p>
-            )}
           </div>
         </div>
       )}
 
       {verificationStatus === "success" && (
-        <div className="bg-white flex flex-col justify-center items-center min-h-screen px-4 py-8 payment-success-body">
-          {/* Download Button */}
-          <div className="w-full max-w-sm sm:max-w-4xl mb-6 flex justify-end">
+        <div className="payment-success-body flex flex-col items-center">
+          <div className="w-full max-w-5xl px-4 flex justify-end mb-8">
             <button
               onClick={async () => {
                 if (!ticketRef.current || isDownloading) return;
                 setIsDownloading(true);
                 try {
-                  // Lazy load html2canvas only when needed to reduce initial bundle size
                   const html2canvas = (await import('html2canvas')).default;
                   const canvas = await html2canvas(ticketRef.current, {
-                    backgroundColor: '#ffffff',
-                    scale: 2,
+                    backgroundColor: '#FFFFFF',
+                    scale: 3,
                     logging: false,
                     useCORS: true,
                   });
                   const link = document.createElement('a');
-                  link.download = `ticket-${getShortTxRef(paymentData?.tx_ref || txRef)}-${Date.now()}.png`;
+                  link.download = `YENEGE-Ticket-${getShortTxRef(paymentData?.tx_ref || txRef)}.png`;
                   link.href = canvas.toDataURL('image/png');
                   link.click();
                 } catch (error) {
                   console.error('Error downloading ticket:', error);
-                  alert('Failed to download ticket. Please try again.');
                 } finally {
                   setIsDownloading(false);
                 }
               }}
               disabled={isDownloading}
-              className="flex items-center gap-2 bg-cyan-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-cyan-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+              className="yg-btn-download"
             >
-              <FaDownload className={isDownloading ? "animate-bounce" : ""} />
-              {isDownloading ? "Downloading..." : "Download Ticket"}
+              <FaDownload />
+              {isDownloading ? "Generating..." : "Download Digital Ticket"}
             </button>
           </div>
 
-          <main ref={ticketRef} className="text-gray-400 font-thin w-full max-w-sm sm:max-w-4xl grid sm:grid-cols-[4fr_1fr] payment-success-main bg-white">
-            {/* boarding pass */}
-            <div className="py-6 px-6 sm:px-10 space-y-6 sm:space-y-12 relative payment-success-pass">
-              <section className="w-full grid grid-cols-3 gap-x-4 sm:px-8 isolate overflow-hidden payment-success-header">
-                <h2 className="animate-in" style={{ "--d": "500ms" } as React.CSSProperties}>PAY</h2>
-                <div>
-                  <span id="plane-1" style={{ "--d": "2000ms" } as React.CSSProperties} className="payment-icon">
-                    <FaCheckCircle className="text-cyan-400" />
-                  </span>
+          <div ref={ticketRef} className="w-full max-w-5xl px-4">
+            <div className="premium-ticket ticket-grid grid grid-cols-[1.5fr_1fr] bg-white">
+              {/* Main Ticket Area */}
+              <div className="p-10 md:p-14 relative">
+                {/* Logo & Header */}
+                <div className="flex justify-between items-start mb-14">
+                  <div>
+                    <img src="/logo.png" alt="YENEGE" className="h-16 w-auto mb-6" />
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-50 text-green-600 text-[10px] font-bold uppercase tracking-widest border border-green-100">
+                      <FaCheckCircle size={10} /> Confirmed
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <h2 className="yg-font-serif text-4xl font-black text-[#0F172A] mb-1">Receipt</h2>
+                    <p className="yg-font-sans text-[11px] font-bold text-gray-400 uppercase tracking-[0.2em]">Transaction Verified</p>
+                  </div>
                 </div>
-                <h2 className="animate-in" style={{ "--d": "1000ms" } as React.CSSProperties}>SUCCESS</h2>
-                <p className="animate-in" style={{ "--d": "500ms" } as React.CSSProperties}>Payment</p>
-                <span></span>
-                <p className="animate-in" style={{ "--d": "1000ms" } as React.CSSProperties}>Confirmed</p>
-              </section>
 
-              <section className="grid grid-cols-2 sm:grid-cols-5 gap-4 py-3 px-6 bg-cyan-100 font-thin whitespace-nowrap text-sm sm:text-base payment-success-details">
-                <div className="animate-in-X" style={{ "--d": "1200ms" } as React.CSSProperties}>
-                  <h3>Amount</h3>
-                  <time>{paymentData ? `${formatAmount(getAmount())} ${paymentData.currency || 'ETB'}` : 'N/A'}</time>
+                {/* Event Details */}
+                <div className="mb-14">
+                  <h3 className="yg-font-sans text-[10px] font-extrabold text-[#FF6F5E] uppercase tracking-[0.3em] mb-4">Event Details</h3>
+                  <h1 className="yg-font-serif text-3xl md:text-4xl font-black text-[#0F172A] mb-8 leading-tight">
+                    {eventTitleParam || "Official Event"}
+                  </h1>
+                  
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div>
+                      <p className="yg-font-sans text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Date</p>
+                      <p className="yg-font-sans text-sm font-bold text-[#0F172A]">{paymentData ? formatDate(paymentData.created_at) : formatDate()}</p>
+                    </div>
+                    <div>
+                      <p className="yg-font-sans text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Time</p>
+                      <p className="yg-font-sans text-sm font-bold text-[#0F172A]">{paymentData ? formatTime(paymentData.created_at) : formatTime()}</p>
+                    </div>
+                    <div>
+                      <p className="yg-font-sans text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Quantity</p>
+                      <p className="yg-font-sans text-sm font-bold text-[#0F172A]">{ticketQuantity} Tickets</p>
+                    </div>
+                    <div>
+                      <p className="yg-font-sans text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Amount</p>
+                      <p className="yg-font-sans text-sm font-bold text-[#0F172A]">{paymentData ? `${formatAmount(getAmount())} ${paymentData.currency || 'ETB'}` : 'N/A'}</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="animate-in-X" style={{ "--d": "1500ms" } as React.CSSProperties}>
-                  <h3>Date</h3>
-                  <time>{paymentData ? formatDate(paymentData.created_at) : formatDate()}</time>
-                </div>
-                <div className="animate-in-X" style={{ "--d": "1800ms" } as React.CSSProperties}>
-                  <h3>Time</h3>
-                  <time>{paymentData ? formatTime(paymentData.created_at) : formatTime()}</time>
-                </div>
-                <div className="animate-in-X" style={{ "--d": "2100ms" } as React.CSSProperties}>
-                  <h3>Quantity</h3>
-                  <time>{ticketQuantity}</time>
-                </div>
-                <div className="animate-in-X" style={{ "--d": "2400ms" } as React.CSSProperties}>
-                  <h3>Ticket No.</h3>
-                  <time>{getShortTxRef(paymentData?.tx_ref || txRef)}</time>
-                </div>
-              </section>
 
-              <p className="text-xs">
-                Thank you for your payment! Your transaction has been <strong>successfully processed</strong>. 
-                A confirmation email has been sent to your registered email address. 
-                Please keep this <strong>transaction reference</strong> for your records: <strong>{paymentData?.tx_ref || txRef}</strong>.
-                <br /><br />
-                <strong>Note:</strong> Please download your ticket and present the QR code at the event entrance. The QR code contains all your payment and ticket information for verification.
-              </p>
-            </div>
+                {/* Footer Info */}
+                <div className="pt-10 border-t border-gray-100">
+                  <div className="flex flex-wrap items-center gap-x-10 gap-y-4">
+                    <div>
+                      <p className="yg-font-sans text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Customer</p>
+                      <p className="yg-font-sans text-xs font-bold text-[#0F172A]">
+                        {paymentData?.first_name || ""} {paymentData?.last_name || ""}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="yg-font-sans text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Reference</p>
+                      <p className="yg-font-sans text-[10px] font-bold text-gray-400 tracking-wider">
+                        {paymentData?.tx_ref || txRef}
+                      </p>
+                    </div>
+                  </div>
+                </div>
 
-            {/* stub */}
-            <div className="grid place-content-center p-0 payment-success-stub">
-              <div className="py-6 sm:py-0 sm:-rotate-90 w-full grid place-content-center gap-4">
-                <section className="w-full grid grid-cols-3 gap-x-2 px-4 payment-success-stub-header">
-                  <h2>PAY</h2>
-                  <div>
-                    <span className="payment-icon-stub">
-                      <FaCheckCircle className="text-cyan-400 text-2xl" />
-                    </span>
-                  </div>
-                  <h2>SUCCESS</h2>
-                  <p>Payment</p>
-                  <span></span>
-                  <p>Confirmed</p>
-                </section>
+                {/* Decorative element */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-[#E4E821]/10 to-transparent rounded-bl-full pointer-events-none" />
+              </div>
 
-                <section className="flex justify-between gap-2 sm:gap-4 font-thin text-xs sm:text-sm whitespace-nowrap payment-success-stub-details">
-                  <div>
-                    <h3>Amount</h3>
-                    <time>{paymentData ? `${formatAmount(getAmount())} ${paymentData.currency || 'ETB'}` : 'N/A'}</time>
-                  </div>
-                  <div>
-                    <h3>Date</h3>
-                    <time>{paymentData ? formatDate(paymentData.created_at) : formatDate()}</time>
-                  </div>
-                  <div>
-                    <h3>Time</h3>
-                    <time>{paymentData ? formatTime(paymentData.created_at) : formatTime()}</time>
-                  </div>
-                  <div>
-                    <h3>Qty</h3>
-                    <time>{ticketQuantity}</time>
-                  </div>
-                  <div>
-                    <h3>Ticket No.</h3>
-                    <time>{getShortTxRef(paymentData?.tx_ref || txRef)}</time>
-                  </div>
-                </section>
+              {/* Stub / QR Section */}
+              <div className="ticket-divider" />
+              <div className="bg-[#0F172A] p-10 md:p-14 flex flex-col items-center justify-center text-center">
+                <div className="mb-10 text-white">
+                  <h3 className="yg-font-serif text-3xl font-black mb-2">Ticket</h3>
+                  <div className="h-1 w-12 bg-gradient-to-r from-[#E4E821] to-[#FF6F5E] mx-auto rounded-full" />
+                </div>
 
-                {/* QR Code */}
-                {qrCodeData && (
-                  <div className="flex justify-center items-center p-2 sm:p-4 bg-white rounded">
-                    <Suspense fallback={<div className="w-[180px] h-[180px] flex items-center justify-center"><FaSpinner className="animate-spin" /></div>}>
+                {/* QR Code Container */}
+                <div className="p-6 bg-white rounded-3xl mb-10 shadow-2xl">
+                  {qrCodeData && (
+                    <Suspense fallback={<FaSpinner className="animate-spin text-[#0F172A]" />}>
                       <QRCode
                         value={qrCodeData}
-                        size={180}
-                        level="M"
-                        fgColor="#164E63"
-                        bgColor="#ffffff"
+                        size={170}
+                        level="Q"
+                        fgColor="#0F172A"
+                        bgColor="#FFFFFF"
                         className="max-w-full h-auto"
                       />
                     </Suspense>
-                  </div>
-                )}
+                  )}
+                </div>
+
+                <div className="text-white space-y-2">
+                  <p className="yg-font-sans text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Ticket Number</p>
+                  <p className="yg-font-serif text-2xl font-black text-[#E4E821] tracking-wider">
+                    {getShortTxRef(paymentData?.tx_ref || txRef)}
+                  </p>
+                </div>
+
+                <p className="mt-10 yg-font-sans text-[9px] text-gray-500 max-w-[200px] leading-relaxed">
+                  Present this QR code at the entrance for verification. Valid for {ticketQuantity} entries.
+                </p>
               </div>
             </div>
-          </main>
+          </div>
+
+          <div className="mt-12 flex flex-col items-center gap-6 text-center">
+            <p className="yg-font-sans text-sm text-gray-500 max-w-md">
+              Thank you for choosing YENEGE. A confirmation email has been sent to your inbox.
+            </p>
+            <div className="flex gap-4">
+              <Link to="/events" className="yg-btn-secondary">Back to Events</Link>
+              <Link to="/" className="yg-btn-secondary">Home</Link>
+            </div>
+          </div>
         </div>
       )}
 
       {verificationStatus === "failed" && (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-          <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center">
-            <div className="mx-auto text-5xl text-red-500 mb-4">✕</div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Payment Verification Failed</h1>
-            <p className="text-gray-600 mb-6">
-              We couldn't verify your payment. This might be because:
+        <div className="min-h-screen flex items-center justify-center px-4">
+          <div className="max-w-md w-full bg-white rounded-[32px] shadow-2xl p-12 text-center border border-gray-100">
+            <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-8">
+              <span className="text-4xl">✕</span>
+            </div>
+            <h1 className="yg-font-serif text-3xl font-black text-[#0F172A] mb-4">Verification Failed</h1>
+            <p className="yg-font-sans text-gray-500 mb-10">
+              We couldn't confirm your payment status. Please contact support with your reference number.
             </p>
-            <ul className="text-sm text-gray-600 mb-6 text-left list-disc list-inside space-y-1">
-              <li>The payment is still being processed</li>
-              <li>The transaction reference is invalid</li>
-              <li>There was an issue connecting to the payment provider</li>
-            </ul>
             
             {txRef && (
-              <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
-                <div className="text-sm">
-                  <div className="flex justify-between mb-2">
-                    <span className="text-gray-600">Transaction Reference:</span>
-                    <span className="font-semibold font-mono text-xs">{txRef}</span>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Please save this reference number and contact support if you have already made the payment.
-                  </p>
-                </div>
+              <div className="bg-gray-50 rounded-2xl p-6 mb-10 text-left border border-gray-100">
+                <p className="yg-font-sans text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Reference ID</p>
+                <p className="yg-font-sans text-xs font-mono font-bold text-[#0F172A] break-all">{txRef}</p>
               </div>
             )}
             
-            <div className="space-y-3">
+            <div className="flex flex-col gap-3">
               <button
-                onClick={() => {
-                  setRetryCount(0);
-                  setVerificationStatus("loading");
-                  // Trigger re-verification
-                  const verify = async () => {
-                    if (!txRef) return;
-                    try {
-                      const response = await verifyPayment(txRef);
-                      if (response.success && response.data) {
-                        const status = response.data.status?.toLowerCase();
-                        if (status === "success" || status === "successful" || status === "completed") {
-                          setVerificationStatus("success");
-                          setPaymentData(response.data);
-                        } else {
-                          setVerificationStatus("failed");
-                        }
-                      } else {
-                        setVerificationStatus("failed");
-                      }
-                    } catch (error) {
-                      setVerificationStatus("failed");
-                    }
-                  };
-                  verify();
-                }}
-                className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-all"
+                onClick={() => window.location.reload()}
+                className="yg-btn-download w-full justify-center"
               >
                 Retry Verification
               </button>
-              <Link
-                to="/contact"
-                className="block w-full bg-amber-600 text-white py-3 rounded-lg font-semibold hover:bg-amber-700 transition-all"
-              >
-                Contact Support
-              </Link>
-              <Link
-                to="/events"
-                className="block w-full border border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-all"
-              >
-                Back to Events
-              </Link>
+              <Link to="/contact" className="yg-btn-secondary w-full justify-center">Contact Support</Link>
             </div>
           </div>
         </div>

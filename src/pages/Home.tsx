@@ -107,7 +107,9 @@ const StatBadge = ({
 const Home = () => {
   useScrollReveal();
   const { content: homeContent } = useHomeContent();
-  const { events: featuredEvents } = useEvents({ featured: true, limit: 3 });
+  const { events: initialFeatured } = useEvents({ featured: true, limit: 3 });
+  const { events: recentEvents } = useEvents({ limit: 3 });
+  const featuredEvents = initialFeatured.length > 0 ? initialFeatured : recentEvents;
   const { contactInfo } = useContactInfo();
 
   const optimizedBgImages = useMemo(
@@ -1023,7 +1025,7 @@ const Home = () => {
                   marginBottom: "12px",
                 }}
               >
-                No featured events right now
+                No upcoming events right now
               </h3>
               <p
                 className="yg-font-sans"
@@ -1033,13 +1035,13 @@ const Home = () => {
                   marginBottom: "32px",
                 }}
               >
-                Check back soon—we're curating something special.
+                We're curating something special. Check back later!
               </p>
               <Link
                 to="/events"
                 className="yg-btn-primary yg-shine"
               >
-                Browse All Events <FaArrowRight size={12} />
+                Explore Portfolio <FaArrowRight size={12} />
               </Link>
             </div>
           )}
