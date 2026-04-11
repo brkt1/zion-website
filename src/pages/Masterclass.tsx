@@ -62,9 +62,37 @@ const Masterclass = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] font-sans">
+    <div className="min-h-screen bg-[#0F172A] font-sans">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Manrope:wght@300;400;500;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Manrope:wght@300;400;500;600;700;800&display=swap');
+
+        .noise-bk {
+          position: absolute;
+          inset: 0;
+          opacity: 0.2;
+          pointer-events: none;
+          background: linear-gradient(to bottom, transparent, #0F172A), 
+                      url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+          z-index: 1;
+        }
+
+        .sidebrand {
+          position: absolute;
+          right: 40px;
+          top: 50%;
+          transform: translateY(-50%) rotate(90deg);
+          transform-origin: right center;
+          font-family: 'Manrope', sans-serif;
+          font-size: 10px;
+          font-weight: 900;
+          letter-spacing: 1em;
+          color: rgba(255, 212, 71, 0.1);
+          text-transform: uppercase;
+          pointer-events: none;
+          z-index: 10;
+          white-space: nowrap;
+        }
+
         .font-serif { font-family: 'Playfair Display', serif; }
         .font-sans { font-family: 'Manrope', sans-serif; }
         
@@ -75,21 +103,22 @@ const Masterclass = () => {
         }
 
         .glass-card {
-          background: rgba(255, 255, 255, 0.7);
-          backdrop-filter: blur(20px);
-          border: 1px solid rgba(255, 255, 255, 1);
-          box-shadow: 0 20px 60px -10px rgba(0, 0, 0, 0.05);
+           background: rgba(255,255,255,0.02);
+           border: 1px solid rgba(255,255,255,0.08);
+           backdrop-filter: blur(20px);
+           box-shadow: 0 20px 60px -10px rgba(0, 0, 0, 0.3);
         }
         
         .glow-button {
-          background: ${GRADIENT.brand};
-          color: ${BRAND.navy};
+          background: ${BRAND.gold};
+          color: ${BRAND.primary};
           transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .glow-button:hover {
           transform: translateY(-2px);
-          box-shadow: 0 15px 30px rgba(255, 111, 94, 0.3);
+          box-shadow: 0 15px 30px rgba(255, 212, 71, 0.3);
+          filter: brightness(1.1);
         }
 
         @keyframes float {
@@ -101,10 +130,37 @@ const Masterclass = () => {
         .float-animation {
           animation: float 6s ease-in-out infinite;
         }
+
+        @media (max-width: 768px) {
+          .sidebrand { display: none; }
+        }
       `}</style>
 
       {/* Minimalist Premium Hero */}
-      <section className="relative pt-24 pb-16 md:pt-48 md:pb-40 bg-white overflow-hidden">
+      <section className="relative pt-24 pb-16 md:pt-48 md:pb-40 bg-[#0F172A] overflow-hidden">
+        {/* Creative Layers */}
+        <div 
+          style={{ 
+            position: 'absolute', 
+            top: '50%', 
+            left: '50%', 
+            transform: 'translate(-50%, -50%)',
+            fontSize: 'max(25vw, 400px)',
+            fontWeight: 900,
+            fontFamily: "'Playfair Display', serif",
+            color: 'rgba(255, 212, 71, 0.02)', 
+            whiteSpace: 'nowrap',
+            pointerEvents: 'none',
+            zIndex: 0,
+            userSelect: 'none'
+          }}
+        >
+          ACADEMY
+        </div>
+        <div className="noise-bk" />
+        <div className="sidebrand">ZION ACADEMY 2024</div>
+        <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '40%', height: '40%', background: 'radial-gradient(circle, rgba(255,212,71,0.05) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none', zIndex: 1 }} />
+
         <div className="container mx-auto px-6 text-center">
           <div className="max-w-5xl mx-auto space-y-8 md:space-y-12">
             <div className="flex flex-col items-center">
@@ -114,12 +170,12 @@ const Masterclass = () => {
               <div className="h-px w-8 md:w-12 bg-amber-500/30" />
             </div>
 
-            <h1 className="font-serif text-4xl sm:text-6xl md:text-8xl lg:text-9xl text-slate-900 tracking-tighter leading-[0.95] md:leading-[0.9] mb-8 md:mb-12">
+            <h1 className="font-serif text-4xl sm:text-6xl md:text-8xl lg:text-9xl text-white tracking-tighter leading-[0.95] md:leading-[0.9] mb-8 md:mb-12">
               Master Event Planning <br />
               <span className="italic text-gold-gradient">& Launch Your Own Expo</span>
             </h1>
 
-            <p className="text-lg md:text-2xl text-slate-400 font-light leading-relaxed max-w-3xl mx-auto mb-10 md:mb-16">
+            <p className="text-lg md:text-2xl text-white/40 font-light leading-relaxed max-w-3xl mx-auto mb-10 md:mb-16">
               Learn how to design, plan, and legally launch professional events. <br className="hidden md:block" />
               From idea to execution, turn your vision into a real-world experience.
             </p>
@@ -127,17 +183,17 @@ const Masterclass = () => {
             <div className="flex flex-col items-center gap-6 md:gap-8">
               <Link
                 to="/masterclass-registration" 
-                className="group relative inline-flex items-center justify-center w-full sm:w-auto px-10 md:px-16 py-5 md:py-6 overflow-hidden rounded-full border border-slate-900 transition-all duration-500 hover:bg-slate-900"
+                className="group relative inline-flex items-center justify-center w-full sm:w-auto px-10 md:px-16 py-5 md:py-6 overflow-hidden rounded-full border border-white/20 transition-all duration-500 hover:bg-white"
               >
-                <span className="relative z-10 text-slate-900 font-black text-[10px] md:text-xs tracking-[0.2em] md:tracking-[0.3em] uppercase group-hover:text-white transition-colors duration-500">
+                <span className="relative z-10 text-white font-black text-[10px] md:text-xs tracking-[0.2em] md:tracking-[0.3em] uppercase group-hover:text-[#0F172A] transition-colors duration-500">
                   Register for the Program
                 </span>
-                <div className="absolute inset-0 bg-slate-900 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+                <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
               </Link>
 
               <div className="flex items-center gap-4">
-                <div className="w-1 md:w-1.5 h-1 md:h-1.5 rounded-full bg-[#FFD447]" />
-                <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-slate-400">
+                <div className="w-1 md:w-1.5 h-1 md:h-1.5 rounded-full bg-[#E4E821]" />
+                <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-white/20">
                   Limited Enrollment
                 </span>
               </div>
@@ -158,30 +214,31 @@ const Masterclass = () => {
       </section>
 
       {/* Intro Text Section */}
-      <section className="py-24 bg-white">
-        <div className="container mx-auto px-6">
+      <section className="py-24 bg-[#0F172A] relative overflow-hidden">
+        <div className="noise-bk" />
+        <div className="container mx-auto px-6 relative z-10">
           <div className="max-w-4xl mx-auto">
             <div className="grid md:grid-cols-2 gap-16 items-start">
               <div className="space-y-8">
-                <h2 className="font-serif text-4xl md:text-5xl text-slate-900 leading-tight">
+                <h2 className="font-serif text-4xl md:text-5xl text-white leading-tight">
                   From Idea to <span className="italic">Execution.</span>
                 </h2>
-                <p className="text-lg text-slate-500 leading-relaxed font-light">
+                <p className="text-lg text-white/40 leading-relaxed font-light">
                   Events bring people together, create opportunities, and drive innovation. From business expos and conferences to festivals and networking events, successful events require careful planning, creative ideas, and strong coordination.
                 </p>
-                <div className="h-1 w-20 bg-gold-gradient rounded-full" />
+                <div className="h-1 w-20 bg-[#E4E821] rounded-full" />
               </div>
               <div className="space-y-8 pt-4">
-                <p className="text-lg text-slate-500 leading-relaxed font-light">
+                <p className="text-lg text-white/40 leading-relaxed font-light">
                   This program teaches you how professional event planners create successful events from idea to execution. More importantly, you will design your own event or expo during the course, giving you real-world experience in event planning and management.
                 </p>
-                <div className="p-8 rounded-3xl bg-slate-50 border border-slate-100 flex items-center gap-6">
-                  <div className="w-16 h-16 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-3xl shadow-sm text-amber-500">
+                <div className="p-8 rounded-3xl bg-white/5 border border-white/10 flex items-center gap-6">
+                  <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-3xl shadow-sm text-[#E4E821]">
                     <FaRocket />
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-900 text-lg">Hands-on Experience</h4>
-                    <p className="text-sm text-slate-500">Apply everything you learn to your own project.</p>
+                    <h4 className="font-bold text-white text-lg">Hands-on Experience</h4>
+                    <p className="text-sm text-white/40">Apply everything you learn to your own project.</p>
                   </div>
                 </div>
               </div>
@@ -191,12 +248,12 @@ const Masterclass = () => {
       </section>
 
       {/* Why Join Section */}
-      <section className="py-32 relative overflow-hidden bg-[#01211C]">
+      <section className="py-32 relative overflow-hidden bg-[#0F172A]">
         <div className="container mx-auto px-6 relative z-10">
           <div className="max-w-6xl mx-auto">
             <div className="flex flex-col lg:flex-row gap-20 items-center">
               <div className="flex-1 space-y-10 text-white">
-                <div className="inline-block px-5 py-2 rounded-full bg-white/5 border border-white/10 text-[#FFD447] font-black text-[10px] uppercase tracking-[0.3em]">
+                <div className="inline-block px-5 py-2 rounded-full bg-white/5 border border-white/10 text-[#E4E821] font-black text-[10px] uppercase tracking-[0.3em]">
                   Program Benefits
                 </div>
                 <h2 className="font-serif text-5xl md:text-7xl leading-tight">
@@ -243,10 +300,10 @@ const Masterclass = () => {
                     </div>
                   </div>
                   {/* Floating badge */}
-                  <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#FFD447] rounded-full flex flex-col items-center justify-center text-center p-6 shadow-2xl float-animation">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-[#01211C] mb-1">Success Rate</span>
-                    <span className="text-3xl font-black text-[#01211C]">100%</span>
-                    <span className="text-[8px] font-bold text-[#01211C]/60 uppercase tracking-tighter mt-1">Completion Goal</span>
+                  <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#E4E821] rounded-full flex flex-col items-center justify-center text-center p-6 shadow-2xl float-animation">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-[#0F172A] mb-1">Success Rate</span>
+                    <span className="text-3xl font-black text-[#0F172A]">100%</span>
+                    <span className="text-[8px] font-bold text-[#0F172A]/60 uppercase tracking-tighter mt-1">Completion Goal</span>
                   </div>
                 </div>
               </div>
@@ -256,23 +313,40 @@ const Masterclass = () => {
       </section>
 
       {/* Modules Grid Section */}
-      <section className="py-20 md:py-32 bg-white relative overflow-hidden">
-        {/* Background Accents */}
-        <div className="absolute top-0 right-0 w-full md:w-1/2 h-full bg-gradient-to-l from-slate-50 to-transparent pointer-events-none" />
-        <div className="absolute top-1/2 left-0 w-48 md:w-64 h-48 md:h-64 bg-amber-100/30 rounded-full blur-[60px] md:blur-[100px] pointer-events-none" />
+      <section className="py-20 md:py-32 bg-[#0F172A] relative overflow-hidden">
+        <div className="noise-bk" />
+        <div 
+          style={{ 
+            position: 'absolute', 
+            top: '50%', 
+            left: '50%', 
+            transform: 'translate(-50%, -50%) rotate(-5deg)',
+            fontSize: 'max(20vw, 300px)',
+            fontWeight: 900,
+            fontFamily: "'Playfair Display', serif",
+            color: 'rgba(255, 212, 71, 0.01)', 
+            whiteSpace: 'nowrap',
+            pointerEvents: 'none',
+            zIndex: 0,
+            userSelect: 'none'
+          }}
+        >
+          CURRICULUM
+        </div>
+        <div style={{ position: 'absolute', bottom: '-10%', right: '-10%', width: '50%', height: '50%', background: 'radial-gradient(circle, rgba(228,232,33,0.05) 0%, transparent 70%)', filter: 'blur(100px)', pointerEvents: 'none', zIndex: 1 }} />
 
         <div className="container mx-auto px-6 relative z-10">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16 md:mb-24">
             <div className="max-w-3xl">
-              <div className="inline-flex items-center gap-4 px-5 py-2 rounded-full bg-white shadow-xl shadow-slate-200/50 border border-slate-100 mb-8">
-                 <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                 <span className="text-slate-900 font-black tracking-[0.3em] md:tracking-[0.4em] text-[8px] md:text-[10px] uppercase">Curriculum Roadmap</span>
+              <div className="inline-flex items-center gap-4 px-5 py-2 rounded-full bg-white/5 border border-white/10 mb-8">
+                 <div className="w-2 h-2 rounded-full bg-[#E4E821] animate-pulse" />
+                 <span className="text-white font-black tracking-[0.3em] md:tracking-[0.4em] text-[8px] md:text-[10px] uppercase">Curriculum Roadmap</span>
               </div>
-              <h2 className="font-serif text-5xl md:text-8xl text-slate-900 tracking-tighter leading-[1.1] md:leading-[0.85] mb-6">
+              <h2 className="font-serif text-5xl md:text-8xl text-white tracking-tighter leading-[1.1] md:leading-[0.85] mb-6">
                 What You <br /><span className="italic text-gold-gradient">Will Master.</span>
               </h2>
             </div>
-            <p className="text-slate-500 text-lg md:text-xl font-light max-w-sm leading-relaxed md:text-right md:border-r-2 md:border-amber-500/20 md:pr-8 md:mb-4">
+            <p className="text-white/40 text-lg md:text-xl font-light max-w-sm leading-relaxed md:text-right md:border-r-2 md:border-[#E4E821]/20 md:pr-8 md:mb-4">
               A comprehensive system designed to build your expertise through nine intensive modules.
             </p>
           </div>
@@ -281,23 +355,23 @@ const Masterclass = () => {
             {learningModules.map((module, i) => (
               <div 
                 key={i} 
-                className="group relative p-10 rounded-[3rem] bg-white border border-slate-100 transition-all duration-700 hover:shadow-[0_40px_100px_-20px_rgba(255,111,94,0.15)] hover:-translate-y-4 hover:border-amber-200"
+                className="group relative p-10 rounded-[3rem] bg-white/5 border border-white/10 transition-all duration-700 hover:shadow-[0_40px_100px_-20px_rgba(255,212,71,0.2)] hover:-translate-y-4 hover:border-[#E4E821]"
               >
                 {/* Number Watermark */}
-                <div className="absolute top-10 right-10 font-serif italic text-6xl text-slate-50 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-700">
+                <div className="absolute top-10 right-10 font-serif italic text-6xl text-white opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-700">
                   {i + 1}
                 </div>
                 
                 <div className="relative space-y-10">
-                  <div className={`w-20 h-20 rounded-3xl ${module.color} flex items-center justify-center text-3xl shadow-2xl transition-all duration-700 group-hover:rotate-[10deg] group-hover:scale-110`}>
+                  <div className={`w-20 h-20 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center text-3xl shadow-2xl transition-all duration-700 group-hover:rotate-[10deg] group-hover:scale-110 text-[#E4E821]`}>
                     {module.icon}
                   </div>
                   
                   <div className="space-y-6">
-                    <h3 className="text-2xl font-bold text-slate-900 tracking-tight leading-tight group-hover:text-amber-600 transition-colors">
+                    <h3 className="text-2xl font-bold text-white tracking-tight leading-tight group-hover:text-[#E4E821] transition-colors">
                       {module.title}
                     </h3>
-                    <p className="text-slate-500 leading-relaxed font-light text-base md:text-lg">
+                    <p className="text-white/40 leading-relaxed font-light text-base md:text-lg">
                       {module.description}
                     </p>
                   </div>
@@ -314,7 +388,7 @@ const Masterclass = () => {
       </section>
 
       {/* The "Total Outcome" Mega Section */}
-      <section className="py-24 bg-[#01211C] text-white relative overflow-hidden">
+      <section className="py-24 bg-[#0F172A] text-white relative overflow-hidden">
         <div className="container mx-auto px-6">
           <div className="flex flex-col lg:flex-row gap-16 items-stretch">
             {/* Project Box */}
@@ -341,7 +415,7 @@ const Masterclass = () => {
                   ))}
                 </div>
               </div>
-              <div className="mt-12 group relative rounded-[2rem] overflow-hidden aspect-[16/7]">
+              <div className="mt-12 group relative rounded-[2rem] overflow-hidden aspect-[16/7] border border-white/10">
                   <OptimizedImage 
                     src="https://images.unsplash.com/photo-1540575861501-7ad05823c9f5?q=80&w=800&auto=format&fit=crop" 
                     alt="Success" 
@@ -356,7 +430,7 @@ const Masterclass = () => {
 
             {/* Legal / Benefit Box */}
             <div className="lg:w-5/12 flex flex-col gap-6">
-               <div className="flex-1 bg-[#FFD447] rounded-[3rem] p-10 md:p-12 text-[#01211C] relative overflow-hidden group">
+               <div className="flex-1 bg-[#E4E821] rounded-[3rem] p-10 md:p-12 text-[#0F172A] relative overflow-hidden group">
                   <div className="relative z-10">
                     <FaGavel className="text-4xl mb-6 opacity-40" />
                     <h3 className="text-3xl font-black mb-4 tracking-tight">Legal Launch.</h3>
@@ -364,16 +438,16 @@ const Masterclass = () => {
                        We help you legally license and launch your event. This isn't just theory—it's birth.
                     </p>
                   </div>
-                  <FaRocket className="absolute -bottom-4 -right-4 text-[120px] opacity-10 -rotate-12 transition-transform group-hover:translate-x-4 group-hover:-translate-y-4" />
+                   <FaRocket className="absolute -bottom-4 -right-4 text-[120px] opacity-10 -rotate-12 transition-transform group-hover:translate-x-4 group-hover:-translate-y-4" />
                </div>
                
-               <div className="flex-1 bg-white p-10 md:p-12 rounded-[3rem] text-slate-900 relative">
+               <div className="flex-1 bg-white/5 border border-white/10 p-10 md:p-12 rounded-[3rem] text-white relative">
                   <h3 className="text-2xl font-black mb-6">Why Us?</h3>
                   <div className="space-y-4">
                     {["Hands-on learning", "Industry licensing", "Global network"].map((item, i) => (
-                      <div key={i} className="flex items-center justify-between border-b border-slate-100 pb-2">
-                         <span className="font-bold uppercase text-[10px] tracking-widest text-slate-400">{item}</span>
-                         <FaArrowRight className="text-amber-500" />
+                      <div key={i} className="flex items-center justify-between border-b border-white/5 pb-2">
+                         <span className="font-bold uppercase text-[10px] tracking-widest text-white/40">{item}</span>
+                         <FaArrowRight className="text-[#E4E821]" />
                       </div>
                     ))}
                   </div>
@@ -387,11 +461,12 @@ const Masterclass = () => {
       </section>
 
       {/* Target Audience Section */}
-      <section className="py-20 md:py-24 bg-slate-50">
-        <div className="container mx-auto px-6">
+      <section className="py-20 md:py-24 bg-[#0F172A] relative overflow-hidden">
+        <div className="noise-bk" />
+        <div className="container mx-auto px-6 relative z-10">
           <div className="text-center max-w-2xl mx-auto mb-16 md:mb-20">
-            <h2 className="font-serif text-4xl md:text-6xl text-slate-900 mb-6 tracking-tight">Who This Program <span className="italic">Is For</span></h2>
-            <div className="h-1 w-20 bg-amber-500 mx-auto" />
+            <h2 className="font-serif text-4xl md:text-6xl text-white mb-6 tracking-tight">Who This Program <span className="italic">Is For</span></h2>
+            <div className="h-1 w-20 bg-[#E4E821] mx-auto" />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10 max-w-6xl mx-auto">
@@ -403,10 +478,10 @@ const Masterclass = () => {
               { title: "Community Leaders", text: "Organizers planning impactful public or social events." },
               { title: "Career Changers", text: "Anyone passionate about event planning looking for a professional start." }
             ].map((card, i) => (
-              <div key={i} className="bg-white p-8 md:p-10 rounded-[2rem] md:rounded-[2.5rem] shadow-sm border border-slate-100 transition-all hover:shadow-xl group">
-                <div className="w-12 h-1 mr-auto mb-6 bg-slate-100 group-hover:bg-gold-gradient transition-all group-hover:w-20 rounded-full" />
-                <h4 className="font-bold text-slate-900 mb-4 text-xl tracking-tight">{card.title}</h4>
-                <p className="text-slate-500 text-sm font-light leading-relaxed">{card.text}</p>
+              <div key={i} className="bg-white/5 p-8 md:p-10 rounded-[2rem] md:rounded-[2.5rem] shadow-sm border border-white/10 transition-all hover:shadow-xl group">
+                <div className="w-12 h-1 mr-auto mb-6 bg-white/10 group-hover:bg-[#E4E821] transition-all group-hover:w-20 rounded-full" />
+                <h4 className="font-bold text-white mb-4 text-xl tracking-tight">{card.title}</h4>
+                <p className="text-white/40 text-sm font-light leading-relaxed">{card.text}</p>
               </div>
             ))}
           </div>
@@ -414,30 +489,31 @@ const Masterclass = () => {
       </section>
 
       {/* Final CTA Section */}
-      <section className="py-24 md:py-32 bg-white relative overflow-hidden">
+      <section className="py-24 md:py-32 bg-[#0F172A] relative overflow-hidden">
+        <div className="noise-bk" />
         <div className="container mx-auto px-6 text-center">
           <div className="max-w-4xl mx-auto space-y-10 md:space-y-12 relative z-10">
-            <div className="w-16 md:w-20 h-16 md:h-20 bg-gold-gradient rounded-2xl md:rounded-3xl mx-auto flex items-center justify-center text-slate-900 text-2xl md:text-3xl shadow-xl shadow-amber-500/20 mb-8 md:mb-12">
+            <div className="w-16 md:w-20 h-16 md:h-20 bg-[#E4E821] rounded-2xl md:rounded-3xl mx-auto flex items-center justify-center text-[#0F172A] text-2xl md:text-3xl shadow-xl shadow-amber-500/20 mb-8 md:mb-12">
               <FaGraduationCap />
             </div>
-            <h2 className="font-serif text-4xl sm:text-6xl md:text-8xl text-slate-900 tracking-tighter leading-tight mb-8">
+            <h2 className="font-serif text-4xl sm:text-6xl md:text-8xl text-white tracking-tighter leading-tight mb-8">
               Start Your Event <br /><span className="italic text-gold-gradient">Planning Journey.</span>
             </h2>
-            <p className="text-lg md:text-2xl text-slate-500 font-light leading-relaxed max-w-2xl mx-auto">
+            <p className="text-lg md:text-2xl text-white/40 font-light leading-relaxed max-w-2xl mx-auto">
               If you want to gain practical event management skills and learn how to launch professional events, this program is the perfect place to begin.
             </p>
             
             <div className="pt-8">
               <Link 
                 to="/masterclass-registration" 
-                className="group relative inline-flex items-center justify-center w-full sm:w-auto px-10 md:px-16 py-5 md:py-7 overflow-hidden rounded-full border border-slate-900 transition-all duration-500 hover:bg-slate-900"
+                className="group relative inline-flex items-center justify-center w-full sm:w-auto px-10 md:px-16 py-5 md:py-7 overflow-hidden rounded-full border border-white/20 transition-all duration-500 hover:bg-white"
               >
-                <span className="relative z-10 text-slate-900 font-black text-[10px] md:text-sm tracking-[0.2em] md:tracking-[0.3em] uppercase group-hover:text-white transition-colors duration-500">
+                <span className="relative z-10 text-white font-black text-[10px] md:text-sm tracking-[0.2em] md:tracking-[0.3em] uppercase group-hover:text-[#0F172A] transition-colors duration-500">
                   Register for the Program <FaArrowRight className="inline-block ml-2 group-hover:translate-x-1 transition-transform" />
                 </span>
-                <div className="absolute inset-0 bg-slate-900 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+                <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
               </Link>
-              <p className="mt-8 text-slate-400 text-[8px] md:text-xs font-black uppercase tracking-[0.4em]">Launch Your Vision Today</p>
+              <p className="mt-8 text-white/20 text-[8px] md:text-xs font-black uppercase tracking-[0.4em]">Launch Your Vision Today</p>
             </div>
           </div>
           
@@ -448,14 +524,14 @@ const Masterclass = () => {
       </section>
       
       {/* Scroll to top nudge */}
-      <div className="pb-12 text-center bg-white">
+      <div className="pb-12 text-center bg-[#0F172A]">
         <button 
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="text-slate-300 hover:text-amber-500 transition-colors text-[10px] font-black uppercase tracking-widest flex items-center gap-4 mx-auto"
+          className="text-white/20 hover:text-[#E4E821] transition-colors text-[10px] font-black uppercase tracking-widest flex items-center gap-4 mx-auto"
         >
-          <div className="h-px w-8 bg-slate-100" />
+          <div className="h-px w-8 bg-white/5" />
           Back to Top
-          <div className="h-px w-8 bg-slate-100" />
+          <div className="h-px w-8 bg-white/5" />
         </button>
       </div>
     </div>

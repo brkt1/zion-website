@@ -136,7 +136,7 @@ const TicketScanners = () => {
       <AdminLayout>
         <div className="min-h-screen flex items-center justify-center bg-[#f8f9fa]">
           <div className="text-center">
-            <div className="w-16 h-16 border-4 border-[#FFD447] border-t-[#FF6F5E] rounded-full animate-spin mx-auto mb-6 shadow-lg shadow-[#FFD447]/20"></div>
+            <div className="w-16 h-16 border-4 border-[#E4E821] border-t-[#FF6F5E] rounded-full animate-spin mx-auto mb-6 shadow-lg shadow-[#E4E821]/20"></div>
             <p className="text-[#1C2951] font-bold tracking-tight">Loading Scanners Hub...</p>
           </div>
         </div>
@@ -168,7 +168,7 @@ const TicketScanners = () => {
           <div className="flex-1">
             <div className="flex items-center gap-4 mb-2">
               <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#1C2951] to-[#2A3F75] flex items-center justify-center shadow-lg shadow-[#1C2951]/20">
-                <FaUserShield className="text-[#FFD447]" size={24} />
+                <FaUserShield className="text-[#E4E821]" size={24} />
               </div>
               <div>
                 <h2 className="text-3xl font-black text-[#1C2951] tracking-tight">Scanner Registry</h2>
@@ -186,7 +186,7 @@ const TicketScanners = () => {
                   placeholder="Search by name, email..." 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-100 rounded-2xl focus:ring-4 focus:ring-[#FFD447]/10 focus:border-[#FFD447] outline-none transition-all font-bold text-gray-700 shadow-sm"
+                  className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-100 rounded-2xl focus:ring-4 focus:ring-[#E4E821]/10 focus:border-[#E4E821] outline-none transition-all font-bold text-gray-700 shadow-sm"
                 />
               </div>
 
@@ -197,7 +197,7 @@ const TicketScanners = () => {
                 setShowModal(true);
               }}
               className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl text-white font-black text-sm tracking-tight transition-all shadow-xl shadow-[#FF6F5E]/20 hover:shadow-2xl hover:shadow-[#FF6F5E]/30 hover:-translate-y-0.5 active:translate-y-0 scale-100 hover:scale-[1.02] active:scale-[0.98]"
-              style={{ background: 'linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)' }}
+              style={{ background: 'linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%)' }}
             >
               <FaPlus />
               <span>Register New Scanner</span>
@@ -228,7 +228,7 @@ const TicketScanners = () => {
               <button
                 onClick={() => setShowModal(true)}
                 className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl text-white font-black text-sm transition-all shadow-xl shadow-[#FF6F5E]/20 hover:shadow-2xl hover:shadow-[#FF6F5E]/30 hover:scale-105 active:scale-95"
-                style={{ background: 'linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)' }}
+                style={{ background: 'linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%)' }}
               >
                 <FaPlus />
                 <span>Initialize First Scanner</span>
@@ -240,7 +240,7 @@ const TicketScanners = () => {
             {filteredScanners.map((scanner) => (
               <div 
                 key={scanner.id} 
-                className="group bg-white rounded-[32px] p-6 shadow-xl shadow-gray-200/30 border border-gray-50 hover:border-[#FFD447]/50 hover:shadow-2xl hover:shadow-[#FFD447]/10 transition-all duration-500 relative flex flex-col"
+                className="group bg-white rounded-[32px] p-6 shadow-xl shadow-gray-200/30 border border-gray-50 hover:border-[#E4E821]/50 hover:shadow-2xl hover:shadow-[#E4E821]/10 transition-all duration-500 relative flex flex-col"
               >
                 {/* Active/Inactive Status Badge */}
                 <div className="absolute top-6 right-6">
@@ -266,7 +266,7 @@ const TicketScanners = () => {
                       <div className="w-16 h-16 rounded-[22px] bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-100 transform -rotate-6 group-hover:rotate-0 transition-transform duration-500">
                         <span className="text-white text-2xl font-black">{scanner.name.charAt(0)}</span>
                       </div>
-                      <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-xl bg-[#FFD447] flex items-center justify-center shadow-md border-2 border-white">
+                      <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-xl bg-[#E4E821] flex items-center justify-center shadow-md border-2 border-white">
                         <FaQrcode className="text-[#1C2951]" size={10} />
                       </div>
                    </div>
@@ -299,7 +299,7 @@ const TicketScanners = () => {
                   {scanner.notes && (
                     <div className="mt-4 p-4 rounded-2xl bg-[#f8f9fa] border border-gray-100 border-dashed">
                        <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#1C2951] mb-1">
-                        <FaStickyNote className="text-[#FFD447]" size={10} /> Notes
+                        <FaStickyNote className="text-[#E4E821]" size={10} /> Notes
                       </span>
                       <p className="text-xs text-gray-500 font-medium line-clamp-2">{scanner.notes}</p>
                     </div>
@@ -341,7 +341,7 @@ const TicketScanners = () => {
             />
             
             <div className="relative bg-white rounded-[48px] shadow-2xl shadow-black/20 w-full max-w-xl max-h-[90vh] overflow-hidden transform transition-all duration-500 scale-100 animate-in fade-in zoom-in-95">
-              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#FFD447] to-[#FF6F5E]" />
+              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#E4E821] to-[#FF6F5E]" />
               
               <div className="p-8 sm:p-12 overflow-y-auto max-h-[calc(90vh-10px)] scrollbar-hide">
                 <div className="flex items-center justify-between mb-10">
@@ -375,7 +375,7 @@ const TicketScanners = () => {
                         placeholder="e.g. Front Gate Scanner"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full px-6 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-[#FFD447] focus:ring-4 focus:ring-[#FFD447]/10 outline-none transition-all font-bold text-gray-700 placeholder:text-gray-300"
+                        className="w-full px-6 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-[#E4E821] focus:ring-4 focus:ring-[#E4E821]/10 outline-none transition-all font-bold text-gray-700 placeholder:text-gray-300"
                       />
                     </div>
 
@@ -389,7 +389,7 @@ const TicketScanners = () => {
                         placeholder="scanner@example.com"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="w-full px-6 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-[#FFD447] focus:ring-4 focus:ring-[#FFD447]/10 outline-none transition-all font-bold text-gray-700 placeholder:text-gray-300"
+                        className="w-full px-6 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-[#E4E821] focus:ring-4 focus:ring-[#E4E821]/10 outline-none transition-all font-bold text-gray-700 placeholder:text-gray-300"
                       />
                     </div>
 
@@ -402,7 +402,7 @@ const TicketScanners = () => {
                         placeholder="+251 9..."
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className="w-full px-6 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-[#FFD447] focus:ring-4 focus:ring-[#FFD447]/10 outline-none transition-all font-bold text-gray-700 placeholder:text-gray-300"
+                        className="w-full px-6 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-[#E4E821] focus:ring-4 focus:ring-[#E4E821]/10 outline-none transition-all font-bold text-gray-700 placeholder:text-gray-300"
                       />
                     </div>
                   </div>
@@ -416,7 +416,7 @@ const TicketScanners = () => {
                       onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                       placeholder="Permissions, locations, or special instructions..."
                       rows={4}
-                      className="w-full px-6 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-[#FFD447] focus:ring-4 focus:ring-[#FFD447]/10 outline-none transition-all font-bold text-gray-700 placeholder:text-gray-300 resize-none"
+                      className="w-full px-6 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-[#E4E821] focus:ring-4 focus:ring-[#E4E821]/10 outline-none transition-all font-bold text-gray-700 placeholder:text-gray-300 resize-none"
                     />
                   </div>
 
@@ -434,7 +434,7 @@ const TicketScanners = () => {
                     <button
                       type="submit"
                       className="flex-1 py-5 rounded-[22px] text-white font-black text-sm tracking-widest uppercase transition-all shadow-xl shadow-[#FF6F5E]/20 hover:shadow-2xl hover:shadow-[#FF6F5E]/30 hover:-translate-y-1 active:translate-y-0"
-                      style={{ background: 'linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)' }}
+                      style={{ background: 'linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%)' }}
                     >
                       {editingScanner ? 'Commit Changes' : 'Complete Enrollment'}
                     </button>

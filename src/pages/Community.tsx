@@ -14,6 +14,7 @@ import { useScrollReveal } from "../hooks/useScrollReveal";
 
 /* ─── Shared design tokens ─────────────────────────────────────────────────── */
 const BRAND = {
+  primary: "#0F172A",
   navy: "#0F172A",
   navyLight: "#1E293B",
   gold: "#E4E821",
@@ -74,25 +75,54 @@ const Community = () => {
   const telegramLink = "https://t.me/yenegeevents"; // Updated to the correct public link
 
   return (
-    <div style={{ minHeight: "100vh", background: BRAND.white }}>
+    <div style={{ minHeight: "100vh", background: BRAND.primary }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Manrope:wght@300;400;500;600;700;800&display=swap');
 
         .yg-font-serif { font-family: 'Playfair Display', Georgia, serif; }
         .yg-font-sans  { font-family: 'Manrope', system-ui, sans-serif; }
 
+        .noise-bk {
+          position: absolute;
+          inset: 0;
+          opacity: 0.2;
+          pointer-events: none;
+          background: linear-gradient(to bottom, transparent, #0F172A), 
+                      url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+          z-index: 1;
+        }
+
+        .sidebrand {
+          position: absolute;
+          right: 40px;
+          top: 50%;
+          transform: translateY(-50%) rotate(90deg);
+          transform-origin: right center;
+          font-family: 'Manrope', sans-serif;
+          font-size: 10px;
+          font-weight: 900;
+          letter-spacing: 1em;
+          color: rgba(255, 212, 71, 0.1);
+          text-transform: uppercase;
+          pointer-events: none;
+          z-index: 10;
+          white-space: nowrap;
+        }
+
         .yg-feature-card {
-           background: #fff;
-           border: 1px solid rgba(0,0,0,0.06);
+           background: rgba(255,255,255,0.03);
+           border: 1px solid rgba(255,255,255,0.08);
            border-radius: 32px;
            padding: 48px;
            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
            height: 100%;
+           backdrop-filter: blur(10px);
         }
         .yg-feature-card:hover {
            transform: translateY(-8px);
-           box-shadow: 0 32px 80px -16px rgba(15, 23, 42, 0.12);
-           border-color: ${BRAND.gold}44;
+           box-shadow: 0 32px 80px -16px rgba(0, 0, 0, 0.3);
+           border-color: ${BRAND.gold};
+           background: rgba(255,255,255,0.06);
         }
 
         .yg-btn-primary {
@@ -101,8 +131,8 @@ const Community = () => {
           gap: 10px;
           padding: 16px 36px;
           border-radius: 999px;
-          background: ${BRAND.navy};
-          color: #fff;
+          background: ${BRAND.gold};
+          color: ${BRAND.primary};
           font-family: 'Manrope', sans-serif;
           font-weight: 800;
           font-size: 13px;
@@ -112,9 +142,9 @@ const Community = () => {
           transition: all 0.25s;
         }
         .yg-btn-primary:hover {
-          background: ${BRAND.coral};
+          filter: brightness(1.1);
           transform: translateY(-2px);
-          box-shadow: 0 12px 30px rgba(255,111,94,0.3);
+          box-shadow: 0 12px 30px rgba(255,212,71,0.2);
         }
 
         .yg-btn-outline {
@@ -123,8 +153,8 @@ const Community = () => {
           gap: 10px;
           padding: 16px 36px;
           border-radius: 999px;
-          border: 2px solid ${BRAND.navy};
-          color: ${BRAND.navy};
+          border: 1px solid rgba(255,255,255,0.2);
+          color: BRAND.white;
           font-family: 'Manrope', sans-serif;
           font-weight: 800;
           font-size: 13px;
@@ -134,11 +164,13 @@ const Community = () => {
           transition: all 0.25s;
         }
         .yg-btn-outline:hover {
-          background: ${BRAND.gray100};
+          background: rgba(255,255,255,0.05);
+          border-color: #fff;
         }
 
         @media (max-width: 768px) {
           .yg-grid-mobile { grid-template-columns: 1fr !important; gap: 24px !important; }
+          .sidebrand { display: none; }
         }
       `}</style>
 
@@ -148,23 +180,35 @@ const Community = () => {
           padding: "180px 0 100px",
           position: "relative",
           overflow: "hidden",
-          background: BRAND.white,
+          background: BRAND.primary,
         }}
       >
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            top: "-10%",
-            right: "-5%",
-            width: "50%",
-            height: "100%",
-            background: "radial-gradient(circle, rgba(228,232,33,0.08) 0%, transparent 70%)",
-            filter: "blur(80px)",
+        {/* Creative Layers */}
+        <div 
+          style={{ 
+            position: 'absolute', 
+            top: '50%', 
+            left: '50%', 
+            transform: 'translate(-50%, -50%)',
+            fontSize: 'max(25vw, 400px)',
+            fontWeight: 900,
+            fontFamily: "'Playfair Display', serif",
+            color: 'rgba(255, 212, 71, 0.02)', 
+            whiteSpace: 'nowrap',
+            pointerEvents: 'none',
+            zIndex: 0,
+            userSelect: 'none'
           }}
-        />
+        >
+          COMMUNITY
+        </div>
+        <div className="noise-bk" />
+        <div className="sidebrand">ZION ECOSYSTEM 2024</div>
+        <div style={{ position: 'absolute', bottom: '-10%', right: '-10%', width: '50%', height: '50%', background: 'radial-gradient(circle, rgba(251,111,94,0.05) 0%, transparent 70%)', filter: 'blur(100px)', pointerEvents: 'none', zIndex: 1 }} />
+        <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '40%', height: '40%', background: 'radial-gradient(circle, rgba(228,232,33,0.05) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none', zIndex: 1 }} />
 
-        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
+
+        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", position: 'relative', zIndex: 2 }}>
           <div style={{ maxWidth: "900px", textAlign: "center", margin: "0 auto" }}>
             <SectionLabel>Collective Synergy</SectionLabel>
             <h1
@@ -172,7 +216,7 @@ const Community = () => {
               style={{
                 fontSize: "clamp(52px, 8vw, 92px)",
                 fontWeight: 900,
-                color: BRAND.navy,
+                color: BRAND.white,
                 lineHeight: 0.95,
                 letterSpacing: "-0.04em",
                 marginBottom: "32px",
@@ -195,7 +239,7 @@ const Community = () => {
               className="yg-font-sans"
               style={{
                 fontSize: "22px",
-                color: BRAND.gray600,
+                color: 'rgba(255,255,255,0.5)',
                 lineHeight: 1.6,
                 maxWidth: "720px",
                 margin: "0 auto 48px",
@@ -207,7 +251,7 @@ const Community = () => {
               <a href={telegramLink} target="_blank" rel="noopener noreferrer" className="yg-btn-primary">
                 Join Locally <FaTelegramPlane size={14} />
               </a>
-              <Link to="/events" className="yg-btn-outline">
+              <Link to="/events" className="yg-btn-outline" style={{ color: '#fff' }}>
                 Explore Events <FaArrowRight size={12} />
               </Link>
             </div>
@@ -216,27 +260,28 @@ const Community = () => {
       </section>
 
       {/* ── Intro Section ────────────────────────────────────────────────── */}
-      <section style={{ padding: "100px 0", background: BRAND.cream }}>
-        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", textAlign: "center" }}>
+      <section style={{ padding: "120px 0", background: BRAND.primary, position: 'relative', overflow: 'hidden' }}>
+        <div className="noise-bk" />
+        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", textAlign: "center", position: 'relative', zIndex: 2 }}>
           <p
             className="yg-font-serif"
             style={{
               fontSize: "clamp(24px, 4vw, 36px)",
-              color: BRAND.navy,
+              color: BRAND.white,
               lineHeight: 1.4,
               maxWidth: "1000px",
               margin: "0 auto",
               fontWeight: 400,
             }}
           >
-            "At Yenege, we are building <span style={{ fontWeight: 700, color: BRAND.coral }}>more than just a platform</span> — we’re creating a vibrant space where people can connect, collaborate, and thrive."
+            "At Yenege, we are building <span style={{ fontWeight: 700, color: BRAND.gold }}>more than just a platform</span> — we’re creating a vibrant space where people can connect, collaborate, and thrive."
           </p>
           <div style={{ height: "3px", width: "60px", background: BRAND.gold, margin: "48px auto" }} />
           <p
             className="yg-font-sans"
             style={{
               fontSize: "18px",
-              color: BRAND.gray500,
+              color: 'rgba(255,255,255,0.4)',
               maxWidth: "700px",
               margin: "0 auto",
               lineHeight: 1.7,
@@ -248,12 +293,13 @@ const Community = () => {
       </section>
 
       {/* ── Why YENEGE Grid ────────────────────────────────────────────────── */}
-      <section style={{ padding: "140px 0", background: BRAND.white }}>
-        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
+      <section style={{ padding: "140px 0", background: BRAND.primary, position: 'relative', overflow: 'hidden' }}>
+        <div className="noise-bk" />
+        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", position: 'relative', zIndex: 2 }}>
           <div style={{ textAlign: "center", marginBottom: "80px" }}>
             <SectionLabel>Member Benefits</SectionLabel>
-            <h2 className="yg-font-serif" style={{ fontSize: "clamp(36px, 5vw, 56px)", fontWeight: 900, color: BRAND.navy }}>
-              Why <span style={{ fontStyle: "italic", color: BRAND.coral }}>YENEGE?</span>
+            <h2 className="yg-font-serif" style={{ fontSize: "clamp(36px, 5vw, 56px)", fontWeight: 900, color: BRAND.white }}>
+              Why <span style={{ fontStyle: "italic", color: BRAND.gold }}>YENEGE?</span>
             </h2>
           </div>
 
@@ -298,21 +344,21 @@ const Community = () => {
                     width: "56px",
                     height: "56px",
                     borderRadius: "16px",
-                    background: "rgba(228,232,33,0.1)",
+                    background: "rgba(255,212,71,0.1)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    color: BRAND.coral,
+                    color: BRAND.gold,
                     marginBottom: "32px",
                     fontSize: "24px",
                   }}
                 >
                   {item.icon}
                 </div>
-                <h3 className="yg-font-serif" style={{ fontSize: "24px", fontWeight: 800, color: BRAND.navy, marginBottom: "16px", lineHeight: 1.2 }}>
+                <h3 className="yg-font-serif" style={{ fontSize: "24px", fontWeight: 800, color: BRAND.white, marginBottom: "16px", lineHeight: 1.2 }}>
                   {item.title}
                 </h3>
-                <p className="yg-font-sans" style={{ fontSize: "16px", color: BRAND.gray500, lineHeight: 1.7 }}>
+                <p className="yg-font-sans" style={{ fontSize: "16px", color: 'rgba(255,255,255,0.4)', lineHeight: 1.7 }}>
                   {item.desc}
                 </p>
               </div>
@@ -322,7 +368,9 @@ const Community = () => {
       </section>
 
       {/* ── How to Join ───────────────────────────────────────────────────── */}
-      <section style={{ padding: "140px 0", background: BRAND.navy, color: BRAND.white }}>
+      <section style={{ padding: "140px 0", background: BRAND.primary, color: BRAND.white, position: 'relative', overflow: 'hidden' }}>
+        <div className="noise-bk" />
+
         <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
           <div className="yg-grid-mobile" style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: "80px", alignItems: "center" }}>
             <div>
@@ -371,17 +419,18 @@ const Community = () => {
       </section>
 
       {/* ── Final CTA ─────────────────────────────────────────────────────── */}
-      <section style={{ padding: "140px 0", background: BRAND.white, textAlign: "center" }}>
-        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
-          <h2 className="yg-font-serif" style={{ fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 900, color: BRAND.navy, marginBottom: "48px" }}>
+      <section style={{ padding: "140px 0", background: BRAND.primary, textAlign: "center", position: 'relative', overflow: 'hidden' }}>
+        <div className="noise-bk" />
+        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", position: 'relative', zIndex: 2 }}>
+          <h2 className="yg-font-serif" style={{ fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 900, color: BRAND.white, marginBottom: "48px" }}>
             Ready to Start Making <br />
-            <span style={{ fontStyle: "italic", color: BRAND.coral }}>Meaningful Connections?</span>
+            <span style={{ fontStyle: "italic", color: BRAND.gold }}>Meaningful Connections?</span>
           </h2>
           <div style={{ display: "flex", justifyContent: "center", gap: "20px", flexWrap: "wrap" }}>
             <a href={telegramLink} target="_blank" rel="noopener noreferrer" className="yg-btn-primary">
               Join Locally Today <FaTelegramPlane size={14} />
             </a>
-            <Link to="/contact" className="yg-btn-outline">
+            <Link to="/contact" className="yg-btn-outline" style={{ color: '#fff' }}>
               Talk to Our Team
             </Link>
           </div>

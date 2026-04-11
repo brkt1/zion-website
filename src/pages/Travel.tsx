@@ -99,7 +99,7 @@ const Travel = () => {
               <div 
                 className="h-1 w-20 md:w-24 mx-auto mb-4 md:mb-6 rounded-full"
                 style={{
-                  background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                  background: "linear-gradient(90deg, #E4E821 0%, #FF6F5E 100%)",
                 }}
               ></div>
             </div>
@@ -158,7 +158,7 @@ const Travel = () => {
                 <div 
                   className="h-0.5 sm:h-1 w-16 sm:w-20 md:w-24 mb-4 sm:mb-6 md:mb-8 rounded-full"
                   style={{
-                    background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                    background: "linear-gradient(90deg, #E4E821 0%, #FF6F5E 100%)",
                   }}
                 ></div>
 
@@ -195,7 +195,7 @@ const Travel = () => {
               <div 
                 className="h-0.5 md:h-1 w-12 md:w-20 mx-auto mb-2 md:mb-4 rounded-full"
                 style={{
-                  background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                  background: "linear-gradient(90deg, #E4E821 0%, #FF6F5E 100%)",
                 }}
               ></div>
             </div>
@@ -266,7 +266,7 @@ const Travel = () => {
                     <div 
                       className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 transition-all duration-500 group-hover:scale-110"
                       style={{
-                        background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
+                        background: "linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%)",
                       }}
                     >
                       <Icon size={32} className="text-white" />
@@ -276,7 +276,7 @@ const Travel = () => {
                     <div 
                       className="h-0.5 sm:h-1 w-10 sm:w-12 md:w-16 mb-4 sm:mb-6 md:mb-8 rounded-full transition-all duration-700 group-hover:w-16 sm:group-hover:w-20 md:group-hover:w-24"
                       style={{
-                        background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                        background: "linear-gradient(90deg, #E4E821 0%, #FF6F5E 100%)",
                       }}
                     ></div>
 
@@ -310,7 +310,7 @@ const Travel = () => {
               <div 
                 className="h-0.5 md:h-1 w-12 md:w-20 mx-auto mb-2 md:mb-4 rounded-full"
                 style={{
-                  background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                  background: "linear-gradient(90deg, #E4E821 0%, #FF6F5E 100%)",
                 }}
               ></div>
             </div>
@@ -372,7 +372,7 @@ const Travel = () => {
               <div 
                 className="h-1 w-16 mx-auto mb-6 rounded-full"
                 style={{
-                  background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                  background: "linear-gradient(90deg, #E4E821 0%, #FF6F5E 100%)",
                 }}
               ></div>
               <p 
@@ -497,7 +497,7 @@ const Travel = () => {
                       <div 
                         className="text-4xl md:text-5xl font-black opacity-5 group-hover:opacity-10 transition-opacity duration-700"
                         style={{
-                          background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
+                          background: "linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%)",
                           WebkitBackgroundClip: "text",
                           WebkitTextFillColor: "transparent",
                           backgroundClip: "text",
@@ -514,7 +514,7 @@ const Travel = () => {
                     <div 
                       className="h-0.5 w-8 md:w-12 mb-3 md:mb-6 rounded-full transition-all duration-700 group-hover:w-12 md:group-hover:w-20"
                       style={{
-                        background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                        background: "linear-gradient(90deg, #E4E821 0%, #FF6F5E 100%)",
                       }}
                     ></div>
 
@@ -568,7 +568,7 @@ const Travel = () => {
                       <div 
                         className="w-6 md:w-8 h-0.5 transition-all duration-300"
                         style={{
-                          background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                          background: "linear-gradient(90deg, #E4E821 0%, #FF6F5E 100%)",
                         }}
                       ></div>
                       <FaArrowRight 
@@ -596,14 +596,14 @@ const Travel = () => {
           <div 
             className="absolute top-10 left-10 w-48 h-48 md:w-64 md:h-64 rounded-full blur-3xl opacity-20"
             style={{
-              background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
+              background: "linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%)",
               animation: "float 6s ease-in-out infinite",
             }}
           />
           <div 
             className="absolute bottom-10 right-10 w-56 h-56 md:w-80 md:h-80 rounded-full blur-3xl opacity-15"
             style={{
-              background: "linear-gradient(135deg, #FF6F5E 0%, #FFD447 100%)",
+              background: "linear-gradient(135deg, #FF6F5E 0%, #E4E821 100%)",
               animation: "float 8s ease-in-out infinite 2s",
             }}
           />
@@ -614,7 +614,7 @@ const Travel = () => {
               <div 
                 className="h-0.5 md:h-1 w-16 md:w-24 mx-auto mb-3 md:mb-6 rounded-full"
                 style={{
-                  background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                  background: "linear-gradient(90deg, #E4E821 0%, #FF6F5E 100%)",
                 }}
               ></div>
             </div>
@@ -637,7 +637,7 @@ const Travel = () => {
                 to="/events"
                 className="group inline-flex items-center justify-center px-6 md:px-8 lg:px-10 py-3.5 md:py-4 rounded-full font-semibold transition-all duration-500 relative overflow-hidden text-sm md:text-base w-full md:w-auto"
                 style={{
-                  background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
+                  background: "linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%)",
                   color: "#1C2951",
                   boxShadow: "0 4px 20px rgba(255, 111, 94, 0.3)",
                   minHeight: '44px',

@@ -26,14 +26,12 @@ const Header = () => {
     { path: "/", label: "Home" },
     { path: "/events", label: "Events" },
     { path: "/expo-info", label: "Wedding Expo" },
-    { path: "/travel", label: "Travel & Adventures" },
-    { path: "/community", label: "Community" },
     { path: "/masterclass", label: "Masterclass" },
     { path: "/about", label: "About" },
     { path: "/contact", label: "Contact" },
   ]).filter(link => 
-    !["community", "corporate", "game", "apply"].includes(link.label.toLowerCase()) &&
-    !["/community", "/apply"].includes(link.path.toLowerCase())
+    !["community", "corporate", "game", "apply", "travel"].includes(link.label.toLowerCase()) &&
+    !["/community", "/apply", "/travel"].includes(link.path.toLowerCase())
   );
 
   const isActive = (path: string) => {
@@ -76,10 +74,10 @@ const Header = () => {
       aria-label="Site header"
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         isScrolled
-          ? "bg-white/95 backdrop-blur-xl shadow-lg"
+          ? "bg-[#0F172A]/95 backdrop-blur-xl shadow-lg"
           : isHomePage
           ? "bg-transparent"
-          : "bg-white/95 backdrop-blur-xl"
+          : "bg-[#0F172A]/95 backdrop-blur-xl"
       } ${
         !isHomePage ? "md:block hidden" : ""
       } ${
@@ -91,7 +89,7 @@ const Header = () => {
         className={`hidden md:block transition-colors duration-500 border-b ${
           isHomePage && !isScrolled
             ? "bg-white/10 border-white/20 text-white" 
-            : "bg-[#01211C] border-transparent text-white"
+            : "bg-[#0F172A] border-transparent text-white"
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-10 flex items-center justify-between text-xs font-semibold tracking-wide">
@@ -149,9 +147,7 @@ const Header = () => {
               responsive={true}
               sizes="(max-width: 768px) 48px, 56px"
               fallback="/logo.png"
-              className={`h-12 md:h-14 w-auto transition-all duration-500 ${
-                isHomePage && !isScrolled ? "brightness-0 invert" : ""
-              }`}
+              className={`h-12 md:h-14 w-auto transition-all duration-500 brightness-0 invert`}
             />
           </Link>
 
@@ -171,33 +167,21 @@ const Header = () => {
                 aria-current={isActive(link.path) ? "page" : undefined}
                 className={`relative text-sm font-semibold tracking-wide transition-all duration-300 ${
                   (link as any).className || (
-                    isHomePage && !isScrolled
-                      ? isActive(link.path)
-                        ? "text-white"
-                        : "text-white/70 hover:text-white"
-                      : isActive(link.path)
-                      ? "text-gray-900"
-                      : "text-gray-600 hover:text-gray-900"
+                    isActive(link.path)
+                      ? "text-white"
+                      : "text-white/60 hover:text-white"
                   )
                 }`}
               >
                 <span className="relative z-10">{link.label}</span>
                 {isActive(link.path) && (
                   <span
-                    className={`absolute -bottom-1 left-0 right-0 h-0.5 rounded-full transition-all duration-300 ${
-                      isHomePage && !isScrolled
-                        ? "bg-white"
-                        : "bg-gradient-to-r from-[#E4E821] to-[#FF6F5E]"
-                    }`}
+                    className={`absolute -bottom-1 left-0 right-0 h-0.5 rounded-full transition-all duration-300 bg-[#E4E821]`}
                   />
                 )}
                 {!isActive(link.path) && (
                   <span
-                    className={`absolute -bottom-1 left-0 right-0 h-0.5 scale-x-0 rounded-full transition-transform duration-300 origin-left ${
-                      isHomePage && !isScrolled
-                        ? "bg-white"
-                        : "bg-gradient-to-r from-[#E4E821] to-[#FF6F5E]"
-                    }`}
+                    className={`absolute -bottom-1 left-0 right-0 h-0.5 scale-x-0 rounded-full transition-transform duration-300 origin-left bg-[#E4E821]`}
                   />
                 )}
               </Link>

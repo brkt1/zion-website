@@ -125,7 +125,7 @@ const Home = () => {
           inset: 0;
           opacity: 0.2;
           pointer-events: none;
-          background: linear-gradient(to bottom, transparent, #01211C), 
+          background: linear-gradient(to bottom, transparent, #0F172A), 
                       url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
           z-index: 1;
         }
@@ -814,7 +814,7 @@ const Home = () => {
             </div>
             
             <div className="hidden lg:block pt-32">
-                <div className="w-24 h-px bg-[#FFD447]/30" />
+                <div className="w-24 h-px bg-[#E4E821]/30" />
                 <p className="text-[11px] font-bold text-white/40 uppercase tracking-[0.3em] mt-8 max-w-[200px] leading-loose">
                   Exclusive travels and bespoke moments designed for the discerning soul.
                 </p>
@@ -863,12 +863,12 @@ const Home = () => {
                         className="card-img w-full h-full object-cover transition-transform duration-1000 cubic-bezier(0.16,1,0.3,1)"
                       />
                     ) : (
-                      <div className="w-full h-full bg-[#01211C] flex items-center justify-center">
-                        <FaCalendarAlt size={40} className="text-[#FFD447]/20" />
+                      <div className="w-full h-full bg-[#0F172A] flex items-center justify-center">
+                        <FaCalendarAlt size={40} className="text-[#E4E821]/20" />
                       </div>
                     )}
 
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#01211C]/90 via-transparent to-black/20" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A]/90 via-transparent to-black/20" />
                     
                     {/* Vertical Date Branding */}
                     <div className="absolute right-6 top-10 flex flex-col items-center gap-6">
@@ -882,20 +882,20 @@ const Home = () => {
                     <div className="absolute bottom-10 left-10 right-10 flex flex-col items-start">
                        <div className="flex items-center gap-3 mb-4">
                           <span className="px-3 py-1.5 rounded-full border border-white/10 bg-white/10 backdrop-blur-md text-[8px] font-black text-white uppercase tracking-widest">{event.category}</span>
-                          <span className="h-1 w-1 bg-[#FFD447] rounded-full" />
+                          <span className="h-1 w-1 bg-[#E4E821] rounded-full" />
                           <span className="text-[8px] font-black text-white/50 uppercase tracking-[0.3em]">{event.location}</span>
                        </div>
                        
-                       <h3 className="yg-font-serif text-2xl font-black text-white leading-[1.1] mb-8 group-hover:text-[#FFD447] transition-colors">
+                       <h3 className="yg-font-serif text-2xl font-black text-white leading-[1.1] mb-8 group-hover:text-[#E4E821] transition-colors">
                          {event.title}
                        </h3>
 
                        <div className="flex items-center justify-between w-full">
-                         <div className="bg-[#01211C] text-[#FFD447] py-2 px-4 rounded-xl text-sm font-serif italic font-black shadow-lg">
+                         <div className="bg-[#0F172A] text-[#E4E821] py-2 px-4 rounded-xl text-sm font-serif italic font-black shadow-lg">
                            {event.price === "Free" ? "Gratis" : `${event.price} ${event.currency}`}
                          </div>
                          
-                         <div className="arrow-circle w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-white transition-all duration-500 group-hover:bg-[#01211C] group-hover:text-[#FFD447] group-hover:rotate-[-45deg]">
+                         <div className="arrow-circle w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-white transition-all duration-500 group-hover:bg-[#0F172A] group-hover:text-[#E4E821] group-hover:rotate-[-45deg]">
                            <FaArrowRight size={12} />
                          </div>
                        </div>

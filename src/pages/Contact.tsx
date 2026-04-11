@@ -15,6 +15,7 @@ import { useScrollReveal } from "../hooks/useScrollReveal";
 
 /* ─── Shared design tokens ─────────────────────────────────────────────────── */
 const BRAND = {
+  primary: "#0F172A",
   navy: "#0F172A",
   navyLight: "#1E293B",
   gold: "#E4E821",
@@ -148,29 +149,56 @@ const Contact = () => {
   ];
 
   return (
-    <div style={{ minHeight: "100vh", background: BRAND.white }}>
+    <div style={{ minHeight: "100vh", background: BRAND.primary }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Manrope:wght@300;400;500;600;700;800&display=swap');
 
         .yg-font-serif { font-family: 'Playfair Display', Georgia, serif; }
         .yg-font-sans  { font-family: 'Manrope', system-ui, sans-serif; }
 
+        .noise-bk {
+          position: absolute;
+          inset: 0;
+          opacity: 0.2;
+          pointer-events: none;
+          background: linear-gradient(to bottom, transparent, #0F172A), 
+                      url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+          z-index: 1;
+        }
+
+        .sidebrand {
+          position: absolute;
+          right: 40px;
+          top: 50%;
+          transform: translateY(-50%) rotate(90deg);
+          transform-origin: right center;
+          font-family: 'Manrope', sans-serif;
+          font-size: 10px;
+          font-weight: 900;
+          letter-spacing: 1em;
+          color: rgba(255, 212, 71, 0.1);
+          text-transform: uppercase;
+          pointer-events: none;
+          z-index: 10;
+          white-space: nowrap;
+        }
+
         .yg-contact-input {
           width: 100%;
           padding: 16px 24px;
-          background: ${BRAND.cream};
-          border: 1px solid rgba(0,0,0,0.05);
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.1);
           border-radius: 16px;
           font-family: 'Manrope', sans-serif;
           font-size: 15px;
-          color: ${BRAND.navy};
+          color: #fff;
           transition: all 0.3s;
         }
         .yg-contact-input:focus {
           outline: none;
-          background: #fff;
-          border-color: ${BRAND.coral};
-          box-shadow: 0 0 0 4px rgba(255,111,94,0.1);
+          background: rgba(255,255,255,0.07);
+          border-color: ${BRAND.gold};
+          box-shadow: 0 0 0 4px rgba(255,212,71,0.05);
         }
 
         .yg-btn-submit {
@@ -181,8 +209,8 @@ const Contact = () => {
           width: 100%;
           padding: 20px;
           border-radius: 16px;
-          background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
-          color: #fff;
+          background: ${BRAND.gold};
+          color: ${BRAND.primary};
           font-family: 'Manrope', sans-serif;
           font-weight: 800;
           font-size: 14px;
@@ -191,12 +219,12 @@ const Contact = () => {
           border: none;
           cursor: pointer;
           transition: all 0.3s;
-          box-shadow: 0 12px 30px rgba(37,211,102,0.25);
+          box-shadow: 0 12px 30px rgba(255,212,71,0.15);
         }
         .yg-btn-submit:hover {
           transform: translateY(-2px);
-          filter: brightness(1.05);
-          box-shadow: 0 20px 40px rgba(37,211,102,0.35);
+          filter: brightness(1.1);
+          box-shadow: 0 20px 40px rgba(255,212,71,0.25);
         }
 
         .yg-social-btn {
@@ -209,21 +237,48 @@ const Contact = () => {
           color: #fff;
           font-size: 20px;
           transition: all 0.3s;
-          box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+          background: rgba(255,255,255,0.05) !important;
+          border: 1px solid rgba(255,255,255,0.1);
         }
         .yg-social-btn:hover {
           transform: translateY(-4px) scale(1.1);
-          box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+          background: ${BRAND.gold} !important;
+          color: ${BRAND.primary} !important;
+          border-color: ${BRAND.gold};
         }
 
         @media (max-width: 768px) {
           .yg-grid-mobile { grid-template-columns: 1fr !important; gap: 40px !important; }
+          .sidebrand { display: none; }
         }
       `}</style>
 
       {/* ── Page Header ─────────────────────────────────────────────────── */}
-      <section style={{ padding: "180px 0 80px", background: BRAND.white }}>
-        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
+      <section style={{ padding: "180px 0 80px", background: BRAND.primary, position: 'relative', overflow: 'hidden' }}>
+        {/* Creative Layers */}
+        <div 
+          style={{ 
+            position: 'absolute', 
+            top: '50%', 
+            left: '50%', 
+            transform: 'translate(-50%, -50%)',
+            fontSize: 'max(25vw, 400px)',
+            fontWeight: 900,
+            fontFamily: "'Playfair Display', serif",
+            color: 'rgba(255, 212, 71, 0.02)', 
+            whiteSpace: 'nowrap',
+            pointerEvents: 'none',
+            zIndex: 0,
+            userSelect: 'none'
+          }}
+        >
+          CONNECT
+        </div>
+        <div className="noise-bk" />
+        <div className="sidebrand">ZION CONTACT 2024</div>
+        <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '40%', height: '40%', background: 'radial-gradient(circle, rgba(255,111,94,0.1) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none', zIndex: 1 }} />
+
+        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", position: 'relative', zIndex: 2 }}>
           <div style={{ maxWidth: "800px" }}>
             <SectionLabel>Get in Touch</SectionLabel>
             <h1
@@ -231,7 +286,7 @@ const Contact = () => {
               style={{
                 fontSize: "clamp(52px, 8vw, 92px)",
                 fontWeight: 900,
-                color: BRAND.navy,
+                color: BRAND.white,
                 lineHeight: 1,
                 letterSpacing: "-0.04em",
                 marginBottom: "32px",
@@ -255,13 +310,16 @@ const Contact = () => {
       </section>
 
       {/* ── Contact Section ─────────────────────────────────────────────── */}
-      <section style={{ padding: "40px 0 140px", background: BRAND.white }}>
-        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
+      <section style={{ padding: "40px 0 140px", background: BRAND.primary, position: 'relative', overflow: 'hidden' }}>
+        <div className="noise-bk" />
+        <div style={{ position: 'absolute', bottom: '-10%', right: '-10%', width: '50%', height: '50%', background: 'radial-gradient(circle, rgba(228,232,33,0.05) 0%, transparent 70%)', filter: 'blur(100px)', pointerEvents: 'none', zIndex: 1 }} />
+        
+        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", position: 'relative', zIndex: 2 }}>
           <div className="yg-grid-mobile" style={{ display: "grid", gridTemplateColumns: "1fr 1.1fr", gap: "100px", alignItems: "start" }}>
             
             {/* Left Column: Info */}
             <div>
-              <p className="yg-font-sans" style={{ fontSize: "20px", color: BRAND.gray600, lineHeight: 1.6, marginBottom: "64px" }}>
+              <p className="yg-font-sans" style={{ fontSize: "20px", color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, marginBottom: "64px" }}>
                 Ready to revolutionize your events? Whether you're an organizer, partner, or student, our team is here to help you scale and succeed.
               </p>
 
@@ -273,11 +331,11 @@ const Contact = () => {
                        <div style={{ position: "relative", zIndex: 1, color: BRAND.coral, fontSize: "24px", marginTop: "12px" }}>{item.icon}</div>
                     </div>
                     <div>
-                       <h3 className="yg-font-serif" style={{ fontSize: "20px", fontWeight: 800, color: BRAND.navy, marginBottom: "8px" }}>{item.title}</h3>
+                       <h3 className="yg-font-serif" style={{ fontSize: "20px", fontWeight: 800, color: BRAND.white, marginBottom: "8px" }}>{item.title}</h3>
                        {item.link ? (
-                         <a href={item.link} className="yg-font-sans" style={{ fontSize: "17px", color: BRAND.gray500, textDecoration: "none" }}>{item.content}</a>
+                         <a href={item.link} className="yg-font-sans" style={{ fontSize: "17px", color: 'rgba(255,255,255,0.4)', textDecoration: "none" }}>{item.content}</a>
                        ) : (
-                         <p className="yg-font-sans" style={{ fontSize: "17px", color: BRAND.gray500 }}>{item.content}</p>
+                         <p className="yg-font-sans" style={{ fontSize: "17px", color: 'rgba(255,255,255,0.4)' }}>{item.content}</p>
                        )}
                     </div>
                   </div>
@@ -285,7 +343,7 @@ const Contact = () => {
               </div>
 
               <div style={{ marginTop: "80px" }}>
-                <h3 className="yg-font-serif" style={{ fontSize: "20px", fontWeight: 800, color: BRAND.navy, marginBottom: "24px" }}>Follow Our Journey</h3>
+                <h3 className="yg-font-serif" style={{ fontSize: "20px", fontWeight: 800, color: BRAND.white, marginBottom: "24px" }}>Follow Our Journey</h3>
                 <div style={{ display: "flex", gap: "16px" }}>
                   {[
                     { icon: <FaInstagram />, href: "https://instagram.com/yenege_event", bg: "linear-gradient(135deg, #E4405F 0%, #833AB4 100%)" },
@@ -293,7 +351,7 @@ const Contact = () => {
                     { icon: <FaTiktok />, href: "https://tiktok.com/@yenegeevents", bg: "linear-gradient(135deg, #000000 0%, #333333 100%)" },
                     { icon: <FaYoutube />, href: "https://youtube.com/@yenegeevents", bg: "linear-gradient(135deg, #FF0000 0%, #CC0000 100%)" },
                   ].map((social, i) => (
-                    <a key={i} href={social.href} target="_blank" rel="noopener noreferrer" className="yg-social-btn" style={{ background: social.bg }}>
+                    <a key={i} href={social.href} target="_blank" rel="noopener noreferrer" className="yg-social-btn">
                       {social.icon}
                     </a>
                   ))}
@@ -302,8 +360,8 @@ const Contact = () => {
             </div>
 
             {/* Right Column: Form */}
-            <div style={{ background: BRAND.white, borderRadius: "40px", border: "1px solid rgba(0,0,0,0.06)", padding: "60px", boxShadow: "0 40px 100px -20px rgba(15,23,42,0.1)" }}>
-               <h2 className="yg-font-serif" style={{ fontSize: "32px", fontWeight: 900, marginBottom: "40px", color: BRAND.navy }}>Send a Message</h2>
+            <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: "40px", border: "1px solid rgba(255,255,255,0.1)", padding: "60px", backdropFilter: 'blur(20px)' }}>
+               <h2 className="yg-font-serif" style={{ fontSize: "32px", fontWeight: 900, marginBottom: "40px", color: BRAND.white }}>Send a Message</h2>
                
                {submitStatus === "success" && (
                  <div style={{ padding: "20px", borderRadius: "12px", background: "rgba(37,211,102,0.1)", color: "#128C7E", marginBottom: "32px", fontSize: "14px", fontWeight: 600 }}>
@@ -329,7 +387,7 @@ const Contact = () => {
                  </div>
 
                  <div>
-                   <label style={{ display: "block", fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: BRAND.gray500, marginBottom: "10px" }}>How can we help? *</label>
+                   <label style={{ display: "block", fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: BRAND.gold, marginBottom: "10px" }}>How can we help? *</label>
                    <textarea name="message" required rows={5} placeholder="Tell us about your next project or goal..." value={formData.message} onChange={handleChange} className="yg-contact-input" style={{ resize: "none" }} />
                  </div>
 

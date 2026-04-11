@@ -108,7 +108,7 @@ const Apply = () => {
               <div 
                 className="h-1 w-16 md:w-20 mx-auto mb-3 md:mb-4 rounded-full"
                 style={{
-                  background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                  background: "linear-gradient(90deg, #E4E821 0%, #FF6F5E 100%)",
                 }}
               ></div>
             </div>
@@ -148,7 +148,7 @@ const Apply = () => {
                   }`}
                   style={{
                     background: formData.type === "internship"
-                      ? "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)"
+                      ? "linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%)"
                       : "linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)",
                   }}
                 >
@@ -194,7 +194,7 @@ const Apply = () => {
                   }`}
                   style={{
                     background: formData.type === "volunteer"
-                      ? "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)"
+                      ? "linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%)"
                       : "linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)",
                   }}
                 >
@@ -241,7 +241,7 @@ const Apply = () => {
               <div 
                 className="h-1 w-16 md:w-20 mb-6 rounded-full"
                 style={{
-                  background: "linear-gradient(90deg, #FFD447 0%, #FF6F5E 100%)",
+                  background: "linear-gradient(90deg, #E4E821 0%, #FF6F5E 100%)",
                 }}
               ></div>
               <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8 tracking-tight text-gray-900">

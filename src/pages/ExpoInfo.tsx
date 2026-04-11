@@ -101,42 +101,58 @@ const ExpoInfo: React.FC = () => {
     { icon: <FiCamera />, label: 'Photo & Video' }
   ];
 
-  const yenegeYellow = "#FFD447";
+  const yenegeYellow = "#E4E821";
   const coralOrange = "#FF6F5E";
   const indigoDeep = "#1C2951";
 
   return (
-    <div className="bg-[#FAF9F6] text-[#1A1A1A] min-h-screen overflow-x-hidden transition-colors duration-700 font-sans">
+    <div className="bg-[#0F172A] text-white min-h-screen overflow-x-hidden transition-colors duration-700 font-sans">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Manrope:wght@300;400;500;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Manrope:wght@300;400;500;600;700;800&display=swap');
 
-        .font-serif {
-          font-family: 'Playfair Display', serif;
+        .noise-bk {
+          position: absolute;
+          inset: 0;
+          opacity: 0.2;
+          pointer-events: none;
+          background: linear-gradient(to bottom, transparent, #0F172A), 
+                      url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+          z-index: 1;
         }
-        .font-sans {
+
+        .sidebrand {
+          position: absolute;
+          right: 40px;
+          top: 50%;
+          transform: translateY(-50%) rotate(90deg);
+          transform-origin: right center;
           font-family: 'Manrope', sans-serif;
+          font-size: 10px;
+          font-weight: 900;
+          letter-spacing: 1em;
+          color: rgba(255, 212, 71, 0.1);
+          text-transform: uppercase;
+          pointer-events: none;
+          z-index: 10;
+          white-space: nowrap;
         }
 
-        .glass-light {
-          background: rgba(255, 255, 255, 0.7);
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-          border: 1px solid rgba(0, 0, 0, 0.05);
-          box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.04);
+        .font-serif { font-family: 'Playfair Display', serif; }
+        .font-sans { font-family: 'Manrope', sans-serif; }
+
+        .glass-dark {
+          background: rgba(255, 255, 255, 0.02);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        .hero-gradient-light {
-          background: radial-gradient(circle at 50% 50%, rgba(255, 212, 71, 0.15) 0%, rgba(250, 249, 246, 0) 70%);
+        .hero-glow {
+          background: radial-gradient(circle at 50% 50%, rgba(255, 212, 71, 0.05) 0%, transparent 70%);
         }
 
         .text-gold-gradient {
-          background: linear-gradient(135deg, ${yenegeYellow}, ${coralOrange});
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-        }
-
-        .text-dark-gradient {
-          background: linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%);
+          background: linear-gradient(135deg, ${yenegeYellow}, #FF6F5E);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
         }
@@ -151,43 +167,16 @@ const ExpoInfo: React.FC = () => {
           animation: float 8s ease-in-out infinite;
         }
 
-        .glow-button-light {
-          background: linear-gradient(135deg, ${yenegeYellow} 0%, ${coralOrange} 100%);
-          color: ${indigoDeep};
-          position: relative;
-          overflow: hidden;
-          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-          font-weight: 800;
+        .glow-button {
+          background: ${yenegeYellow};
+          color: #0F172A;
+          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .glow-button-light::after {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-          transition: 0.6s;
-        }
-
-        .glow-button-light:hover::after {
-          left: 100%;
-        }
-
-        .luxury-border-light {
-          position: relative;
-          z-index: 1;
-        }
-
-        .luxury-border-light::after {
-          content: '';
-          position: absolute;
-          inset: -1px;
-          background: linear-gradient(45deg, ${yenegeYellow}, transparent, ${coralOrange});
-          z-index: -1;
-          border-radius: inherit;
-          opacity: 0.3;
+        .glow-button:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 15px 30px rgba(255, 212, 71, 0.3);
+          filter: brightness(1.1);
         }
 
         @keyframes marquee {
@@ -197,19 +186,44 @@ const ExpoInfo: React.FC = () => {
         .animate-marquee {
           animation: marquee 40s linear infinite;
         }
+
+        @media (max-width: 768px) {
+          .sidebrand { display: none; }
+        }
       `}</style>
 
       {/* Hero Section */}
       <section className="relative min-h-[90vh] flex flex-col items-center justify-center pt-40 pb-20 overflow-hidden">
+        {/* Creative Layers */}
+        <div 
+          style={{ 
+            position: 'absolute', 
+            top: '50%', 
+            left: '50%', 
+            transform: 'translate(-50%, -50%)',
+            fontSize: 'max(25vw, 400px)',
+            fontWeight: 900,
+            fontFamily: "'Playfair Display', serif",
+            color: 'rgba(255, 212, 71, 0.02)', 
+            whiteSpace: 'nowrap',
+            pointerEvents: 'none',
+            zIndex: 0,
+            userSelect: 'none'
+          }}
+        >
+          EXHIBIT
+        </div>
         <div className="absolute inset-0 z-0">
           <img 
             src={heroImg} 
-            className="w-full h-full object-cover opacity-20" 
+            className="w-full h-full object-cover opacity-10 grayscale" 
             alt="Wedding Expo background" 
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#FAF9F6]/40 via-[#FAF9F6]/80 to-[#FAF9F6]" />
-          <div className="absolute inset-0 hero-gradient-light" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0F172A]/40 via-[#0F172A]/80 to-[#0F172A]" />
+          <div className="absolute inset-0 hero-glow" />
+          <div className="noise-bk" />
         </div>
+        <div className="sidebrand">YENE KEN EXPO 2026</div>
 
         <div className="container mx-auto px-4 relative z-10 text-center">
           <div className="inline-block px-5 py-1.5 mb-8 border border-amber-500/20 rounded-full bg-amber-500/5 backdrop-blur-sm">
@@ -221,28 +235,28 @@ const ExpoInfo: React.FC = () => {
             <img src={zionLogoImg} alt="Promoter" className="w-32 sm:w-40 md:w-48 object-contain drop-shadow-xl" />
           </div>
           
-          <h1 className="font-serif text-5xl sm:text-6xl md:text-8xl lg:text-9xl mb-8 leading-[1.1] text-slate-900 tracking-tight">
+          <h1 className="font-serif text-5xl sm:text-6xl md:text-8xl lg:text-9xl mb-8 leading-[1.1] text-white tracking-tight">
             Yene Ken <br />
             <span className="italic text-gold-gradient">Expo 2026</span>
           </h1>
 
-          <p className="font-sans text-lg md:text-xl text-slate-500 max-w-2xl mx-auto mb-14 font-medium leading-relaxed">
+          <p className="font-sans text-lg md:text-xl text-white/40 max-w-2xl mx-auto mb-14 font-medium leading-relaxed">
             The grandest gathering of luxury wedding artisans in Ethiopia. Elevate your brand in an atmosphere of pure elegance.
           </p>
 
           <div className="flex flex-col md:flex-row items-center justify-center gap-8 mb-20">
-            <div className="flex items-center gap-5 glass-light px-10 py-5 rounded-[2rem] luxury-border-light">
-              <FiCalendar className="text-amber-600 text-2xl" />
-              <div className="text-left border-l border-amber-500/20 pl-5">
-                <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Schedule</p>
-                <p className="font-bold text-slate-800 tracking-tight">መጋቢት 19-20</p>
+            <div className="flex items-center gap-5 glass-dark px-10 py-5 rounded-[2rem] border border-white/5">
+              <FiCalendar className="text-[#E4E821] text-2xl" />
+              <div className="text-left border-l border-white/10 pl-5">
+                <p className="text-[10px] uppercase tracking-widest text-white/20 font-bold">Schedule</p>
+                <p className="font-bold text-white tracking-tight">መጋቢት 19-20</p>
               </div>
             </div>
-            <div className="flex items-center gap-5 glass-light px-10 py-5 rounded-[2rem] luxury-border-light">
-              <FiMapPin className="text-amber-600 text-2xl" />
-              <div className="text-left border-l border-amber-500/20 pl-5">
-                <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Venue</p>
-                <p className="font-bold text-slate-800 tracking-tight">GHION HOTEL</p>
+            <div className="flex items-center gap-5 glass-dark px-10 py-5 rounded-[2rem] border border-white/5">
+              <FiMapPin className="text-[#E4E821] text-2xl" />
+              <div className="text-left border-l border-white/10 pl-5">
+                <p className="text-[10px] uppercase tracking-widest text-white/20 font-bold">Venue</p>
+                <p className="font-bold text-white tracking-tight">GHION HOTEL</p>
               </div>
             </div>
           </div>
@@ -250,7 +264,7 @@ const ExpoInfo: React.FC = () => {
           <div className="flex flex-wrap justify-center gap-4">
             <Link 
               to="/expo-registration?booth=standard" 
-              className="glow-button-light w-full max-w-[280px] py-5 rounded-2xl font-sans font-bold flex items-center justify-center gap-3 active:scale-95 transition-all shadow-xl shadow-amber-900/10"
+              className="glow-button w-full max-w-[280px] py-5 rounded-2xl font-sans font-black text-[10px] tracking-[0.3em] uppercase flex items-center justify-center gap-3 active:scale-95 transition-all shadow-xl"
             >
               Become an Exhibitor <FiArrowRight className="text-lg" />
             </Link>
@@ -263,16 +277,17 @@ const ExpoInfo: React.FC = () => {
       </section>
 
       {/* About Section */}
-      <section className="py-32 relative bg-white/40">
-        <div className="container mx-auto px-4 md:px-10 lg:px-20">
+      <section className="py-32 relative bg-[#0F172A] overflow-hidden">
+        <div className="noise-bk" />
+        <div className="container mx-auto px-4 md:px-10 lg:px-20 relative z-10">
           <div className="grid lg:grid-cols-2 gap-24 items-center">
             <div className="relative group">
-              <div className="aspect-[4/5] rounded-[4rem] overflow-hidden luxury-border-light shadow-2xl">
-                <img src={vendorsImg} className="w-full h-full object-cover grayscale opacity-90 md:grayscale md:opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-1000" alt="Exhibitors" />
+              <div className="aspect-[4/5] rounded-[4rem] overflow-hidden border border-white/10 shadow-2xl">
+                <img src={vendorsImg} className="w-full h-full object-cover grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-1000" alt="Exhibitors" />
               </div>
-              <div className="absolute -bottom-10 -right-10 glass-light p-10 rounded-[2.5rem] max-w-[320px] hidden md:block shadow-xl border border-white">
+              <div className="absolute -bottom-10 -right-10 glass-dark p-10 rounded-[2.5rem] max-w-[320px] hidden md:block shadow-xl border border-white/10">
                 <p className="font-serif italic text-3xl text-gold-gradient mb-3">"Pure Artistry."</p>
-                <p className="font-sans text-sm text-slate-500 leading-relaxed font-medium">
+                <p className="font-sans text-sm text-white/40 leading-relaxed font-medium">
                   We curate only the finest wedding designers, ensuring an environment of absolute sophistication for both vendors and visitors.
                 </p>
               </div>
@@ -280,27 +295,27 @@ const ExpoInfo: React.FC = () => {
 
             <div className="space-y-10">
               <div className="flex items-center gap-4">
-                <div className="h-[2px] w-12 bg-amber-500" />
-                <span className="text-amber-600 font-sans tracking-[0.4em] uppercase text-xs font-black">The Vision</span>
+                <div className="h-[2px] w-12 bg-[#E4E821]" />
+                <span className="text-[#E4E821] font-sans tracking-[0.4em] uppercase text-xs font-black">The Vision</span>
               </div>
-              <h2 className="font-serif text-5xl md:text-7xl leading-[1.1] text-slate-800 tracking-tight">Showcase Your <br/><span className="italic text-gold-gradient">Excellence.</span></h2>
-              <p className="font-sans text-xl text-slate-500 leading-relaxed max-w-xl font-light">
+              <h2 className="font-serif text-5xl md:text-7xl leading-[1.1] text-white tracking-tight">Showcase Your <br/><span className="italic text-gold-gradient">Excellence.</span></h2>
+              <p className="font-sans text-xl text-white/40 leading-relaxed max-w-xl font-light">
                 Secure your position in Ethiopia's premier luxury wedding marketplace. Connect with high-intent couples seeking the absolute best for their special day.
               </p>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 pt-8">
                 {vendorTypes.slice(0, 4).map((type, i) => (
                   <div key={i} className="flex items-center gap-5 group">
-                    <div className="w-14 h-14 rounded-2xl bg-white border border-slate-100 flex items-center justify-center group-hover:bg-amber-500 group-hover:border-amber-500 transition-all shadow-sm group-hover:shadow-amber-500/20">
-                      <span className="text-2xl text-amber-600 group-hover:text-white transition-colors">{type.icon}</span>
+                    <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-[#E4E821] group-hover:border-[#E4E821] transition-all shadow-sm">
+                      <span className="text-2xl text-white/40 group-hover:text-[#0F172A] transition-colors">{type.icon}</span>
                     </div>
-                    <span className="font-sans font-bold text-slate-700 tracking-tight">{type.label}</span>
+                    <span className="font-sans font-bold text-white/60 tracking-tight group-hover:text-white transition-colors">{type.label}</span>
                   </div>
                 ))}
               </div>
 
               <div className="pt-12">
-                <a href="#packages" className="inline-flex items-center gap-3 text-amber-700 font-sans font-black uppercase text-xs tracking-widest hover:gap-6 transition-all">
+                <a href="#packages" className="inline-flex items-center gap-3 text-[#E4E821] font-sans font-black uppercase text-xs tracking-widest hover:gap-6 transition-all">
                   Browse Booth Packages <FiArrowRight />
                 </a>
               </div>
@@ -310,8 +325,9 @@ const ExpoInfo: React.FC = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-24 bg-white border-y border-slate-50">
-        <div className="container mx-auto px-4">
+      <section className="py-24 bg-[#0F172A] border-y border-white/5 relative overflow-hidden">
+        <div className="noise-bk" />
+        <div className="container mx-auto px-4 relative z-10">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-12 text-center">
             {[
               { val: '800 - 1000', label: 'Elite Visitors' },
@@ -320,9 +336,9 @@ const ExpoInfo: React.FC = () => {
               { val: '30M+', label: 'Social Echo' }
             ].map((stat, i) => (
               <div key={i} className="space-y-2">
-                <p className="font-serif text-5xl text-slate-800 tracking-tighter">{stat.val}</p>
-                <div className="h-0.5 w-6 bg-amber-400 mx-auto" />
-                <p className="font-sans text-[10px] uppercase tracking-[0.3em] text-slate-400 font-black">{stat.label}</p>
+                <p className="font-serif text-5xl text-white tracking-tighter">{stat.val}</p>
+                <div className="h-0.5 w-6 bg-[#E4E821] mx-auto" />
+                <p className="font-sans text-[10px] uppercase tracking-[0.3em] text-white/20 font-black">{stat.label}</p>
               </div>
             ))}
           </div>
@@ -342,8 +358,8 @@ const ExpoInfo: React.FC = () => {
             {boothPackages.map((pkg, idx) => (
               <div 
                 key={idx}
-                className={`group relative rounded-[4rem] bg-white transition-all duration-700 flex flex-col ${
-                  pkg.popular ? 'shadow-[0_40px_100px_rgba(255,212,71,0.12)] border-2 border-amber-500/20' : 'shadow-2xl shadow-slate-200/50 hover:shadow-slate-300'
+                className={`group relative rounded-[4rem] bg-white/5 border border-white/10 transition-all duration-700 flex flex-col ${
+                  pkg.popular ? 'shadow-[0_40px_100px_rgba(255,212,71,0.15)] border-[#E4E821]/40' : 'hover:bg-white/[0.08]'
                 }`}
               >
                 {/* Image Wrap - Larger & Clearer */}
@@ -351,32 +367,32 @@ const ExpoInfo: React.FC = () => {
                   <div className="w-full h-full relative overflow-hidden rounded-[3.2rem]">
                     <img 
                       src={pkg.image} 
-                      className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" 
+                      className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 grayscale group-hover:grayscale-0 opacity-80 group-hover:opacity-100" 
                       alt={pkg.title} 
                     />
                     {/* Minimalist Overlay for depth only at extreme bottom */}
                     <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-60" />
                     
                     {/* Floating Price Badge */}
-                    <div className="absolute top-8 left-8 glass-light px-8 py-4 rounded-3xl border border-white/40 shadow-2xl">
-                      <p className="text-[10px] uppercase tracking-widest font-black text-amber-600 mb-1">Starting from</p>
+                    <div className="absolute top-8 left-8 glass-dark px-8 py-4 rounded-3xl border border-white/10 shadow-2xl">
+                      <p className="text-[10px] uppercase tracking-widest font-black text-[#E4E821] mb-1">Starting from</p>
                       <div className="flex items-baseline gap-1">
-                        <p className="font-serif text-4xl text-slate-900 tracking-tighter">{pkg.pricePerDay.split(' ')[0]}</p>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-tighter">ETB / Day</p>
+                        <p className="font-serif text-4xl text-white tracking-tighter">{pkg.pricePerDay.split(' ')[0]}</p>
+                        <p className="text-xs font-bold text-white/40 uppercase tracking-tighter">ETB / Day</p>
                       </div>
-                      <p className="text-[9px] text-slate-400 font-medium uppercase tracking-tight mt-1">Full Position: {pkg.price}</p>
+                      <p className="text-[9px] text-white/20 font-medium uppercase tracking-tight mt-1">Full Position: {pkg.price}</p>
                     </div>
 
                     {pkg.slots && (
-                      <div className="absolute top-8 right-8 bg-amber-500 text-white px-6 py-2 rounded-2xl text-[10px] font-black tracking-widest uppercase shadow-xl animate-pulse">
+                      <div className="absolute top-8 right-8 bg-[#E4E821] text-[#0F172A] px-6 py-2 rounded-2xl text-[10px] font-black tracking-widest uppercase shadow-xl animate-pulse">
                         {pkg.slots}
                       </div>
                     )}
 
                     {/* Quick Specs Overlay */}
                     <div className="absolute bottom-10 left-10 right-10 flex items-center justify-between">
-                      <div className="glass-light backdrop-blur-md px-6 py-3 rounded-2xl border border-white/20">
-                         <span className="font-sans font-black text-xs text-slate-800 tracking-widest uppercase">{pkg.size} Premium Space</span>
+                      <div className="glass-dark backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10">
+                         <span className="font-sans font-black text-xs text-white tracking-widest uppercase">{pkg.size} Premium Space</span>
                       </div>
                     </div>
                   </div>
@@ -387,30 +403,30 @@ const ExpoInfo: React.FC = () => {
                   <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 overflow-hidden">
                     <div className="space-y-4">
                       <div className="flex items-center gap-4">
-                        <div className="h-[2px] w-12 bg-amber-500" />
-                        <span className="text-amber-600 font-sans tracking-[0.4em] uppercase text-[10px] font-black">Luxury Module</span>
+                        <div className="h-[2px] w-12 bg-[#E4E821]" />
+                        <span className="text-[#E4E821] font-sans tracking-[0.4em] uppercase text-[10px] font-black">Luxury Module</span>
                       </div>
-                      <h3 className="font-serif text-5xl md:text-6xl text-slate-900 tracking-tighter leading-none">{pkg.title}</h3>
+                      <h3 className="font-serif text-5xl md:text-6xl text-white tracking-tighter leading-none">{pkg.title}</h3>
                     </div>
                   </div>
 
                   <div className="grid sm:grid-cols-2 gap-x-12 gap-y-6 flex-grow">
                     {pkg.features.map((f, i) => (
                       <div key={i} className="flex items-start gap-4">
-                        <div className="w-6 h-6 rounded-full bg-amber-50 flex items-center justify-center shrink-0 mt-0.5">
-                          <FiCheckCircle className="text-amber-500 size={14}" />
+                        <div className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center shrink-0 mt-0.5">
+                          <FiCheckCircle className="text-[#E4E821] size={14}" />
                         </div>
-                        <span className="font-sans text-sm text-slate-500 font-medium leading-snug">{f}</span>
+                        <span className="font-sans text-sm text-white/40 font-medium leading-snug">{f}</span>
                       </div>
                     ))}
                   </div>
 
                   <Link 
                     to={`/expo-registration?booth=${pkg.id}`}
-                    className={`block w-full py-7 rounded-3xl font-sans font-black text-xs tracking-[0.3em] uppercase transition-all text-center shadow-xl ${
+                    className={`block w-full py-7 rounded-3xl font-sans font-black text-[10px] tracking-[0.3em] uppercase transition-all text-center shadow-xl ${
                       pkg.popular 
-                        ? 'glow-button-light shadow-amber-500/30' 
-                        : 'bg-slate-900 text-white hover:bg-slate-800'
+                        ? 'glow-button shadow-[#E4E821]/20' 
+                        : 'bg-white text-[#0F172A] hover:bg-white/90'
                     }`}
                   >
                     Request {pkg.title}
@@ -425,8 +441,9 @@ const ExpoInfo: React.FC = () => {
       </section>
 
       {/* Founder Message Section */}
-      <section className="py-32 bg-slate-50 relative overflow-hidden">
-        <div className="container mx-auto px-4">
+      <section className="py-32 bg-[#0F172A] relative overflow-hidden">
+        <div className="noise-bk" />
+        <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-6xl mx-auto">
             <div className="grid lg:grid-cols-12 gap-16 items-center">
               <div className="lg:col-span-5 relative">
@@ -439,32 +456,32 @@ const ExpoInfo: React.FC = () => {
                   />
                 </div>
                 {/* Floating badge */}
-                <div className="absolute -bottom-8 -right-8 glass-light p-8 rounded-[2rem] border border-white shadow-xl">
-                  <h4 className="font-serif italic text-2xl text-slate-800">Founder's Note</h4>
+                <div className="absolute -bottom-8 -right-8 glass-dark p-8 rounded-[2rem] border border-white/10 shadow-xl">
+                  <h4 className="font-serif italic text-2xl text-white">Founder's Note</h4>
                 </div>
               </div>
 
               <div className="lg:col-span-7 space-y-10">
                 <div className="space-y-4">
                   <div className="flex items-center gap-4">
-                    <div className="h-[2px] w-12 bg-amber-500" />
-                    <span className="text-amber-600 font-sans tracking-[0.4em] uppercase text-[10px] font-black">Curator's Vision</span>
+                    <div className="h-[2px] w-12 bg-[#E4E821]" />
+                    <span className="text-[#E4E821] font-sans tracking-[0.4em] uppercase text-[10px] font-black">Curator's Vision</span>
                   </div>
-                  <h2 className="font-serif text-5xl md:text-7xl text-slate-800 tracking-tight leading-none">
+                  <h2 className="font-serif text-5xl md:text-7xl text-white tracking-tight leading-none">
                     Elegance is in <br />
                     <span className="italic text-gold-gradient">The Detail.</span>
                   </h2>
                 </div>
 
-                <div className="space-y-6 text-xl text-slate-500 font-light leading-relaxed italic">
+                <div className="space-y-6 text-xl text-white/40 font-light leading-relaxed italic">
                   <p>
                     "Yene Ken Expo belongs to those who believe that a wedding is more than an event—it's a masterpiece. We've created this ecosystem to celebrate the artisans who transform dreams into reality with absolute precision."
                   </p>
                 </div>
 
-                <div className="pt-8 border-t border-slate-200">
-                  <p className="font-serif text-3xl text-slate-800 tracking-tight">Bereket Yosef</p>
-                  <p className="font-sans text-[10px] uppercase tracking-[0.3em] text-amber-600 font-black mt-2">CEO & Lead Curator, Yenege</p>
+                <div className="pt-8 border-t border-white/5">
+                  <p className="font-serif text-3xl text-white tracking-tight">Bereket Yosef</p>
+                  <p className="font-sans text-[10px] uppercase tracking-[0.3em] text-[#E4E821] font-black mt-2">CEO & Lead Curator, Yenege</p>
                 </div>
               </div>
             </div>
@@ -472,53 +489,54 @@ const ExpoInfo: React.FC = () => {
         </div>
 
         {/* Decorative background text */}
-        <div className="absolute top-1/2 left-0 -translate-y-1/2 text-[20rem] font-serif font-black text-slate-200/20 select-none pointer-events-none -z-1 translate-x-[-10%] whitespace-nowrap">
+        <div className="absolute top-1/2 left-0 -translate-y-1/2 text-[20rem] font-serif font-black text-white/[0.02] select-none pointer-events-none -z-1 translate-x-[-10%] whitespace-nowrap">
           YENEGE
         </div>
       </section>
 
       {/* Categories Marquee */}
-      <section className="py-24 bg-white border-y border-slate-50 overflow-hidden text-[#1A1A1A]">
+      <section className="py-24 bg-[#0F172A] border-y border-white/5 overflow-hidden text-white/10">
         <div className="flex whitespace-nowrap animate-marquee">
           {[...vendorTypes, ...vendorTypes].map((type, i) => (
             <div key={i} className="flex items-center gap-6 mx-8 md:mx-16">
-              <span className="text-amber-600/30 text-2xl md:text-3xl">{type.icon}</span>
-              <span className="font-serif italic text-3xl md:text-5xl text-slate-200">{type.label}</span>
-              <div className="w-2 h-2 rounded-full bg-amber-500/10" />
+              <span className="text-[#E4E821]/10 text-2xl md:text-3xl">{type.icon}</span>
+              <span className="font-serif italic text-3xl md:text-5xl text-white/5">{type.label}</span>
+              <div className="w-2 h-2 rounded-full bg-[#E4E821]/5" />
             </div>
           ))}
         </div>
       </section>
 
       {/* Final CTA Section */}
-      <section className="py-40 relative">
+      <section className="py-40 relative overflow-hidden">
+        <div className="noise-bk" />
         <div className="container mx-auto px-4 text-center">
-          <div className="max-w-5xl mx-auto glass-light p-10 md:p-32 rounded-[4rem] md:rounded-[6rem] relative overflow-hidden luxury-border-light shadow-2xl border-white">
-            <div className="absolute inset-0 bg-gradient-to-br from-white via-amber-50/20 to-rose-50/20 opacity-40" />
+          <div className="max-w-5xl mx-auto glass-dark p-10 md:p-32 rounded-[4rem] md:rounded-[6rem] relative overflow-hidden border border-white/5 shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent opacity-40" />
             
             <div className="relative z-10 space-y-10">
-              <div className="flex items-center justify-center gap-4 text-amber-600">
+              <div className="flex items-center justify-center gap-4 text-[#E4E821]">
                 <FiStar className="animate-pulse" />
                 <span className="font-sans text-[10px] font-black tracking-[0.5em] uppercase">Limited Availability</span>
                 <FiStar className="animate-pulse" />
               </div>
               
-              <h2 className="font-serif text-5xl md:text-8xl text-slate-900 tracking-tighter leading-none">Your Spotlight <br /><span className="italic text-gold-gradient">Awaits.</span></h2>
+              <h2 className="font-serif text-5xl md:text-8xl text-white tracking-tighter leading-none">Your Spotlight <br /><span className="italic text-gold-gradient">Awaits.</span></h2>
               
-              <p className="font-sans text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed font-light">
+              <p className="font-sans text-xl text-white/40 max-w-2xl mx-auto leading-relaxed font-light">
                 Position your brand among the elite. Applications for the 2026 edition are strictly limited to ensure categorical exclusivity.
               </p>
               
               <div className="pt-12 flex flex-col md:flex-row items-center justify-center gap-8">
                 <Link 
                   to="/expo-registration" 
-                  className="w-full md:w-auto glow-button-light px-16 py-7 rounded-full font-sans font-black text-sm tracking-widest uppercase shadow-2xl shadow-slate-900/10 text-white"
+                  className="w-full md:w-auto glow-button px-16 py-7 rounded-full font-sans font-black text-[10px] tracking-widest uppercase shadow-2xl shadow-slate-900/10"
                 >
                   Apply to Exhibit
                 </Link>
                 <Link 
                   to="/contact" 
-                  className="w-full md:w-auto px-16 py-7 rounded-full border border-slate-200 font-sans font-bold text-sm tracking-widest uppercase hover:bg-slate-50 transition-colors text-slate-600"
+                  className="w-full md:w-auto px-16 py-7 rounded-full border border-white/10 font-sans font-black text-[10px] tracking-widest uppercase hover:bg-white/5 transition-colors text-white/60"
                 >
                   Concierge Desk
                 </Link>
@@ -539,7 +557,7 @@ const ExpoInfo: React.FC = () => {
       <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-md z-50 hidden md:block">
         <Link 
           to="/expo-registration?booth=standard" 
-          className="glow-button-light flex items-center justify-center gap-4 py-5 rounded-2xl shadow-2xl shadow-amber-500/30 font-sans font-black text-sm tracking-widest uppercase transition-transform active:scale-95"
+          className="glow-button flex items-center justify-center gap-4 py-5 rounded-2xl shadow-2xl shadow-amber-500/30 font-sans font-black text-[10px] tracking-widest uppercase transition-transform active:scale-95"
         >
           Secure Your Space <FiArrowRight className="text-lg" />
         </Link>

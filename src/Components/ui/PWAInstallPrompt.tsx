@@ -97,7 +97,7 @@ const PWAInstallPrompt = () => {
         <div 
           className="relative h-2"
             style={{
-              background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
+              background: "linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%)",
             }}
         />
 
@@ -109,7 +109,7 @@ const PWAInstallPrompt = () => {
               <div 
                 className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
                 style={{
-                  background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
+                  background: "linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%)",
                 }}
               >
                 <FaMobileAlt size={20} className="text-white" />
@@ -191,7 +191,7 @@ const PWAInstallPrompt = () => {
             onClick={handleInstallClick}
               className="flex-1 px-4 py-2.5 rounded-lg font-semibold text-white transition-all duration-200 text-sm relative overflow-hidden group"
             style={{
-              background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
+              background: "linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%)",
                 boxShadow: "0 2px 8px rgba(255, 111, 94, 0.3)",
             }}
             onMouseEnter={(e) => {

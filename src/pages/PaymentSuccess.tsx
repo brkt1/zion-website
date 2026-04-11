@@ -537,8 +537,8 @@ const PaymentSuccess = () => {
       {(verificationStatus === "loading" || verificationStatus === "pending") && (
         <div className="min-h-screen flex items-center justify-center px-4">
           <div className="max-w-md w-full text-center">
-            <FaSpinner className="mx-auto text-5xl text-[#FFD447] animate-spin mb-8" />
-            <h1 className="yg-font-serif text-3xl font-black text-[#01211C] mb-4">
+            <FaSpinner className="mx-auto text-5xl text-[#E4E821] animate-spin mb-8" />
+            <h1 className="yg-font-serif text-3xl font-black text-[#0F172A] mb-4">
               {verificationStatus === "pending" ? "Almost There..." : "Verifying Payment"}
             </h1>
             <p className="yg-font-sans text-gray-500 tracking-wide">
@@ -566,7 +566,7 @@ const PaymentSuccess = () => {
                   console.log('html2canvas imported');
                   
                   const canvas = await html2canvas(ticketRef.current, {
-                    backgroundColor: '#01211C',
+                    backgroundColor: '#0F172A',
                     scale: 2,
                     logging: true,
                     useCORS: true,
@@ -620,7 +620,7 @@ const PaymentSuccess = () => {
           </div>
 
           {/* Ticket Visual - Ultra-Minimal Full-Image Pass */}
-          <div ref={ticketRef} className="w-full max-w-[400px] mx-auto overflow-hidden p-4 bg-[#01211C]">
+          <div ref={ticketRef} className="w-full max-w-[400px] mx-auto overflow-hidden p-4 bg-[#0F172A]">
             <div className="relative aspect-[1/1.6] bg-black rounded-[40px] shadow-2xl overflow-hidden flex flex-col text-white font-sans">
               
               {/* Full Bleed Background Image */}
@@ -641,7 +641,7 @@ const PaymentSuccess = () => {
                   <img src="/logo.png" alt="ZION" className="h-8 w-auto brightness-0 invert" crossOrigin="anonymous" />
                   <div className="text-right">
                     <p className="text-[10px] font-black tracking-[0.3em] uppercase opacity-50">Curation Pass</p>
-                    <p className="text-[9px] font-bold tracking-widest text-[#FFD447]">#{getShortTxRef(paymentData?.tx_ref || txRef)}</p>
+                    <p className="text-[9px] font-bold tracking-widest text-[#E4E821]">#{getShortTxRef(paymentData?.tx_ref || txRef)}</p>
                   </div>
                 </div>
 
@@ -650,7 +650,7 @@ const PaymentSuccess = () => {
                   <h1 className="yg-font-serif text-5xl font-black leading-[1.1] mb-4 tracking-tight">
                     {eventTitleParam || event?.title || "Exclusive"}
                   </h1>
-                  <div className="h-1 w-12 bg-[#FFD447]" />
+                  <div className="h-1 w-12 bg-[#E4E821]" />
                 </div>
 
                 {/* Details Grid - Glassmorphism style */}
@@ -705,7 +705,7 @@ const PaymentSuccess = () => {
               </div>
 
               {/* Security Strip */}
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#FFD447] to-transparent opacity-50" />
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#E4E821] to-transparent opacity-50" />
             </div>
           </div>
 

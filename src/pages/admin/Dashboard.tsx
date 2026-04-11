@@ -328,9 +328,9 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
             {/* Total Revenue */}
             <div className="group relative overflow-hidden rounded-[32px] p-6 bg-white border border-gray-100 shadow-xl shadow-gray-200/40 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#FF6F5E]/10">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-[#FFD447]/10 to-[#FF6F5E]/10 rounded-full -translate-y-8 translate-x-8 blur-2xl group-hover:scale-150 transition-transform duration-700" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-[#E4E821]/10 to-[#FF6F5E]/10 rounded-full -translate-y-8 translate-x-8 blur-2xl group-hover:scale-150 transition-transform duration-700" />
               <div className="relative z-10">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#FFD447] to-[#FF6F5E] flex items-center justify-center mb-6 shadow-lg shadow-[#FF6F5E]/20 text-white">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#E4E821] to-[#FF6F5E] flex items-center justify-center mb-6 shadow-lg shadow-[#FF6F5E]/20 text-white">
                   <FaDollarSign size={24} />
                 </div>
                 <div className="flex items-baseline gap-2 mb-1">
@@ -422,19 +422,19 @@ const Dashboard = () => {
           {/* ── Expo 2026 Applications Feature Card ───────────────────── */}
           <Link
             to="/admin/expo-applications"
-            className="group relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#1C2951] to-[#2d3d6b] border border-[#FFD447]/20 shadow-2xl shadow-[#1C2951]/30 p-8 mb-10 flex flex-col md:flex-row md:items-center justify-between gap-8 transition-all duration-500 hover:shadow-[#FFD447]/20 hover:scale-[1.01] block"
+            className="group relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#1C2951] to-[#2d3d6b] border border-[#E4E821]/20 shadow-2xl shadow-[#1C2951]/30 p-8 mb-10 flex flex-col md:flex-row md:items-center justify-between gap-8 transition-all duration-500 hover:shadow-[#E4E821]/20 hover:scale-[1.01] block"
           >
             {/* Glow blobs */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-[#FFD447]/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-[80px] pointer-events-none" />
+            <div className="absolute top-0 right-0 w-64 h-64 bg-[#E4E821]/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-[80px] pointer-events-none" />
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#FF6F5E]/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-[60px] pointer-events-none" />
 
             {/* Left side */}
             <div className="relative z-10 flex items-center gap-6">
-              <div className="w-20 h-20 rounded-[20px] bg-gradient-to-br from-[#FFD447] to-[#FF6F5E] flex items-center justify-center shadow-2xl shadow-[#FF6F5E]/30 flex-shrink-0 group-hover:scale-110 transition-transform duration-500">
+              <div className="w-20 h-20 rounded-[20px] bg-gradient-to-br from-[#E4E821] to-[#FF6F5E] flex items-center justify-center shadow-2xl shadow-[#FF6F5E]/30 flex-shrink-0 group-hover:scale-110 transition-transform duration-500">
                 <FaBuilding className="text-white" size={32} />
               </div>
               <div>
-                <p className="text-[10px] font-black text-[#FFD447] uppercase tracking-[0.4em] mb-1">Yene Ken Expo 2026</p>
+                <p className="text-[10px] font-black text-[#E4E821] uppercase tracking-[0.4em] mb-1">Yene Ken Expo 2026</p>
                 <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight leading-tight">
                   Exhibitor Applications
                 </h2>
@@ -457,7 +457,7 @@ const Dashboard = () => {
                 {loadingExpoStats ? (
                   <div className="h-10 w-12 bg-white/10 rounded-xl animate-pulse mx-auto" />
                 ) : (
-                  <p className="text-4xl font-black text-[#FFD447]">{expoStats.pending}</p>
+                  <p className="text-4xl font-black text-[#E4E821]">{expoStats.pending}</p>
                 )}
                 <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mt-1">Pending</p>
               </div>
@@ -470,8 +470,8 @@ const Dashboard = () => {
                 )}
                 <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mt-1">Accepted</p>
               </div>
-              <div className="ml-2 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-[#FFD447]/20 transition-all">
-                <FaClipboardList className="text-white/60 group-hover:text-[#FFD447] transition-colors" size={16} />
+              <div className="ml-2 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-[#E4E821]/20 transition-all">
+                <FaClipboardList className="text-white/60 group-hover:text-[#E4E821] transition-colors" size={16} />
               </div>
             </div>
           </Link>
@@ -601,7 +601,7 @@ const Dashboard = () => {
           {/* Visitors Section */}
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-10 mb-10">
             <div className="xl:col-span-2 bg-white rounded-[40px] shadow-xl shadow-gray-200/40 border border-gray-100 p-10 relative overflow-hidden flex flex-col group">
-              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#FFD447] to-[#FF6F5E]" />
+              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#E4E821] to-[#FF6F5E]" />
               <div className="flex items-center justify-between mb-10">
                 <div>
                   <h2 className="text-2xl font-black text-[#1C2951] tracking-tight">Website Traffic</h2>
@@ -632,7 +632,7 @@ const Dashboard = () => {
                         <div
                           className={`absolute top-0 left-0 h-full rounded-2xl transition-all duration-1000 ease-out shadow-lg ${
                             isToday
-                              ? 'bg-gradient-to-r from-[#FFD447] to-[#FF6F5E] shadow-[#FF6F5E]/20'
+                              ? 'bg-gradient-to-r from-[#E4E821] to-[#FF6F5E] shadow-[#FF6F5E]/20'
                               : 'bg-gradient-to-r from-gray-200 to-gray-300'
                           }`}
                           style={{ width: `${percentage}%`, transitionDelay: `${idx * 100}ms` }}
@@ -656,7 +656,7 @@ const Dashboard = () => {
             <div className="space-y-6">
                <div className="bg-gradient-to-br from-[#1C2951] to-gray-900 rounded-[40px] p-8 text-white shadow-2xl shadow-gray-900/40 relative overflow-hidden group">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-8 translate-x-8 blur-2xl group-hover:scale-150 transition-transform duration-700 pointer-events-none" />
-                  <FaGlobe className="text-[#FFD447] mb-6 animate-pulse" size={32} />
+                  <FaGlobe className="text-[#E4E821] mb-6 animate-pulse" size={32} />
                   <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-2">Total Footprint</p>
                   <h3 className="text-5xl font-black text-white tracking-tight mb-4">{stats.totalVisits.toLocaleString()}</h3>
                   <div className="flex items-center gap-2">
@@ -667,9 +667,9 @@ const Dashboard = () => {
                   </div>
                </div>
 
-               <div className="bg-white rounded-[40px] p-8 border border-gray-100 shadow-xl shadow-gray-200/40 group hover:border-[#FFD447] transition-colors duration-500">
+               <div className="bg-white rounded-[40px] p-8 border border-gray-100 shadow-xl shadow-gray-200/40 group hover:border-[#E4E821] transition-colors duration-500">
                   <div className="flex items-center justify-between mb-8">
-                     <div className="w-12 h-12 rounded-2xl bg-[#FFD447]/10 flex items-center justify-center text-[#FFD447]">
+                     <div className="w-12 h-12 rounded-2xl bg-[#E4E821]/10 flex items-center justify-center text-[#E4E821]">
                         <FaEye size={24} />
                      </div>
                      <div className="px-3 py-1 bg-green-50 text-green-500 text-[10px] font-black rounded-full">+12%</div>
@@ -753,7 +753,7 @@ const Dashboard = () => {
                   <Link
                     key={item.path}
                     to={item.path}
-                    className="group flex flex-col items-center justify-center p-8 bg-white rounded-[32px] border border-gray-100 shadow-xl shadow-gray-200/40 hover:shadow-2xl hover:border-[#FFD447] transition-all duration-500 relative overflow-hidden"
+                    className="group flex flex-col items-center justify-center p-8 bg-white rounded-[32px] border border-gray-100 shadow-xl shadow-gray-200/40 hover:shadow-2xl hover:border-[#E4E821] transition-all duration-500 relative overflow-hidden"
                   >
                     <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-white opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     <div className={`relative z-10 w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:scale-110 group-hover:bg-gradient-to-br ${item.color} group-hover:text-white group-hover:shadow-lg transition-all duration-500 mb-4`}>
@@ -798,7 +798,7 @@ const Dashboard = () => {
             <div className="overflow-x-auto -mx-3 sm:-mx-4 md:-mx-6">
               {loadingTickets ? (
                 <div className="p-20 text-center">
-                  <div className="w-16 h-16 border-4 border-[#FFD447] border-t-[#FF6F5E] rounded-full animate-spin mx-auto mb-6 shadow-lg shadow-[#FFD447]/20"></div>
+                  <div className="w-16 h-16 border-4 border-[#E4E821] border-t-[#FF6F5E] rounded-full animate-spin mx-auto mb-6 shadow-lg shadow-[#E4E821]/20"></div>
                   <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Streaming Transactions...</div>
                 </div>
               ) : tickets.length === 0 ? (

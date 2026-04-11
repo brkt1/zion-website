@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FaArrowUp, FaCalendarAlt, FaEnvelope, FaHome, FaMapMarkerAlt, FaUsers } from "react-icons/fa";
+import { FaArrowUp, FaCalendarAlt, FaEnvelope, FaHome, FaUsers } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
 
 const MobileBottomNav = () => {
@@ -26,7 +26,6 @@ const MobileBottomNav = () => {
   const navItems = [
     { path: "/", label: "Home", icon: FaHome },
     { path: "/events", label: "Events", icon: FaCalendarAlt },
-    { path: "/travel", label: "Travel", icon: FaMapMarkerAlt },
     { path: "/contact", label: "Contact", icon: FaEnvelope },
     { path: "/community", label: "Community", icon: FaUsers },
   ];
@@ -46,7 +45,7 @@ const MobileBottomNav = () => {
           onClick={scrollToTop}
           className="fixed bottom-24 right-4 z-50 w-12 h-12 rounded-full shadow-2xl flex items-center justify-center transition-all duration-500 hover:scale-110 active:scale-90"
           style={{
-            background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
+            background: "linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%)",
             boxShadow: "0 8px 24px rgba(255, 111, 94, 0.5), 0 0 0 4px rgba(255, 111, 94, 0.1)",
             animation: "float 3s ease-in-out infinite",
           }}
@@ -116,7 +115,7 @@ const MobileBottomNav = () => {
                     <div 
                       className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-16 h-16 rounded-full blur-xl opacity-30 transition-all duration-500"
                       style={{
-                        background: "radial-gradient(circle, #FFD447 0%, #FF6F5E 100%)",
+                        background: "radial-gradient(circle, #E4E821 0%, #FF6F5E 100%)",
                         animation: "pulse-glow 2s ease-in-out infinite",
                       }}
                     />
@@ -124,7 +123,7 @@ const MobileBottomNav = () => {
                     <div 
                       className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 rounded-full transition-all duration-300"
                       style={{
-                        background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
+                        background: "linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%)",
                         boxShadow: "0 0 8px rgba(255, 111, 94, 0.6)",
                       }}
                     />
@@ -150,7 +149,7 @@ const MobileBottomNav = () => {
                         : 'bg-gray-100 group-hover:bg-gray-200'
                     }`}
                     style={active ? {
-                      background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
+                      background: "linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%)",
                       boxShadow: "0 6px 20px rgba(255, 111, 94, 0.4), 0 0 0 3px rgba(255, 111, 94, 0.1)",
                     } : {}}
                   >

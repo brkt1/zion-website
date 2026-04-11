@@ -124,19 +124,19 @@ const SponsorshipDepartment = () => {
            <div className="bg-[#1C2951] rounded-[32px] p-8 shadow-2xl shadow-[#1C2951]/20 relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl -translate-y-16 translate-x-16 group-hover:scale-150 transition-transform duration-700" />
               <div className="relative z-10 text-white">
-                 <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-[#FFD447] mb-6">
+                 <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-[#E4E821] mb-6">
                     <FaChartLine size={20} />
                  </div>
                  <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-2 leading-none">Yield Efficiency</p>
                  <h3 className="text-4xl font-black tracking-tight">{stats.avgCommission.toFixed(1)}%</h3>
-                 <p className="text-[10px] font-black text-[#FFD447] mt-4 uppercase tracking-widest leading-none">Avg Base Commission</p>
+                 <p className="text-[10px] font-black text-[#E4E821] mt-4 uppercase tracking-widest leading-none">Avg Base Commission</p>
               </div>
            </div>
         </div>
 
         {/* Partners Management Section */}
         <div className="bg-white rounded-[48px] shadow-2xl shadow-gray-200/40 border border-gray-100 overflow-hidden relative group">
-           <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 via-[#FF6F5E] to-[#FFD447]" />
+           <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 via-[#FF6F5E] to-[#E4E821]" />
            <div className="p-12 border-b border-gray-50 flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div>
                  <h2 className="text-3xl font-black text-[#1C2951] tracking-tight">Enterprise Portfolio</h2>
@@ -304,7 +304,7 @@ const SponsorshipDepartment = () => {
 
       {showRepModal && (
           <div className="fixed inset-0 bg-gray-900/60 flex items-center justify-center z-[70] p-4 backdrop-blur-md">
-             <div className="bg-white rounded-[40px] max-w-md w-full p-12 shadow-2xl relative border-b-8 border-[#FFD447]">
+             <div className="bg-white rounded-[40px] max-w-md w-full p-12 shadow-2xl relative border-b-8 border-[#E4E821]">
                 <div className="flex items-center justify-between mb-10">
                    <h2 className="text-3xl font-black text-[#1C2951] tracking-tight">Enlist Operative</h2>
                    <button onClick={() => setShowRepModal(false)} className="p-2 bg-gray-50 rounded-xl text-gray-400"><FaTimes /></button>

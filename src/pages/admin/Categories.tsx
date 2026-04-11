@@ -92,7 +92,7 @@ const Categories = () => {
             setShowModal(true);
           }}
           className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 text-sm sm:text-base rounded-lg text-white transition-all shadow-md hover:shadow-lg"
-          style={{ background: 'linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)' }}
+          style={{ background: 'linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%)' }}
         >
           <FaPlus />
           <span>Add Category</span>
@@ -225,7 +225,7 @@ const Categories = () => {
                   <button
                     type="submit"
                     className="px-4 py-2 text-white rounded-md transition-all shadow-md hover:shadow-lg"
-                    style={{ background: 'linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)' }}
+                    style={{ background: 'linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%)' }}
                   >
                     {editingCategory ? 'Update' : 'Create'}
                   </button>
