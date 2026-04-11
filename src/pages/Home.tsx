@@ -11,7 +11,6 @@ import {
 import { Link } from "react-router-dom";
 import Gallery from "../Components/Gallery";
 import Hero from "../Components/Hero";
-import { LocationButton } from "../Components/ui/LocationButton";
 import OptimizedImage from "../Components/ui/OptimizedImage";
 import { useContactInfo, useEvents, useHomeContent } from "../hooks/useApi";
 import { useScrollReveal } from "../hooks/useScrollReveal";
@@ -119,6 +118,50 @@ const Home = () => {
 
         .yg-font-serif { font-family: 'Playfair Display', Georgia, serif; }
         .yg-font-sans  { font-family: 'Manrope', system-ui, sans-serif; }
+
+        /* Creative Grain Filter */
+        .noise-bk {
+          position: absolute;
+          inset: 0;
+          opacity: 0.2;
+          pointer-events: none;
+          background: linear-gradient(to bottom, transparent, #01211C), 
+                      url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+          z-index: 1;
+        }
+
+        .sidebrand {
+          position: absolute;
+          right: 40px;
+          top: 50%;
+          transform: translateY(-50%) rotate(90deg);
+          transform-origin: right center;
+          font-family: 'Manrope', sans-serif;
+          font-size: 10px;
+          font-weight: 900;
+          letter-spacing: 1em;
+          color: rgba(255, 212, 71, 0.2);
+          text-transform: uppercase;
+          pointer-events: none;
+          z-index: 10;
+          white-space: nowrap;
+        }
+
+        @media (min-width: 1025px) {
+          .yg-creative-grid { grid-template-columns: 1fr !important; gap: 80px !important; max-width: 900px; margin: 0 auto; }
+          .yg-creative-card { transform: none !important; }
+        }
+
+        @media (max-width: 1024px) {
+          .yg-creative-grid { grid-template-columns: 1fr !important; gap: 60px !important; }
+          .sidebrand { display: none; }
+        }
+
+        @media (max-width: 768px) {
+          .yg-creative-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
+          .yg-creative-card { transform: none !important; }
+          .yg-creative-header { flex-direction: column; margin-bottom: 60px !important; }
+        }
 
         /* Service cards */
         .yg-service-card {
@@ -713,318 +756,196 @@ const Home = () => {
       {/* ── 5. Featured Events ────────────────────────────────────────────────── */}
       <section
         aria-labelledby="experiences-heading"
-        style={{ padding: "100px 0", background: BRAND.cream }}
+        style={{ 
+          padding: "160px 0", 
+          background: BRAND.primary, 
+          position: 'relative', 
+          overflow: 'hidden' 
+        }}
       >
-        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
-          {/* Header row */}
+        {/* Creative Layer 1: Massive Background Watermark */}
+        <div 
+          style={{ 
+            position: 'absolute', 
+            top: '50%', 
+            left: '50%', 
+            transform: 'translate(-50%, -50%)',
+            fontSize: 'max(20vw, 300px)',
+            fontWeight: 900,
+            fontFamily: "'Playfair Display', serif",
+            color: 'rgba(255, 212, 71, 0.03)', // Extremely subtle gold
+            whiteSpace: 'nowrap',
+            pointerEvents: 'none',
+            zIndex: 0,
+            userSelect: 'none'
+          }}
+        >
+          CURATED
+        </div>
+
+        {/* Creative Layer 2: Grain Overlay for Print Feel */}
+        <div className="noise-bk" />
+
+        {/* Vertical Sidebrand */}
+        <div className="sidebrand">ZION CURATION Portfolio 2024</div>
+
+        {/* Creative Layer 3: Dynamic Glows */}
+        <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '40%', height: '40%', background: 'radial-gradient(circle, rgba(255,111,94,0.1) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none', zIndex: 1 }} />
+        <div style={{ position: 'absolute', bottom: '-10%', right: '-10%', width: '50%', height: '50%', background: 'radial-gradient(circle, rgba(228,232,33,0.05) 0%, transparent 70%)', filter: 'blur(100px)', pointerEvents: 'none', zIndex: 1 }} />
+
+        <div className="reveal-wrapper" style={{ maxWidth: "1500px", margin: "0 auto", padding: "0 40px", position: 'relative', zIndex: 2 }}>
+          {/* Creative Header: Asymmetrical & Bold */}
           <div
+            className="yg-creative-header"
             style={{
               display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexDirection: "column",
-              textAlign: "center",
-              marginBottom: "80px",
+              alignItems: "flex-start",
+              justifyContent: "space-between",
+              marginBottom: "120px",
+              width: "100%"
             }}
           >
-            <SectionLabel>Upcoming Curations</SectionLabel>
-            <h2
-              id="experiences-heading"
-              className="yg-font-serif"
-              style={{
-                fontSize: "clamp(40px, 6vw, 64px)",
-                fontWeight: 900,
-                color: BRAND.navy,
-                margin: "0 0 24px",
-                lineHeight: 1.1,
-                letterSpacing: "-0.03em",
-              }}
-            >
-              Featured{" "}
-              <span
-                style={{
-                  background: GRADIENT.brand,
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                  fontStyle: "italic",
-                }}
-              >
-                Experiences
-              </span>
-            </h2>
-            <Link
-              to="/events"
-              onMouseEnter={() => handleLinkHover("/events")}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-                color: BRAND.coral,
-                fontWeight: 800,
-                fontSize: "13px",
-                letterSpacing: "0.15em",
-                textTransform: "uppercase",
-                textDecoration: "none",
-                transition: "gap 0.3s ease"
-              }}
-              className="group-hover:gap-3"
-            >
-              View All Events <FaArrowRight size={12} />
-            </Link>
+            <div style={{ maxWidth: '600px' }}>
+              <SectionLabel>Available Experiences</SectionLabel>
+              <h2 className="yg-font-serif text-white text-6xl md:text-8xl font-black leading-tight tracking-tighter mt-8">
+                The <span className="italic" style={{ color: BRAND.gold }}>Curation</span> <br />
+                <span className="text-[14px] font-black uppercase tracking-[0.6em] text-white/30 block mt-4">Selected Portfolio 2024</span>
+              </h2>
+            </div>
+            
+            <div className="hidden lg:block pt-32">
+                <div className="w-24 h-px bg-[#FFD447]/30" />
+                <p className="text-[11px] font-bold text-white/40 uppercase tracking-[0.3em] mt-8 max-w-[200px] leading-loose">
+                  Exclusive travels and bespoke moments designed for the discerning soul.
+                </p>
+            </div>
           </div>
+
 
           {/* Event cards grid */}
           {featuredEvents.length > 0 ? (
             <div
-              className="yg-event-grid"
+              className="yg-creative-grid"
               style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(3, 1fr)",
-                gap: "28px",
+                gap: "40px",
               }}
             >
-              {featuredEvents.map((event) => (
+              {featuredEvents.map((event, index) => (
                 <Link
                   key={event.id}
                   to={`/events/${event.id}`}
-                  className="yg-event-card"
-                  style={{ textDecoration: "none" }}
+                  className="yg-event-card yg-creative-card group"
+                  style={{ 
+                    textDecoration: "none", 
+                    borderRadius: '48px', 
+                    overflow: 'hidden', 
+                    position: 'relative', 
+                    display: 'block',
+                    zIndex: index === 1 ? 10 : 1
+                  }}
                   aria-label={`View details for ${event.title}`}
                 >
-                  {/* Image area */}
-                  <div
-                    className="yg-img-wrap"
-                    style={{
-                      height: "240px",
-                      position: "relative",
-                      overflow: "hidden",
-                    }}
-                  >
+                  {/* Floating Number Branding */}
+                  <div className="absolute top-10 left-10 z-20 pointer-events-none">
+                     <span className="text-[120px] font-black text-white/5 leading-none select-none">0{index + 1}</span>
+                  </div>
+
+                  <div className="relative aspect-[4/5] overflow-hidden">
+
                     {event.image ? (
                       <OptimizedImage
                         src={event.image}
                         alt={event.title}
-                        width={600}
-                        height={400}
-                        quality={70}
-                        priority="low"
-                        responsive={true}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = "none";
-                        }}
+                        width={800}
+                        height={1000}
+                        className="card-img w-full h-full object-cover transition-transform duration-1000 cubic-bezier(0.16,1,0.3,1)"
                       />
                     ) : (
-                      <div
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          background: `linear-gradient(135deg, ${BRAND.navy} 0%, ${BRAND.navyLight} 100%)`,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <FaCalendarAlt
-                          size={36}
-                          style={{ color: "rgba(228,232,33,0.4)" }}
-                        />
+                      <div className="w-full h-full bg-[#01211C] flex items-center justify-center">
+                        <FaCalendarAlt size={40} className="text-[#FFD447]/20" />
                       </div>
                     )}
 
-                    {/* Gradient overlay */}
-                    <div
-                      style={{
-                        position: "absolute",
-                        inset: 0,
-                        background:
-                          "linear-gradient(to top, rgba(15,23,42,0.5) 0%, transparent 60%)",
-                      }}
-                    />
-
-                    {/* Date badge */}
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: "16px",
-                        left: "16px",
-                        background: "rgba(255,255,255,0.95)",
-                        backdropFilter: "blur(8px)",
-                        borderRadius: "10px",
-                        padding: "6px 12px",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "6px",
-                      }}
-                    >
-                      <FaCalendarAlt
-                        size={10}
-                        style={{ color: BRAND.coral }}
-                      />
-                      <span
-                        className="yg-font-sans"
-                        style={{
-                          fontSize: "11px",
-                          fontWeight: 800,
-                          color: BRAND.navy,
-                          letterSpacing: "0.05em",
-                        }}
-                      >
-                        {formatDateShort(event.date)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Card body */}
-                  <div
-                    style={{
-                      padding: "28px 28px 24px",
-                      display: "flex",
-                      flexDirection: "column",
-                      flexGrow: 1,
-                    }}
-                  >
-                    {/* Location */}
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "6px",
-                        marginBottom: "12px",
-                      }}
-                    >
-                      <FaMapMarkerAlt
-                        size={11}
-                        style={{ color: BRAND.gold, flexShrink: 0 }}
-                      />
-                      <LocationButton
-                        location={event.location}
-                        className="yg-font-sans"
-                        showIcon={false}
-                        style={{
-                          fontSize: "12px",
-                          fontWeight: 700,
-                          color: BRAND.gray400,
-                          textTransform: "uppercase",
-                          letterSpacing: "0.08em",
-                        }}
-                      />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#01211C]/90 via-transparent to-black/20" />
+                    
+                    {/* Vertical Date Branding */}
+                    <div className="absolute right-6 top-10 flex flex-col items-center gap-6">
+                       <div className="w-px h-12 bg-white/20" />
+                       <span className="vertical-date text-[9px] font-black uppercase tracking-[0.4em] text-white/40" style={{ writingMode: 'vertical-rl' }}>
+                         {formatDateShort(event.date)}
+                       </span>
                     </div>
 
-                    <h3
-                      className="yg-font-serif"
-                      style={{
-                        fontSize: "22px",
-                        fontWeight: 700,
-                        color: BRAND.navy,
-                        marginBottom: "10px",
-                        lineHeight: 1.3,
-                      }}
-                    >
-                      {event.title}
-                    </h3>
+                    {/* Content Over the Image */}
+                    <div className="absolute bottom-10 left-10 right-10 flex flex-col items-start">
+                       <div className="flex items-center gap-3 mb-4">
+                          <span className="px-3 py-1.5 rounded-full border border-white/10 bg-white/10 backdrop-blur-md text-[8px] font-black text-white uppercase tracking-widest">{event.category}</span>
+                          <span className="h-1 w-1 bg-[#FFD447] rounded-full" />
+                          <span className="text-[8px] font-black text-white/50 uppercase tracking-[0.3em]">{event.location}</span>
+                       </div>
+                       
+                       <h3 className="yg-font-serif text-2xl font-black text-white leading-[1.1] mb-8 group-hover:text-[#FFD447] transition-colors">
+                         {event.title}
+                       </h3>
 
-                    <p
-                      className="yg-font-sans"
-                      style={{
-                        fontSize: "14px",
-                        color: BRAND.gray500,
-                        lineHeight: 1.65,
-                        marginBottom: "24px",
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {event.description}
-                    </p>
-
-                    {/* Footer CTA */}
-                    <div
-                      style={{
-                        marginTop: "auto",
-                        paddingTop: "20px",
-                        borderTop: `1px solid ${BRAND.gray100}`,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <span
-                        className="yg-font-sans"
-                        style={{
-                          fontSize: "12px",
-                          fontWeight: 800,
-                          color: BRAND.navy,
-                          textTransform: "uppercase",
-                          letterSpacing: "0.1em",
-                        }}
-                      >
-                        View Details
-                      </span>
-                      <div
-                        style={{
-                          width: "32px",
-                          height: "32px",
-                          borderRadius: "50%",
-                          background: GRADIENT.brand,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          flexShrink: 0,
-                        }}
-                      >
-                        <FaArrowRight
-                          size={12}
-                          style={{ color: BRAND.navy }}
-                        />
-                      </div>
+                       <div className="flex items-center justify-between w-full">
+                         <div className="bg-[#01211C] text-[#FFD447] py-2 px-4 rounded-xl text-sm font-serif italic font-black shadow-lg">
+                           {event.price === "Free" ? "Gratis" : `${event.price} ${event.currency}`}
+                         </div>
+                         
+                         <div className="arrow-circle w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-white transition-all duration-500 group-hover:bg-[#01211C] group-hover:text-[#FFD447] group-hover:rotate-[-45deg]">
+                           <FaArrowRight size={12} />
+                         </div>
+                       </div>
                     </div>
                   </div>
                 </Link>
               ))}
             </div>
           ) : (
-            /* Empty state */
-            <div
-              style={{
-                textAlign: "center",
-                padding: "100px 24px",
-                background: "rgba(15,23,42,0.02)",
-                borderRadius: "32px",
-                border: `1px dashed ${BRAND.gray100}`,
-              }}
-            >
-              <h3
-                className="yg-font-serif"
-                style={{
-                  fontSize: "24px",
-                  fontWeight: 700,
-                  color: BRAND.navy,
-                  marginBottom: "12px",
-                }}
-              >
-                No upcoming events right now
-              </h3>
-              <p
-                className="yg-font-sans"
-                style={{
-                  color: BRAND.gray500,
-                  fontSize: "16px",
-                  marginBottom: "32px",
-                }}
-              >
-                We're curating something special. Check back later!
-              </p>
-              <Link
-                to="/events"
-                className="yg-btn-primary yg-shine"
-              >
-                Explore Portfolio <FaArrowRight size={12} />
-              </Link>
-            </div>
+             <div
+               style={{
+                 textAlign: "center",
+                 padding: "100px 24px",
+                 background: "rgba(255,255,255,0.03)",
+                 borderRadius: "40px",
+                 border: "1px dashed rgba(255,212,71,0.2)",
+                 backdropFilter: 'blur(10px)'
+               }}
+             >
+               <h3
+                 className="yg-font-serif"
+                 style={{
+                   fontSize: "28px",
+                   fontWeight: 900,
+                   color: BRAND.white,
+                   marginBottom: "16px",
+                 }}
+               >
+                 No upcoming experiences right now
+               </h3>
+               <p
+                 className="yg-font-sans"
+                 style={{
+                   color: "rgba(255,255,255,0.5)",
+                   fontSize: "17px",
+                   marginBottom: "40px",
+                   maxWidth: "400px",
+                   margin: "0 auto 40px"
+                 }}
+               >
+                 We're curating something special. Check back later to discover our latest bespoke experiences.
+               </p>
+               <Link
+                 to="/events"
+                 className="yg-btn-primary yg-shine"
+                 style={{ background: BRAND.gold, color: BRAND.primary }}
+               >
+                 Explore Portfolio <FaArrowRight size={12} />
+               </Link>
+             </div>
           )}
         </div>
       </section>

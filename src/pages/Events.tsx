@@ -2,8 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
   FaArrowRight,
   FaCalendarAlt,
-  FaMapMarkerAlt,
-  FaUsers,
   FaWhatsapp
 } from "react-icons/fa";
 import { Link, useSearchParams } from "react-router-dom";
@@ -70,29 +68,29 @@ const Events = () => {
   }, []);
 
   const [searchParams] = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState("");
   const categoryParam = searchParams.get("category") || "all";
-  const [selectedCategory] = useState<string>(categoryParam);
+  const selectedCategory = categoryParam;
 
   const { events, isLoading: eventsLoading } = useEvents({
     category: selectedCategory === "all" ? undefined : (selectedCategory as any),
   });
 
-
-
   const filteredEvents = useMemo(() => {
-    // Excluded IDs for manual filtering
-    const excludedIds = ["community", "corporate", "game"];
-    
     return (events || []).filter((event) => {
-      // 1. First ensure we filter out the excluded categories
-      if (excludedIds.includes(event.category?.toLowerCase())) return false;
-
-      // 2. Then apply the category filter
+      // Apply the category filter
       const matchesCategory =
         selectedCategory === "all" || event.category === selectedCategory;
-      return matchesCategory;
+      
+      // Apply the search filter
+      const matchesSearch = 
+        event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        event.location.toLowerCase().includes(searchQuery.toLowerCase());
+
+      return matchesCategory && matchesSearch;
     });
-  }, [events, selectedCategory]);
+  }, [events, selectedCategory, searchQuery]);
 
 
 
@@ -110,96 +108,206 @@ const Events = () => {
 
         .yg-event-card {
           background: #fff;
-          border: 1px solid rgba(0,0,0,0.06);
-          border-radius: 28px;
+          border-radius: 42px;
           overflow: hidden;
-          transition: transform 0.4s cubic-bezier(0.16,1,0.3,1),
-                      box-shadow 0.4s cubic-bezier(0.16,1,0.3,1);
+          transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+          border: 1px solid rgba(0,0,0,0.03);
+          box-shadow: 0 10px 30px rgba(0,0,0,0.01);
           display: flex;
           flex-direction: column;
           height: 100%;
           text-decoration: none;
+          position: relative;
         }
         .yg-event-card:hover {
-          transform: translateY(-8px);
-          box-shadow: 0 32px 80px -16px rgba(15,23,42,0.16);
+          transform: translateY(-16px) scale(1.01);
+          box-shadow: 0 80px 140px -30px rgba(1, 33, 28, 0.15);
+          border-color: rgba(228, 232, 33, 0.2);
+        }
+        .yg-event-card:hover .card-img {
+          transform: scale(1.08);
+        }
+        .yg-event-card:hover .arrow-circle {
+          background: #01211C;
+          color: #FFD447;
+          transform: rotate(-45deg);
         }
 
-        .yg-search-input:focus {
-          border-color: #E4E821 !important;
-          box-shadow: 0 4px 20px rgba(228,232,33,0.1);
+        .vertical-date {
+          writing-mode: vertical-rl;
+          text-orientation: mixed;
+          font-family: 'Manrope', sans-serif;
+          font-size: 9px;
+          font-weight: 900;
+          text-transform: uppercase;
+          letter-spacing: 0.4em;
+          color: rgba(255, 255, 255, 0.4);
+        }
+
+        .price-badge {
+          background: #01211C;
+          color: #FFD447;
+          font-family: 'Playfair Display', serif;
+          font-size: 16px;
+          font-style: italic;
+          font-weight: 900;
+          padding: 8px 18px;
+          border-radius: 16px;
+          box-shadow: 0 10px 20px rgba(1, 33, 28, 0.2);
+        }
+
+        .category-pill {
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(12px);
+          color: #fff;
+          font-size: 9px;
+          font-weight: 900;
+          text-transform: uppercase;
+          letter-spacing: 0.2em;
+          padding: 6px 14px;
+          border-radius: 99px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .yg-category-nav {
+          display: flex;
+          gap: 32px;
+          margin-bottom: 60px;
+          border-bottom: 1px solid rgba(0,0,0,0.05);
+          padding-bottom: 2px;
         }
 
         .yg-category-btn {
           position: relative;
-          padding: 8px 0;
+          padding: 12px 0;
           font-family: 'Manrope', sans-serif;
-          font-size: 14px;
-          font-weight: 700;
-          color: ${BRAND.gray500};
+          font-size: 11px;
+          font-weight: 800;
+          color: #9CA3AF;
           background: transparent;
           border: none;
           cursor: pointer;
-          transition: color 0.3s;
+          transition: all 0.3s;
           text-transform: uppercase;
-          letter-spacing: 0.05em;
+          letter-spacing: 0.2em;
         }
         .yg-category-btn.active {
-          color: ${BRAND.navy};
+          color: #01211C;
         }
         .yg-category-btn::after {
           content: '';
           position: absolute;
-          bottom: 0;
+          bottom: -1px;
           left: 0;
           width: 0;
-          height: 2px;
-          background: ${GRADIENT.brand};
-          transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          height: 3px;
+          background: #FFD447;
+          transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .yg-category-btn.active::after {
           width: 100%;
         }
 
-        .yg-btn-whatsapp {
-          display: inline-flex;
+        .search-container {
+          display: flex;
           align-items: center;
-          gap: 10px;
-          padding: 16px 36px;
-          border-radius: 999px;
-          background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
-          color: #fff;
-          font-family: 'Manrope', sans-serif;
-          font-weight: 800;
-          font-size: 13px;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          text-decoration: none;
-          border: none;
-          cursor: pointer;
-          transition: transform 0.25s, box-shadow 0.25s;
-          box-shadow: 0 8px 30px rgba(37,211,102,0.25);
+          gap: 16px;
+          background: #fff;
+          border: 1px solid rgba(0,0,0,0.05);
+          border-radius: 20px;
+          padding: 8px 16px;
+          width: 100%;
+          max-width: 320px;
+          transition: all 0.3s;
         }
-        .yg-btn-whatsapp:hover {
-          transform: translateY(-2px) scale(1.02);
-          box-shadow: 0 16px 40px rgba(37,211,102,0.35);
+        .search-container:focus-within {
+          border-color: #01211C;
+          box-shadow: 0 10px 30px rgba(1, 33, 28, 0.05);
+        }
+        .search-input {
+          background: transparent;
+          border: none;
+          outline: none;
+          font-family: 'Manrope', sans-serif;
+          font-size: 13px;
+          font-weight: 700;
+          color: #01211C;
+          width: 100%;
+        }
+        .search-input::placeholder {
+          color: #9CA3AF;
         }
 
         @media (max-width: 768px) {
-          .yg-event-grid { grid-template-columns: 1fr !important; }
+          .yg-event-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
+          .yg-category-nav { gap: 20px; overflow-x: auto; padding-bottom: 15px; }
+          .yg-category-btn { white-space: nowrap; }
+          .search-container { max-width: 100%; }
+          .filtration-row { flex-direction: column; align-items: flex-start !important; }
         }
       `}</style>
 
-      {/* ── 2. Events Grid (Start of page) ─────────────────────────────────── */}
+      {/* ── 1. Hero Header ─────────────────────────────────────────────────── */}
+      <section style={{ padding: "160px 0 40px", background: BRAND.cream }}>
+        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
+          <SectionLabel>Collections</SectionLabel>
+          <h1 className="yg-font-serif" style={{ fontSize: "clamp(48px, 8vw, 84px)", fontWeight: 900, color: BRAND.navy, lineHeight: 1, letterSpacing: "-0.02em", marginBottom: "24px" }}>
+            Event <br />
+            <span style={{ fontStyle: "italic", background: GRADIENT.brand, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Curation</span>
+          </h1>
+          <p className="yg-font-sans" style={{ fontSize: "18px", color: BRAND.gray500, maxWidth: "540px", lineHeight: 1.6 }}>
+            Discover our portfolio of exclusive experiences, from bespoke travels to high-impact community gatherings.
+          </p>
+        </div>
+      </section>
+
+      {/* ── 2. Events Grid ─────────────────────────────────── */}
       <section
         style={{
-          padding: "160px 0 140px",
+          padding: "40px 0 140px",
           background: BRAND.cream,
         }}
       >
-        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
+        <div className="reveal-wrapper" style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 40px" }}>
+          
+          <div className="filtration-row flex flex-col md:flex-row md:items-center justify-between mb-12 gap-8">
+            {/* Left Aligned Search */}
+            <div className="search-container reveal-wrapper">
+               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+               </svg>
+               <input 
+                 type="text" 
+                 placeholder="Search Zion experiences..."
+                 value={searchQuery}
+                 onChange={(e) => setSearchQuery(e.target.value)}
+                 className="search-input"
+               />
+            </div>
+
+            {/* Category Navigation - Streamlined */}
+            <div className="yg-category-nav reveal-wrapper !mb-0 border-none items-center">
+              {['all', 'travel'].map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => {
+                    const params = new URLSearchParams(searchParams);
+                    if (cat === 'all') params.delete('category');
+                    else params.set('category', cat);
+                    window.history.pushState({}, '', `?${params.toString()}`);
+                    dispatchEvent(new PopStateEvent('popstate'));
+                  }}
+                  className={`yg-category-btn ${selectedCategory === cat ? 'active' : ''}`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {eventsLoading ? (
-            <div style={{ textAlign: "center", padding: "100px 0" }}>
+            <div style={{ textAlign: "center", padding: "120px 0" }}>
               <div
                 style={{
                   width: "40px",
@@ -254,208 +362,64 @@ const Events = () => {
             </div>
           ) : (
             <div
-              className="yg-event-grid"
+              className="yg-event-grid reveal-wrapper reveal-delay-200"
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))",
-                gap: "40px",
+                gridTemplateColumns: "repeat(auto-fill, minmax(400px, 1fr))",
+                gap: "60px",
               }}
             >
               {filteredEvents.map((event) => (
                 <Link
                   key={event.id}
                   to={`/events/${event.id}`}
-                  className="yg-event-card"
+                  className="yg-event-card group"
                 >
-                  {/* Card Image */}
-                  <div
-                    style={{
-                      height: "260px",
-                      position: "relative",
-                      overflow: "hidden",
-                    }}
-                  >
+                  {/* Image Wrapper - Aspect 3:4 for vertical editorial feel */}
+                  <div className="relative aspect-[4/5] overflow-hidden">
                     {event.image ? (
                       <OptimizedImage
                         src={event.image}
                         alt={event.title}
-                        width={600}
-                        height={400}
-                        className="w-full h-full object-cover"
-                        style={{ transition: "transform 1s cubic-bezier(0.16,1,0.3,1)" }}
+                        width={800}
+                        height={1000}
+                        className="card-img w-full h-full object-cover transition-transform duration-1000 cubic-bezier(0.16,1,0.3,1)"
                       />
                     ) : (
-                      <div
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          background: GRADIENT.navyVert,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <FaCalendarAlt
-                          size={40}
-                          style={{ color: "rgba(228,232,33,0.3)" }}
-                        />
+                      <div className="w-full h-full bg-[#01211C] flex items-center justify-center">
+                        <FaCalendarAlt size={40} className="text-[#FFD447]/20" />
                       </div>
                     )}
 
-                    {/* Gradient overlay */}
-                    <div
-                      style={{
-                        position: "absolute",
-                        inset: 0,
-                        background:
-                          "linear-gradient(to top, rgba(15,23,42,0.4) 0%, transparent 60%)",
-                      }}
-                    />
-
-                    {/* Category tag */}
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: "20px",
-                        left: "20px",
-                        background: "rgba(255,255,255,0.92)",
-                        backdropFilter: "blur(8px)",
-                        borderRadius: "8px",
-                        padding: "4px 12px",
-                        fontSize: "11px",
-                        fontWeight: 800,
-                        color: BRAND.navy,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.1em",
-                      }}
-                    >
-                      {event.category}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#01211C]/90 via-transparent to-black/20" />
+                    
+                    {/* Vertical Date Branding */}
+                    <div className="absolute right-6 top-10 flex flex-col items-center gap-6">
+                       <div className="w-px h-12 bg-white/20" />
+                       <span className="vertical-date">{formatDateShort(event.date)}</span>
                     </div>
 
-                    {/* Date badge */}
-                    <div
-                      style={{
-                        position: "absolute",
-                        bottom: "20px",
-                        left: "20px",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                        color: "#fff",
-                        textShadow: "0 2px 4px rgba(0,0,0,0.3)",
-                      }}
-                    >
-                      <FaCalendarAlt size={12} style={{ color: BRAND.gold }} />
-                      <span className="yg-font-sans" style={{ fontSize: "14px", fontWeight: 700 }}>
-                        {formatDateShort(event.date)}
-                      </span>
-                    </div>
-                  </div>
+                    {/* Content Over the Image (High Contrast) */}
+                    <div className="absolute bottom-10 left-10 right-10 flex flex-col items-start">
+                       <div className="flex items-center gap-3 mb-4">
+                          <span className="category-pill">{event.category}</span>
+                          <span className="h-1 w-1 bg-[#FFD447] rounded-full" />
+                          <span className="text-[9px] font-black text-white/50 uppercase tracking-[0.3em]">{event.location}</span>
+                       </div>
+                       
+                       <h3 className="yg-font-serif text-3xl md:text-4xl font-black text-white leading-[1.05] tracking-tight mb-8">
+                         {event.title}
+                       </h3>
 
-                  {/* Card Content */}
-                  <div
-                    style={{
-                      padding: "32px",
-                      display: "flex",
-                      flexDirection: "column",
-                      flexGrow: 1,
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "6px",
-                        marginBottom: "12px",
-                      }}
-                    >
-                      <FaMapMarkerAlt size={10} style={{ color: BRAND.coral }} />
-                      <span
-                        className="yg-font-sans"
-                        style={{
-                          fontSize: "12px",
-                          fontWeight: 700,
-                          color: BRAND.gray400,
-                          textTransform: "uppercase",
-                          letterSpacing: "0.05em",
-                        }}
-                      >
-                        {event.location}
-                      </span>
-                    </div>
-
-                    <h3
-                      className="yg-font-serif"
-                      style={{
-                        fontSize: "24px",
-                        fontWeight: 800,
-                        color: BRAND.navy,
-                        marginBottom: "14px",
-                        lineHeight: 1.25,
-                      }}
-                    >
-                      {event.title}
-                    </h3>
-
-                    <p
-                      className="yg-font-sans"
-                      style={{
-                        fontSize: "15px",
-                        color: BRAND.gray500,
-                        lineHeight: 1.7,
-                        marginBottom: "32px",
-                        display: "-webkit-box",
-                        WebkitLineClamp: 3,
-                        WebkitBoxOrient: "vertical",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {event.description}
-                    </p>
-
-                    {/* Card Footer */}
-                    <div
-                      style={{
-                        marginTop: "auto",
-                        paddingTop: "24px",
-                        borderTop: `1px solid ${BRAND.gray100}`,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "12px",
-                        }}
-                      >
-                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                          <FaUsers size={12} style={{ color: BRAND.gray400 }} />
-                          <span
-                            className="yg-font-sans"
-                            style={{ fontSize: "12px", fontWeight: 600, color: BRAND.gray600 }}
-                          >
-                            {event.attendees || 0} attending
-                          </span>
-                        </div>
-                      </div>
-
-                      <div
-                        style={{
-                          width: "36px",
-                          height: "36px",
-                          borderRadius: "50%",
-                          background: GRADIENT.brand,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          transition: "transform 0.3s",
-                        }}
-                      >
-                        <FaArrowRight size={12} style={{ color: BRAND.navy }} />
-                      </div>
+                       <div className="flex items-center justify-between w-full">
+                         <div className="price-badge">
+                           {event.price === "Free" ? "Gratis" : `${event.price} ${event.currency}`}
+                         </div>
+                         
+                         <div className="arrow-circle w-14 h-14 rounded-full border border-white/20 flex items-center justify-center text-white transition-all duration-500">
+                           <FaArrowRight size={14} />
+                         </div>
+                       </div>
                     </div>
                   </div>
                 </Link>
