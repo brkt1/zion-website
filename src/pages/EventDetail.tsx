@@ -27,7 +27,7 @@ const EventDetail = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [registrationSuccess] = useState(false);
   const [fullscreenImageIndex, setFullscreenImageIndex] = useState<number | null>(null);
   const [rateLimitCountdown, setRateLimitCountdown] = useState<number | null>(null);
   const [chapaPublicKey, setChapaPublicKey] = useState<string | null>(null);

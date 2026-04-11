@@ -102,8 +102,6 @@ const ExpoInfo: React.FC = () => {
   ];
 
   const yenegeYellow = "#FFD447";
-  const coralOrange = "#FF6F5E";
-  const indigoDeep = "#1C2951";
 
   return (
     <div className="bg-[#0F172A] text-white min-h-screen overflow-x-hidden transition-colors duration-700 font-sans">

@@ -256,7 +256,7 @@ const PaymentSuccess = () => {
         const lastName = searchParams.get("last_name") || "";
         const email = searchParams.get("email") || "";
         const phone = searchParams.get("phone") || "";
-        const quantity = parseInt(searchParams.get("quantity") || "1", 10);
+        // const quantity = parseInt(searchParams.get("quantity") || "1", 10);
         
         const mockPaymentData = {
           first_name: firstName,
@@ -343,15 +343,7 @@ const PaymentSuccess = () => {
     };
 
     verify();
-  }, [txRef, retryCount, saveTicketToDatabase, sendWhatsAppMessage]);
-
-  // Format amount for display
-  const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  };
+  }, [txRef, retryCount, saveTicketToDatabase, sendWhatsAppMessage, searchParams]);
 
   // Format date for display
   const formatDate = (dateString?: string) => {
@@ -363,40 +355,10 @@ const PaymentSuccess = () => {
     });
   };
 
-  // Format time for display
-  const formatTime = (dateString?: string) => {
-    if (!dateString) return new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    return new Date(dateString).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-  };
-
   // Get short transaction reference (first 6 chars)
   const getShortTxRef = (ref?: string) => {
     if (!ref) return "N/A";
     return ref.substring(0, 6).toUpperCase();
-  };
-
-
-  // Get amount value - handle both string and number formats
-  // Chapa may return amounts in cents or base currency depending on the API version
-  const getAmount = () => {
-    if (!paymentData || !paymentData.amount) return 0;
-    
-    let amountValue = 0;
-    if (typeof paymentData.amount === 'string') {
-      amountValue = parseFloat(paymentData.amount);
-    } else {
-      amountValue = paymentData.amount;
-    }
-    
-    // Check if it looks like cents: very large number (>= 1000) and no meaningful decimal part
-    const isLikelyCents = amountValue >= 1000 && (amountValue % 1 === 0 || amountValue % 100 === 0);
-    if (isLikelyCents) {
-      // Likely in cents, divide by 100
-      return amountValue / 100;
-    } else {
-      // Already in base currency, use as is
-      return amountValue;
-    }
   };
 
   // Get ticket quantity - from URL param or calculate from amount/price, default to 1

@@ -1,8 +1,6 @@
 var Delaunay;
 
 (function() {
-  "use strict";
-
   var EPSILON = 1.0 / 1048576.0;
 
   function supertriangle(vertices) {
