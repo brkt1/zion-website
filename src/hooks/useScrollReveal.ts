@@ -17,8 +17,8 @@ export const useScrollReveal = () => {
 
     const observerOptions = {
       root: null,
-      rootMargin: '0px',
-      threshold: 0.15
+      rootMargin: '150px',
+      threshold: 0
     };
 
     const intersectionObserver = new IntersectionObserver(observerCallback, observerOptions);
