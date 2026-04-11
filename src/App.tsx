@@ -8,6 +8,8 @@ import { BrowserCompatibility } from "./Components/ui/BrowserCompatibility";
 import { LoadingState } from "./Components/ui/LoadingState";
 
 import VisitTracker from "./Components/VisitTracker";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
 
 // Use React 18's startTransition for non-urgent updates
 // This helps reduce main thread blocking
@@ -16,8 +18,6 @@ import VisitTracker from "./Components/VisitTracker";
 const Home = lazy(() => import("./pages/Home"));
 const Events = lazy(() => import("./pages/Events"));
 const EventDetail = lazy(() => import("./pages/EventDetail"));
-const About = lazy(() => import("./pages/About"));
-const Contact = lazy(() => import("./pages/Contact"));
 const Apply = lazy(() => import("./pages/Apply"));
 const Community = lazy(() => import("./pages/Community"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
@@ -65,12 +65,7 @@ const RepresentativeDashboard = lazy(() => import("./pages/admin/RepresentativeD
 
 function App() {
   return (
-    <Router
-      future={{
-        v7_startTransition: true,
-        v7_relativeSplatPath: true,
-      }}
-    >
+    <Router>
       <BrowserCompatibility />
       <ScrollToTop />
       <PageTracker />
@@ -78,44 +73,92 @@ function App() {
 
 
       <Routes>
-        {/* Public Routes */}
-        <Route path="/*" element={
-          <Layout>
-            <Suspense fallback={<LoadingState message="Loading page..." />}>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/events" element={<Events />} />
-                <Route path="/events/:id" element={<EventDetail />} />
-                <Route path="/community" element={<Community />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/apply" element={<Apply />} />
-                <Route path="/expo-info" element={<ExpoInfo />} />
-                <Route path="/expo-registration" element={<ExpoRegistration />} />
-                <Route path="/certification" element={<Certification />} />
-                <Route path="/masterclass" element={<Masterclass />} />
-                <Route path="/masterclass-registration" element={<MasterclassRegistration />} />
-
-                <Route path="/payment/success" element={<PaymentSuccess />} />
-                <Route path="/payment/callback" element={<PaymentCallback />} />
-                <Route path="/payment/failed" element={<PaymentFailed />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+        {/* Public Routes with Layout */}
+        <Route element={<Layout />}>
+          <Route path="/" element={
+            <Suspense fallback={<LoadingState message="Loading..." />}>
+              <Home />
             </Suspense>
-          </Layout>
-        } />
-        
-        {/* Hidden game routes - accessible via direct URL only */}
-        <Route 
-          path="/games/dice-roller" 
-          element={
-            <Layout>
-              <Suspense fallback={<LoadingState message="Loading page..." />}>
-                <DiceRoller />
-              </Suspense>
-            </Layout>
-          } 
-        />
+          } />
+          <Route path="/events" element={
+            <Suspense fallback={<LoadingState />}>
+              <Events />
+            </Suspense>
+          } />
+          <Route path="/events/:id" element={
+            <Suspense fallback={<LoadingState />}>
+              <EventDetail />
+            </Suspense>
+          } />
+          <Route path="/community" element={
+            <Suspense fallback={<LoadingState />}>
+              <Community />
+            </Suspense>
+          } />
+          <Route path="/about" element={
+            <Suspense fallback={<LoadingState />}>
+              <About />
+            </Suspense>
+          } />
+          <Route path="/contact" element={
+            <Suspense fallback={<LoadingState />}>
+              <Contact />
+            </Suspense>
+          } />
+          <Route path="/apply" element={
+            <Suspense fallback={<LoadingState />}>
+              <Apply />
+            </Suspense>
+          } />
+          <Route path="/expo-info" element={
+            <Suspense fallback={<LoadingState />}>
+              <ExpoInfo />
+            </Suspense>
+          } />
+          <Route path="/expo-registration" element={
+            <Suspense fallback={<LoadingState />}>
+              <ExpoRegistration />
+            </Suspense>
+          } />
+          <Route path="/certification" element={
+            <Suspense fallback={<LoadingState />}>
+              <Certification />
+            </Suspense>
+          } />
+          <Route path="/masterclass" element={
+            <Suspense fallback={<LoadingState />}>
+              <Masterclass />
+            </Suspense>
+          } />
+          <Route path="/masterclass-registration" element={
+            <Suspense fallback={<LoadingState />}>
+              <MasterclassRegistration />
+            </Suspense>
+          } />
+          <Route path="/payment/success" element={
+            <Suspense fallback={<LoadingState />}>
+              <PaymentSuccess />
+            </Suspense>
+          } />
+          <Route path="/payment/callback" element={
+            <Suspense fallback={<LoadingState />}>
+              <PaymentCallback />
+            </Suspense>
+          } />
+          <Route path="/payment/failed" element={
+            <Suspense fallback={<LoadingState />}>
+              <PaymentFailed />
+            </Suspense>
+          } />
+          
+          <Route path="/games/dice-roller" element={
+            <Suspense fallback={<LoadingState />}>
+              <DiceRoller />
+            </Suspense>
+          } />
+          
+          <Route path="*" element={<NotFound />} />
+        </Route>
         
 
         

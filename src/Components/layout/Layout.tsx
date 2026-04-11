@@ -1,5 +1,5 @@
-import { lazy, ReactNode, Suspense } from "react";
-import { useLocation } from "react-router-dom";
+import { lazy, Suspense } from "react";
+import { Outlet, useLocation } from "react-router-dom";
 import SkipToContent from "../ui/SkipToContent";
 import Header from "./Header";
 import MobileBottomNav from "./MobileBottomNav";
@@ -7,11 +7,7 @@ import MobileBottomNav from "./MobileBottomNav";
 // Lazy load Footer since it's conditionally rendered and not needed on homepage
 const Footer = lazy(() => import("./Footer"));
 
-interface LayoutProps {
-  children: ReactNode;
-}
-
-const Layout = ({ children }: LayoutProps) => {
+const Layout = () => {
   const location = useLocation();
   const isHomePage = location.pathname === "/";
   const isRegistrationPage = location.pathname === "/expo-registration" || location.pathname === "/masterclass-registration";
@@ -26,7 +22,7 @@ const Layout = ({ children }: LayoutProps) => {
         role="main"
         aria-label="Main content"
       >
-        {children}
+        <Outlet />
       </main>
       {!isHomePage && !isRegistrationPage && (
         <Suspense fallback={<div className="h-24" />}>
