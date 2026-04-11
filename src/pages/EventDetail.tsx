@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import { FaCalendarAlt, FaChevronLeft, FaChevronRight, FaExternalLinkAlt, FaInstagram, FaMapMarkerAlt, FaSpinner, FaTelegram, FaTimes, FaUsers, FaWhatsapp } from "react-icons/fa";
+import { FaCalendarAlt, FaChevronLeft, FaChevronRight, FaExternalLinkAlt, FaMapMarkerAlt, FaSpinner, FaTelegram, FaTimes, FaUsers, FaWhatsapp } from "react-icons/fa";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import "../Components/Gallery.css";
 import { EventDetailSkeleton } from "../Components/ui/EventDetailSkeleton";
 import { LocationButton } from "../Components/ui/LocationButton";
 import OptimizedImage from "../Components/ui/OptimizedImage";
+import ShatterSlideshow from "../Components/ui/ShatterSlideshow";
 import { useActiveCommissionSellers, useContactInfo, useEvent } from "../hooks/useApi";
 import { generateTransactionReference, getChapaPublicKey, initializePayment, submitChapaHTMLCheckout } from "../services/payment";
 import { registerForFreeEvent } from "../services/ticket";
+import { BRAND } from "../styles/theme";
 import { PaymentRequest } from "../types";
 
 const EventDetail = () => {
@@ -485,564 +487,431 @@ const EventDetail = () => {
   const shareText = `Check out this event: ${event.title}`;
 
   return (
-    <div className="min-h-screen bg-white overflow-x-hidden">
-      {/* Header */}
-      <section className="pt-16 sm:pt-20 md:pt-24 lg:pt-28 pb-4 sm:pb-6 md:pb-8 lg:pb-12 relative bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-3 sm:mb-4 md:mb-6">
-            <span className="text-xs sm:text-sm text-gray-500 uppercase tracking-wide">
-              {event.category.charAt(0).toUpperCase() + event.category.slice(1)} Event
-            </span>
+    <div style={{ minHeight: "100vh", background: BRAND.cream, color: "#1a1a1a" }}>
+      {/* ── Global Style Injections ────────────────────────────────────────── */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Manrope:wght@300;400;500;600;700;800&display=swap');
+
+        .ed-font-serif { font-family: 'Playfair Display', Georgia, serif; }
+        .ed-font-sans  { font-family: 'Manrope', system-ui, sans-serif; }
+
+        .ed-hero-overlay {
+          background: linear-gradient(to bottom, rgba(1,33,28,0.3) 0%, rgba(1,33,28,0.8) 100%);
+        }
+
+        .ed-sidebar-card {
+          background: #fff;
+          border: 1px solid rgba(1,33,28,0.08);
+          border-radius: 32px;
+          box-shadow: 0 20px 50px rgba(1,33,28,0.05);
+        }
+
+        .ed-info-icon-wrap {
+          width: 44px;
+          height: 44px;
+          border-radius: 14px;
+          background: rgba(1,33,28,0.04);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #01211C;
+        }
+
+        .ed-btn-primary {
+          background: linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%);
+          color: #01211C;
+          border-radius: 100px;
+          font-weight: 800;
+          letter-spacing: 0.05em;
+          text-transform: uppercase;
+          transition: transform 0.3s, box-shadow 0.3s;
+          box-shadow: 0 10px 25px rgba(255,111,94,0.25);
+        }
+        .ed-btn-primary:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 15px 35px rgba(255,111,94,0.35);
+        }
+
+        .ed-gallery-img {
+          transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .ed-gallery-item:hover .ed-gallery-img {
+          transform: scale(1.08);
+        }
+
+        .ed-back-btn {
+          color: rgba(255,255,255,0.8);
+          transition: all 0.3s;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          font-weight: 600;
+          font-size: 14px;
+        }
+        .ed-back-btn:hover {
+          color: #FFD447;
+          transform: translateX(-4px);
+        }
+      `}</style>
+
+      {/* ── 1. Hero Section ────────────────────────────────────────────────── */}
+      <section className="relative h-[50vh] min-h-[400px] w-full overflow-hidden bg-slate-900">
+        {event.image && (
+          <div className="absolute inset-0">
+            <OptimizedImage
+              src={event.image}
+              alt={event.title}
+              width={1920}
+              height={1080}
+              className="h-full w-full object-cover"
+              priority="high"
+            />
+            <div className="ed-hero-overlay absolute inset-0" />
           </div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-semibold mb-3 sm:mb-4 text-gray-900 leading-tight">
-            {event.title}
-          </h1>
+        )}
+
+        <div className="relative z-10 h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-end pb-12">
+          <button 
+            onClick={() => navigate(-1)}
+            className="ed-back-btn mb-auto mt-8 sm:mt-12"
+          >
+            <FaChevronLeft size={14} /> Back to Events
+          </button>
+
+          <div className="max-w-3xl">
+            <div className="mb-4">
+              <span className="inline-block px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[#FFD447] text-xs font-bold uppercase tracking-widest">
+                {event.category}
+              </span>
+            </div>
+            <h1 className="ed-font-serif text-4xl sm:text-5xl md:text-6xl font-black text-white leading-[1.1] mb-6 tracking-tight">
+              {event.title}
+            </h1>
+          </div>
         </div>
       </section>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 md:py-8 lg:py-12">
-        <div className="grid lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-12">
-          {/* Main Content */}
-          <div className="lg:col-span-2 order-2 lg:order-1">
-            {/* Event Image */}
-            {event.image && (
-              <div className="mb-4 sm:mb-6 md:mb-8 lg:mb-12 rounded-lg overflow-hidden bg-gray-100">
-                <OptimizedImage
-                  src={event.image}
-                  alt={event.title}
-                  width={1200}
-                  height={600}
-                  quality={60}
-                  priority="high"
-                  responsive={true}
-                  className="w-full h-40 sm:h-48 md:h-64 lg:h-80 xl:h-96 object-cover"
-                  style={{ maxWidth: '100%' }}
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                    const parent = target.parentElement;
-                    if (parent) {
-                      parent.style.display = 'none';
-                    }
-                  }}
-                />
-              </div>
-            )}
+      {/* ── 2. Content Grid ────────────────────────────────────────────────── */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-20 pb-24">
+        <div className="grid lg:grid-cols-12 gap-12">
+          
+          {/* Main Content Area */}
+          <div className="lg:col-span-8 flex flex-col gap-12">
             
-            {/* Event Info */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 lg:gap-8 mb-6 sm:mb-8 md:mb-10 lg:mb-12 pb-6 sm:pb-8 md:pb-10 lg:pb-12 border-b border-gray-200">
-              <div className="mb-4 sm:mb-0">
-                <div className="flex items-center gap-2 sm:gap-3 mb-2">
-                  <FaCalendarAlt className="text-gray-400 flex-shrink-0" size={16} />
-                  <span className="text-xs sm:text-sm text-gray-500 uppercase tracking-wide">Date &amp; Time</span>
+            {/* Quick Info Bar */}
+            <div className="bg-white rounded-[32px] p-8 border border-black/5 shadow-xl shadow-black/5 grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="flex items-center gap-4">
+                <div className="ed-info-icon-wrap">
+                  <FaCalendarAlt size={20} />
                 </div>
-                <div className="font-medium text-sm sm:text-base text-gray-900">{formatDate(event.date)}</div>
-                {event.time && <div className="text-xs sm:text-sm text-gray-600 mt-1">{event.time}</div>}
-              </div>
-              <div className="mb-4 sm:mb-0">
-                <div className="flex items-center gap-2 sm:gap-3 mb-2">
-                  <FaMapMarkerAlt className="text-gray-400 flex-shrink-0" size={16} />
-                  <span className="text-xs sm:text-sm text-gray-500 uppercase tracking-wide">Location</span>
-                </div>
-                <div className="font-medium text-sm sm:text-base">
-                  <LocationButton location={event.location} className="text-gray-900" />
+                <div>
+                  <div className="text-[10px] font-bold text-black/40 uppercase tracking-widest mb-0.5">Date & Time</div>
+                  <div className="ed-font-sans font-bold text-slate-900 truncate">{formatDate(event.date)}</div>
+                  {event.time && <div className="text-xs text-slate-500">{event.time}</div>}
                 </div>
               </div>
-              <div className="mb-4 sm:mb-0">
-                <div className="flex items-center gap-2 sm:gap-3 mb-2">
-                  <FaUsers className="text-gray-400 flex-shrink-0" size={16} />
-                  <span className="text-xs sm:text-sm text-gray-500 uppercase tracking-wide">Attendees</span>
+
+              <div className="flex items-center gap-4">
+                <div className="ed-info-icon-wrap">
+                  <FaMapMarkerAlt size={20} />
                 </div>
-                <div className="font-medium text-sm sm:text-base text-gray-900">
-                  {event.attendees || 0} {event.maxAttendees ? `/ ${event.maxAttendees}` : ''}
-                </div>
-                {event.maxAttendees && (
-                  <div className="text-xs sm:text-sm text-gray-600 mt-1">
-                    {Math.max(0, event.maxAttendees - (event.attendees || 0))} spots remaining
+                <div className="min-w-0">
+                  <div className="text-[10px] font-bold text-black/40 uppercase tracking-widest mb-0.5">Location</div>
+                  <div className="ed-font-sans font-bold text-slate-900">
+                    <LocationButton location={event.location} className="hover:text-[#FFD447] transition-colors truncate block" />
                   </div>
-                )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div className="ed-info-icon-wrap">
+                  <FaUsers size={20} />
+                </div>
+                <div>
+                  <div className="text-[10px] font-bold text-black/40 uppercase tracking-widest mb-0.5">Availability</div>
+                  <div className="ed-font-sans font-bold text-slate-900">
+                    {event.attendees || 0} {event.maxAttendees ? `of ${event.maxAttendees}` : 'joined'}
+                  </div>
+                  {event.maxAttendees && (
+                    <div className="text-xs text-emerald-600 font-medium">
+                      {Math.max(0, event.maxAttendees - (event.attendees || 0))} spots left
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Description */}
-            <div className="mb-6 sm:mb-8 md:mb-10 lg:mb-12">
-              <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-900 mb-3 sm:mb-4 md:mb-6">About This Event</h2>
-              <div className="prose prose-sm sm:prose-base max-w-none text-gray-700 whitespace-pre-line leading-relaxed text-sm sm:text-base">
+            {/* About Section */}
+            <div>
+              <h2 className="ed-font-serif text-3xl font-bold text-slate-900 mb-6">Experience Highlights</h2>
+              <div className="ed-font-sans text-lg text-slate-600 leading-relaxed whitespace-pre-line bg-white/50 p-8 rounded-[32px] border border-black/5">
                 {event.description}
               </div>
             </div>
 
-            {/* Gallery */}
-            {event.gallery && event.gallery.length > 0 && (
-              <div className="overflow-x-hidden">
-                <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-900 mb-3 sm:mb-4 md:mb-6">Event Gallery</h2>
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
-                  {event.gallery.map((image, index) => (
-                    <div
-                      key={index}
-                      className="relative aspect-square rounded-[30px] md:rounded-[40px] overflow-hidden cursor-pointer group"
-                      style={{
-                        background: `url(${image})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                        boxShadow: '0 4px 24px rgba(0, 0, 0, 0.1)',
-                      }}
-                      onClick={() => setFullscreenImageIndex(index)}
-                      onMouseEnter={(e) => {
-                        if (window.innerWidth >= 768) {
-                          e.currentTarget.style.transform = 'scale(1.05)';
-                          e.currentTarget.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.2)';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'scale(1)';
-                        e.currentTarget.style.boxShadow = '0 4px 24px rgba(0, 0, 0, 0.1)';
-                      }}
-                    >
-                      {/* Shadow overlay */}
-                      <div 
-                        className="absolute bottom-0 left-0 right-0 h-[120px]"
-                        style={{
-                          boxShadow: 'inset 0 -120px 120px -120px black, inset 0 -120px 120px -100px black',
-                        }}
-                      ></div>
-                      
-                      {/* Label */}
-                      <div className="absolute bottom-3 sm:bottom-4 md:bottom-5 left-3 sm:left-4 md:left-5 flex items-center">
-                        <div 
-                          className="flex items-center justify-center min-w-[32px] sm:min-w-[36px] md:min-w-[40px] h-8 sm:h-9 md:h-10 rounded-full bg-white text-gray-700 font-semibold text-xs sm:text-sm"
-                          style={{
-                            color: '#E6E9ED',
-                          }}
-                        >
-                          <span style={{ color: '#1a1a1a' }}>{index + 1}</span>
-                        </div>
-                        <div className="ml-2 sm:ml-3 flex flex-col text-white">
-                          <div className="font-bold text-xs sm:text-sm md:text-base leading-tight">
-                            Image {index + 1}
-                          </div>
-                          <div className="text-[10px] sm:text-xs opacity-90 leading-tight">
-                            {event.title}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Hidden img for error handling */}
-                      <img
-                        src={image}
-                        alt={`${event.title} - Gallery ${index + 1}`}
-                        className="w-full h-full object-cover"
-                        style={{ display: 'none' }}
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          const parent = target.parentElement;
-                          if (parent) {
-                            parent.style.background = 'linear-gradient(135deg, #E6E9ED 0%, #D1D5DB 100%)';
-                          }
-                        }}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
 
-          {/* Sidebar */}
-          <div className="lg:col-span-1 order-1 lg:order-2">
-            <div className="sticky top-4 sm:top-6 lg:top-20 xl:top-24">
-              {/* Reserve Spot Card */}
-              <div className="border border-gray-200 rounded-lg p-3 sm:p-4 md:p-6 lg:p-8 mb-3 sm:mb-4 md:mb-6">
-                <div className="mb-4 sm:mb-6 md:mb-8">
-                  <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold text-gray-900 mb-1">
-                    {event.price === "Free" ? "Free" : `${event.price} ${event.currency}`}
+          {/* Sidebar / Booking Area */}
+          <div className="lg:col-span-4">
+            <div className="sticky top-24 flex flex-col gap-6">
+              {/* Perspective Series - Now in Sidebar */}
+              {event.gallery && event.gallery.length > 0 && (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 px-2">
+                    <div className="h-px flex-1 bg-black/5" />
+                    <h4 className="ed-font-serif text-lg font-black text-slate-900 italic">Perspective Series</h4>
+                    <div className="h-px w-8 bg-black/5" />
                   </div>
-                  <div className="text-xs sm:text-sm text-gray-600">per person</div>
+                  <ShatterSlideshow images={event.gallery} />
                 </div>
-                
-                {(() => {
-                  const isFree = event.price === "Free" || event.price?.toLowerCase() === "free" || event.price === "0" || parseFloat(event.price.toString().replace(/[^0-9.]/g, '') || '0') === 0;
-                  const isCommunity = event.category === 'community';
-                  const hasSocialLink = event.social_media_link && event.social_media_link.trim() !== '';
-                  
-                  // Show registration button for free events (with or without social link)
-                  if (isFree || isCommunity) {
-                    return (
-                      <>
-                        <button 
-                          onClick={() => setShowRegistrationModal(true)}
-                          className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-2.5 sm:py-3 md:py-4 rounded-lg text-xs sm:text-sm md:text-base font-medium hover:from-green-700 hover:to-emerald-700 transition-colors mb-3 sm:mb-4 md:mb-6 disabled:opacity-50 disabled:cursor-not-allowed"
-                          disabled={isProcessing}
-                        >
-                          {isProcessing ? (
-                            <span className="flex items-center justify-center">
-                              <FaSpinner className="animate-spin mr-2" />
-                              Registering...
-                            </span>
-                          ) : (
-                            "Register for Free"
-                          )}
-                        </button>
-                        {hasSocialLink && (
-                          <a
-                            href={event.social_media_link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-2.5 sm:py-3 md:py-4 rounded-lg text-xs sm:text-sm md:text-base font-medium hover:from-blue-700 hover:to-indigo-700 transition-colors mb-3 sm:mb-4 md:mb-6 flex items-center justify-center gap-2"
-                          >
-                            <FaExternalLinkAlt className="text-lg" />
-                            Join on Social Media
-                          </a>
-                        )}
-                      </>
-                    );
-                  }
-                  
-                  // Show payment button for paid events
-                  return (
-                    <button 
-                      onClick={() => setShowPaymentModal(true)}
-                      className="w-full bg-gray-900 text-white py-2.5 sm:py-3 md:py-4 rounded-lg text-xs sm:text-sm md:text-base font-medium hover:bg-gray-800 transition-colors mb-3 sm:mb-4 md:mb-6 disabled:opacity-50 disabled:cursor-not-allowed"
-                      disabled={isProcessing}
-                    >
-                      {isProcessing ? (
-                        <span className="flex items-center justify-center">
-                          <FaSpinner className="animate-spin mr-2" />
-                          Processing...
-                        </span>
-                      ) : (
-                        "Reserve Your Spot"
-                      )}
-                    </button>
-                  );
-                })()}
+              )}
 
-                <div className="border-t border-gray-200 pt-3 sm:pt-4 md:pt-6">
-                  <div className="text-xs sm:text-sm font-medium text-gray-900 mb-2 sm:mb-3 md:mb-4">Share this event</div>
-                  <div className="flex gap-2 sm:gap-3">
+              <div className="ed-sidebar-card p-8 md:p-10">
+                <div className="flex justify-between items-baseline mb-8">
+                  <div>
+                    <span className="text-[11px] font-extrabold text-[#01211C]/40 uppercase tracking-[0.2em] block mb-1">
+                      Admission Fee
+                    </span>
+                    <div className="ed-font-serif text-4xl font-black text-[#01211C]">
+                      {event.price === "Free" ? "Gratis" : `${event.price}`}
+                      {event.price !== "Free" && <span className="text-lg ml-1 opacity-60 font-medium">{event.currency}</span>}
+                    </div>
+                  </div>
+                  <div className="w-12 h-0.5 bg-[#FF6F5E]/30 rounded-full" />
+                </div>
+
+                <div className="space-y-4 mb-8">
+                  {(() => {
+                    const isFree = event.price === "Free" || event.price?.toLowerCase() === "free" || event.price === "0" || parseFloat(event.price.toString().replace(/[^0-9.]/g, '') || '0') === 0;
+                    const isCommunity = event.category === 'community';
+                    const hasSocialLink = event.social_media_link && event.social_media_link.trim() !== '';
+                    
+                    if (isFree || isCommunity) {
+                      return (
+                        <div className="flex flex-col gap-3">
+                          <button 
+                            onClick={() => setShowRegistrationModal(true)}
+                            className="ed-btn-primary w-full py-5 flex items-center justify-center gap-3 disabled:opacity-50"
+                            disabled={isProcessing}
+                          >
+                            {isProcessing ? <FaSpinner className="animate-spin" /> : "Secure My Spot"}
+                          </button>
+                          {hasSocialLink && (
+                            <a
+                              href={event.social_media_link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="w-full bg-white border-2 border-[#01211C] text-[#01211C] py-4 rounded-full text-xs font-black uppercase tracking-widest text-center hover:bg-[#01211C] hover:text-white transition-all flex items-center justify-center gap-2"
+                            >
+                              Join Discussion <FaExternalLinkAlt size={12} />
+                            </a>
+                          )}
+                        </div>
+                      );
+                    }
+                    
+                    return (
+                      <button 
+                        onClick={() => setShowPaymentModal(true)}
+                        className="ed-btn-primary w-full py-5 flex items-center justify-center gap-3 disabled:opacity-50"
+                        disabled={isProcessing}
+                      >
+                        {isProcessing ? <FaSpinner className="animate-spin" /> : "Reserve Admission"}
+                      </button>
+                    );
+                  })()}
+                </div>
+
+                {/* Benefits / Social Share */}
+                <div className="pt-8 border-t border-black/5">
+                  <h4 className="text-[10px] font-black text-black/30 uppercase tracking-[0.2em] mb-4">Share Experience</h4>
+                  <div className="flex gap-3">
                     <a
                       href={`https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-1 text-white p-2 sm:p-3 rounded-lg transition-all text-center hover:opacity-90"
-                      style={{
-                        background: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)",
-                      }}
-                      aria-label="Share on WhatsApp"
+                      target="_blank" rel="noopener noreferrer"
+                      className="flex-1 h-12 rounded-2xl bg-[#25D366]/10 text-[#128C7E] flex items-center justify-center hover:bg-[#25D366] hover:text-white transition-all"
                     >
-                      <FaWhatsapp className="mx-auto text-lg sm:text-xl" />
+                      <FaWhatsapp size={20} />
                     </a>
                     <a
                       href={`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-1 bg-blue-500 text-white p-2 sm:p-3 rounded-lg hover:bg-blue-600 transition-colors text-center"
-                      aria-label="Share on Telegram"
+                      target="_blank" rel="noopener noreferrer"
+                      className="flex-1 h-12 rounded-2xl bg-[#0088cc]/10 text-[#0088cc] flex items-center justify-center hover:bg-[#0088cc] hover:text-white transition-all"
                     >
-                      <FaTelegram className="mx-auto text-lg sm:text-xl" />
-                    </a>
-                    <a
-                      href={`https://www.instagram.com/`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-1 bg-pink-500 text-white p-2 sm:p-3 rounded-lg hover:bg-pink-600 transition-colors text-center"
-                      aria-label="Share on Instagram"
-                    >
-                      <FaInstagram className="mx-auto text-lg sm:text-xl" />
+                      <FaTelegram size={20} />
                     </a>
                   </div>
                 </div>
-              </div>
 
-              {/* Contact Info */}
-              <div className="bg-gray-50 rounded-lg p-3 sm:p-4 md:p-6">
-                <h3 className="text-xs sm:text-sm md:text-base font-medium text-gray-900 mb-1.5 sm:mb-2">Questions?</h3>
-                <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 md:mb-4">
-                  Have questions about this event? Get in touch with us!
-                </p>
-                <a
-                  href={`https://wa.me/${contactInfo?.phone?.replace(/\D/g, '') || '251978639887'}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5 rounded-lg font-medium text-xs sm:text-sm text-white transition-all duration-300 hover:opacity-90"
-                  style={{
-                    background: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)",
-                  }}
-                >
-                  <FaWhatsapp size={12} className="sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" />
-                  <span className="hidden sm:inline">Contact via WhatsApp</span>
-                  <span className="sm:hidden">WhatsApp</span>
-                </a>
+                {/* Support Link */}
+                <div className="mt-10 bg-[#FAF9F6] rounded-2xl p-5 border border-black/5">
+                  <p className="text-xs text-slate-500 mb-3 font-medium">Have inquiries regarding this curation?</p>
+                  <a
+                    href={`https://wa.me/${contactInfo?.phone?.replace(/\D/g, '') || '251978639887'}`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="text-[11px] font-extrabold text-[#01211C] uppercase tracking-widest flex items-center gap-2 hover:text-[#FF6F5E] transition-colors"
+                  >
+                    Connect via WhatsApp <FaChevronRight size={10} />
+                  </a>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Payment Modal */}
+      </main>
+{/* Payment Modal */}
       {showPaymentModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center z-50 p-2 sm:p-3 md:p-4 overflow-y-auto">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[98vh] sm:max-h-[95vh] md:max-h-[90vh] overflow-y-auto p-3 sm:p-4 md:p-6 lg:p-8 my-2 sm:my-4">
-            <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-4 sm:mb-6">
-              Complete Your Registration
-            </h2>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-start sm:items-center justify-center z-[100] p-4 overflow-y-auto">
+          <div className="bg-white rounded-[40px] max-w-2xl w-full max-h-[95vh] overflow-y-auto p-8 sm:p-12 shadow-2xl relative">
+            <button
+              onClick={() => {
+                setShowPaymentModal(false);
+                setIsProcessing(false);
+              }}
+              className="absolute top-8 right-8 w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors z-10"
+            >
+              <FaTimes size={20} />
+            </button>
+
+            <div className="mb-10 text-center">
+              <span className="text-[11px] font-black text-[#FF6F5E] uppercase tracking-[0.3em] block mb-2">Secure Booking</span>
+              <h2 className="ed-font-serif text-4xl font-black text-slate-900">Experience Admission</h2>
+            </div>
             
-            <form onSubmit={handleFormSubmit} className="space-y-3 sm:space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                <div>
-                  <label htmlFor="first_name" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                    First Name *
-                  </label>
+            <form onSubmit={handleFormSubmit} className="space-y-8">
+              {/* Personal Info */}
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-black/40 uppercase tracking-widest pl-1">First Name</label>
+                    <input
+                      type="text" name="first_name" required
+                      value={paymentForm.first_name} onChange={handleInputChange}
+                      className="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-[#FFD447]/50 focus:bg-white transition-all ed-font-sans font-bold"
+                      placeholder="John"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-black/40 uppercase tracking-widest pl-1">Last Name</label>
+                    <input
+                      type="text" name="last_name" required
+                      value={paymentForm.last_name} onChange={handleInputChange}
+                      className="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-[#FFD447]/50 focus:bg-white transition-all ed-font-sans font-bold"
+                      placeholder="Doe"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-black/40 uppercase tracking-widest pl-1">Email Address</label>
                   <input
-                    type="text"
-                    id="first_name"
-                    name="first_name"
-                    required
-                    value={paymentForm.first_name}
-                    onChange={handleInputChange}
-                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border-b border-gray-300 bg-transparent focus:outline-none focus:border-gray-900 transition-colors"
-                    placeholder="John"
+                    type="email" name="email" required
+                    value={paymentForm.email} onChange={handleInputChange}
+                    className="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-[#FFD447]/50 focus:bg-white transition-all ed-font-sans font-bold"
+                    placeholder="john@example.com"
                   />
                 </div>
 
-                <div>
-                  <label htmlFor="last_name" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                    Last Name *
-                  </label>
-                  <input
-                    type="text"
-                    id="last_name"
-                    name="last_name"
-                    required
-                    value={paymentForm.last_name}
-                    onChange={handleInputChange}
-                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border-b border-gray-300 bg-transparent focus:outline-none focus:border-gray-900 transition-colors"
-                    placeholder="Doe"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-black/40 uppercase tracking-widest pl-1">Phone Number</label>
+                    <input
+                      type="tel" name="phone_number" required
+                      value={paymentForm.phone_number} onChange={handleInputChange}
+                      className="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-[#FFD447]/50 focus:bg-white transition-all ed-font-sans font-bold"
+                      placeholder="09..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-black/40 uppercase tracking-widest pl-1">Tickets</label>
+                    <div className="flex items-center bg-slate-50 rounded-2xl border border-slate-100 px-2">
+                      <button
+                        type="button"
+                        onClick={() => paymentForm.quantity > 1 && setPaymentForm({...paymentForm, quantity: paymentForm.quantity - 1})}
+                        className="w-12 h-12 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors"
+                      >
+                        <FaChevronLeft size={14} />
+                      </button>
+                      <input
+                        type="number" name="quantity" min="1" required
+                        value={paymentForm.quantity} onChange={handleInputChange}
+                        className="flex-1 bg-transparent border-none text-center focus:ring-0 ed-font-sans font-black py-4 text-lg"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setPaymentForm({...paymentForm, quantity: paymentForm.quantity + 1})}
+                        className="w-12 h-12 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors"
+                      >
+                        <FaChevronRight size={14} />
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                  Email *
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  required
-                  value={paymentForm.email}
-                  onChange={handleInputChange}
-                  className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border-b border-gray-300 bg-transparent focus:outline-none focus:border-gray-900 transition-colors"
-                  placeholder="john@example.com"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="phone_number" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                  Phone Number *
-                </label>
-                <input
-                  type="tel"
-                  id="phone_number"
-                  name="phone_number"
-                  required
-                  value={paymentForm.phone_number}
-                  onChange={handleInputChange}
-                  className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border-b border-gray-300 bg-transparent focus:outline-none focus:border-gray-900 transition-colors"
-                  placeholder="0911121314"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="quantity" className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-                  Number of Tickets *
-                </label>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const currentQty = paymentForm.quantity || 1;
-                      if (currentQty > 1) {
-                        setPaymentForm({ ...paymentForm, quantity: currentQty - 1 });
-                      }
-                    }}
-                    disabled={(paymentForm.quantity || 1) <= 1}
-                    className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center border-2 border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
-                    aria-label="Decrease quantity"
-                  >
-                    <span className="text-lg sm:text-xl">−</span>
-                  </button>
-                  <input
-                    type="number"
-                    id="quantity"
-                    name="quantity"
-                    required
-                    min="1"
-                    max={event.maxAttendees ? Math.max(0, event.maxAttendees - (event.attendees || 0)) : 100}
-                    value={paymentForm.quantity || 1}
-                    onChange={handleInputChange}
-                    className="flex-1 px-4 py-2.5 sm:py-3 text-center text-base sm:text-lg font-semibold border-2 border-gray-300 rounded-lg focus:outline-none focus:border-gray-900 transition-colors"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const currentQty = paymentForm.quantity || 1;
-                      const maxQty = event.maxAttendees ? Math.max(0, event.maxAttendees - (event.attendees || 0)) : 100;
-                      if (currentQty < maxQty) {
-                        setPaymentForm({ ...paymentForm, quantity: currentQty + 1 });
-                      }
-                    }}
-                    disabled={
-                      (paymentForm.quantity || 1) >= (event.maxAttendees ? Math.max(0, event.maxAttendees - (event.attendees || 0)) : 100)
-                    }
-                    className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center border-2 border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
-                    aria-label="Increase quantity"
-                  >
-                    <span className="text-lg sm:text-xl">+</span>
-                  </button>
-                </div>
-                {event.maxAttendees && (
-                  <p className="mt-2 text-xs sm:text-sm text-gray-500 text-center">
-                    {Math.max(0, event.maxAttendees - (event.attendees || 0))} tickets available
-                  </p>
-                )}
-              </div>
-
+              {/* Discount Section */}
               {commissionSellers.length > 0 && (
-                <div 
-                  className="rounded-xl p-4 sm:p-5 transition-all bg-gradient-to-br from-red-50 via-pink-50 to-rose-50 shadow-lg shadow-red-100/50"
-                >
-                  <div className="flex items-center gap-2 mb-3">
-                    {commissionSellers.some(s => s.discount_rate && s.discount_type) && (
-                      <span className="text-2xl">🎉</span>
-                    )}
-                    <label htmlFor="commission_seller_id" className="text-sm sm:text-base font-bold text-red-700">
-                      Get Discount
-                    </label>
-                    {commissionSellers.some(s => s.discount_rate && s.discount_type) && (
-                      <span className="ml-auto px-3 py-1 text-xs font-bold text-white bg-gradient-to-r from-red-500 to-pink-600 rounded-full shadow-md animate-pulse">
-                        SAVE MONEY
+                <div className="p-6 bg-[#FF6F5E]/5 rounded-[28px] border border-[#FF6F5E]/10 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-black text-[#FF6F5E] uppercase tracking-widest">Partner Discount</label>
+                    {paymentForm.commission_seller_id && (
+                      <span className="px-3 py-1 bg-[#FF6F5E] text-white text-[10px] font-black rounded-full animate-bounce">
+                        OFFER UNLOCKED
                       </span>
                     )}
                   </div>
                   <select
-                    id="commission_seller_id"
                     name="commission_seller_id"
                     value={paymentForm.commission_seller_id}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 text-sm sm:text-base rounded-lg border-2 transition-all bg-white border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 text-gray-900 font-medium"
+                    className="w-full px-6 py-4 rounded-xl bg-white border border-[#FF6F5E]/20 text-slate-900 font-bold focus:ring-2 focus:ring-[#FF6F5E]/50 focus:outline-none appearance-none"
+                    style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%23FF6F5E\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'%3E%3C/path%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1.5rem center', backgroundSize: '1.25rem' }}
                   >
-                    <option value="">
-                      {commissionSellers.some(s => s.discount_rate && s.discount_type)
-                        ? '🎁 Select a seller to unlock your discount!'
-                        : 'Select a seller'}
-                    </option>
-                    {commissionSellers.map((seller) => (
+                    <option value="">Select a referral partner...</option>
+                    {commissionSellers.map(seller => (
                       <option key={seller.id} value={seller.id}>
-                        {seller.name}
-                        {seller.discount_rate && seller.discount_type
-                          ? ` - ${seller.discount_type === 'percentage' ? `${seller.discount_rate}% OFF` : `${seller.discount_rate} ${event.currency} OFF`}`
-                          : ''}
+                        {seller.name} — {seller.discount_type === 'percentage' ? `${seller.discount_rate}%` : `${seller.discount_rate} ${event.currency}`} off
                       </option>
                     ))}
                   </select>
-                  {commissionSellers.some(s => s.discount_rate && s.discount_type) && (
-                    <p className="mt-3 text-sm font-semibold text-red-700 flex items-center gap-2">
-                      <span className="text-lg">✨</span>
-                      <span>Select a seller above to receive an instant discount on your purchase!</span>
-                    </p>
-                  )}
                 </div>
               )}
 
-              <div className="pt-4 sm:pt-6 border-t border-gray-200">
-                <div className="space-y-2 mb-3 sm:mb-4">
-                  <div className="flex justify-between items-center text-sm sm:text-base">
-                    <span className="text-gray-600">Price per ticket:</span>
-                    <span className="text-gray-900 font-medium">
-                      {event.price === "Free" || event.price?.toLowerCase() === "free" 
-                        ? "Free" 
-                        : `${parseFloat(event.price.toString().replace(/[^0-9.]/g, '') || '0').toFixed(2)} ${event.currency}`}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm sm:text-base">
-                    <span className="text-gray-600">Quantity:</span>
-                    <span className="text-gray-900 font-medium">
-                      {paymentForm.quantity}
-                    </span>
-                  </div>
-                  {(() => {
-                    const qty = paymentForm.quantity || 1;
-                    const { discountAmount, discountText } = discountCalculation;
-                    
-                    // Only show discount section if there's an actual discount and a seller is selected
-                    if (discountAmount > 0 && paymentForm.commission_seller_id) {
-                      return (
-                        <>
-                          <div className="flex justify-between items-center text-sm sm:text-base">
-                            <span className="text-gray-600">Subtotal:</span>
-                            <span className="text-gray-900 font-medium">
-                              {(basePrice * qty).toFixed(2)} {event.currency}
-                            </span>
-                          </div>
-                          <div className="flex justify-between items-center text-sm sm:text-base">
-                            <span className="text-green-600 font-medium">Discount ({discountText}):</span>
-                            <span className="text-green-600 font-medium">
-                              -{discountAmount.toFixed(2)} {event.currency}
-                            </span>
-                          </div>
-                        </>
-                      );
-                    }
-                    return null;
-                  })()}
+              {/* Order Summary */}
+              <div className="pt-8 border-t border-slate-100 flex flex-col gap-3">
+                <div className="flex justify-between text-slate-400 font-bold text-xs uppercase tracking-widest">
+                  <span>Subtotal ({paymentForm.quantity} tickets)</span>
+                  <span>{(basePrice * paymentForm.quantity).toFixed(2)} {event.currency}</span>
                 </div>
-                <div className="flex justify-between items-center pt-2 border-t border-gray-200">
-                  <span className="text-sm sm:text-base text-gray-700 font-medium">Total Amount:</span>
-                  <span className="text-xl sm:text-2xl font-semibold text-gray-900">
-                    {(() => {
-                      const qty = paymentForm.quantity || 1;
-                      const { discountAmount } = discountCalculation;
-                      const total = (basePrice * qty) - discountAmount;
-                      return `${Math.max(0, total).toFixed(2)} ${event.currency}`;
-                    })()}
+                {discountCalculation.discountAmount > 0 && (
+                  <div className="flex justify-between text-[#FF6F5E] font-extrabold text-xs uppercase tracking-widest">
+                    <span>Discount — {discountCalculation.discountText}</span>
+                    <span>-{discountCalculation.discountAmount.toFixed(2)} {event.currency}</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center pt-2">
+                  <span className="text-xl font-black text-slate-900 ed-font-serif">Total Admission</span>
+                  <span className="text-3xl font-black text-[#01211C] ed-font-serif">
+                    {Math.max(0, (basePrice * paymentForm.quantity) - discountCalculation.discountAmount).toFixed(2)} {event.currency}
                   </span>
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-4">
+              <div className="pt-6 flex gap-4">
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowPaymentModal(false);
-                    setIsProcessing(false);
-                    setPaymentForm({
-                      first_name: "",
-                      last_name: "",
-                      email: "",
-                      phone_number: "",
-                      quantity: 1,
-                      commission_seller_id: searchParams.get('seller') || "",
-                    });
-                  }}
-                  className="flex-1 px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                  onClick={() => setShowPaymentModal(false)}
+                  className="flex-1 px-8 py-5 rounded-full border-2 border-slate-100 text-slate-400 font-black uppercase text-[11px] tracking-widest hover:border-slate-900 hover:text-slate-900 transition-all"
                 >
-                  Cancel
+                  Discard
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={isProcessing}
+                  className="flex-[2] ed-btn-primary py-5 flex items-center justify-center gap-2"
                 >
-                  {isProcessing ? (
-                    <span className="flex items-center justify-center">
-                      <FaSpinner className="animate-spin mr-2" />
-                      Processing...
-                    </span>
-                  ) : (
-                    "Proceed to Checkout"
-                  )}
+                  {isProcessing ? <FaSpinner className="animate-spin" /> : <>Pay Now <FaChevronRight size={10} /></>}
                 </button>
               </div>
             </form>
@@ -1051,251 +920,91 @@ const EventDetail = () => {
       )}
 
       {/* Free Event Registration Modal */}
-      {showRegistrationModal && event && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4">
-          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+      {showRegistrationModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 text-left">
+          <div className="bg-white rounded-[40px] max-w-md w-full overflow-hidden shadow-2xl relative">
             {registrationSuccess ? (
-              <div className="text-center py-6">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <div className="text-center p-12">
+                <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <svg className="w-10 h-10 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Registration Successful!</h2>
-                <p className="text-gray-600 mb-4">You've successfully registered for this free event.</p>
-                {event.telegram_link && event.telegram_link.trim() !== '' ? (
-                  <p className="text-sm text-gray-500">Redirecting you to the Telegram group...</p>
-                ) : (
-                  <p className="text-sm text-gray-500">You'll receive a confirmation email shortly.</p>
-                )}
+                <h2 className="ed-font-serif text-3xl font-black text-slate-900 mb-4 tracking-tight">Confirmed!</h2>
+                <p className="ed-font-sans text-slate-500 font-medium leading-relaxed">
+                  You have been successfully registered. Check your email for admission details.
+                </p>
+                <button 
+                  onClick={() => setShowRegistrationModal(false)}
+                  className="mt-10 px-10 py-4 bg-slate-900 text-white rounded-full font-black uppercase text-[11px] tracking-widest hover:bg-slate-800 transition-all font-sans"
+                >
+                  Close
+                </button>
               </div>
             ) : (
-              <>
-                <div className="flex items-center justify-between mb-4 sm:mb-6">
-                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Register for Free Event</h2>
-                  <button
-                    onClick={() => {
-                      setShowRegistrationModal(false);
-                      setPaymentForm({
-                        first_name: "",
-                        last_name: "",
-                        email: "",
-                        phone_number: "",
-                        quantity: 1,
-                        commission_seller_id: "",
-                      });
-                    }}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
-                  >
-                    <FaTimes size={20} />
-                  </button>
+              <div className="p-8 sm:p-10">
+                <div className="mb-8">
+                  <span className="text-[10px] font-black text-[#FFD447] uppercase tracking-[0.3em] block mb-1">Free Admission</span>
+                  <h2 className="ed-font-serif text-3xl font-black text-slate-900">Join the Curation</h2>
                 </div>
-                <form onSubmit={handleFreeEventRegistration} className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                    <div>
-                      <label htmlFor="reg_first_name" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                        First Name *
-                      </label>
-                      <input
-                        type="text"
-                        id="reg_first_name"
-                        name="first_name"
-                        required
-                        value={paymentForm.first_name}
-                        onChange={handleInputChange}
-                        className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border-b border-gray-300 bg-transparent focus:outline-none focus:border-gray-900 transition-colors"
-                        placeholder="John"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="reg_last_name" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                        Last Name *
-                      </label>
-                      <input
-                        type="text"
-                        id="reg_last_name"
-                        name="last_name"
-                        required
-                        value={paymentForm.last_name}
-                        onChange={handleInputChange}
-                        className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border-b border-gray-300 bg-transparent focus:outline-none focus:border-gray-900 transition-colors"
-                        placeholder="Doe"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label htmlFor="reg_email" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                      Email *
-                    </label>
+                
+                <form onSubmit={handleFreeEventRegistration} className="space-y-6">
+                  <div className="grid grid-cols-2 gap-4 font-sans">
                     <input
-                      type="email"
-                      id="reg_email"
-                      name="email"
-                      required
-                      value={paymentForm.email}
-                      onChange={handleInputChange}
-                      className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border-b border-gray-300 bg-transparent focus:outline-none focus:border-gray-900 transition-colors"
-                      placeholder="john@example.com"
+                      type="text" name="first_name" required placeholder="First Name"
+                      value={paymentForm.first_name} onChange={handleInputChange}
+                      className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-[#FFD447]/50 transition-all font-bold text-sm"
+                    />
+                    <input
+                      type="text" name="last_name" required placeholder="Last Name"
+                      value={paymentForm.last_name} onChange={handleInputChange}
+                      className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-[#FFD447]/50 transition-all font-bold text-sm"
                     />
                   </div>
-                  <div>
-                    <label htmlFor="reg_phone_number" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                      Phone Number *
-                    </label>
-                    <input
-                      type="tel"
-                      id="reg_phone_number"
-                      name="phone_number"
-                      required
-                      value={paymentForm.phone_number}
-                      onChange={handleInputChange}
-                      className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border-b border-gray-300 bg-transparent focus:outline-none focus:border-gray-900 transition-colors"
-                      placeholder="0911121314"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="reg_quantity" className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-                      Number of Tickets *
-                    </label>
-                    <div className="flex items-center gap-2">
+                  <input
+                    type="email" name="email" required placeholder="Email Address"
+                    value={paymentForm.email} onChange={handleInputChange}
+                    className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-[#FFD447]/50 transition-all font-bold text-sm font-sans"
+                  />
+                  <input
+                    type="tel" name="phone_number" required placeholder="Phone (09...)"
+                    value={paymentForm.phone_number} onChange={handleInputChange}
+                    className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-[#FFD447]/50 transition-all font-bold text-sm font-sans"
+                  />
+                  
+                  <div className="flex items-center gap-4 pt-2 font-sans">
+                    <span className="text-[10px] font-black text-black/40 uppercase tracking-widest min-w-[80px]">Tickets</span>
+                    <div className="flex-1 flex items-center bg-slate-50 rounded-2xl border border-slate-100 px-2 h-14">
                       <button
-                        type="button"
-                        onClick={() => {
-                          const currentQty = paymentForm.quantity || 1;
-                          if (currentQty > 1) {
-                            setPaymentForm({ ...paymentForm, quantity: currentQty - 1 });
-                          }
-                        }}
-                        disabled={(paymentForm.quantity || 1) <= 1}
-                        className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center border-2 border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
-                        aria-label="Decrease quantity"
-                      >
-                        <span className="text-lg sm:text-xl">−</span>
-                      </button>
+                        type="button" onClick={() => paymentForm.quantity > 1 && setPaymentForm({...paymentForm, quantity: paymentForm.quantity - 1})}
+                        className="w-10 h-10 flex items-center justify-center text-slate-400"
+                      > <FaChevronLeft size={10} /> </button>
                       <input
-                        type="number"
-                        id="reg_quantity"
-                        name="quantity"
-                        required
-                        min="1"
-                        max={event.maxAttendees ? Math.max(0, event.maxAttendees - (event.attendees || 0)) : 100}
-                        value={paymentForm.quantity || 1}
-                        onChange={handleInputChange}
-                        className="flex-1 px-4 py-2.5 sm:py-3 text-center text-base sm:text-lg font-semibold border-2 border-gray-300 rounded-lg focus:outline-none focus:border-gray-900 transition-colors"
+                        type="number" value={paymentForm.quantity} readOnly
+                        className="flex-1 bg-transparent border-none text-center font-bold"
                       />
                       <button
-                        type="button"
-                        onClick={() => {
-                          const currentQty = paymentForm.quantity || 1;
-                          const maxQty = event.maxAttendees ? Math.max(0, event.maxAttendees - (event.attendees || 0)) : 100;
-                          if (currentQty < maxQty) {
-                            setPaymentForm({ ...paymentForm, quantity: currentQty + 1 });
-                          }
-                        }}
-                        disabled={
-                          (paymentForm.quantity || 1) >= (event.maxAttendees ? Math.max(0, event.maxAttendees - (event.attendees || 0)) : 100)
-                        }
-                        className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center border-2 border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
-                        aria-label="Increase quantity"
-                      >
-                        <span className="text-lg sm:text-xl">+</span>
-                      </button>
-                    </div>
-                    {event.maxAttendees && (
-                      <p className="mt-2 text-xs sm:text-sm text-gray-500 text-center">
-                        {Math.max(0, event.maxAttendees - (event.attendees || 0))} tickets available
-                      </p>
-                    )}
-                  </div>
-
-                  {commissionSellers.length > 0 && (
-                    <div 
-                      className="rounded-xl p-4 sm:p-5 transition-all bg-gradient-to-br from-red-50 via-pink-50 to-rose-50 shadow-lg shadow-red-100/50"
-                    >
-                      <div className="flex items-center gap-2 mb-3">
-                        {commissionSellers.some(s => s.discount_rate && s.discount_type) && (
-                          <span className="text-2xl">🎉</span>
-                        )}
-                        <label htmlFor="reg_commission_seller_id" className="text-sm sm:text-base font-bold text-red-700">
-                          Get Discount
-                        </label>
-                        {commissionSellers.some(s => s.discount_rate && s.discount_type) && (
-                          <span className="ml-auto px-3 py-1 text-xs font-bold text-white bg-gradient-to-r from-red-500 to-pink-600 rounded-full shadow-md animate-pulse">
-                            SAVE MONEY
-                          </span>
-                        )}
-                      </div>
-                      <select
-                        id="reg_commission_seller_id"
-                        name="commission_seller_id"
-                        value={paymentForm.commission_seller_id}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 text-sm sm:text-base rounded-lg border-2 transition-all bg-white border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 text-gray-900 font-medium"
-                      >
-                        <option value="">
-                          {commissionSellers.some(s => s.discount_rate && s.discount_type)
-                            ? '🎁 Select a seller to unlock your discount!'
-                            : 'Select a seller'}
-                        </option>
-                        {commissionSellers.map((seller) => (
-                          <option key={seller.id} value={seller.id}>
-                            {seller.name}
-                            {seller.discount_rate && seller.discount_type
-                              ? ` - ${seller.discount_type === 'percentage' ? `${seller.discount_rate}% OFF` : `${seller.discount_rate} ${event.currency} OFF`}`
-                              : ''}
-                          </option>
-                        ))}
-                      </select>
-                      {commissionSellers.some(s => s.discount_rate && s.discount_type) && (
-                        <p className="mt-3 text-sm font-semibold text-red-700 flex items-center gap-2">
-                          <span className="text-lg">✨</span>
-                          <span>Select a seller above to receive an instant discount!</span>
-                        </p>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="pt-4 border-t border-gray-200">
-                    <div className="flex justify-between items-center text-sm sm:text-base mb-4">
-                      <span className="text-gray-600">Total Cost:</span>
-                      <span className="text-xl font-semibold text-green-600">FREE</span>
+                        type="button" onClick={() => setPaymentForm({...paymentForm, quantity: paymentForm.quantity + 1})}
+                        className="w-10 h-10 flex items-center justify-center text-slate-400"
+                      > <FaChevronRight size={10} /> </button>
                     </div>
                   </div>
-                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-4">
+
+                  <div className="pt-4 flex gap-3 font-sans">
                     <button
                       type="button"
-                      onClick={() => {
-                        setShowRegistrationModal(false);
-                        setPaymentForm({
-                          first_name: "",
-                          last_name: "",
-                          email: "",
-                          phone_number: "",
-                          quantity: 1,
-                          commission_seller_id: "",
-                        });
-                      }}
-                      className="flex-1 px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
-                    >
-                      Cancel
-                    </button>
+                      onClick={() => setShowRegistrationModal(false)}
+                      className="flex-1 py-4 text-slate-400 font-bold uppercase text-[10px] tracking-widest"
+                    > Discard </button>
                     <button
-                      type="submit"
-                      className="flex-1 px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-medium hover:from-green-700 hover:to-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      disabled={isProcessing}
+                      type="submit" disabled={isProcessing}
+                      className="flex-[2] ed-btn-primary py-4 flex items-center justify-center gap-2"
                     >
-                      {isProcessing ? (
-                        <span className="flex items-center justify-center">
-                          <FaSpinner className="animate-spin mr-2" />
-                          Registering...
-                        </span>
-                      ) : (
-                        "Complete Registration"
-                      )}
+                      {isProcessing ? <FaSpinner className="animate-spin" /> : "Confirm Admission"}
                     </button>
                   </div>
                 </form>
-              </>
+              </div>
             )}
           </div>
         </div>
