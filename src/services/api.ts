@@ -301,68 +301,35 @@ export const api = {
     }));
   },
 
-  // About Content
   getAboutContent: async (): Promise<AboutContent> => {
-    // Fetch about content
-    const { data: aboutDataArray, error: aboutError } = await supabase
-      .from('about_content')
-      .select('*')
-      .limit(1);
+    // Fetch all content in parallel
+    const [aboutRes, valuesRes, milestonesRes, ceoSocialRes] = await Promise.all([
+      supabase.from('about_content').select('*').limit(1),
+      supabase.from('about_values').select('*').order('display_order', { ascending: true }),
+      supabase.from('about_milestones').select('*').order('display_order', { ascending: true }),
+      // Safe fetch for CEO social links since table might not exist
+      supabase.from('ceo_social_links').select('*').order('display_order', { ascending: true })
+    ]);
 
-    if (aboutError) {
-      console.error('Error fetching about content:', aboutError);
-      throw new Error(aboutError.message);
+    if (aboutRes.error) {
+      console.error('Error fetching about content:', aboutRes.error);
+      throw new Error(aboutRes.error.message);
     }
 
-    const aboutData = aboutDataArray && aboutDataArray.length > 0 ? aboutDataArray[0] : null;
-
-    // Fetch values
-    const { data: valuesData, error: valuesError } = await supabase
-      .from('about_values')
-      .select('*')
-      .order('display_order', { ascending: true });
-
-    if (valuesError) {
-      console.error('Error fetching about values:', valuesError);
-      // Don't throw, just use empty array
+    if (valuesRes.error) console.error('Error fetching about values:', valuesRes.error);
+    if (milestonesRes.error) console.error('Error fetching about milestones:', milestonesRes.error);
+    if (ceoSocialRes.error && ceoSocialRes.error.code !== 'PGRST205') {
+      console.warn('Error fetching CEO social links:', ceoSocialRes.error.message);
     }
 
-    // Fetch milestones
-    const { data: milestonesData, error: milestonesError } = await supabase
-      .from('about_milestones')
-      .select('*')
-      .order('display_order', { ascending: true });
-
-    if (milestonesError) {
-      console.error('Error fetching about milestones:', milestonesError);
-      // Don't throw, just use empty array
-    }
-
-    // Fetch CEO social links (table may not exist, handle gracefully)
-    let ceoSocialData = null;
-    try {
-      const { data, error: ceoSocialError } = await supabase
-        .from('ceo_social_links')
-        .select('*')
-        .order('display_order', { ascending: true });
-      
-      if (!ceoSocialError) {
-        ceoSocialData = data;
-      } else if (ceoSocialError.code !== 'PGRST205') {
-        // Only log if it's not a "table not found" error
-        console.warn('Error fetching CEO social links:', ceoSocialError.message);
-      }
-    } catch (error) {
-      // Silently handle missing table
-      ceoSocialData = null;
-    }
+    const aboutData = aboutRes.data && aboutRes.data.length > 0 ? aboutRes.data[0] : null;
 
     const result: AboutContent = {
       story: {
         title: aboutData?.story_title || '',
         content: aboutData?.story_content || '',
       },
-      values: (valuesData || []).map((v: any) => ({
+      values: (valuesRes.data || []).map((v: any) => ({
         number: v.number,
         title: v.title,
         description: v.description,
@@ -375,7 +342,7 @@ export const api = {
         title: aboutData?.vision_title || '',
         content: aboutData?.vision_content || '',
       },
-      milestones: (milestonesData || []).map((m: any) => ({
+      milestones: (milestonesRes.data || []).map((m: any) => ({
         year: m.year,
         title: m.title,
         description: m.description,
@@ -390,7 +357,7 @@ export const api = {
         image: aboutData.ceo_image || undefined,
         bio: aboutData.ceo_bio || '',
         quote: aboutData.ceo_quote || undefined,
-        socialLinks: (ceoSocialData || []).map((link: any) => ({
+        socialLinks: (ceoSocialRes.data || []).map((link: any) => ({
           platform: link.platform,
           url: link.url,
           icon: link.icon,
@@ -403,36 +370,29 @@ export const api = {
 
   // Contact Info
   getContactInfo: async (): Promise<ContactInfo> => {
-    // Fetch contact info
-    const { data: contactDataArray, error: contactError } = await supabase
-      .from('contact_info')
-      .select('*')
-      .limit(1);
+    // Fetch all content in parallel
+    const [contactRes, socialRes] = await Promise.all([
+      supabase.from('contact_info').select('*').limit(1),
+      supabase.from('social_links').select('*').order('display_order', { ascending: true })
+    ]);
 
-    if (contactError) {
-      console.error('Error fetching contact info:', contactError);
-      throw new Error(contactError.message);
+    if (contactRes.error) {
+      console.error('Error fetching contact info:', contactRes.error);
+      throw new Error(contactRes.error.message);
     }
 
-    const contactData = contactDataArray && contactDataArray.length > 0 ? contactDataArray[0] : null;
-
-    // Fetch social links
-    const { data: socialData, error: socialError } = await supabase
-      .from('social_links')
-      .select('*')
-      .order('display_order', { ascending: true });
-
-    if (socialError) {
-      console.error('Error fetching social links:', socialError);
-      // Don't throw error for social links, just use empty array
+    if (socialRes.error) {
+      console.error('Error fetching social links:', socialRes.error);
     }
+
+    const contactData = contactRes.data && contactRes.data.length > 0 ? contactRes.data[0] : null;
 
     return {
       email: contactData?.email || '',
       phone: contactData?.phone || '',
       phoneFormatted: contactData?.phone_formatted || contactData?.phone || '',
       location: contactData?.location || '',
-      socialLinks: (socialData || []).map((link: any) => ({
+      socialLinks: (socialRes.data || []).map((link: any) => ({
         platform: link.platform,
         url: link.url,
         icon: link.icon,
@@ -442,40 +402,32 @@ export const api = {
 
   // Site Config
   getSiteConfig: async (): Promise<SiteConfig> => {
-    // Fetch site config
-    const { data: configDataArray, error: configError } = await supabase
-      .from('site_config')
-      .select('*')
-      .limit(1);
+    const [configRes, navRes] = await Promise.all([
+      supabase.from('site_config').select('*').limit(1),
+      supabase.from('navigation_links').select('*').order('display_order', { ascending: true })
+    ]);
 
-    if (configError) {
-      console.error('Error fetching site config:', configError);
-      throw new Error(configError.message);
+    if (configRes.error) {
+      console.error('Error fetching site config:', configRes.error);
+      throw new Error(configRes.error.message);
     }
 
-    const configData = configDataArray && configDataArray.length > 0 ? configDataArray[0] : null;
-
-    // Fetch navigation links
-    const { data: navData, error: navError } = await supabase
-      .from('navigation_links')
-      .select('*')
-      .order('display_order', { ascending: true });
-
-    if (navError) {
-      console.error('Error fetching navigation links:', navError);
-      // Don't throw, just use empty array
+    if (navRes.error) {
+      console.error('Error fetching navigation links:', navRes.error);
     }
+
+    const configData = configRes.data && configRes.data.length > 0 ? configRes.data[0] : null;
 
     return {
       siteName: configData?.site_name || 'YENEGE',
       logo: configData?.logo || '/logo.png',
-      navigation: (navData || []).map((link: any) => ({
+      navigation: (navRes.data || []).map((link: any) => ({
         path: link.path,
         label: link.label,
       })),
       footer: {
         description: configData?.footer_description || '',
-        quickLinks: (navData || []).map((link: any) => ({
+        quickLinks: (navRes.data || []).map((link: any) => ({
           path: link.path,
           label: link.label,
         })),
@@ -485,82 +437,56 @@ export const api = {
 
   // Home Content
   getHomeContent: async (): Promise<HomeContent> => {
-    // Fetch home content
-    const { data: homeDataArray, error: homeError } = await supabase
-      .from('home_content')
-      .select('*')
-      .limit(1);
+    // Fetch all content in parallel
+    const [
+      homeRes, 
+      heroCategoriesRes, 
+      homeCategoriesRes, 
+      ctaButtonsRes, 
+      featuredEventsRes
+    ] = await Promise.all([
+      supabase.from('home_content').select('*').limit(1),
+      supabase.from('hero_categories').select('*').order('display_order', { ascending: true }),
+      supabase.from('home_categories').select('*').order('display_order', { ascending: true }),
+      supabase.from('home_cta_buttons').select('*').order('display_order', { ascending: true }),
+      api.getEvents({ featured: true, limit: 3 }).catch(err => {
+        console.error('Error fetching featured events:', err);
+        return [];
+      })
+    ]);
 
-    if (homeError) {
-      console.error('Error fetching home content:', homeError);
-      throw new Error(homeError.message);
+    if (homeRes.error) {
+      console.error('Error fetching home content:', homeRes.error);
+      throw new Error(homeRes.error.message);
     }
 
-    const homeData = homeDataArray && homeDataArray.length > 0 ? homeDataArray[0] : null;
+    if (heroCategoriesRes.error) console.error('Error fetching hero categories:', heroCategoriesRes.error);
+    if (homeCategoriesRes.error) console.error('Error fetching home categories:', homeCategoriesRes.error);
+    if (ctaButtonsRes.error) console.error('Error fetching CTA buttons:', ctaButtonsRes.error);
 
-    // Fetch hero categories
-    const { data: heroCategoriesData, error: heroCategoriesError } = await supabase
-      .from('hero_categories')
-      .select('*')
-      .order('display_order', { ascending: true });
-
-    if (heroCategoriesError) {
-      console.error('Error fetching hero categories:', heroCategoriesError);
-      // Don't throw, just use empty array
-    }
-
-    // Fetch home categories
-    const { data: homeCategoriesData, error: homeCategoriesError } = await supabase
-      .from('home_categories')
-      .select('*')
-      .order('display_order', { ascending: true });
-
-    if (homeCategoriesError) {
-      console.error('Error fetching home categories:', homeCategoriesError);
-      // Don't throw, just use empty array
-    }
-
-    // Fetch CTA buttons
-    const { data: ctaButtonsData, error: ctaButtonsError } = await supabase
-      .from('home_cta_buttons')
-      .select('*')
-      .order('display_order', { ascending: true });
-
-    if (ctaButtonsError) {
-      console.error('Error fetching CTA buttons:', ctaButtonsError);
-      // Don't throw, just use empty array
-    }
-
-    // Fetch featured events
-    let featuredEvents: Event[] = [];
-    try {
-      featuredEvents = await api.getEvents({ featured: true, limit: 3 });
-    } catch (error) {
-      console.error('Error fetching featured events:', error);
-      // Don't throw, just use empty array
-    }
+    const homeData = homeRes.data && homeRes.data.length > 0 ? homeRes.data[0] : null;
 
     return {
       hero: {
         slogan: homeData?.hero_slogan || '',
         intro: homeData?.hero_intro || '',
-        categories: (heroCategoriesData || []).map((cat: any) => ({
+        categories: (heroCategoriesRes.data || []).map((cat: any) => ({
           label: cat.label,
           path: cat.path,
         })),
       },
-      categories: (homeCategoriesData || []).map((cat: any) => ({
+      categories: (homeCategoriesRes.data || []).map((cat: any) => ({
         id: cat.id,
         title: cat.title,
         description: cat.description,
         link: cat.link,
         number: cat.number || '',
       })),
-      featuredEvents,
+      featuredEvents: featuredEventsRes as Event[],
       cta: {
         title: homeData?.cta_title || '',
         description: homeData?.cta_description || '',
-        buttons: (ctaButtonsData || []).map((btn: any) => ({
+        buttons: (ctaButtonsRes.data || []).map((btn: any) => ({
           text: btn.text,
           link: btn.link,
           type: btn.type,

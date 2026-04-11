@@ -21,14 +21,34 @@ export const useScrollReveal = () => {
       threshold: 0.15
     };
 
-    const observer = new IntersectionObserver(observerCallback, observerOptions);
-    const elements = document.querySelectorAll('.reveal-wrapper');
+    const intersectionObserver = new IntersectionObserver(observerCallback, observerOptions);
     
-    // Slight delay to allow DOM to render to catch all elements
-    setTimeout(() => {
-      elements.forEach(el => observer.observe(el));
-    }, 100);
+    // Function to observe all current elements
+    const observeElements = () => {
+      const elements = document.querySelectorAll('.reveal-wrapper:not(.is-revealed):not(.is-observing)');
+      elements.forEach(el => {
+        el.classList.add('is-observing');
+        intersectionObserver.observe(el);
+      });
+    };
 
-    return () => observer.disconnect();
+    // Initial observer scan with slight delay
+    const initialTimeout = setTimeout(observeElements, 100);
+
+    // Watch for DOM changes to catch dynamically added reveal-wrappers (e.g. after SWR loading completes)
+    const mutationObserver = new MutationObserver(() => {
+      observeElements();
+    });
+
+    mutationObserver.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+
+    return () => {
+      clearTimeout(initialTimeout);
+      intersectionObserver.disconnect();
+      mutationObserver.disconnect();
+    };
   }, [location.pathname]); // Re-run when route changes
 };
