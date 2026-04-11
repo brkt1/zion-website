@@ -95,16 +95,8 @@ function App() {
               <Community />
             </Suspense>
           } />
-          <Route path="/about" element={
-            <Suspense fallback={<LoadingState />}>
-              <About />
-            </Suspense>
-          } />
-          <Route path="/contact" element={
-            <Suspense fallback={<LoadingState />}>
-              <Contact />
-            </Suspense>
-          } />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="/apply" element={
             <Suspense fallback={<LoadingState />}>
               <Apply />
