@@ -1,12 +1,12 @@
 import { useMemo } from "react";
 import {
-  FaArrowRight,
-  FaCalendarAlt,
-  FaGraduationCap,
-  FaMapMarkerAlt,
-  FaStar,
-  FaUsers,
-  FaWhatsapp
+    FaArrowRight,
+    FaCalendarAlt,
+    FaGraduationCap,
+    FaMapMarkerAlt,
+    FaStar,
+    FaUsers,
+    FaWhatsapp
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import Gallery from "../Components/Gallery";
@@ -93,41 +93,11 @@ const StatBadge = ({
   label: string;
   icon: React.ReactNode;
 }) => (
-  <div
-    style={{
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      gap: "4px",
-      padding: "0 48px",
-    }}
-  >
-    <span
-      style={{
-        fontFamily: "'Playfair Display', serif",
-        fontSize: "clamp(36px, 5vw, 52px)",
-        fontWeight: 900,
-        lineHeight: 1,
-        background: "linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%)",
-        WebkitBackgroundClip: "text",
-        WebkitTextFillColor: "transparent",
-        backgroundClip: "text",
-        letterSpacing: "-0.02em",
-      }}
-    >
+  <div className="yg-stat-badge">
+    <span className="yg-stat-value">
       {value}
     </span>
-    <span
-      style={{
-        fontFamily: "'Manrope', sans-serif",
-        fontSize: "11px",
-        fontWeight: 700,
-        color: "rgba(255,255,255,0.45)",
-        textTransform: "uppercase",
-        letterSpacing: "0.2em",
-        marginTop: "4px",
-      }}
-    >
+    <span className="yg-stat-label">
       {label}
     </span>
   </div>
@@ -333,12 +303,87 @@ const Home = () => {
           .yg-academy-grid { flex-direction: column !important; }
           .yg-academy-img  { max-width: 480px; margin: 0 auto; }
         }
+
+        .yg-stats-row {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .yg-stat-badge {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+          padding: 0 48px;
+        }
+        .yg-stat-value {
+          font-family: 'Playfair Display', serif;
+          font-size: clamp(36px, 5vw, 52px);
+          font-weight: 900;
+          line-height: 1;
+          background: linear-gradient(135deg, #E4E821 0%, #FF6F5E 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          letter-spacing: -0.02em;
+        }
+        .yg-stat-label {
+          font-family: 'Manrope', sans-serif;
+          font-size: 11px;
+          font-weight: 700;
+          color: rgba(255,255,255,0.45);
+          text-transform: uppercase;
+          letter-spacing: 0.2em;
+          margin-top: 4px;
+        }
+        .yg-stat-divider {
+          width: 1px;
+          height: 56px;
+          background: rgba(255,255,255,0.1);
+          flex-shrink: 0;
+        }
+
         @media (max-width: 768px) {
-          .yg-stats-row { flex-wrap: wrap; gap: 12px !important; justify-content: center; }
+          .yg-stats-row { 
+            flex-wrap: nowrap; 
+            gap: 0 !important; 
+            justify-content: space-evenly;
+            width: 100%;
+          }
+          .yg-stat-badge {
+            padding: 0 8px;
+            min-width: 0;
+            flex: 1;
+            text-align: center;
+          }
+          .yg-stat-value {
+            font-size: 28px !important;
+          }
+          .yg-stat-label {
+            font-size: 8px !important;
+            letter-spacing: 0.1em;
+            white-space: nowrap;
+          }
+          .yg-stat-divider {
+            display: block;
+            height: 32px;
+            align-self: center;
+          }
           .yg-event-grid { grid-template-columns: 1fr !important; }
           .yg-service-grid { grid-template-columns: 1fr !important; }
           .yg-community-grid { grid-template-columns: 1fr !important; }
           .yg-community-images { display: none !important; }
+        }
+
+        @media (max-width: 480px) {
+          .yg-stats-container {
+            padding-left: 8px !important;
+            padding-right: 8px !important;
+          }
+          .yg-stat-badge {
+            padding: 0 4px;
+          }
         }
       `}</style>
 
@@ -380,27 +425,20 @@ const Home = () => {
         />
 
         <div
-          className="reveal-wrapper"
+          className="reveal-wrapper yg-stats-container"
           style={{
             maxWidth: "900px",
             margin: "0 auto",
             padding: "56px 24px",
           }}
         >
-          <div
-            className="yg-stats-row"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
+          <div className="yg-stats-row">
             <StatBadge value="99%" label="Happy Members" icon={<FaUsers />} />
             {/* Divider */}
-            <div style={{ width: "1px", height: "56px", background: "rgba(255,255,255,0.1)", flexShrink: 0 }} />
+            <div className="yg-stat-divider" />
             <StatBadge value="4.9★" label="Average Rating" icon={<FaStar />} />
             {/* Divider */}
-            <div style={{ width: "1px", height: "56px", background: "rgba(255,255,255,0.1)", flexShrink: 0 }} />
+            <div className="yg-stat-divider" />
             <StatBadge value="12+" label="Destinations" icon={<FaMapMarkerAlt />} />
           </div>
         </div>

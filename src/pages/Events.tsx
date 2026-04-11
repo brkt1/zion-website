@@ -34,7 +34,6 @@ const GRADIENT = {
   textDark: "linear-gradient(135deg, #111827 0%, #374151 100%)",
 };
 
-/* ─── Sub-components ────────────────────────────────────────────────────────── */
 
 const SectionLabel = ({ children }: { children: React.ReactNode }) => (
   <div
