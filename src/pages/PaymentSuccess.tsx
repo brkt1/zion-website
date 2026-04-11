@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FaCheckCircle, FaDownload, FaSpinner } from "react-icons/fa";
 import { Link, useSearchParams } from "react-router-dom";
 import { useCommissionSeller } from "../hooks/useApi";
@@ -8,8 +8,7 @@ import { sendWhatsAppThankYou } from "../services/whatsapp";
 import { BRAND, GRADIENT } from "../styles/theme";
 import { logger } from "../utils/logger";
 
-// Lazy load QRCode component to reduce initial bundle size (only needed after payment)
-const QRCode = lazy(() => import("react-qr-code").then(module => ({ default: module.default })));
+import QRCode from "react-qr-code";
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
@@ -552,23 +551,53 @@ const PaymentSuccess = () => {
         <div className="payment-success-body flex flex-col items-center">
           <div className="w-full max-w-5xl px-4 flex justify-end mb-8">
             <button
-              onClick={async () => {
+              onClick={async (e) => {
                 if (!ticketRef.current || isDownloading) return;
                 setIsDownloading(true);
                 try {
+                  console.log('Starting ticket download process...');
+                  // Scroll to top to ensure html2canvas captures correctly without offset issues
+                  window.scrollTo(0, 0);
+                  
                   const html2canvas = (await import('html2canvas')).default;
+                  console.log('html2canvas imported');
+                  
                   const canvas = await html2canvas(ticketRef.current, {
                     backgroundColor: '#FFFFFF',
-                    scale: 3,
-                    logging: false,
+                    scale: 1.5,
+                    logging: true,
                     useCORS: true,
+                    allowTaint: false,
+                    onclone: (clonedDoc) => {
+                      // Ensure everything is static and visible
+                      const svgs = clonedDoc.querySelectorAll('svg');
+                      svgs.forEach(svg => {
+                        svg.setAttribute('focusable', 'false');
+                        svg.setAttribute('aria-hidden', 'true');
+                      });
+                    }
                   });
+                  
+                  console.log('Canvas generated, converting to blob...');
+                  const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
+                  
+                  if (!blob) throw new Error('Canvas conversion failed');
+                  
+                  const url = URL.createObjectURL(blob);
                   const link = document.createElement('a');
                   link.download = `YENEGE-Ticket-${getShortTxRef(paymentData?.tx_ref || txRef)}.png`;
-                  link.href = canvas.toDataURL('image/png');
+                  link.href = url;
+                  document.body.appendChild(link);
                   link.click();
+                  
+                  // Cleanup
+                  setTimeout(() => {
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                  }, 100);
                 } catch (error) {
                   console.error('Error downloading ticket:', error);
+                  alert('There was an issue generating your ticket image. Please try again or take a screenshot of this page.');
                 } finally {
                   setIsDownloading(false);
                 }
@@ -588,7 +617,13 @@ const PaymentSuccess = () => {
                 {/* Logo & Header */}
                 <div className="flex justify-between items-start mb-14">
                   <div>
-                    <img src="/logo.png" alt="YENEGE" className="h-16 w-auto mb-6" />
+                    <img 
+                      src="/logo.png" 
+                      alt="YENEGE" 
+                      className="h-16 w-auto mb-6" 
+                      crossOrigin="anonymous"
+                      loading="eager"
+                    />
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-50 text-green-600 text-[10px] font-bold uppercase tracking-widest border border-green-100">
                       <FaCheckCircle size={10} /> Confirmed
                     </div>
@@ -659,16 +694,14 @@ const PaymentSuccess = () => {
                 {/* QR Code Container */}
                 <div className="p-6 bg-white rounded-3xl mb-10 shadow-2xl">
                   {qrCodeData && (
-                    <Suspense fallback={<FaSpinner className="animate-spin text-[#01211C]" />}>
-                      <QRCode
-                        value={qrCodeData}
-                        size={170}
-                        level="Q"
-                        fgColor="#01211C"
-                        bgColor="#FFFFFF"
-                        className="max-w-full h-auto"
-                      />
-                    </Suspense>
+                    <QRCode
+                      value={qrCodeData}
+                      size={170}
+                      level="Q"
+                      fgColor="#01211C"
+                      bgColor="#FFFFFF"
+                      className="max-w-full h-auto"
+                    />
                   )}
                 </div>
 
