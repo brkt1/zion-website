@@ -203,7 +203,7 @@ const Community = () => {
           COMMUNITY
         </div>
         <div className="noise-bk" />
-        <div className="sidebrand">ZION ECOSYSTEM 2024</div>
+        <div className="sidebrand">YENEGE ECOSYSTEM 2024</div>
         <div style={{ position: 'absolute', bottom: '-10%', right: '-10%', width: '50%', height: '50%', background: 'radial-gradient(circle, rgba(251,111,94,0.05) 0%, transparent 70%)', filter: 'blur(100px)', pointerEvents: 'none', zIndex: 1 }} />
         <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '40%', height: '40%', background: 'radial-gradient(circle, rgba(228,232,33,0.05) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none', zIndex: 1 }} />
 

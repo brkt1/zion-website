@@ -600,7 +600,7 @@ const PaymentSuccess = () => {
               <div className="relative h-full flex flex-col p-10">
                 {/* Header */}
                 <div className="flex justify-between items-start mb-auto">
-                  <img src="/logo.png" alt="ZION" className="h-8 w-auto brightness-0 invert" crossOrigin="anonymous" />
+                  <img src="/logo.png" alt="YENEGE" className="h-8 w-auto brightness-0 invert" crossOrigin="anonymous" />
                   <div className="text-right">
                     <p className="text-[10px] font-black tracking-[0.3em] uppercase opacity-50">Curation Pass</p>
                     <p className="text-[9px] font-bold tracking-widest text-[#FFD447]">#{getShortTxRef(paymentData?.tx_ref || txRef)}</p>
@@ -649,7 +649,7 @@ const PaymentSuccess = () => {
                   <div className="flex-1">
                      <p className="text-[8px] font-black uppercase tracking-[0.4em] opacity-30 mb-2">Secure Entry QR</p>
                      <p className="text-[9px] text-white/40 leading-relaxed font-medium">
-                       Validated on ZION Protocol.<br/>Presented at the main curation entrance.
+                       Validated on YENEGE Protocol.<br/>Presented at the main curation entrance.
                      </p>
                   </div>
                   <div className="p-3 bg-white rounded-2xl shadow-xl">

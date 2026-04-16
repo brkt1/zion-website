@@ -1,4 +1,4 @@
-import { CommissionSeller } from '../types';
+import { CommissionSeller, CreateFeasibilityBriefData } from '../types';
 import { supabase } from './supabase';
 
 // Types (keeping the same interfaces)
@@ -510,7 +510,27 @@ export const api = {
       return [];
     }
 
+
     return (data || []) as CommissionSeller[];
+  },
+
+  // Feasibility Briefs
+  submitFeasibilityBrief: async (brief: CreateFeasibilityBriefData) => {
+    const { data, error } = await supabase
+      .from('feasibility_briefs')
+      .insert([{
+        ...brief,
+        status: 'pending'
+      }])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error submitting feasibility brief:', error);
+      throw new Error(error.message);
+    }
+
+    return data;
   },
 };
 

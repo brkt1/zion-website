@@ -235,7 +235,7 @@ const About = () => {
           HISTORY
         </div>
         <div className="noise-bk" />
-        <div className="sidebrand">ZION ARCHIVE 2024</div>
+        <div className="sidebrand">YENEGE ARCHIVE 2024</div>
         <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '40%', height: '40%', background: 'radial-gradient(circle, rgba(255,111,94,0.1) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none', zIndex: 1 }} />
 
 

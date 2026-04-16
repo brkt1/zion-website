@@ -29,6 +29,7 @@ const ExpoRegistration = lazy(() => import("./pages/ExpoRegistration"));
 const Certification = lazy(() => import("./pages/Certification"));
 const Masterclass = lazy(() => import("./pages/Masterclass"));
 const MasterclassRegistration = lazy(() => import("./pages/MasterclassRegistration"));
+const EventFeasibilityForm = lazy(() => import("./pages/EventFeasibilityForm"));
 
 
 // Game pages - hidden routes (no navigation links)
@@ -59,6 +60,7 @@ const AdminExpoApplications = lazy(() => import("./pages/admin/ExpoApplications"
 const AdminMasterclassReservations = lazy(() => import("./pages/admin/MasterclassReservations"));
 const MasterclassDashboard = lazy(() => import("./pages/admin/MasterclassDashboard"));
 const RepresentativeDashboard = lazy(() => import("./pages/admin/RepresentativeDashboard"));
+const AdminFeasibilityBriefs = lazy(() => import("./pages/admin/FeasibilityBriefs"));
 
 
 
@@ -125,6 +127,11 @@ function App() {
           <Route path="/masterclass-registration" element={
             <Suspense fallback={<LoadingState />}>
               <MasterclassRegistration />
+            </Suspense>
+          } />
+          <Route path="/event-feasibility" element={
+            <Suspense fallback={<LoadingState />}>
+              <EventFeasibilityForm />
             </Suspense>
           } />
           <Route path="/payment/success" element={
@@ -346,6 +353,14 @@ function App() {
             element={
               <Suspense fallback={<LoadingState />}>
                 <AdminMasterclassReservations />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="/admin/feasibility-briefs" 
+            element={
+              <Suspense fallback={<LoadingState message="Loading briefs..." />}>
+                <AdminFeasibilityBriefs />
               </Suspense>
             } 
           />

@@ -158,7 +158,7 @@ const Masterclass = () => {
           ACADEMY
         </div>
         <div className="noise-bk" />
-        <div className="sidebrand">ZION ACADEMY 2024</div>
+        <div className="sidebrand">YENEGE ACADEMY 2024</div>
         <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '40%', height: '40%', background: 'radial-gradient(circle, rgba(255,212,71,0.05) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none', zIndex: 1 }} />
 
         <div className="container mx-auto px-6 text-center">

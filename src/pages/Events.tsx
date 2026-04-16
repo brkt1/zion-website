@@ -7,7 +7,7 @@ import {
 import { Link } from "react-router-dom";
 import { EventsSkeleton } from "../Components/ui/EventsSkeleton";
 import OptimizedImage from "../Components/ui/OptimizedImage";
-import { useEvents } from "../hooks/useApi";
+import { useCategories, useEvents } from "../hooks/useApi";
 import { useScrollReveal } from "../hooks/useScrollReveal";
 import { BRAND, GRADIENT } from "../styles/theme";
 
@@ -68,8 +68,10 @@ const Events = () => {
   }, []);
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const { events, isLoading: eventsLoading } = useEvents();
+  const { categories } = useCategories();
 
   const filteredEvents = useMemo(() => {
     return (events || []).filter((event) => {
@@ -79,9 +81,12 @@ const Events = () => {
         event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
         event.location.toLowerCase().includes(searchQuery.toLowerCase());
 
-      return matchesSearch;
+      // Apply category filter
+      const matchesCategory = !selectedCategory || event.category === selectedCategory;
+
+      return matchesSearch && matchesCategory;
     });
-  }, [events, searchQuery]);
+  }, [events, searchQuery, selectedCategory]);
 
 
 
@@ -133,6 +138,31 @@ const Events = () => {
           text-transform: uppercase;
           letter-spacing: 0.4em;
           color: rgba(255, 255, 255, 0.4);
+        }
+
+        .category-chip {
+          padding: 8px 20px;
+          border-radius: 999px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.03);
+          color: rgba(255, 255, 255, 0.6);
+          font-family: 'Manrope', sans-serif;
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.15em;
+          text-transform: uppercase;
+          transition: all 0.3s ease;
+          cursor: pointer;
+        }
+        .category-chip:hover {
+          background: rgba(255, 255, 255, 0.08);
+          border-color: rgba(255, 255, 255, 0.3);
+          color: #fff;
+        }
+        .category-chip.active {
+          background: #FFD447;
+          border-color: #FFD447;
+          color: #0F172A;
         }
 
         .price-badge {
@@ -289,7 +319,7 @@ const Events = () => {
           EXPERIENCES
         </div>
         <div className="noise-bk" />
-        <div className="sidebrand">ZION PORTFOLIO 2024</div>
+        <div className="sidebrand">YENEGE PORTFOLIO 2024</div>
         <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '40%', height: '40%', background: 'radial-gradient(circle, rgba(255,111,94,0.1) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none', zIndex: 1 }} />
 
         <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", position: 'relative', zIndex: 2 }}>
@@ -304,7 +334,7 @@ const Events = () => {
         </div>
       </section>
 
-      {/* ── 2. Events Grid ─────────────────────────────────── */}
+      {/* ── 2. Events Grid ───── */}
       <section
         style={{
           padding: "40px 0 140px",
@@ -327,12 +357,30 @@ const Events = () => {
                </svg>
                <input 
                  type="text" 
-                 placeholder="Search Zion experiences..."
+                 placeholder="Search Yenege experiences..."
                  value={searchQuery}
                  onChange={(e) => setSearchQuery(e.target.value)}
                  className="search-input"
-                 style={{ color: '#fff' }}
                />
+            </div>
+
+            {/* Category Filter Chips */}
+            <div className="flex flex-wrap gap-3 items-center">
+              <button
+                onClick={() => setSelectedCategory(null)}
+                className={`category-chip ${!selectedCategory ? 'active' : ''}`}
+              >
+                All
+              </button>
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.slug)}
+                  className={`category-chip ${selectedCategory === cat.slug ? 'active' : ''}`}
+                >
+                  {cat.name}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -526,18 +574,56 @@ const Events = () => {
               margin: "0 auto 48px",
             }}
           >
-            Get in touch with us to organize your own community event! We help you bring your vision to life.
+            Submit a feasibility brief and let our strategists assess the technical viability and ROI of your event — before any commitment.
           </p>
 
-          <a
-            href="https://wa.me/251978639887"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="yg-btn-whatsapp"
-          >
-            <FaWhatsapp size={18} />
-            Contact via WhatsApp
-          </a>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", justifyContent: "center" }}>
+            <Link
+              to="/event-feasibility"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "10px",
+                background: BRAND.navy,
+                color: BRAND.gold,
+                padding: "18px 40px",
+                borderRadius: "999px",
+                fontFamily: "'Manrope', sans-serif",
+                fontSize: "13px",
+                fontWeight: 800,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                textDecoration: "none",
+                transition: "all 0.3s",
+                boxShadow: "0 12px 40px rgba(15,23,42,0.18)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = "0 20px 60px rgba(15,23,42,0.25)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "none";
+                e.currentTarget.style.boxShadow = "0 12px 40px rgba(15,23,42,0.18)";
+              }}
+            >
+              Submit Event Brief
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            </Link>
+
+            <a
+              href="https://wa.me/251978639887"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="yg-btn-whatsapp"
+              style={{ display: "inline-flex", alignItems: "center", gap: "10px" }}
+            >
+              <FaWhatsapp size={18} />
+              WhatsApp Us
+            </a>
+          </div>
         </div>
       </section>
     </div>

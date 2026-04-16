@@ -386,3 +386,45 @@ export interface UpdateRepresentativeData {
   is_active?: boolean;
   notes?: string;
 }
+
+// Feasibility Brief types
+export interface FeasibilityBrief {
+  id: string;
+  event_type: string;
+  proposed_date: string;
+  primary_objective: string;
+  attendee_min: number;
+  attendee_max: number;
+  total_budget: string;
+  financial_model: string;
+  budget_flexibility: string;
+  venue_status: string;
+  technical_priorities: string[];
+  event_duration: string;
+  setup_window: string;
+  contact_name: string;
+  contact_email: string;
+  contact_phone?: string;
+  status: 'pending' | 'reviewed' | 'accepted' | 'rejected';
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateFeasibilityBriefData {
+  event_type: string;
+  proposed_date: string;
+  primary_objective: string;
+  attendee_min: number;
+  attendee_max: number;
+  total_budget: string;
+  financial_model: string;
+  budget_flexibility: string;
+  venue_status: string;
+  technical_priorities: string[];
+  event_duration: string;
+  setup_window: string;
+  contact_name: string;
+  contact_email: string;
+  contact_phone?: string;
+}

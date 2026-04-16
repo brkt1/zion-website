@@ -275,7 +275,7 @@ const Contact = () => {
           CONNECT
         </div>
         <div className="noise-bk" />
-        <div className="sidebrand">ZION CONTACT 2024</div>
+        <div className="sidebrand">YENEGE CONTACT 2024</div>
         <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '40%', height: '40%', background: 'radial-gradient(circle, rgba(255,111,94,0.1) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none', zIndex: 1 }} />
 
         <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", position: 'relative', zIndex: 2 }}>

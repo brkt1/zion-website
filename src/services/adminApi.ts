@@ -1,4 +1,4 @@
-import { Application, CommissionSeller, CreateApplicationData, CreateCommissionSellerData, CreateExpoApplicationData, CreateMasterclassReservationData, CreatePartnerData, CreateRepresentativeData, CreateTicketScannerData, ExpoApplication, MasterclassReservation, Partner, SponsorshipRepresentative, TicketScanner, UpdateApplicationData, UpdateCommissionSellerData, UpdateExpoApplicationData, UpdatePartnerData, UpdateRepresentativeData, UpdateTicketScannerData } from '../types';
+import { Application, CommissionSeller, CreateApplicationData, CreateCommissionSellerData, CreateExpoApplicationData, CreateMasterclassReservationData, CreatePartnerData, CreateRepresentativeData, CreateTicketScannerData, ExpoApplication, FeasibilityBrief, MasterclassReservation, Partner, SponsorshipRepresentative, TicketScanner, UpdateApplicationData, UpdateCommissionSellerData, UpdateExpoApplicationData, UpdatePartnerData, UpdateRepresentativeData, UpdateTicketScannerData } from '../types';
 import { AboutContent, Category, ContactInfo, Destination, Event, GalleryItem, HomeContent, SiteConfig } from './api';
 import { supabase } from './supabase';
 
@@ -1345,6 +1345,44 @@ export const adminApi = {
     delete: async (id: string) => {
       const { error } = await supabase
         .from('sponsorship_representatives')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return { success: true };
+    },
+  },
+
+  // Feasibility Briefs CRUD
+  feasibilityBriefs: {
+    getAll: async () => {
+      const { data, error } = await supabase
+        .from('feasibility_briefs')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data as FeasibilityBrief[];
+    },
+
+    update: async (id: string, updates: Partial<FeasibilityBrief>) => {
+      const { data, error } = await supabase
+        .from('feasibility_briefs')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as FeasibilityBrief;
+    },
+
+    delete: async (id: string) => {
+      const { error } = await supabase
+        .from('feasibility_briefs')
         .delete()
         .eq('id', id);
 

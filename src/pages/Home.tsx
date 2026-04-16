@@ -554,7 +554,6 @@ const Home = () => {
           >
             {homeContent?.categories && homeContent.categories.length > 0 ? (
               homeContent.categories
-                .filter(cat => !["community", "corporate", "game"].includes(cat.title.toLowerCase()) && !["community", "corporate", "game"].includes(cat.id?.toLowerCase()))
                 .map((category, index) => (
                 <Link
                   key={category.id || index}
@@ -784,7 +783,7 @@ const Home = () => {
         <div className="noise-bk" />
 
         {/* Vertical Sidebrand */}
-        <div className="sidebrand">ZION CURATION Portfolio 2024</div>
+        <div className="sidebrand">YENEGE CURATION Portfolio 2024</div>
 
         {/* Creative Layer 3: Dynamic Glows */}
         <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '40%', height: '40%', background: 'radial-gradient(circle, rgba(255,111,94,0.1) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none', zIndex: 1 }} />
