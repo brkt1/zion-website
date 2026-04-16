@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { FaSnowflake, FaSun, FaTint, FaTree, FaWalking } from "react-icons/fa";
+import { useLanguage } from "../contexts/LanguageContext";
 import { useGalleryItems } from "../hooks/useApi";
 import { optimizeImageUrl, preloadOptimizedImage } from "../utils/imageOptimizer";
 import "./Gallery.css";
@@ -16,16 +17,36 @@ const iconMap: { [key: string]: React.ReactNode } = {
 
 const Gallery = () => {
   const { galleryItems: apiGalleryItems } = useGalleryItems();
+  const { t, language } = useLanguage();
   const [activeIndex, setActiveIndex] = useState(0);
   const [imagesLoaded, setImagesLoaded] = useState<{ [key: string]: boolean }>({});
 
   const galleryItems = useMemo(() => {
-    const items = apiGalleryItems.length > 0 ? apiGalleryItems :[] ;
-      return items.map(item => ({
-      ...item,
-      icon: typeof item.icon === 'string' ? iconMap[item.icon] || <FaWalking /> : item.icon,
-    }));
-  }, [apiGalleryItems]);
+    const items = apiGalleryItems.length > 0 ? apiGalleryItems : [];
+    return items.map(item => {
+      // Basic translation mapping for common items if they are from database
+      let main = item.main;
+      let sub = item.sub;
+      
+      if (item.main?.toLowerCase().includes("wedding")) {
+        main = t.gallery.wedding;
+        sub = t.gallery.weddingDesc;
+      } else if (item.main?.toLowerCase().includes("private") || item.main?.toLowerCase().includes("celebration")) {
+        main = t.gallery.private;
+        sub = t.gallery.privateDesc;
+      } else if (item.main?.toLowerCase().includes("corporate")) {
+        main = t.gallery.corporate;
+        sub = t.gallery.corporateDesc;
+      }
+
+      return {
+        ...item,
+        main,
+        sub,
+        icon: typeof item.icon === 'string' ? iconMap[item.icon] || <FaWalking /> : item.icon,
+      };
+    });
+  }, [apiGalleryItems, t]);
 
 
   // Handle manual click
@@ -171,9 +192,9 @@ const Gallery = () => {
     <section className="gallery-section py-20 bg-gray-50">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">Our Gallery</h2>
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">{t.gallery.title}</h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Explore our amazing moments and experiences
+            {t.gallery.subtitle}
           </p>
         </div>
         

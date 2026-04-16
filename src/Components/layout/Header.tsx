@@ -9,6 +9,7 @@ import {
     FaWhatsapp
 } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
+import { useLanguage } from "../../contexts/LanguageContext";
 import { useContactInfo, useSiteConfig } from "../../hooks/useApi";
 import { handleLinkHover } from "../../utils/prefetch";
 import OptimizedImage from "../ui/OptimizedImage";
@@ -21,6 +22,19 @@ const Header = () => {
   const [lastScrollY, setLastScrollY] = useState(0);
   const location = useLocation();
   const isHomePage = location.pathname === "/";
+  const { t, language, toggleLanguage } = useLanguage();
+
+  const getTranslatedLabel = (label: string, path: string) => {
+    switch (path) {
+      case "/": return t.header.home;
+      case "/events": return t.header.events;
+      case "/masterclass": return t.header.masterclass;
+      case "/about": return t.header.about;
+      case "/contact": return t.header.contact;
+      case "/expo-info": return language === 'am' ? "የሰርግ ኤክስፖ" : "Wedding Expo";
+      default: return label;
+    }
+  };
 
   const navLinks = (config?.navigation || [
     { path: "/", label: "Home" },
@@ -29,7 +43,10 @@ const Header = () => {
     { path: "/masterclass", label: "Masterclass" },
     { path: "/about", label: "About" },
     { path: "/contact", label: "Contact" },
-  ]).filter(link => 
+  ]).map(link => ({
+    ...link,
+    label: getTranslatedLabel(link.label, link.path)
+  })).filter(link => 
     !["community", "corporate", "game", "apply", "travel"].includes(link.label.toLowerCase()) &&
     !["/community", "/apply", "/travel"].includes(link.path.toLowerCase())
   );
@@ -105,8 +122,17 @@ const Header = () => {
           </div>
           
           <div className="flex items-center gap-5">
+            <button 
+              onClick={toggleLanguage}
+              className="px-3 py-1 rounded-full border border-white/20 hover:bg-white/10 transition-all text-[10px] font-bold uppercase tracking-widest flex items-center gap-2"
+            >
+              <span className={language === 'am' ? 'text-[#FFD447]' : 'text-white/60'}>አማ</span>
+              <div className="w-px h-2 bg-white/20"></div>
+              <span className={language === 'en' ? 'text-[#FFD447]' : 'text-white/60'}>EN</span>
+            </button>
+            <div className="w-px h-4 bg-white/20 mx-1"></div>
             <a href={waLink} target="_blank" rel="noopener noreferrer" className="hover:text-[#25D366] transition-colors flex items-center gap-1">
-              <FaWhatsapp size={14} /> WhatsApp
+              <FaWhatsapp size={14} /> {t.header.wa}
             </a>
             <div className="w-px h-4 bg-white/20 mx-1"></div>
             {/* Social Icons */}

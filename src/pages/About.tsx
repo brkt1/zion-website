@@ -10,6 +10,7 @@ import {
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import OptimizedImage from "../Components/ui/OptimizedImage";
+import { useLanguage } from "../contexts/LanguageContext";
 import { useAboutContent, useContactInfo } from "../hooks/useApi";
 import { useScrollReveal } from "../hooks/useScrollReveal";
 
@@ -73,6 +74,7 @@ const SectionLabel = ({ children }: { children: React.ReactNode }) => (
 
 const About = () => {
   useScrollReveal();
+  const { t } = useLanguage();
   const { contactInfo } = useContactInfo();
   const { content } = useAboutContent();
 
@@ -241,7 +243,7 @@ const About = () => {
 
         <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", position: 'relative', zIndex: 2 }}>
           <div style={{ maxWidth: "800px", textAlign: "center", margin: "0 auto" }}>
-            <SectionLabel>Architecture of Experiences</SectionLabel>
+            <SectionLabel>{t.about.label}</SectionLabel>
             <h1
               className="yg-font-serif"
               style={{
@@ -253,7 +255,7 @@ const About = () => {
                 marginBottom: "32px",
               }}
             >
-              We Build <br />
+              {t.about.title.split(' ').slice(0, 2).join(' ')} <br />
               <span
                 style={{
                   background: GRADIENT.brand,
@@ -263,7 +265,7 @@ const About = () => {
                   fontStyle: "italic",
                 }}
               >
-                Beyond Moments.
+                {t.about.title.split(' ').slice(2).join(' ')}.
               </span>
             </h1>
             <p
@@ -277,7 +279,7 @@ const About = () => {
                 fontWeight: 400,
               }}
             >
-              Yenege is a modern lifestyle and experience platform based in Addis Ababa, operating at the intersection of professional execution, education, and community.
+              {t.about.description}
             </p>
           </div>
         </div>
@@ -297,19 +299,19 @@ const About = () => {
           >
             {[
               {
-                title: "Professional Execution",
+                title: t.about.exec,
                 icon: <FaRocket />,
-                desc: "High-level event production and logistics management.",
+                desc: t.about.execDesc,
               },
               {
-                title: "Expert Education",
+                title: t.about.edu,
                 icon: <FaGraduationCap />,
-                desc: "Professional training for the next generation of event designers.",
+                desc: t.about.eduDesc,
               },
               {
-                title: "Vibrant Community",
+                title: t.about.comm,
                 icon: <FaUsers />,
-                desc: "A collaborative ecosystem of creatives and professionals.",
+                desc: t.about.commDesc,
               },
             ].map((item, i) => (
               <div
@@ -357,7 +359,7 @@ const About = () => {
         <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
           <div className="yg-grid-mobile" style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: "100px", alignItems: "center" }}>
             <div>
-              <SectionLabel>Our Origin</SectionLabel>
+              <SectionLabel>{t.about.origin.split(' ')[0]}</SectionLabel>
               <h2
                 className="yg-font-serif"
                 style={{
@@ -369,8 +371,8 @@ const About = () => {
                   marginBottom: "32px",
                 }}
               >
-                The Yenege <br />
-                <span style={{ fontStyle: "italic", color: BRAND.gold }}>Dream.</span>
+                {t.about.origin.split(' ').slice(0, 2).join(' ')} <br />
+                <span style={{ fontStyle: "italic", color: BRAND.gold }}>{t.about.origin.split(' ').slice(2).join(' ')}.</span>
               </h2>
               <div className="yg-font-sans" style={{ fontSize: "18px", color: 'rgba(255,255,255,0.5)', lineHeight: 1.8 }}>
                 <p style={{ fontSize: "24px", fontWeight: 600, color: BRAND.white, marginBottom: "32px", lineHeight: 1.3 }}>

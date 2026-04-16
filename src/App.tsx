@@ -8,6 +8,7 @@ import { BrowserCompatibility } from "./Components/ui/BrowserCompatibility";
 import { LoadingState } from "./Components/ui/LoadingState";
 
 import VisitTracker from "./Components/VisitTracker";
+import { LanguageProvider } from "./contexts/LanguageContext";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 
@@ -65,13 +66,16 @@ const AdminFeasibilityBriefs = lazy(() => import("./pages/admin/FeasibilityBrief
 
 
 
+
+
 function App() {
   return (
-    <Router>
-      <BrowserCompatibility />
-      <ScrollToTop />
-      <PageTracker />
-      <VisitTracker />
+    <LanguageProvider>
+      <Router>
+        <BrowserCompatibility />
+        <ScrollToTop />
+        <PageTracker />
+        <VisitTracker />
 
 
       <Routes>
@@ -368,7 +372,8 @@ function App() {
           
         </Route>
       </Routes>
-    </Router>
+      </Router>
+    </LanguageProvider>
   );
 }
 

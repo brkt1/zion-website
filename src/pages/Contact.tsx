@@ -10,6 +10,7 @@ import {
     FaYoutube
 } from "react-icons/fa";
 import { ContactSkeleton } from "../Components/ui/ContactSkeleton";
+import { useLanguage } from "../contexts/LanguageContext";
 import { useContactInfo } from "../hooks/useApi";
 import { useScrollReveal } from "../hooks/useScrollReveal";
 
@@ -68,6 +69,7 @@ const SectionLabel = ({ children }: { children: React.ReactNode }) => (
 
 const Contact = () => {
   useScrollReveal();
+  const { t } = useLanguage();
   const { contactInfo, isLoading } = useContactInfo();
   const [formData, setFormData] = useState({
     name: "",
@@ -280,7 +282,7 @@ const Contact = () => {
 
         <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", position: 'relative', zIndex: 2 }}>
           <div style={{ maxWidth: "800px" }}>
-            <SectionLabel>Get in Touch</SectionLabel>
+            <SectionLabel>{t.contact.label}</SectionLabel>
             <h1
               className="yg-font-serif"
               style={{
@@ -292,7 +294,7 @@ const Contact = () => {
                 marginBottom: "32px",
               }}
             >
-              Let's Build Your <br />
+              {t.contact.title.split(' ').slice(0, 3).join(' ')} <br />
               <span
                 style={{
                   background: GRADIENT.brand,
@@ -302,7 +304,7 @@ const Contact = () => {
                   fontStyle: "italic",
                 }}
               >
-                Next Story.
+                {t.contact.title.split(' ').slice(3).join(' ')}.
               </span>
             </h1>
           </div>
@@ -320,7 +322,7 @@ const Contact = () => {
             {/* Left Column: Info */}
             <div>
               <p className="yg-font-sans" style={{ fontSize: "20px", color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, marginBottom: "64px" }}>
-                Ready to revolutionize your events? Whether you're an organizer, partner, or student, our team is here to help you scale and succeed.
+                {t.contact.desc}
               </p>
 
               <div style={{ display: "flex", flexDirection: "column", gap: "48px" }}>
@@ -361,7 +363,7 @@ const Contact = () => {
 
             {/* Right Column: Form */}
             <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: "40px", border: "1px solid rgba(255,255,255,0.1)", padding: "60px", backdropFilter: 'blur(20px)' }}>
-               <h2 className="yg-font-serif" style={{ fontSize: "32px", fontWeight: 900, marginBottom: "40px", color: BRAND.white }}>Send a Message</h2>
+               <h2 className="yg-font-serif" style={{ fontSize: "32px", fontWeight: 900, marginBottom: "40px", color: BRAND.white }}>{t.contact.formTitle}</h2>
                
                {submitStatus === "success" && (
                  <div style={{ padding: "20px", borderRadius: "12px", background: "rgba(37,211,102,0.1)", color: "#128C7E", marginBottom: "32px", fontSize: "14px", fontWeight: 600 }}>
@@ -372,27 +374,27 @@ const Contact = () => {
                <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }} className="yg-grid-mobile">
                     <div>
-                      <label style={{ display: "block", fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: BRAND.gray500, marginBottom: "10px" }}>Full Name *</label>
+                      <label style={{ display: "block", fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: BRAND.gray500, marginBottom: "10px" }}>{t.contact.name} *</label>
                       <input type="text" name="name" required placeholder="John Doe" value={formData.name} onChange={handleChange} className="yg-contact-input" />
                     </div>
                     <div>
-                      <label style={{ display: "block", fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: BRAND.gray500, marginBottom: "10px" }}>Email Address *</label>
+                      <label style={{ display: "block", fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: BRAND.gray500, marginBottom: "10px" }}>{t.contact.email} *</label>
                       <input type="email" name="email" required placeholder="john@example.com" value={formData.email} onChange={handleChange} className="yg-contact-input" />
                     </div>
                  </div>
                  
                  <div>
-                   <label style={{ display: "block", fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: BRAND.gray500, marginBottom: "10px" }}>Phone Number</label>
+                   <label style={{ display: "block", fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: BRAND.gray500, marginBottom: "10px" }}>{t.contact.phone}</label>
                    <input type="tel" name="phone" placeholder="+251 9XX XXX XXX" value={formData.phone} onChange={handleChange} className="yg-contact-input" />
                  </div>
 
                  <div>
-                   <label style={{ display: "block", fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: BRAND.gold, marginBottom: "10px" }}>How can we help? *</label>
+                   <label style={{ display: "block", fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: BRAND.gold, marginBottom: "10px" }}>{t.contact.message} *</label>
                    <textarea name="message" required rows={5} placeholder="Tell us about your next project or goal..." value={formData.message} onChange={handleChange} className="yg-contact-input" style={{ resize: "none" }} />
                  </div>
 
                  <button type="submit" disabled={isSubmitting} className="yg-btn-submit">
-                   {isSubmitting ? "Processing..." : <><FaWhatsapp size={18} /> Send via WhatsApp</>}
+                   {isSubmitting ? "Processing..." : <><FaWhatsapp size={18} /> {t.contact.send}</>}
                  </button>
                </form>
             </div>

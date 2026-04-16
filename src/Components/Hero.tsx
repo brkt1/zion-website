@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FaArrowRight } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { useLanguage } from "../contexts/LanguageContext";
 import { useDestinations, useHomeContent } from "../hooks/useApi";
 import { Destination } from "../services/api";
 import { optimizeImageUrl, preloadOptimizedImage } from "../utils/imageOptimizer";
@@ -31,6 +32,7 @@ const fallbackDestinations = [
 const Hero = () => {
   const { destinations: apiDestinations } = useDestinations();
   const { content: homeContent } = useHomeContent();
+  const { t } = useLanguage();
   const destinations = apiDestinations.length > 0 ? apiDestinations : fallbackDestinations;
   
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -408,7 +410,7 @@ const Hero = () => {
         {/* Hero Content Overlay */}
         <div className="hero-content-overlay">
           <div className="hero-text-content">
-            <h1 className="hero-slogan">{homeContent?.hero?.slogan || "Bringing Happiness to Life"}</h1>
+            <h1 className="hero-slogan">{t.hero.tagline}</h1>
             
             {homeContent?.hero?.categories && homeContent.hero.categories.length > 0 && (
               <div className="hero-categories">
@@ -428,7 +430,7 @@ const Hero = () => {
             )}
 
             <p className="hero-intro">
-              {homeContent?.hero?.intro || "Yenege is a vibrant community dedicated to creating unforgettable experiences. We bring people together through exciting game nights, amazing travel adventures, and meaningful connections that celebrate life's beautiful moments."}
+              {t.hero.description}
             </p>
 
             {homeContent?.cta?.buttons && homeContent.cta.buttons.length > 0 ? (
@@ -447,11 +449,11 @@ const Hero = () => {
             ) : (
               <div className="hero-cta-buttons">
                 <Link to="/events" className="cta-button cta-primary">
-                  Explore Events
+                  {t.hero.exploreEvents}
                   <FaArrowRight className="ml-2" />
                 </Link>
-                <Link to="/community" className="cta-button cta-secondary">
-                  Join Our Community
+                <Link to="/contact" className="cta-button cta-secondary">
+                  {t.hero.contactWa}
                   <FaArrowRight className="ml-2" />
                 </Link>
               </div>

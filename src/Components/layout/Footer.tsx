@@ -1,12 +1,26 @@
 import { FaArrowRight, FaEnvelope, FaInstagram, FaTelegram, FaTiktok, FaWhatsapp, FaYoutube } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { useLanguage } from "../../contexts/LanguageContext";
 import { useContactInfo, useSiteConfig } from "../../hooks/useApi";
 import OptimizedImage from "../ui/OptimizedImage";
 
 const Footer = () => {
   const { config } = useSiteConfig();
+  const { t, language } = useLanguage();
   const { contactInfo } = useContactInfo();
   const currentYear = new Date().getFullYear();
+
+  const getTranslatedLabel = (label: string, path: string) => {
+    switch (path) {
+      case "/": return t.header.home;
+      case "/events": return t.header.events;
+      case "/expo-info": return language === 'am' ? "የሰርግ ኤክስፖ" : "Wedding Expo";
+      case "/about": return t.header.about;
+      case "/masterclass": return t.header.masterclass;
+      case "/contact": return t.header.contact;
+      default: return label;
+    }
+  };
 
   // Icon mapping for social links
   const iconMap: { [key: string]: any } = {
@@ -34,7 +48,10 @@ const Footer = () => {
     { path: "/masterclass", label: "Masterclass" },
     { path: "/apply", label: "Apply" },
     { path: "/contact", label: "Contact" },
-  ]).filter(link => 
+  ]).map(link => ({
+    ...link,
+    label: getTranslatedLabel(link.label, link.path)
+  })).filter(link => 
     !["community", "corporate", "game", "apply"].includes(link.label.toLowerCase()) &&
     !["/community", "/apply"].includes(link.path.toLowerCase())
   );
@@ -71,7 +88,7 @@ const Footer = () => {
               />
             </Link>
             <p className="text-sm text-gray-400 leading-relaxed mb-8 max-w-xs">
-              {config?.footer?.description || "Bringing happiness to life through events, adventures, and community connections."}
+              {t.footer.description}
             </p>
             
             {/* Social Links */}
@@ -106,7 +123,7 @@ const Footer = () => {
                 }}
               />
               <h3 className="text-white font-bold text-sm tracking-wider uppercase">
-                Quick Links
+                {t.footer.quickLinks}
               </h3>
             </div>
             <ul className="space-y-3.5">
@@ -141,7 +158,7 @@ const Footer = () => {
                 }}
               />
               <h3 className="text-white font-bold text-sm tracking-wider uppercase">
-                Contact
+                {t.footer.contact}
               </h3>
             </div>
             <ul className="space-y-5">
@@ -188,17 +205,17 @@ const Footer = () => {
                 }}
               />
               <h3 className="text-white font-bold text-sm tracking-wider uppercase">
-                Stay Updated
+                {t.footer.stayUpdated}
               </h3>
             </div>
             <p className="text-sm text-gray-400 mb-6 leading-relaxed">
-              Subscribe to get notified about upcoming events and adventures.
+              {t.footer.subscribeText}
             </p>
             <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
               <div className="relative">
                 <input
                   type="email"
-                  placeholder="Enter your email"
+                  placeholder={t.footer.subscribePlaceholder}
                   className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 text-sm focus:outline-none focus:border-[#FFD447] focus:ring-2 focus:ring-[#FFD447]/20 transition-all duration-300"
                 />
               </div>
@@ -209,7 +226,7 @@ const Footer = () => {
                   background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
                 }}
               >
-                <span>Subscribe</span>
+                <span>{t.footer.subscribe}</span>
                 <FaArrowRight size={12} className="group-hover:translate-x-1 transition-transform duration-300" />
               </button>
             </form>
@@ -220,14 +237,14 @@ const Footer = () => {
         <div className="border-t border-white/10 mt-20 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-gray-500">
-              © {currentYear} <span className="font-semibold text-gray-400">{config?.siteName || "YENEGE"}</span>. All rights reserved.
+              © {currentYear} <span className="font-semibold text-gray-400">{config?.siteName || "YENEGE"}</span>. {t.footer.allRights}
             </p>
             <div className="flex items-center gap-6 text-sm">
               <Link 
                 to="/about" 
                 className="text-gray-500 hover:text-white transition-colors duration-300 relative group"
               >
-                Privacy Policy
+                {t.footer.privacy}
                 <span 
                   className="absolute -bottom-1 left-0 w-0 h-0.5 rounded-full group-hover:w-full transition-all duration-300"
                   style={{
@@ -239,7 +256,7 @@ const Footer = () => {
                 to="/contact" 
                 className="text-gray-500 hover:text-white transition-colors duration-300 relative group"
               >
-                Terms of Service
+                {t.footer.terms}
                 <span 
                   className="absolute -bottom-1 left-0 w-0 h-0.5 rounded-full group-hover:w-full transition-all duration-300"
                   style={{

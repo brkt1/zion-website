@@ -14,6 +14,7 @@ import { Link } from "react-router-dom";
 import Gallery from "../Components/Gallery";
 import Hero from "../Components/Hero";
 import OptimizedImage from "../Components/ui/OptimizedImage";
+import { useLanguage } from "../contexts/LanguageContext";
 import { useContactInfo, useEvents, useHomeContent } from "../hooks/useApi";
 import { useScrollReveal } from "../hooks/useScrollReveal";
 import { BRAND, GRADIENT } from "../styles/theme";
@@ -88,6 +89,7 @@ const StatBadge = ({
 /* ─── Main Component ────────────────────────────────────────────────────────── */
 const Home = () => {
   useScrollReveal();
+  const { t, language } = useLanguage();
   const { content: homeContent } = useHomeContent();
   const { events: initialFeatured } = useEvents({ featured: true, limit: 3 });
   const { events: recentEvents } = useEvents({ limit: 3 });
@@ -458,13 +460,13 @@ const Home = () => {
           }}
         >
           <div className="yg-stats-row">
-            <StatBadge value="99%" label="Happy Members" icon={<FaUsers />} />
+            <StatBadge value="99%" label={t.stats.happyMembers} icon={<FaUsers />} />
             {/* Divider */}
             <div className="yg-stat-divider" />
-            <StatBadge value="4.9★" label="Average Rating" icon={<FaStar />} />
+            <StatBadge value="4.9★" label={t.stats.avgRating} icon={<FaStar />} />
             {/* Divider */}
             <div className="yg-stat-divider" />
-            <StatBadge value="12+" label="Destinations" icon={<FaMapMarkerAlt />} />
+            <StatBadge value="12+" label={t.stats.destinations} icon={<FaMapMarkerAlt />} />
           </div>
         </div>
       </section>
@@ -504,7 +506,7 @@ const Home = () => {
         >
           {/* Section header */}
           <div style={{ textAlign: "center", marginBottom: "64px" }}>
-            <SectionLabel>The Portfolio</SectionLabel>
+            <SectionLabel>{t.portfolio.title}</SectionLabel>
             <h2
               id="services-heading"
               className="yg-font-serif"
@@ -517,7 +519,7 @@ const Home = () => {
                 letterSpacing: "-0.02em",
               }}
             >
-              Selected Destinations,{" "}
+              {t.portfolio.subtitle.split(',')[0]},{" "}
               <span
                 style={{
                   background: GRADIENT.brand,
@@ -527,7 +529,7 @@ const Home = () => {
                   fontStyle: "italic",
                 }}
               >
-                Exclusive Moments
+                {t.portfolio.subtitle.split(',')[1]}
               </span>
             </h2>
             <p
@@ -540,8 +542,7 @@ const Home = () => {
                 lineHeight: 1.7,
               }}
             >
-              Bespoke travels and curated moments designed for the discerning explorer. 
-              Discover the soul of Ethiopia through our exclusive collection.
+              {language === 'am' ? "በባለሙያ የተመረጡ የጉዞ መዳረሻዎች እና ልዩ የደስታ ጊዜያት። በልዩ ስብስባችን የኢትዮጵያን ውበት ያግኙ።" : "Bespoke travels and curated moments designed for the discerning explorer. Discover the soul of Ethiopia through our exclusive collection."}
             </p>
           </div>
 
@@ -741,7 +742,7 @@ const Home = () => {
                       }}
                       className="group-hover:gap-4"
                     >
-                      Discover <FaArrowRight size={12} />
+                      {t.portfolio.discover} <FaArrowRight size={12} />
                     </div>
                   </Link>
                 ))}
@@ -988,7 +989,7 @@ const Home = () => {
                   textTransform: "uppercase",
                 }}
               >
-                Professional Academy
+                {t.academy.title}
               </span>
             </div>
 
@@ -1005,14 +1006,14 @@ const Home = () => {
                 textShadow: "0 4px 24px rgba(0,0,0,0.4)"
               }}
             >
-              Master Event{" "}
+              {t.academy.masterPlanning.split(' ').slice(0, 2).join(' ')}{" "}
               <span
                 style={{
                   fontStyle: "italic",
                   color: BRAND.coral,
                 }}
               >
-                Planning.
+                {t.academy.masterPlanning.split(' ').slice(2).join(' ')}.
               </span>
             </h2>
 
@@ -1026,8 +1027,7 @@ const Home = () => {
                 textShadow: "0 2px 10px rgba(0,0,0,0.5)"
               }}
             >
-              Join our 8-week certification program. Get hands-on training and
-              real-world skills to become a successful event professional.
+              {t.academy.joinProgram}
             </p>
 
             {/* Key features list */}
@@ -1042,9 +1042,9 @@ const Home = () => {
               }}
             >
               {[
-                "8 weeks of hands-on, intensive training",
-                "Real event planning from day one",
-                "Certification recognised by industry leaders",
+                t.academy.feature8weeks,
+                t.academy.featureRealPlanning,
+                t.academy.featureCert,
               ].map((item) => (
                 <li
                   key={item}
@@ -1105,7 +1105,7 @@ const Home = () => {
                   letterSpacing: "0.1em"
                 }}
               >
-                Next cohort starting soon
+                {t.academy.nextCohort}
               </span>
             </div>
           </div>
@@ -1139,9 +1139,8 @@ const Home = () => {
            >
              {/* Gradient Accent */}
              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '4px', background: GRADIENT.brand }} />
-             
-             <div className="flex-1 text-center lg:text-left" style={{ position: 'relative', zIndex: 2 }}>
-               <SectionLabel>Revenue & Strategy</SectionLabel>
+                          <div className="flex-1 text-center lg:text-left" style={{ position: 'relative', zIndex: 2 }}>
+               <SectionLabel>{t.strategy.title}</SectionLabel>
                <h2 
                  id="strategy-heading"
                  className="yg-font-serif"
@@ -1149,12 +1148,12 @@ const Home = () => {
                    fontSize: "clamp(32px, 5vw, 48px)", 
                    fontWeight: 900, 
                    color: BRAND.navy, 
-                   marginBottom: "24px",
+                   marginBottom: "24px", 
                    lineHeight: 1.1
                  }}
                >
-                 Is Your Event Idea <br/>
-                 <span style={{ color: BRAND.coral }}>Feasible & Profitable?</span>
+                 {t.strategy.isFeasible.split(' ').slice(0, -1).join(' ')} <br/>
+                 <span style={{ color: BRAND.coral }}>{t.strategy.isFeasible.split(' ').slice(-1)}</span>
                </h2>
                <p 
                  className="yg-font-sans"
@@ -1166,15 +1165,14 @@ const Home = () => {
                    lineHeight: 1.6 
                  }}
                >
-                 Before you invest, let our experts assess the technical feasibility and ROI of your next big move. 
-                 Get a professional strategy brief designed for success.
+                 {t.strategy.beforeInvest}
                </p>
                <Link 
                  to="/feasibility-form" 
                  className="yg-btn-primary yg-shine"
                  style={{ textDecoration: 'none' }}
                >
-                 Consult Our Strategists <FaArrowRight size={12} />
+                 {t.strategy.consult} <FaArrowRight size={12} />
                </Link>
              </div>
              
@@ -1196,10 +1194,10 @@ const Home = () => {
                 
                 {/* Decorative floating stats */}
                 <div style={{ position: 'absolute', top: '10%', right: '-5%', background: '#fff', padding: '12px 20px', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.1)', border: '1px solid #eee', fontWeight: 800, fontSize: '12px', color: BRAND.navy }} className="yg-float">
-                  ROI Focus
+                  {t.strategy.roiFocus}
                 </div>
                 <div style={{ position: 'absolute', bottom: '15%', left: '-5%', background: BRAND.coral, padding: '12px 20px', borderRadius: '16px', boxShadow: '0 20px 40px rgba(255,111,94,0.2)', fontWeight: 800, fontSize: '12px', color: '#fff' }} className="yg-float">
-                  Market Analysis
+                  {t.strategy.marketAnalysis}
                 </div>
              </div>
            </div>
@@ -1273,7 +1271,7 @@ const Home = () => {
         >
           <SectionLabel>
             <span style={{ color: "rgba(228,232,33,0.9)" }}>
-              Ready to Begin?
+              {t.cta.readyBegin}
             </span>
           </SectionLabel>
 
@@ -1289,7 +1287,7 @@ const Home = () => {
               textShadow: "0 4px 24px rgba(0,0,0,0.4)",
             }}
           >
-            {homeContent?.cta?.title || "Ready to Join the Fun?"}
+            {t.cta.readyJoin}
           </h2>
 
           <p
@@ -1302,8 +1300,7 @@ const Home = () => {
               textShadow: "0 2px 12px rgba(0,0,0,0.3)",
             }}
           >
-            {homeContent?.cta?.description ||
-              "Be part of a community that celebrates life, creates memories, and brings happiness to every moment."}
+            {t.cta.bePartOf}
           </p>
 
           <div
