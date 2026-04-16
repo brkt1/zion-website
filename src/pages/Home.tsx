@@ -2,6 +2,8 @@ import { useMemo } from "react";
 import {
     FaArrowRight,
     FaCalendarAlt,
+    FaChartLine,
+    FaClipboardList,
     FaGraduationCap,
     FaMapMarkerAlt,
     FaStar,
@@ -1110,6 +1112,99 @@ const Home = () => {
         </div>
       </section>
 
+
+
+      {/* ── 7.5 Event Strategy & Feasibility Section ─────────── */}
+      <section
+        aria-labelledby="strategy-heading"
+        style={{
+          padding: "100px 0",
+          background: BRAND.cream,
+          position: "relative",
+          overflow: "hidden"
+        }}
+      >
+        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
+           <div 
+             style={{ 
+               background: BRAND.white, 
+               borderRadius: "48px", 
+               padding: "64px 40px",
+               boxShadow: "0 32px 80px -16px rgba(15,23,42,0.08)",
+               border: "1px solid rgba(15,23,42,0.03)",
+               position: "relative",
+               overflow: "hidden"
+             }}
+             className="flex flex-col lg:flex-row items-center gap-16"
+           >
+             {/* Gradient Accent */}
+             <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '4px', background: GRADIENT.brand }} />
+             
+             <div className="flex-1 text-center lg:text-left" style={{ position: 'relative', zIndex: 2 }}>
+               <SectionLabel>Revenue & Strategy</SectionLabel>
+               <h2 
+                 id="strategy-heading"
+                 className="yg-font-serif"
+                 style={{ 
+                   fontSize: "clamp(32px, 5vw, 48px)", 
+                   fontWeight: 900, 
+                   color: BRAND.navy, 
+                   marginBottom: "24px",
+                   lineHeight: 1.1
+                 }}
+               >
+                 Is Your Event Idea <br/>
+                 <span style={{ color: BRAND.coral }}>Feasible & Profitable?</span>
+               </h2>
+               <p 
+                 className="yg-font-sans"
+                 style={{ 
+                   fontSize: "17px", 
+                   color: BRAND.gray500, 
+                   marginBottom: "40px", 
+                   maxWidth: "540px", 
+                   lineHeight: 1.6 
+                 }}
+               >
+                 Before you invest, let our experts assess the technical feasibility and ROI of your next big move. 
+                 Get a professional strategy brief designed for success.
+               </p>
+               <Link 
+                 to="/feasibility-form" 
+                 className="yg-btn-primary yg-shine"
+                 style={{ textDecoration: 'none' }}
+               >
+                 Consult Our Strategists <FaArrowRight size={12} />
+               </Link>
+             </div>
+             
+             <div className="flex-1 w-full lg:w-auto" style={{ position: 'relative' }}>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-4">
+                    <div style={{ height: "140px", background: "rgba(15,23,42,0.03)", borderRadius: "24px" }} />
+                    <div style={{ height: "240px", background: BRAND.navy, borderRadius: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                       <FaChartLine className="text-[#FFD447]" size={48} />
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-4" style={{ paddingTop: "48px" }}>
+                    <div style={{ height: "240px", background: "#FFD447", borderRadius: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                       <FaClipboardList className="text-[#0F172A]" size={48} />
+                    </div>
+                    <div style={{ height: "140px", background: "rgba(15,23,42,0.03)", borderRadius: "24px" }} />
+                  </div>
+                </div>
+                
+                {/* Decorative floating stats */}
+                <div style={{ position: 'absolute', top: '10%', right: '-5%', background: '#fff', padding: '12px 20px', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.1)', border: '1px solid #eee', fontWeight: 800, fontSize: '12px', color: BRAND.navy }} className="yg-float">
+                  ROI Focus
+                </div>
+                <div style={{ position: 'absolute', bottom: '15%', left: '-5%', background: BRAND.coral, padding: '12px 20px', borderRadius: '16px', boxShadow: '0 20px 40px rgba(255,111,94,0.2)', fontWeight: 800, fontSize: '12px', color: '#fff' }} className="yg-float">
+                  Market Analysis
+                </div>
+             </div>
+           </div>
+        </div>
+      </section>
 
 
       {/* ── 8. Gallery ───────────────────────────────────────────────────────── */}

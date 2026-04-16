@@ -62,6 +62,8 @@ const Dashboard = () => {
   const [loadingTickets, setLoadingTickets] = useState(true);
   const [expoStats, setExpoStats] = useState({ total: 0, pending: 0, accepted: 0 });
   const [loadingExpoStats, setLoadingExpoStats] = useState(true);
+  const [briefStats, setBriefStats] = useState({ total: 0, pending: 0, accepted: 0 });
+  const [loadingBriefStats, setLoadingBriefStats] = useState(true);
   const [stats, setStats] = useState<Stats>({
     totalEvents: 0,
     totalCategories: 0,
@@ -100,6 +102,7 @@ const Dashboard = () => {
     loadStats();
     loadTickets();
     loadExpoStats();
+    loadBriefStats();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ticketFilter]);
 
@@ -116,6 +119,22 @@ const Dashboard = () => {
       console.error('Error loading expo stats:', err);
     } finally {
       setLoadingExpoStats(false);
+    }
+  };
+
+  const loadBriefStats = async () => {
+    try {
+      setLoadingBriefStats(true);
+      const data = await adminApi.feasibilityBriefs.getAll();
+      setBriefStats({
+        total: data.length,
+        pending: data.filter(a => a.status === 'pending').length,
+        accepted: data.filter(a => a.status === 'accepted').length,
+      });
+    } catch (err) {
+      console.error('Error loading brief stats:', err);
+    } finally {
+      setLoadingBriefStats(false);
     }
   };
 
@@ -472,6 +491,62 @@ const Dashboard = () => {
               </div>
               <div className="ml-2 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-[#FFD447]/20 transition-all">
                 <FaClipboardList className="text-white/60 group-hover:text-[#FFD447] transition-colors" size={16} />
+              </div>
+            </div>
+          </Link>
+
+          {/* ── Feasibility Briefs Card ───────────────────── */}
+          <Link
+            to="/admin/feasibility-briefs"
+            className="group relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#1C2951] to-[#0f172a] border border-blue-400/20 shadow-2xl shadow-[#1C2951]/30 p-8 mb-10 flex flex-col md:flex-row md:items-center justify-between gap-8 transition-all duration-500 hover:shadow-blue-400/20 hover:scale-[1.01] block"
+          >
+            {/* Glow blobs */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-400/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-[80px] pointer-events-none" />
+            
+            {/* Left side */}
+            <div className="relative z-10 flex items-center gap-6">
+              <div className="w-20 h-20 rounded-[20px] bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-2xl shadow-indigo-600/30 flex-shrink-0 group-hover:scale-110 transition-transform duration-500">
+                <FaClipboardList className="text-white" size={32} />
+              </div>
+              <div>
+                <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em] mb-1">Revenue & Strategy</p>
+                <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight leading-tight">
+                  Feasibility Assessment Briefs
+                </h2>
+                <p className="text-sm text-white/50 font-medium mt-1">Review event profitability and technical requirements</p>
+              </div>
+            </div>
+
+            {/* Right side — live stats */}
+            <div className="relative z-10 flex items-center gap-4 md:gap-6 flex-shrink-0">
+              <div className="text-center">
+                {loadingBriefStats ? (
+                  <div className="h-10 w-12 bg-white/10 rounded-xl animate-pulse mx-auto" />
+                ) : (
+                  <p className="text-4xl font-black text-white">{briefStats.total}</p>
+                )}
+                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mt-1">Total</p>
+              </div>
+              <div className="w-px h-12 bg-white/10" />
+              <div className="text-center">
+                {loadingBriefStats ? (
+                  <div className="h-10 w-12 bg-white/10 rounded-xl animate-pulse mx-auto" />
+                ) : (
+                  <p className="text-4xl font-black text-[#FFD447]">{briefStats.pending}</p>
+                )}
+                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mt-1">Pending</p>
+              </div>
+              <div className="w-px h-12 bg-white/10" />
+              <div className="text-center">
+                {loadingBriefStats ? (
+                  <div className="h-10 w-12 bg-white/10 rounded-xl animate-pulse mx-auto" />
+                ) : (
+                  <p className="text-4xl font-black text-emerald-400">{briefStats.accepted}</p>
+                )}
+                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mt-1">Confirmed</p>
+              </div>
+              <div className="ml-2 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-blue-400/20 transition-all">
+                <FaChartLine className="text-white/60 group-hover:text-blue-400" size={16} />
               </div>
             </div>
           </Link>
