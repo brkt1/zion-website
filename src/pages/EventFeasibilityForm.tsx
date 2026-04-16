@@ -337,8 +337,6 @@ const EventFeasibilityForm = () => {
     if (!validate()) return;
     setSubmitStatus("submitting");
 
-    let waUrl = `https://wa.me/251978639887`;
-
     try {
       // Save to database
       await api.submitFeasibilityBrief({
@@ -359,46 +357,12 @@ const EventFeasibilityForm = () => {
         contact_phone: form.contactPhone || undefined,
       });
 
-      // Build WhatsApp message
-    const msg = [
-      `*EVENT FEASIBILITY BRIEF — YENEGE*`,
-      ``,
-      `*Section 1: Core Scope*`,
-      `• Event Type: ${form.eventType}`,
-      `• Date: ${form.proposedDate}`,
-      `• Primary Objective: ${form.primaryObjective}`,
-      `• Attendee Count: ${form.attendeeMin}–${form.attendeeMax} guests`,
-      ``,
-      `*Section 2: Financial Infrastructure*`,
-      `• Total Investment: ${form.totalBudget}`,
-      `• Financial Model: ${form.financialModel}`,
-      `• Budget Flexibility: ${form.budgetFlexibility}`,
-      ``,
-      `*Section 3: Logistics & Production*`,
-      `• Venue Status: ${form.venueStatus}`,
-      `• Technical Priority 1: ${form.technicalPriorities[0]}`,
-      `• Technical Priority 2: ${form.technicalPriorities[1]}`,
-      `• Technical Priority 3: ${form.technicalPriorities[2]}`,
-      `• Event Duration: ${form.eventDuration}`,
-      `• Setup Window: ${form.setupWindow}`,
-      ``,
-      `*Contact*`,
-      `• Name: ${form.contactName}`,
-      `• Email: ${form.contactEmail}`,
-      `• Phone: ${form.contactPhone || "Not provided"}`,
-    ].join("\n");
-
-      const encoded = encodeURIComponent(msg);
-      waUrl = `https://wa.me/251978639887?text=${encoded}`;
-
       await new Promise((r) => setTimeout(r, 800));
       setSubmitStatus("success");
-      window.open(waUrl, "_blank", "noopener,noreferrer");
     } catch (err) {
       console.error("Error submitting brief:", err);
-      // Fallback to WhatsApp even if DB save fails, but notify user or log it
-      setSubmitStatus("success"); 
-      window.open(waUrl, "_blank", "noopener,noreferrer");
+      alert("Failed to submit your brief. Please try again later.");
+      setSubmitStatus("idle");
     }
   };
 
@@ -547,7 +511,7 @@ const EventFeasibilityForm = () => {
               marginBottom: "40px",
             }}
           >
-            Your event feasibility brief has been sent via WhatsApp. A strategy consultant will review your metrics and contact you within{" "}
+            Your event feasibility brief has been successfully submitted. A strategy consultant will review your metrics and contact you within{" "}
             <strong style={{ color: BRAND.navy }}>48 hours</strong>.
           </p>
           <a

@@ -521,9 +521,7 @@ export const api = {
       .insert([{
         ...brief,
         status: 'pending'
-      }])
-      .select()
-      .single();
+      }]);
 
     if (error) {
       console.error('Error submitting feasibility brief:', error);

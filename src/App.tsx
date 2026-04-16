@@ -71,7 +71,7 @@ const AdminFeasibilityBriefs = lazy(() => import("./pages/admin/FeasibilityBrief
 function App() {
   return (
     <LanguageProvider>
-      <Router>
+      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <BrowserCompatibility />
         <ScrollToTop />
         <PageTracker />
