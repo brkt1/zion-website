@@ -138,6 +138,11 @@ function App() {
               <EventFeasibilityForm />
             </Suspense>
           } />
+          <Route path="/feasibility-form" element={
+            <Suspense fallback={<LoadingState />}>
+              <EventFeasibilityForm />
+            </Suspense>
+          } />
           <Route path="/payment/success" element={
             <Suspense fallback={<LoadingState />}>
               <PaymentSuccess />

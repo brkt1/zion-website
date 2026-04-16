@@ -7,13 +7,12 @@ import { FeasibilityBrief } from '../../types';
 const AdminFeasibilityBriefs = () => {
   const [briefs, setBriefs] = useState<FeasibilityBrief[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
   const [selectedBrief, setSelectedBrief] = useState<FeasibilityBrief | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'reviewed' | 'accepted' | 'rejected'>('all');
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [statusNotes, setStatusNotes] = useState('');
-  const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadBriefs();

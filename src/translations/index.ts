@@ -106,6 +106,14 @@ export interface Translations {
     message: string;
     send: string;
   };
+  notFound: {
+    title: string;
+    subtitle: string;
+    description: string;
+    goHome: string;
+    goBack: string;
+    lookingFor: string;
+  };
 }
 
 export const translations: Record<Language, Translations> = {
@@ -122,7 +130,7 @@ export const translations: Record<Language, Translations> = {
     hero: {
       tagline: "ደስታን በተግባር!",
       specialEvents: "ልዩ ኢቨንቶች",
-      description: "ሰዎችን የሚያቀራርቡ ኢቨንቶችን እናዘጋጃለን — ከደመቁ ሰርጎች እና ከግል ዝግጅቶች ጀምሮ እስከ ማህበረሰባዊ የጨዋታ ምሽቶች።",
+      description: "ሰዎችን የሚያቀራርቡ ኢቨንቶችን እናዘጋጃለን — ከደመቁ ሰርጎች እና ከግል ዝግጅቶች ጀምሮ እስከ ማህበረሰባዊ የጨዋታ ምሽቶች። በማንኛውም ሃሳብ ውስጥ ጥበብን እና ፈጠራን በመጨመር ወደ እውነት እንቀይረዋለን። ትልቅ ፕሮግራም ቢኖርዎትም ሆነ አዳዲስ ነገሮችን ለመሞከር ቢፈልጉ፣ የማይረሱ ትዝታዎች የሚጀምሩት \"የነገ\" ጋር ነው።",
       exploreEvents: "ኢቨንቶችን ይመልከቱ",
       contactWa: "በዋትስአፕ ያውሩን",
     },
@@ -215,6 +223,14 @@ export const translations: Record<Language, Translations> = {
       message: "እንዴት እንርዳዎት?",
       send: "በዋትስአፕ ይላኩ",
     },
+    notFound: {
+      title: "ገጹ አልተገኘም",
+      subtitle: "ይቅርታ! የፈለጉት ገጽ የለም።",
+      description: "ገጹ ተሰርዞ፣ ተለውጦ ወይም የተሳሳተ ሊንክ ተጠቅመው ሊሆን ይችላል።",
+      goHome: "ወደ መነሻ ገጽ",
+      goBack: "ተመለስ",
+      lookingFor: "ምናልባት እነዚህን ፈልገው ሊሆን ይችላል:",
+    },
   },
   en: {
     header: {
@@ -229,7 +245,7 @@ export const translations: Record<Language, Translations> = {
     hero: {
       tagline: "Bringing Happiness to Life",
       specialEvents: "Special Events",
-      description: "We design experiences that bring people together — from elegant weddings and private celebrations to community game nights and curated adventures.",
+      description: "We design events that bring people together — from elegant weddings and private celebrations to community game nights. By adding art and creativity to every idea, we turn it into reality. Whether you have a large program or want to try new things, unforgettable memories begin with Yenege.",
       exploreEvents: "Explore Events",
       contactWa: "Contact via WhatsApp",
     },
@@ -321,6 +337,14 @@ export const translations: Record<Language, Translations> = {
       phone: "Phone Number",
       message: "How can we help?",
       send: "Send via WhatsApp",
+    },
+    notFound: {
+      title: "Page Not Found",
+      subtitle: "Oops! The page you're looking for doesn't exist.",
+      description: "It might have been moved, deleted, or you entered the wrong URL.",
+      goHome: "Go to Homepage",
+      goBack: "Go Back",
+      lookingFor: "You might be looking for:",
     },
   },
 };

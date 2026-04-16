@@ -17,7 +17,7 @@ const iconMap: { [key: string]: React.ReactNode } = {
 
 const Gallery = () => {
   const { galleryItems: apiGalleryItems } = useGalleryItems();
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const [activeIndex, setActiveIndex] = useState(0);
   const [imagesLoaded, setImagesLoaded] = useState<{ [key: string]: boolean }>({});
 

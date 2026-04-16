@@ -1,18 +1,20 @@
 import { useEffect } from 'react';
 import { FaArrowLeft, FaExclamationTriangle, FaHome } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const NotFound = () => {
+  const { t } = useLanguage();
   useEffect(() => {
     // Update page title and meta tags for SEO
-    document.title = '404 - Page Not Found | Yenege';
+    document.title = `${t.notFound.title} | Yenege`;
     
     // Update meta description
     const metaDescription = document.querySelector('meta[name="description"]');
     if (metaDescription) {
-      metaDescription.setAttribute('content', 'The page you are looking for could not be found.');
+      metaDescription.setAttribute('content', t.notFound.subtitle);
     }
-  }, []);
+  }, [t.notFound.title, t.notFound.subtitle]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center px-4">
@@ -33,10 +35,10 @@ const NotFound = () => {
 
         {/* Error Message */}
         <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-          Page Not Found
+          {t.notFound.title}
         </h2>
         <p className="text-lg text-gray-600 mb-8 max-w-md mx-auto">
-          Oops! The page you're looking for doesn't exist. It might have been moved, deleted, or you entered the wrong URL.
+          {t.notFound.description}
         </p>
 
         {/* Action Buttons */}
@@ -46,20 +48,20 @@ const NotFound = () => {
             className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-400 to-orange-500 text-white font-semibold rounded-lg hover:from-amber-500 hover:to-orange-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
           >
             <FaHome className="text-lg" />
-            Go to Homepage
+            {t.notFound.goHome}
           </Link>
           <button
             onClick={() => window.history.back()}
             className="inline-flex items-center gap-2 px-6 py-3 bg-white text-gray-700 font-semibold rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all duration-200 shadow-md hover:shadow-lg"
           >
             <FaArrowLeft className="text-lg" />
-            Go Back
+            {t.notFound.goBack}
           </button>
         </div>
 
         {/* Helpful Links */}
         <div className="mt-12 pt-8 border-t border-gray-200">
-          <p className="text-sm text-gray-500 mb-4">You might be looking for:</p>
+          <p className="text-sm text-gray-500 mb-4">{t.notFound.lookingFor}</p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               to="/events"

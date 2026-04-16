@@ -334,6 +334,7 @@ const EventFeasibilityForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate()) return;
     setSubmitStatus("submitting");
 
     let waUrl = `https://wa.me/251978639887`;
