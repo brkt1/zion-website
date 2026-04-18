@@ -76,7 +76,7 @@ const About = () => {
   useScrollReveal();
   const { t } = useLanguage();
   const { contactInfo } = useContactInfo();
-  const { content, isLoading } = useAboutContent();
+  const { content } = useAboutContent();
 
   useEffect(() => {
     document.title = "About Us | YENEGE";
