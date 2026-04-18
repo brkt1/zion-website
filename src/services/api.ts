@@ -303,12 +303,10 @@ export const api = {
 
   getAboutContent: async (): Promise<AboutContent> => {
     // Fetch all content in parallel
-    const [aboutRes, valuesRes, milestonesRes, ceoSocialRes] = await Promise.all([
+    const [aboutRes, valuesRes, milestonesRes] = await Promise.all([
       supabase.from('about_content').select('*').limit(1),
       supabase.from('about_values').select('*').order('display_order', { ascending: true }),
-      supabase.from('about_milestones').select('*').order('display_order', { ascending: true }),
-      // Safe fetch for CEO social links since table might not exist
-      supabase.from('ceo_social_links').select('*').order('display_order', { ascending: true })
+      supabase.from('about_milestones').select('*').order('display_order', { ascending: true })
     ]);
 
     if (aboutRes.error) {
@@ -318,11 +316,17 @@ export const api = {
 
     if (valuesRes.error) console.error('Error fetching about values:', valuesRes.error);
     if (milestonesRes.error) console.error('Error fetching about milestones:', milestonesRes.error);
-    if (ceoSocialRes.error && ceoSocialRes.error.code !== 'PGRST205') {
-      console.warn('Error fetching CEO social links:', ceoSocialRes.error.message);
-    }
 
     const aboutData = aboutRes.data && aboutRes.data.length > 0 ? aboutRes.data[0] : null;
+
+    let ceoSocialRes: any = { data: [], error: null };
+    // Safe fetch for CEO social links only if CEO data is configured (prevents 404 on missing table)
+    if (aboutData?.ceo_name || aboutData?.ceo_bio) {
+      ceoSocialRes = await supabase.from('ceo_social_links').select('*').order('display_order', { ascending: true });
+      if (ceoSocialRes.error && ceoSocialRes.error.code !== 'PGRST205') {
+        console.warn('Error fetching CEO social links:', ceoSocialRes.error.message);
+      }
+    }
 
     const result: AboutContent = {
       story: {
