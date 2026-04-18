@@ -255,7 +255,7 @@ const About = () => {
                 marginBottom: "32px",
               }}
             >
-              {t.about.title.split(' ').slice(0, 2).join(' ')} <br />
+              {t.about.title?.split(' ')?.slice(0, 2)?.join(' ') || t.about.title} <br />
               <span
                 style={{
                   background: GRADIENT.brand,
@@ -265,7 +265,7 @@ const About = () => {
                   fontStyle: "italic",
                 }}
               >
-                {t.about.title.split(' ').slice(2).join(' ')}.
+                {t.about.title?.split(' ')?.slice(2)?.join(' ') || ''}
               </span>
             </h1>
             <p

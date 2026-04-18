@@ -29,6 +29,7 @@ const MobileBottomNav = () => {
   const navItems = (config?.navigation || [
     { path: "/", label: "Home" },
     { path: "/events", label: "Events" },
+    { path: "/about", label: "About" },
     { path: "/contact", label: "Contact" },
     { path: "/community", label: "Community" },
   ]).map(item => {
@@ -41,7 +42,7 @@ const MobileBottomNav = () => {
     else if (label.includes('about')) icon = FaInfoCircle;
     
     return { ...item, icon };
-  }).slice(0, 4);
+  }).slice(0, 5);
 
   const isActive = (path: string) => {
     if (path === "/") {

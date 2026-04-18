@@ -294,7 +294,7 @@ const Contact = () => {
                 marginBottom: "32px",
               }}
             >
-              {t.contact.title.split(' ').slice(0, 3).join(' ')} <br />
+              {t.contact.title?.split(' ')?.slice(0, 3)?.join(' ') || t.contact.title} <br />
               <span
                 style={{
                   background: GRADIENT.brand,
@@ -304,7 +304,7 @@ const Contact = () => {
                   fontStyle: "italic",
                 }}
               >
-                {t.contact.title.split(' ').slice(3).join(' ')}.
+                {t.contact.title?.split(' ')?.slice(3)?.join(' ') || ''}
               </span>
             </h1>
           </div>

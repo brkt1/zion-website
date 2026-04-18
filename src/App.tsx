@@ -9,8 +9,9 @@ import { LoadingState } from "./Components/ui/LoadingState";
 
 import VisitTracker from "./Components/VisitTracker";
 import { LanguageProvider } from "./contexts/LanguageContext";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
+// Removed static imports for About and Contact to enable lazy loading
+// import About from "./pages/About";
+// import Contact from "./pages/Contact";
 
 // Use React 18's startTransition for non-urgent updates
 // This helps reduce main thread blocking
@@ -31,6 +32,8 @@ const Certification = lazy(() => import("./pages/Certification"));
 const Masterclass = lazy(() => import("./pages/Masterclass"));
 const MasterclassRegistration = lazy(() => import("./pages/MasterclassRegistration"));
 const EventFeasibilityForm = lazy(() => import("./pages/EventFeasibilityForm"));
+const About = lazy(() => import("./pages/About"));
+const Contact = lazy(() => import("./pages/Contact"));
 
 
 // Game pages - hidden routes (no navigation links)
@@ -101,8 +104,16 @@ function App() {
               <Community />
             </Suspense>
           } />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
+          <Route path="/about" element={
+            <Suspense fallback={<LoadingState />}>
+              <About />
+            </Suspense>
+          } />
+          <Route path="/contact" element={
+            <Suspense fallback={<LoadingState />}>
+              <Contact />
+            </Suspense>
+          } />
           <Route path="/apply" element={
             <Suspense fallback={<LoadingState />}>
               <Apply />
