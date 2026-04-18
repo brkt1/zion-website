@@ -10,6 +10,21 @@ const Footer = () => {
   const { contactInfo } = useContactInfo();
   const currentYear = new Date().getFullYear();
 
+  const fallbackContact = {
+    email: "yenegeevents@gmail.com",
+    phone: "+251978639887",
+    phoneFormatted: "+251 978 639 887",
+    location: "Addis Ababa, Ethiopia",
+    socialLinks: [
+      { platform: "Instagram", url: "https://instagram.com/yenege_event", icon: "instagram" },
+      { platform: "Telegram", url: "https://t.me/yenegeevents", icon: "telegram" },
+      { platform: "WhatsApp", url: "https://wa.me/251978639887", icon: "whatsapp" },
+      { platform: "TikTok", url: "https://tiktok.com/@yenegeevents", icon: "tiktok" }
+    ]
+  };
+
+  const finalContact = contactInfo || fallbackContact;
+
   const getTranslatedLabel = (label: string, path: string) => {
     switch (path) {
       case "/": return t.header.home;
@@ -31,7 +46,7 @@ const Footer = () => {
     whatsapp: FaWhatsapp,
   };
 
-  const socialLinks = contactInfo?.socialLinks?.map(link => {
+  const socialLinks = finalContact?.socialLinks?.map(link => {
     const Icon = iconMap[link.platform.toLowerCase()] || FaInstagram;
     return {
       icon: Icon,
@@ -164,18 +179,18 @@ const Footer = () => {
             <ul className="space-y-5">
               <li>
                 <a
-                  href={`mailto:${contactInfo?.email || "yenegeevents@gmail.com"}`}
+                  href={`mailto:${finalContact?.email || "yenegeevents@gmail.com"}`}
                   className="group flex items-start gap-3 text-sm text-gray-400 hover:text-white transition-all duration-300"
                 >
                   <div className="mt-0.5 p-2 rounded-lg bg-white/5 group-hover:bg-gradient-to-br group-hover:from-[#FFD447] group-hover:to-[#FF6F5E] transition-all duration-300 flex-shrink-0">
                     <FaEnvelope size={14} className="group-hover:text-white transition-colors" />
                   </div>
-                  <span className="break-all pt-1.5">{contactInfo?.email || "yenegeevents@gmail.com"}</span>
+                  <span className="break-all pt-1.5">{finalContact?.email || "yenegeevents@gmail.com"}</span>
                 </a>
               </li>
               <li>
                 <a
-                  href={`https://wa.me/${contactInfo?.phone?.replace(/\D/g, '') || '251978639887'}`}
+                  href={`https://wa.me/${finalContact?.phone?.replace(/\D/g, '') || '251978639887'}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group flex items-center gap-3 text-sm text-gray-400 hover:text-white transition-all duration-300"
@@ -183,14 +198,14 @@ const Footer = () => {
                   <div className="p-2 rounded-lg bg-white/5 group-hover:bg-gradient-to-br group-hover:from-[#25D366] group-hover:to-[#128C7E] transition-all duration-300 flex-shrink-0">
                     <FaWhatsapp size={14} className="group-hover:text-white transition-colors" />
                   </div>
-                  <span className="pt-1.5">WhatsApp: {contactInfo?.phoneFormatted || contactInfo?.phone || "+251 978 639 887"}</span>
+                  <span className="pt-1.5">WhatsApp: {finalContact?.phoneFormatted || finalContact?.phone || "+251 978 639 887"}</span>
                 </a>
               </li>
               <li className="flex items-start gap-3 text-sm text-gray-400">
                 <div className="p-2 rounded-lg bg-white/5 flex-shrink-0">
                   <span className="text-base">📍</span>
                 </div>
-                <span className="pt-1.5">{contactInfo?.location || "Addis Ababa, Ethiopia"}</span>
+                <span className="pt-1.5">{finalContact?.location || "Addis Ababa, Ethiopia"}</span>
               </li>
             </ul>
           </div>

@@ -1,12 +1,12 @@
 import { useEffect } from "react";
 import {
-    FaArrowRight,
-    FaCheckCircle,
-    FaGraduationCap,
-    FaNetworkWired,
-    FaRocket,
-    FaUsers,
-    FaWhatsapp
+  FaArrowRight,
+  FaCheckCircle,
+  FaGraduationCap,
+  FaNetworkWired,
+  FaRocket,
+  FaUsers,
+  FaWhatsapp
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import OptimizedImage from "../Components/ui/OptimizedImage";
@@ -76,15 +76,46 @@ const About = () => {
   useScrollReveal();
   const { t } = useLanguage();
   const { contactInfo } = useContactInfo();
-  const { content } = useAboutContent();
+  const { content, isLoading } = useAboutContent();
 
   useEffect(() => {
     document.title = "About Us | YENEGE";
   }, []);
 
+  // Define hardcoded defaults using translations where possible
+  const defaultContent = {
+    story: {
+      title: t.about.origin || "The Yenege Dream",
+      content: t.about.description || "Yenege is a modern lifestyle and experience platform based in Addis Ababa, operating at the intersection of professional execution, education, and community.",
+    },
+    values: [
+      { number: "01", title: t.about.exec || "Professional Execution", description: t.about.execDesc || "High-level event production and logistics management." },
+      { number: "02", title: t.about.edu || "Expert Education", description: t.about.eduDesc || "Professional training for the next generation of event designers." },
+      { number: "03", title: t.about.comm || "Vibrant Community", description: t.about.commDesc || "A collaborative ecosystem of creatives and professionals." }
+    ],
+    mission: {
+      title: "Our Mission",
+      content: "To professionalize the experience industry in East Africa through design, logistics, and structured education.",
+    },
+    vision: {
+      title: "Our Vision",
+      content: "To be the leading architect of culture and events in the region, setting global standards for execution.",
+    },
+    milestones: [
+      { year: "2019", title: "Founding", description: "YENEGE was established in Addis Ababa." },
+      { year: "2021", title: "Expansion", description: "Launched our first professional masterclass." },
+      { year: "2023", title: "Scaling", description: "Partnered with international tourism boards." }
+    ],
+    ceo: {
+      name: "Founder & CEO",
+      bio: "An architect of experiences with over a decade of industry expertise.",
+      image: "/ceo.jpg",
+      socialLinks: []
+    }
+  };
 
-
-  const ceo = content?.ceo;
+  const finalContent = content || defaultContent;
+  const ceo = finalContent.ceo;
 
   return (
     <div style={{ minHeight: "100vh", background: BRAND.primary }}>
@@ -600,17 +631,17 @@ const About = () => {
                 Creating Accessible <br /><span style={{ color: BRAND.gold }}>Happiness.</span>
               </h3>
               <p className="yg-font-sans" style={{ fontSize: "18px", color: 'rgba(255,255,255,0.5)', lineHeight: 1.8 }}>
-                {content?.mission?.content || "To create a vibrant community platform that brings people together through engaging events, adventures, and connections."}
+                {finalContent?.mission?.content}
               </p>
             </div>
-
+ 
             <div style={{ padding: "60px", background: 'rgba(255,212,71,0.03)', border: `1px solid ${BRAND.gold}22`, borderRadius: "40px", color: BRAND.white }}>
               <SectionLabel><span style={{ color: BRAND.gold }}>Our Vision</span></SectionLabel>
               <h3 className="yg-font-serif" style={{ fontSize: "32px", fontWeight: 800, marginBottom: "24px" }}>
                 The Hub of <br /><span style={{ color: BRAND.gold }}>Experiences.</span>
               </h3>
               <p className="yg-font-sans" style={{ fontSize: "18px", color: "rgba(255,255,255,0.5)", lineHeight: 1.8 }}>
-                {content?.vision?.content || "To become the leading lifestyle and events platform in Ethiopia, known for building a community where every member feels valued."}
+                {finalContent?.vision?.content}
               </p>
             </div>
           </div>

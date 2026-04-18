@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import {
-    FaEnvelope,
-    FaInstagram,
-    FaMapMarkerAlt,
-    FaPhone,
-    FaTelegram,
-    FaTiktok,
-    FaWhatsapp,
-    FaYoutube
+  FaEnvelope,
+  FaInstagram,
+  FaMapMarkerAlt,
+  FaPhone,
+  FaTelegram,
+  FaTiktok,
+  FaWhatsapp,
+  FaYoutube
 } from "react-icons/fa";
 import { ContactSkeleton } from "../Components/ui/ContactSkeleton";
 import { useLanguage } from "../contexts/LanguageContext";
@@ -79,14 +79,29 @@ const Contact = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
-
+  
   useEffect(() => {
     document.title = "Contact Us | YENEGE";
   }, []);
 
-  if (isLoading || !contactInfo) {
+  // We no longer strictly block on contactInfo to make the page independent of database availability
+  // isLoading is still used to show a brief skeleton for better UX, but we proceed if it takes too long or fails
+  const showSkeleton = isLoading && !contactInfo;
+
+  if (showSkeleton) {
     return <ContactSkeleton />;
   }
+
+  // Define hardcoded fallbacks
+  const fallbackContact = {
+    email: "yenegeevents@gmail.com",
+    phone: "+251978639887",
+    phoneFormatted: "+251 978 639 887",
+    location: "Addis Ababa, Ethiopia",
+    socialLinks: []
+  };
+
+  const finalContact = contactInfo || fallbackContact;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,7 +113,7 @@ const Contact = () => {
         (formData.phone ? `Phone: ${formData.phone}\n` : '') +
         `\nMessage:\n${formData.message}`;
       
-      const phoneNumber = contactInfo?.phone?.replace(/\D/g, '') || "251978639887";
+      const phoneNumber = finalContact?.phone?.replace(/\D/g, '') || "251978639887";
       const encodedMessage = encodeURIComponent(whatsappMessage);
       const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
       
@@ -131,22 +146,22 @@ const Contact = () => {
       num: "01",
       icon: <FaMapMarkerAlt />,
       title: "Our Studio",
-      content: contactInfo.location || "Addis Ababa, Ethiopia",
+      content: finalContact.location || "Addis Ababa, Ethiopia",
       link: null,
     },
     {
       num: "02",
       icon: <FaEnvelope />,
       title: "Email Us",
-      content: contactInfo.email || "yenegeevents@gmail.com",
-      link: `mailto:${contactInfo.email || "yenegeevents@gmail.com"}`,
+      content: finalContact.email || "yenegeevents@gmail.com",
+      link: `mailto:${finalContact.email || "yenegeevents@gmail.com"}`,
     },
     {
       num: "03",
       icon: <FaPhone />,
       title: "Call Us",
-      content: contactInfo.phoneFormatted || contactInfo.phone || "+251 978 639 887",
-      link: `tel:${contactInfo.phone?.replace(/\D/g, '') || '251978639887'}`,
+      content: finalContact.phoneFormatted || finalContact.phone || "+251 978 639 887",
+      link: `tel:${finalContact.phone?.replace(/\D/g, '') || '251978639887'}`,
     },
   ];
 
