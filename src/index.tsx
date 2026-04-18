@@ -7,6 +7,7 @@ import ErrorBoundary from './Components/ui/ErrorBoundary';
 import './index.css';
 import { initGoogleAnalytics } from './services/googleAnalytics';
 import { initializePolyfills } from './utils/polyfills';
+import * as serviceWorkerRegistration from './utils/serviceWorkerRegistration';
 
 
 // Extend Window interface to include Sentry
@@ -99,4 +100,27 @@ root.render(
 
 // Defer service worker registration to avoid blocking main thread
 // Register after page load to improve initial performance
-
+window.addEventListener('load', () => {
+  serviceWorkerRegistration.register({
+    onUpdate: (registration) => {
+      // When a new service worker is found, we want to inform the user
+      // or automatically update. Here we'll notify that new content is available
+      console.log('New content is available; please refresh.');
+      
+      // Optionally clear all caches to ensure fresh headers (like CSP)
+      if ('caches' in window) {
+        caches.keys().then((names) => {
+          for (const name of names) caches.delete(name);
+        });
+      }
+      
+      // Send message to skip waiting and activate new worker immediately
+      if (registration.waiting) {
+        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+      }
+    },
+  });
+  
+  // Listen for the controllerchange event to reload the page
+  serviceWorkerRegistration.listenForUpdates();
+});
