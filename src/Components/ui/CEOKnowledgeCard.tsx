@@ -157,7 +157,7 @@ const CEOKnowledgeCard: React.FC<CEOProps> = ({ name, title, bio, image, details
         {bio}
       </div>
       <div className="g-source">
-        Source: <a href="#" className="g-source-link">Official Profile</a>
+        Source: <a href="https://linkedin.com/in/bereketyosef" className="g-source-link">Official Profile</a>
       </div>
 
       <div className="g-details-table">

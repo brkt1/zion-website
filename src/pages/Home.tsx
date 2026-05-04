@@ -6,7 +6,6 @@ import {
     FaCheckCircle,
     FaClipboardList,
     FaGraduationCap,
-    FaMapMarkerAlt,
     FaRocket,
     FaStar,
     FaUsers,

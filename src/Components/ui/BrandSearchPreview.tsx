@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaInstagram, FaLinkedin, FaYoutube, FaFacebook, FaTwitter, FaGlobe, FaSearch } from 'react-icons/fa';
+import { FaInstagram, FaLinkedin, FaYoutube, FaFacebook, FaSearch } from 'react-icons/fa';
 
 const BrandSearchPreview: React.FC = () => {
   return (
@@ -218,19 +218,19 @@ const BrandSearchPreview: React.FC = () => {
           <div className="kp-socials">
             <div style={{ color: '#fff', fontSize: '14px' }}>Profiles</div>
             <div className="kp-social-icons">
-              <a href="#" className="kp-social-item">
+              <a href="https://instagram.com/yenege_event" target="_blank" rel="noopener noreferrer" className="kp-social-item">
                 <div className="kp-icon-circle"><FaInstagram /></div>
                 <span>Instagram</span>
               </a>
-              <a href="#" className="kp-social-item">
+              <a href="https://linkedin.com/company/yenege" target="_blank" rel="noopener noreferrer" className="kp-social-item">
                 <div className="kp-icon-circle"><FaLinkedin /></div>
                 <span>LinkedIn</span>
               </a>
-              <a href="#" className="kp-social-item">
+              <a href="https://youtube.com/@yenegeevents" target="_blank" rel="noopener noreferrer" className="kp-social-item">
                 <div className="kp-icon-circle"><FaYoutube /></div>
                 <span>YouTube</span>
               </a>
-              <a href="#" className="kp-social-item">
+              <a href="https://facebook.com/yenege" target="_blank" rel="noopener noreferrer" className="kp-social-item">
                 <div className="kp-icon-circle"><FaFacebook /></div>
                 <span>Facebook</span>
               </a>
