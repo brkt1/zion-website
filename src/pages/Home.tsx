@@ -3,9 +3,11 @@ import {
     FaArrowRight,
     FaCalendarAlt,
     FaChartLine,
+    FaCheckCircle,
     FaClipboardList,
     FaGraduationCap,
     FaMapMarkerAlt,
+    FaRocket,
     FaStar,
     FaUsers,
     FaWhatsapp
@@ -420,7 +422,7 @@ const Home = () => {
       {/* ── 1. Hero ──────────────────────────────────────────────────────────── */}
       <Hero />
 
-      {/* ── 2. Social Proof ─────────────────────────────────────────────────── */}
+      {/* ── 2. Trust Seal & Social Proof ────────────────────────────────────────── */}
       <section
         aria-label="Our community by the numbers"
         style={{
@@ -441,35 +443,119 @@ const Home = () => {
             background: "linear-gradient(90deg, transparent, #FFD447, #FF6F5E, transparent)",
           }}
         />
-        {/* Bottom gradient border */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: "1px",
-            background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent)",
+        
+        {/* Decorative background text */}
+        <div 
+          style={{ 
+            position: 'absolute', 
+            top: '50%', 
+            left: '50%', 
+            transform: 'translate(-50%, -50%)',
+            fontSize: 'max(15vw, 200px)',
+            fontWeight: 900,
+            fontFamily: "'Playfair Display', serif",
+            color: 'rgba(255, 212, 71, 0.02)', 
+            whiteSpace: 'nowrap',
+            pointerEvents: 'none',
+            zIndex: 0,
+            userSelect: 'none'
           }}
-        />
+        >
+          TRUSTED
+        </div>
 
         <div
           className="reveal-wrapper yg-stats-container"
           style={{
-            maxWidth: "900px",
+            maxWidth: "1200px",
             margin: "0 auto",
-            padding: "56px 24px",
+            padding: "80px 24px",
+            position: 'relative',
+            zIndex: 1
           }}
         >
-          <div className="yg-stats-row">
-            <StatBadge value="99%" label={t.stats.happyMembers} icon={<FaUsers />} />
-            {/* Divider */}
-            <div className="yg-stat-divider" />
-            <StatBadge value="4.9★" label={t.stats.avgRating} icon={<FaStar />} />
-            {/* Divider */}
-            <div className="yg-stat-divider" />
-            <StatBadge value="12+" label={t.stats.destinations} icon={<FaMapMarkerAlt />} />
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
+            {/* Trust Badge */}
+            <div className="flex-1 text-center lg:text-left">
+              <span className="text-[#FFD447] font-black tracking-[0.4em] text-[10px] uppercase mb-4 block">Our Digital Footprint</span>
+              <h2 className="font-serif text-3xl md:text-5xl text-white mb-6 leading-tight">
+                One of East Africa's <br />
+                <span className="italic text-gold-gradient">Leading Event Architects.</span>
+              </h2>
+              <p className="text-white/40 text-lg font-light max-w-xl">
+                With a footprint spanning multiple countries and a community of thousands, we don't just plan events—we seal the future of culture and execution.
+              </p>
+            </div>
+
+            <div className="flex-1 yg-stats-row bg-white/5 backdrop-blur-md rounded-[40px] p-10 border border-white/10 shadow-2xl">
+              <StatBadge value="15k+" label={t.stats.happyMembers} icon={<FaUsers />} />
+              <div className="yg-stat-divider" />
+              <StatBadge value="4.9★" label={t.stats.avgRating} icon={<FaStar />} />
+              <div className="yg-stat-divider" />
+              <StatBadge value="24/7" label="Support" icon={<FaWhatsapp />} />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 2.5 The Yenege Distinction ───────────────────────────────────────── */}
+      <section
+        style={{
+          padding: "120px 0",
+          background: BRAND.navy,
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
+          <div style={{ textAlign: "center", marginBottom: "80px" }}>
+            <SectionLabel>The Yenege Distinction</SectionLabel>
+            <h2 className="yg-font-serif" style={{ fontSize: "clamp(36px, 5vw, 56px)", fontWeight: 900, color: "#fff", marginBottom: "24px" }}>
+              Why Leading Brands <span style={{ fontStyle: "italic", color: BRAND.gold }}>Trust Us.</span>
+            </h2>
+          </div>
+
+          <div 
+            className="yg-grid-mobile" 
+            style={{ 
+              display: "grid", 
+              gridTemplateColumns: "repeat(3, 1fr)", 
+              gap: "32px" 
+            }}
+          >
+            {[
+              {
+                title: "Architectural Precision",
+                desc: "We don't just organize; we design experience systems that ensure every detail is intentional and every moment is impactful.",
+                icon: <FaRocket />
+              },
+              {
+                title: "Educational Core",
+                desc: "As home to East Africa's leading Event Academy, our team stays at the absolute forefront of industry innovation and trends.",
+                icon: <FaGraduationCap />
+              },
+              {
+                title: "Verified Footprint",
+                desc: "With thousands of successful events and a community that spans the globe, our track record is our strongest seal of quality.",
+                icon: <FaCheckCircle />
+              }
+            ].map((item, i) => (
+              <div 
+                key={i}
+                style={{
+                  padding: "48px",
+                  background: "rgba(255,255,255,0.02)",
+                  borderRadius: "32px",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  backdropFilter: "blur(20px)",
+                  transition: "all 0.4s ease"
+                }}
+              >
+                <div style={{ color: BRAND.gold, fontSize: "32px", marginBottom: "24px" }}>{item.icon}</div>
+                <h3 className="yg-font-serif" style={{ fontSize: "24px", color: "#fff", marginBottom: "16px", fontWeight: 700 }}>{item.title}</h3>
+                <p className="yg-font-sans" style={{ color: "rgba(255,255,255,0.5)", lineHeight: 1.7, fontSize: "16px" }}>{item.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>

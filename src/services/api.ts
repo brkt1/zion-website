@@ -78,6 +78,7 @@ export interface AboutContent {
     image?: string;
     bio: string;
     quote?: string;
+    details?: Array<{ label: string; value: string }>;
     socialLinks?: Array<{
       platform: string;
       url: string;
@@ -366,6 +367,12 @@ export const api = {
           url: link.url,
           icon: link.icon,
         })),
+        details: [
+          { label: "Founder", value: aboutData.ceo_name || 'Bereket Yosef' },
+          { label: "Headquarters", value: "Addis Ababa, Ethiopia" },
+          { label: "Founded", value: "2019" },
+          { label: "Expertise", value: "Event Architecture & Strategy" }
+        ]
       };
     }
 

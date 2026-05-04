@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { v4 as uuidv4 } from 'uuid';
 
 export interface Visit {
   id: string;
@@ -6,6 +7,8 @@ export interface Visit {
   referrer?: string;
   user_agent?: string;
   ip_address?: string;
+  visitor_id?: string;
+  session_id?: string;
   created_at: string;
 }
 
@@ -16,30 +19,77 @@ export interface DailyVisitStats {
 }
 
 /**
+ * Get or create a persistent visitor ID
+ */
+const getVisitorId = (): string => {
+  let visitorId = localStorage.getItem('yenege_visitor_id');
+  if (!visitorId) {
+    visitorId = uuidv4();
+    localStorage.setItem('yenege_visitor_id', visitorId);
+  }
+  return visitorId;
+};
+
+/**
+ * Get or create a session ID (expires after 30 mins of inactivity)
+ */
+const getSessionId = (): string => {
+  const sessionKey = 'yenege_session_id';
+  const sessionTimeKey = 'yenege_session_time';
+  const now = Date.now();
+  const thirtyMinutes = 30 * 60 * 1000;
+  
+  let sessionId = sessionStorage.getItem(sessionKey);
+  const lastActive = parseInt(sessionStorage.getItem(sessionTimeKey) || '0');
+  
+  if (!sessionId || (now - lastActive > thirtyMinutes)) {
+    sessionId = uuidv4();
+    sessionStorage.setItem(sessionKey, sessionId);
+  }
+  
+  sessionStorage.setItem(sessionTimeKey, now.toString());
+  return sessionId;
+};
+
+/**
  * Track a page visit
  */
 export const trackVisit = async (path: string): Promise<void> => {
   try {
-    // Get referrer and user agent from browser
+    const visitorId = getVisitorId();
+    const sessionId = getSessionId();
     const referrer = document.referrer || null;
     const userAgent = navigator.userAgent || null;
     
     // Insert visit record
+    // Note: We include visitor_id and session_id. 
+    // If these columns don't exist in the database, Supabase will ignore them or return an error.
+    // We handle the error gracefully.
     const { error } = await supabase
       .from('visits')
       .insert({
         path: path,
         referrer: referrer,
         user_agent: userAgent,
+        visitor_id: visitorId,
+        session_id: sessionId,
         created_at: new Date().toISOString(),
       });
 
     if (error) {
-      // Silently fail - don't interrupt user experience
-      console.warn('Failed to track visit:', error);
+      // If columns don't exist, try falling back to standard tracking
+      if (error.code === 'PGRST204' || error.message?.includes('column')) {
+        await supabase.from('visits').insert({
+          path,
+          referrer,
+          user_agent: `${userAgent} [VID:${visitorId}]`, // Embed in user agent as fallback
+          created_at: new Date().toISOString(),
+        });
+      } else {
+        console.warn('Failed to track visit:', error);
+      }
     }
   } catch (error) {
-    // Silently fail - don't interrupt user experience
     console.warn('Error tracking visit:', error);
   }
 };
@@ -55,33 +105,37 @@ export const getDailyVisitStats = async (days: number = 7): Promise<DailyVisitSt
 
     const { data, error } = await supabase
       .from('visits')
-      .select('created_at, path')
+      .select('created_at, visitor_id, user_agent')
       .gte('created_at', startDate.toISOString())
       .order('created_at', { ascending: false });
 
     if (error) throw error;
 
-    // Group by date
-    const statsMap = new Map<string, { count: number; uniquePaths: Set<string> }>();
+    const statsMap = new Map<string, { count: number; visitors: Set<string> }>();
 
     data?.forEach((visit) => {
       const date = new Date(visit.created_at).toISOString().split('T')[0];
       
       if (!statsMap.has(date)) {
-        statsMap.set(date, { count: 0, uniquePaths: new Set() });
+        statsMap.set(date, { count: 0, visitors: new Set() });
       }
       
       const stats = statsMap.get(date)!;
       stats.count += 1;
-      stats.uniquePaths.add(visit.path);
+      
+      // Try to get visitor identity from multiple sources
+      const vId = visit.visitor_id || 
+                  visit.user_agent?.match(/\[VID:(.*?)\]/)?.[1] || 
+                  visit.user_agent || 
+                  'unknown';
+      stats.visitors.add(vId);
     });
 
-    // Convert to array and format
     const stats: DailyVisitStats[] = Array.from(statsMap.entries())
-      .map(([date, { count, uniquePaths }]) => ({
+      .map(([date, { count, visitors }]) => ({
         date,
         count,
-        unique_visitors: uniquePaths.size, // Using unique paths as a proxy for unique visitors
+        unique_visitors: visitors.size,
       }))
       .sort((a, b) => a.date.localeCompare(b.date));
 
@@ -131,7 +185,7 @@ export const getTodayVisits = async (): Promise<number> => {
 };
 
 /**
- * Get unique visitors count (based on unique paths per day)
+ * Get unique visitors count
  */
 export const getUniqueVisitorsToday = async (): Promise<number> => {
   try {
@@ -140,17 +194,25 @@ export const getUniqueVisitorsToday = async (): Promise<number> => {
 
     const { data, error } = await supabase
       .from('visits')
-      .select('path')
+      .select('visitor_id, user_agent')
       .gte('created_at', today.toISOString());
 
     if (error) throw error;
 
-    // Count unique paths as a proxy for unique visitors
-    const uniquePaths = new Set(data?.map(v => v.path) || []);
-    return uniquePaths.size;
+    const visitors = new Set();
+    data?.forEach(v => {
+      const vId = v.visitor_id || 
+                  v.user_agent?.match(/\[VID:(.*?)\]/)?.[1] || 
+                  v.user_agent || 
+                  Math.random().toString();
+      visitors.add(vId);
+    });
+    
+    return visitors.size;
   } catch (error) {
     console.error('Error getting unique visitors today:', error);
     return 0;
   }
 };
+
 

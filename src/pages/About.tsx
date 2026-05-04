@@ -10,6 +10,8 @@ import {
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import OptimizedImage from "../Components/ui/OptimizedImage";
+import CEOKnowledgeCard from "../Components/ui/CEOKnowledgeCard";
+import BrandSearchPreview from "../Components/ui/BrandSearchPreview";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAboutContent, useContactInfo } from "../hooks/useApi";
 import { useScrollReveal } from "../hooks/useScrollReveal";
@@ -111,9 +113,16 @@ const About = () => {
       title: "Founder & CEO",
       bio: "Bereket Yosef is a visionary strategist and the architect behind YENEGE. With over a decade of experience in high-level event production and logistics, he is dedicated to professionalizing the creative industry in East Africa through structured education and world-class execution.",
       image: "/ceo.jpg",
+      details: [
+        { label: "Founder", value: "Bereket Yosef" },
+        { label: "Headquarters", value: "Addis Ababa, Ethiopia" },
+        { label: "Founded", value: "2019" },
+        { label: "Expertise", value: "Event Architecture & Strategy" }
+      ],
       socialLinks: [
         { platform: "Instagram", url: "https://instagram.com/bereket_yosef" },
-        { platform: "LinkedIn", url: "https://linkedin.com/in/bereketyosef" }
+        { platform: "LinkedIn", url: "https://linkedin.com/in/bereketyosef" },
+        { platform: "Facebook", url: "https://facebook.com/yenege" }
       ]
     }
   };
@@ -653,71 +662,46 @@ const About = () => {
       </section>
 
       <section 
-        itemScope 
-        itemType="http://schema.org/Person"
         style={{ padding: "140px 0", background: BRAND.primary, position: 'relative', overflow: 'hidden' }}
       >
         <div className="noise-bk" />
         <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", position: 'relative', zIndex: 2 }}>
-          <div className="yg-grid-mobile" style={{ display: "grid", gridTemplateColumns: "0.9fr 1.1fr", gap: "80px", alignItems: "center" }}>
-            <div style={{ position: "relative" }}>
-              <div
-                style={{
-                  borderRadius: "40px",
-                  overflow: "hidden",
-                  boxShadow: "0 60px 120px -30px rgba(0,0,0,0.5)",
-                  background: 'rgba(255,255,255,0.05)',
-                  aspectRatio: "4/5",
-                }}
-              >
-                {ceo?.image ? (
-                  <OptimizedImage
-                    itemProp="image"
-                    src={ceo.image}
-                    alt={ceo?.name || "Bereket Yosef"}
-                    className="w-full h-full object-cover grayscale"
-                  />
-                ) : (
-                  <div style={{ padding: "40px", textAlign: "center", display: "flex", flexDirection: "column", justifySelf: "center", height: "100%" }}>
-                    <FaUsers size={64} style={{ margin: "0 auto 24px", color: BRAND.gray400 }} />
-                    <span className="yg-font-serif" style={{ fontSize: "24px", fontWeight: 700, color: BRAND.gray400 }}>Founder Image</span>
-                  </div>
-                )}
-              </div>
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: "32px",
-                  right: "-20px",
-                  background: BRAND.gold,
-                  padding: "24px 40px",
-                  borderRadius: "20px",
-                  boxShadow: "0 20px 40px rgba(0,0,0,0.3)",
-                }}
-              >
-                <div 
-                  itemProp="jobTitle"
-                  className="yg-font-sans" 
-                  style={{ fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em", color: BRAND.primary, opacity: 0.6, marginBottom: "4px" }}
-                >
-                  {ceo?.title || "Founder & CEO"}
-                </div>
-                <div 
-                  itemProp="name"
-                  className="yg-font-serif" 
-                  style={{ fontSize: "24px", fontWeight: 900, color: BRAND.primary }}
-                >
-                  {ceo?.name || "Bereket Yosef"}
-                </div>
-              </div>
-            </div>
+          <div style={{ textAlign: "center", marginBottom: "80px" }}>
+            <SectionLabel>Our Digital Authority</SectionLabel>
+            <h2
+              className="yg-font-serif"
+              style={{
+                fontSize: "clamp(36px, 5vw, 56px)",
+                fontWeight: 900,
+                color: BRAND.white,
+                lineHeight: 1.1,
+                letterSpacing: "-0.02em",
+                marginBottom: "32px",
+              }}
+            >
+              How the World <span style={{ fontStyle: "italic", color: BRAND.gold }}>Sees Us.</span>
+            </h2>
+            <p className="yg-font-sans" style={{ color: 'rgba(255,255,255,0.5)', maxWidth: '600px', margin: '0 auto' }}>
+              We've architected our digital footprint to reflect our real-world impact. Explore our verified search presence.
+            </p>
+          </div>
 
+          <BrandSearchPreview />
+        </div>
+      </section>
+
+      <section 
+        style={{ padding: "140px 0", background: BRAND.navy, position: 'relative', overflow: 'hidden' }}
+      >
+        <div className="noise-bk" />
+        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", position: 'relative', zIndex: 2 }}>
+          <div className="yg-grid-mobile" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }}>
             <div>
               <SectionLabel>Founder's Vision</SectionLabel>
               <h2
                 className="yg-font-serif"
                 style={{
-                  fontSize: "clamp(36px, 5vw, 56px)",
+                  fontSize: "clamp(32px, 4vw, 48px)",
                   fontWeight: 900,
                   color: BRAND.white,
                   lineHeight: 1.1,
@@ -729,32 +713,26 @@ const About = () => {
                 <span style={{ fontStyle: "italic", color: BRAND.gold }}>Creative Future.</span>
               </h2>
               <div 
-                itemProp="description"
                 className="yg-font-sans" 
                 style={{ fontSize: "18px", color: 'rgba(255,255,255,0.5)', lineHeight: 1.8 }}
               >
                 <p style={{ marginBottom: "24px" }}>
                   {ceo?.bio || "Bereket Yosef is a visionary entrepreneur dedicated to redefining the experience economy in Ethiopia. With a focus on strategic management and community architecture."}
                 </p>
-                <p>
-                  He founded Yenege to bridge the gap between world-class execution and transformative education, ensuring every event foundations for the next generation.
-                </p>
               </div>
+            </div>
 
-              {ceo?.socialLinks && (
-                <div style={{ marginTop: "40px", display: "flex", gap: "24px" }}>
-                  {ceo.socialLinks.map((s, i) => (
-                    <a 
-                      key={i} 
-                      href={s.url} 
-                      itemProp="url"
-                      style={{ fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: BRAND.gold, textDecoration: "none" }}
-                    >
-                      {s.platform}
-                    </a>
-                  ))}
-                </div>
-              )}
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              {ceo ? (
+                <CEOKnowledgeCard 
+                  name={ceo.name}
+                  title={ceo.title}
+                  bio={ceo.bio}
+                  image={ceo.image || "/ceo.jpg"}
+                  details={ceo.details || []}
+                  socials={ceo.socialLinks || []}
+                />
+              ) : null}
             </div>
           </div>
         </div>

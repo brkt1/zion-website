@@ -410,6 +410,15 @@ const Hero = () => {
         {/* Hero Content Overlay */}
         <div className="hero-content-overlay">
           <div className="hero-text-content">
+            {/* Floating Trust Badge */}
+            <div className="hero-trust-badge">
+               <div className="badge-ring"></div>
+               <div className="badge-content">
+                  <span className="badge-title">One of East Africa's</span>
+                  <span className="badge-label">Leading Academies</span>
+               </div>
+            </div>
+
             <h1 className="hero-slogan">{t.hero.tagline}</h1>
             
             {homeContent?.hero?.categories && homeContent.hero.categories.length > 0 && (
