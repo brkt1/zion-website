@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { FaArrowUp, FaCalendarAlt, FaEnvelope, FaHome, FaInfoCircle, FaUsers } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
 import { useSiteConfig } from "../../hooks/useApi";
+import { handleLinkHover } from "../../utils/prefetch";
 
 const MobileBottomNav = () => {
   const location = useLocation();
@@ -117,6 +118,7 @@ const MobileBottomNav = () => {
               <Link
                 key={item.path}
                 to={item.path}
+                onMouseEnter={() => handleLinkHover(item.path)}
                 className="flex flex-col items-center justify-center relative group"
                 style={{ flex: '0 0 auto' }}
                 aria-current={isActive(item.path) ? "page" : undefined}

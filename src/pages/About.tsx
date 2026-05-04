@@ -79,7 +79,7 @@ const About = () => {
   const { content } = useAboutContent();
 
   useEffect(() => {
-    document.title = "About Us | YENEGE";
+    document.title = "About Us | YENEGE - Professional Event Production & Academy";
   }, []);
 
   // Define hardcoded defaults using translations where possible
@@ -107,10 +107,14 @@ const About = () => {
       { year: "2023", title: "Scaling", description: "Partnered with international tourism boards." }
     ],
     ceo: {
-      name: "Founder & CEO",
-      bio: "An architect of experiences with over a decade of industry expertise.",
+      name: "Bereket Yosef",
+      title: "Founder & CEO",
+      bio: "Bereket Yosef is a visionary strategist and the architect behind YENEGE. With over a decade of experience in high-level event production and logistics, he is dedicated to professionalizing the creative industry in East Africa through structured education and world-class execution.",
       image: "/ceo.jpg",
-      socialLinks: []
+      socialLinks: [
+        { platform: "Instagram", url: "https://instagram.com/bereket_yosef" },
+        { platform: "LinkedIn", url: "https://linkedin.com/in/bereketyosef" }
+      ]
     }
   };
 
@@ -564,7 +568,7 @@ const About = () => {
               {
                 num: "02",
                 title: "Event Academy",
-                desc: "Structured professional training in event management — from foundation to execution.",
+                desc: "East Africa's premier training ground for event architects. We provide professional certification, hands-on masterclasses, and real-world project experience for aspiring event managers.",
                 icon: <FaGraduationCap />,
               },
               {
@@ -648,8 +652,11 @@ const About = () => {
         </div>
       </section>
 
-      {/* ── 7. Founder Section ───────────────────────────────────────────────── */}
-      <section style={{ padding: "140px 0", background: BRAND.primary, position: 'relative', overflow: 'hidden' }}>
+      <section 
+        itemScope 
+        itemType="http://schema.org/Person"
+        style={{ padding: "140px 0", background: BRAND.primary, position: 'relative', overflow: 'hidden' }}
+      >
         <div className="noise-bk" />
         <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", position: 'relative', zIndex: 2 }}>
           <div className="yg-grid-mobile" style={{ display: "grid", gridTemplateColumns: "0.9fr 1.1fr", gap: "80px", alignItems: "center" }}>
@@ -665,12 +672,13 @@ const About = () => {
               >
                 {ceo?.image ? (
                   <OptimizedImage
+                    itemProp="image"
                     src={ceo.image}
-                    alt="Bereket Yosef"
+                    alt={ceo?.name || "Bereket Yosef"}
                     className="w-full h-full object-cover grayscale"
                   />
                 ) : (
-                  <div style={{ padding: "40px", textAlign: "center", display: "flex", flexDirection: "column", justifyContent: "center", height: "100%" }}>
+                  <div style={{ padding: "40px", textAlign: "center", display: "flex", flexDirection: "column", justifySelf: "center", height: "100%" }}>
                     <FaUsers size={64} style={{ margin: "0 auto 24px", color: BRAND.gray400 }} />
                     <span className="yg-font-serif" style={{ fontSize: "24px", fontWeight: 700, color: BRAND.gray400 }}>Founder Image</span>
                   </div>
@@ -687,8 +695,20 @@ const About = () => {
                   boxShadow: "0 20px 40px rgba(0,0,0,0.3)",
                 }}
               >
-                <div className="yg-font-sans" style={{ fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em", color: BRAND.primary, opacity: 0.6, marginBottom: "4px" }}>Founder & CEO</div>
-                <div className="yg-font-serif" style={{ fontSize: "24px", fontWeight: 900, color: BRAND.primary }}>Bereket Yosef</div>
+                <div 
+                  itemProp="jobTitle"
+                  className="yg-font-sans" 
+                  style={{ fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em", color: BRAND.primary, opacity: 0.6, marginBottom: "4px" }}
+                >
+                  {ceo?.title || "Founder & CEO"}
+                </div>
+                <div 
+                  itemProp="name"
+                  className="yg-font-serif" 
+                  style={{ fontSize: "24px", fontWeight: 900, color: BRAND.primary }}
+                >
+                  {ceo?.name || "Bereket Yosef"}
+                </div>
               </div>
             </div>
 
@@ -708,9 +728,13 @@ const About = () => {
                 Crafting Ethiopia's <br />
                 <span style={{ fontStyle: "italic", color: BRAND.gold }}>Creative Future.</span>
               </h2>
-              <div className="yg-font-sans" style={{ fontSize: "18px", color: 'rgba(255,255,255,0.5)', lineHeight: 1.8 }}>
+              <div 
+                itemProp="description"
+                className="yg-font-sans" 
+                style={{ fontSize: "18px", color: 'rgba(255,255,255,0.5)', lineHeight: 1.8 }}
+              >
                 <p style={{ marginBottom: "24px" }}>
-                  Bereket Yosef is a visionary entrepreneur dedicated to redefining the experience economy in Ethiopia. With a focus on strategic management and community architecture.
+                  {ceo?.bio || "Bereket Yosef is a visionary entrepreneur dedicated to redefining the experience economy in Ethiopia. With a focus on strategic management and community architecture."}
                 </p>
                 <p>
                   He founded Yenege to bridge the gap between world-class execution and transformative education, ensuring every event foundations for the next generation.
@@ -720,7 +744,12 @@ const About = () => {
               {ceo?.socialLinks && (
                 <div style={{ marginTop: "40px", display: "flex", gap: "24px" }}>
                   {ceo.socialLinks.map((s, i) => (
-                    <a key={i} href={s.url} style={{ fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: BRAND.gold, textDecoration: "none" }}>
+                    <a 
+                      key={i} 
+                      href={s.url} 
+                      itemProp="url"
+                      style={{ fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: BRAND.gold, textDecoration: "none" }}
+                    >
                       {s.platform}
                     </a>
                   ))}

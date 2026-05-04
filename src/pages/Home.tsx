@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import {
     FaArrowRight,
     FaCalendarAlt,
@@ -91,10 +91,15 @@ const Home = () => {
   useScrollReveal();
   const { t, language } = useLanguage();
   const { content: homeContent } = useHomeContent();
-  const { events: initialFeatured } = useEvents({ featured: true, limit: 3 });
-  const { events: recentEvents } = useEvents({ limit: 3 });
+  const { events: initialFeatured, isLoading: loadingFeatured } = useEvents({ featured: true, limit: 3 });
+  const { events: recentEvents, isLoading: loadingRecent } = useEvents({ limit: 3 });
   const featuredEvents = initialFeatured.length > 0 ? initialFeatured : recentEvents;
+  const isLoadingEvents = loadingFeatured && loadingRecent;
   const { contactInfo } = useContactInfo();
+
+  useEffect(() => {
+    document.title = "YENEGE | Professional Event Production & Academy Addis Ababa";
+  }, []);
 
   const optimizedBgImages = useMemo(
     () => ({
@@ -118,8 +123,6 @@ const Home = () => {
     <div style={{ minHeight: "100vh", background: BRAND.cream }}>
       {/* ── Global Style Injections ────────────────────────────────────────── */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Manrope:wght@300;400;500;600;700;800&display=swap');
-
         .yg-font-serif { font-family: 'Playfair Display', Georgia, serif; }
         .yg-font-sans  { font-family: 'Manrope', system-ui, sans-serif; }
 
@@ -816,125 +819,131 @@ const Home = () => {
 
 
           {/* Event cards grid */}
-          {featuredEvents.length > 0 ? (
-            <div
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-14 w-full"
-            >
-              {featuredEvents.map((event, index) => (
-                <Link
-                  key={event.id}
-                  to={`/events/${event.id}`}
-                  className="yg-event-card yg-creative-card group"
-                  style={{ 
-                    textDecoration: "none", 
-                    borderRadius: '48px', 
-                    overflow: 'hidden', 
-                    position: 'relative', 
-                    display: 'block',
-                    zIndex: index === 1 ? 10 : 1
-                  }}
-                  aria-label={`View details for ${event.title}`}
-                >
-                  {/* Floating Number Branding */}
-                  <div className="absolute top-10 left-10 z-20 pointer-events-none">
-                     <span className="text-[120px] font-black text-white/5 leading-none select-none">0{index + 1}</span>
-                  </div>
-
-                  <div className="relative aspect-[4/5] overflow-hidden">
-
-                    {event.image ? (
-                      <OptimizedImage
-                        src={event.image}
-                        alt={event.title}
-                        width={800}
-                        height={1000}
-                        className="card-img w-full h-full object-cover transition-transform duration-1000 cubic-bezier(0.16,1,0.3,1)"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-[#0F172A] flex items-center justify-center">
-                        <FaCalendarAlt size={40} className="text-[#FFD447]/20" />
-                      </div>
-                    )}
-
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A]/90 via-transparent to-black/20" />
-                    
-                    {/* Vertical Date Branding */}
-                    <div className="absolute right-6 top-10 flex flex-col items-center gap-6">
-                       <div className="w-px h-12 bg-white/20" />
-                       <span className="vertical-date text-[9px] font-black uppercase tracking-[0.4em] text-white/40" style={{ writingMode: 'vertical-rl' }}>
-                         {formatDateShort(event.date)}
-                       </span>
+          {isLoadingEvents ? (
+            <div className="flex justify-center items-center py-20 w-full">
+              <div className="w-12 h-12 border-4 border-[#FFD447] border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : featuredEvents.length > 0 ? (
+              <div
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-14 w-full"
+              >
+                {featuredEvents.map((event, index) => (
+                  <Link
+                    key={event.id}
+                    to={`/events/${event.id}`}
+                    className="yg-event-card yg-creative-card group"
+                    style={{ 
+                      textDecoration: "none", 
+                      borderRadius: '48px', 
+                      overflow: 'hidden', 
+                      position: 'relative', 
+                      display: 'block',
+                      zIndex: index === 1 ? 10 : 1
+                    }}
+                    aria-label={`View details for ${event.title}`}
+                  >
+                    {/* Floating Number Branding */}
+                    <div className="absolute top-10 left-10 z-20 pointer-events-none">
+                       <span className="text-[120px] font-black text-white/5 leading-none select-none">0{index + 1}</span>
                     </div>
 
-                    {/* Content Over the Image */}
-                    <div className="absolute bottom-10 left-10 right-10 flex flex-col items-start">
-                       <div className="flex items-center gap-3 mb-4">
-                          <span className="px-3 py-1.5 rounded-full border border-white/10 bg-white/10 backdrop-blur-md text-[8px] font-black text-white uppercase tracking-widest">{event.category}</span>
-                          <span className="h-1 w-1 bg-[#FFD447] rounded-full" />
-                          <span className="text-[8px] font-black text-white/50 uppercase tracking-[0.3em]">{event.location}</span>
-                       </div>
-                       
-                       <h3 className="yg-font-serif text-2xl font-black text-white leading-[1.1] mb-8 group-hover:text-[#FFD447] transition-colors">
-                         {event.title}
-                       </h3>
+                    <div className="relative aspect-[4/5] overflow-hidden">
 
-                       <div className="flex items-center justify-between w-full">
-                         <div className="bg-[#0F172A] text-[#FFD447] py-2 px-4 rounded-xl text-sm font-serif italic font-black shadow-lg">
-                           {event.price === "Free" ? "Gratis" : `${event.price} ${event.currency}`}
+                      {event.image ? (
+                        <OptimizedImage
+                          src={event.image}
+                          alt={event.title}
+                          width={800}
+                          height={1000}
+                          className="card-img w-full h-full object-cover transition-transform duration-1000 cubic-bezier(0.16,1,0.3,1)"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-[#0F172A] flex items-center justify-center">
+                          <FaCalendarAlt size={40} className="text-[#FFD447]/20" />
+                        </div>
+                      )}
+
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A]/90 via-transparent to-black/20" />
+                      
+                      {/* Vertical Date Branding */}
+                      <div className="absolute right-6 top-10 flex flex-col items-center gap-6">
+                         <div className="w-px h-12 bg-white/20" />
+                         <span className="vertical-date text-[9px] font-black uppercase tracking-[0.4em] text-white/40" style={{ writingMode: 'vertical-rl' }}>
+                           {formatDateShort(event.date)}
+                         </span>
+                      </div>
+
+                      {/* Content Over the Image */}
+                      <div className="absolute bottom-10 left-10 right-10 flex flex-col items-start">
+                         <div className="flex items-center gap-3 mb-4">
+                            <span className="px-3 py-1.5 rounded-full border border-white/10 bg-white/10 backdrop-blur-md text-[8px] font-black text-white uppercase tracking-widest">{event.category}</span>
+                            <span className="h-1 w-1 bg-[#FFD447] rounded-full" />
+                            <span className="text-[8px] font-black text-white/50 uppercase tracking-[0.3em]">
+                              {event.location === "Addis Ababa, Ethiopia" ? "Amir Commercial Complex, 12th Floor, Office No. 12-003, Gabon St (Olympia), Bole Sub-city, Addis Ababa, Ethiopia" : event.location}
+                            </span>
                          </div>
                          
-                         <div className="arrow-circle w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-white transition-all duration-500 group-hover:bg-[#0F172A] group-hover:text-[#FFD447] group-hover:rotate-[-45deg]">
-                           <FaArrowRight size={12} />
+                         <h3 className="yg-font-serif text-2xl font-black text-white leading-[1.1] mb-8 group-hover:text-[#FFD447] transition-colors">
+                           {event.title}
+                         </h3>
+
+                         <div className="flex items-center justify-between w-full">
+                           <div className="bg-[#0F172A] text-[#FFD447] py-2 px-4 rounded-xl text-sm font-serif italic font-black shadow-lg">
+                             {event.price === "Free" ? "Gratis" : `${event.price} ${event.currency}`}
+                           </div>
+                           
+                           <div className="arrow-circle w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-white transition-all duration-500 group-hover:bg-[#0F172A] group-hover:text-[#FFD447] group-hover:rotate-[-45deg]">
+                             <FaArrowRight size={12} />
+                           </div>
                          </div>
-                       </div>
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          ) : (
-             <div
-               style={{
-                 textAlign: "center",
-                 padding: "100px 24px",
-                 background: "rgba(255,255,255,0.03)",
-                 borderRadius: "40px",
-                 border: "1px dashed rgba(255,212,71,0.2)",
-                 backdropFilter: 'blur(10px)'
-               }}
-             >
-               <h3
-                 className="yg-font-serif"
+                  </Link>
+                ))}
+              </div>
+            ) : (
+               <div
                  style={{
-                   fontSize: "28px",
-                   fontWeight: 900,
-                   color: BRAND.white,
-                   marginBottom: "16px",
+                   textAlign: "center",
+                   padding: "100px 24px",
+                   background: "rgba(255,255,255,0.03)",
+                   borderRadius: "40px",
+                   border: "1px dashed rgba(255,212,71,0.2)",
+                   backdropFilter: 'blur(10px)'
                  }}
                >
-                 No upcoming experiences right now
-               </h3>
-               <p
-                 className="yg-font-sans"
-                 style={{
-                   color: "rgba(255,255,255,0.5)",
-                   fontSize: "17px",
-                   marginBottom: "40px",
-                   maxWidth: "400px",
-                   margin: "0 auto 40px"
-                 }}
-               >
-                 We're curating something special. Check back later to discover our latest bespoke experiences.
-               </p>
-               <Link
-                 to="/events"
-                 className="yg-btn-primary yg-shine"
-                 style={{ background: BRAND.gold, color: BRAND.primary }}
-               >
-                 Explore Portfolio <FaArrowRight size={12} />
-               </Link>
-             </div>
-          )}
+                 <h3
+                   className="yg-font-serif"
+                   style={{
+                     fontSize: "28px",
+                     fontWeight: 900,
+                     color: BRAND.white,
+                     marginBottom: "16px",
+                   }}
+                 >
+                   No upcoming experiences right now
+                 </h3>
+                 <p
+                   className="yg-font-sans"
+                   style={{
+                     color: "rgba(255,255,255,0.5)",
+                     fontSize: "17px",
+                     marginBottom: "40px",
+                     maxWidth: "400px",
+                     margin: "0 auto 40px"
+                   }}
+                 >
+                   We're curating something special. Check back later to discover our latest bespoke experiences.
+                 </p>
+                 <Link
+                   to="/events"
+                   className="yg-btn-primary yg-shine"
+                   style={{ background: BRAND.gold, color: BRAND.primary }}
+                 >
+                   Explore Portfolio <FaArrowRight size={12} />
+                 </Link>
+               </div>
+            )}
         </div>
       </section>
 

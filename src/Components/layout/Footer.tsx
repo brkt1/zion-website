@@ -2,6 +2,7 @@ import { FaArrowRight, FaEnvelope, FaInstagram, FaTelegram, FaTiktok, FaWhatsapp
 import { Link } from "react-router-dom";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { useContactInfo, useSiteConfig } from "../../hooks/useApi";
+import { handleLinkHover } from "../../utils/prefetch";
 import OptimizedImage from "../ui/OptimizedImage";
 
 const Footer = () => {
@@ -14,7 +15,7 @@ const Footer = () => {
     email: "yenegeevents@gmail.com",
     phone: "+251978639887",
     phoneFormatted: "+251 978 639 887",
-    location: "Addis Ababa, Ethiopia",
+    location: "Amir Commercial Complex, 12th Floor, Office No. 12-003, Gabon St (Olympia), Bole Sub-city, Addis Ababa, Ethiopia",
     socialLinks: [
       { platform: "Instagram", url: "https://instagram.com/yenege_event", icon: "instagram" },
       { platform: "Telegram", url: "https://t.me/yenegeevents", icon: "telegram" },
@@ -146,6 +147,7 @@ const Footer = () => {
                 <li key={link.path}>
                   <Link 
                     to={link.path} 
+                    onMouseEnter={() => handleLinkHover(link.path)}
                     className="group flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-all duration-300"
                   >
                     <span 
@@ -205,7 +207,11 @@ const Footer = () => {
                 <div className="p-2 rounded-lg bg-white/5 flex-shrink-0">
                   <span className="text-base">📍</span>
                 </div>
-                <span className="pt-1.5">{finalContact?.location || "Addis Ababa, Ethiopia"}</span>
+                <span className="pt-1.5">
+                  {(finalContact?.location === "Addis Ababa, Ethiopia" || !finalContact?.location) 
+                    ? "Amir Commercial Complex, 12th Floor, Office No. 12-003, Gabon St (Olympia), Bole Sub-city, Addis Ababa, Ethiopia" 
+                    : finalContact.location}
+                </span>
               </li>
             </ul>
           </div>

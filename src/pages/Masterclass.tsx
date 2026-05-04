@@ -1,9 +1,46 @@
+import { useEffect } from "react";
 import { FaArrowRight, FaChartLine, FaCheckCircle, FaClipboardList, FaGavel, FaGraduationCap, FaLightbulb, FaMapMarkerAlt, FaRocket, FaShieldAlt, FaTools, FaUsers } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import OptimizedImage from "../Components/ui/OptimizedImage";
 import { BRAND, GRADIENT } from "../styles/theme";
 
 const Masterclass = () => {
+  useEffect(() => {
+    document.title = "Event Academy | YENEGE - Master Event Planning & Execution";
+    
+    // Inject Course Schema for SEO
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.innerHTML = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Course",
+      "name": "Professional Event Planning & Execution Masterclass",
+      "description": "A comprehensive 9-module professional training program covering event industry fundamentals, budgeting, marketing, logistics, and legal launching of expos.",
+      "provider": {
+        "@type": "Organization",
+        "name": "YENEGE Event Academy",
+        "sameAs": "https://yenege.com/masterclass"
+      },
+      "courseCode": "YEA-001",
+      "hasCourseInstance": {
+        "@type": "CourseInstance",
+        "courseMode": "In-person/Hybrid",
+        "location": "Addis Ababa, Ethiopia"
+      },
+      "syllabusSections": [
+        { "@type": "Syllabus", "name": "Event Industry Fundamentals" },
+        { "@type": "Syllabus", "name": "Budgeting & Financial Planning" },
+        { "@type": "Syllabus", "name": "Logistics & Operations" },
+        { "@type": "Syllabus", "name": "Marketing & Promotions" }
+      ]
+    });
+    document.head.appendChild(script);
+    
+    return () => {
+      document.head.removeChild(script);
+    };
+  }, []);
+
   const learningModules = [
     {
       title: "Understanding the Event Industry",

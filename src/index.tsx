@@ -7,6 +7,7 @@ import ErrorBoundary from './Components/ui/ErrorBoundary';
 import './index.css';
 import { initGoogleAnalytics } from './services/googleAnalytics';
 import { initializePolyfills } from './utils/polyfills';
+import { prefetchRoutes } from './utils/prefetch';
 import * as serviceWorkerRegistration from './utils/serviceWorkerRegistration';
 
 
@@ -123,4 +124,15 @@ window.addEventListener('load', () => {
   
   // Listen for the controllerchange event to reload the page
   serviceWorkerRegistration.listenForUpdates();
+
+  // Prefetch critical routes for near-instant navigation
+  if ('requestIdleCallback' in window) {
+    (window as any).requestIdleCallback(() => {
+      prefetchRoutes(['/events', '/about', '/contact', '/expo-info']);
+    });
+  } else {
+    setTimeout(() => {
+      prefetchRoutes(['/events', '/about', '/contact', '/expo-info']);
+    }, 2000);
+  }
 });

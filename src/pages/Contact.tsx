@@ -81,7 +81,7 @@ const Contact = () => {
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
   
   useEffect(() => {
-    document.title = "Contact Us | YENEGE";
+    document.title = "Contact Us | YENEGE - Connect for Event Production & Academy";
   }, []);
 
   // We no longer strictly block on contactInfo to make the page independent of database availability
@@ -97,7 +97,7 @@ const Contact = () => {
     email: "yenegeevents@gmail.com",
     phone: "+251978639887",
     phoneFormatted: "+251 978 639 887",
-    location: "Addis Ababa, Ethiopia",
+    location: "Amir Commercial Complex, 12th Floor, Office No. 12-003, Gabon St (Olympia), Bole Sub-city, Addis Ababa, Ethiopia",
     socialLinks: []
   };
 
@@ -146,7 +146,9 @@ const Contact = () => {
       num: "01",
       icon: <FaMapMarkerAlt />,
       title: "Our Studio",
-      content: finalContact.location || "Addis Ababa, Ethiopia",
+      content: (finalContact.location === "Addis Ababa, Ethiopia" || !finalContact.location) 
+        ? "Amir Commercial Complex, 12th Floor, Office No. 12-003, Gabon St (Olympia), Bole Sub-city, Addis Ababa, Ethiopia" 
+        : finalContact.location,
       link: null,
     },
     {
