@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { BRAND, GRADIENT } from '../../styles/theme';
+import { BRAND } from '../../styles/theme';
 import { FaGlobe, FaChevronRight, FaTimes } from 'react-icons/fa';
 
 const LanguageSelectorModal: React.FC = () => {

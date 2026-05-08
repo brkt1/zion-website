@@ -15,7 +15,7 @@ import EventSlider from "../Components/EventSlider";
 import Gallery from "../Components/Gallery";
 import Hero from "../Components/Hero";
 import { useLanguage } from "../contexts/LanguageContext";
-import { useEvents, useHomeContent, useGalleryItems } from "../hooks/useApi";
+import { useEvents, useHomeContent } from "../hooks/useApi";
 import { useScrollReveal } from "../hooks/useScrollReveal";
 import { BRAND, GRADIENT } from "../styles/theme";
 import { optimizeImageUrl } from "../utils/imageOptimizer";
