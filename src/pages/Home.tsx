@@ -1,7 +1,6 @@
 import { useEffect, useMemo } from "react";
 import {
     FaArrowRight,
-    FaCalendarAlt,
     FaChartLine,
     FaCheckCircle,
     FaClipboardList,
@@ -15,21 +14,12 @@ import { Link } from "react-router-dom";
 import EventSlider from "../Components/EventSlider";
 import Gallery from "../Components/Gallery";
 import Hero from "../Components/Hero";
-import OptimizedImage from "../Components/ui/OptimizedImage";
 import { useLanguage } from "../contexts/LanguageContext";
-import { useContactInfo, useEvents, useHomeContent } from "../hooks/useApi";
+import { useEvents, useHomeContent } from "../hooks/useApi";
 import { useScrollReveal } from "../hooks/useScrollReveal";
 import { BRAND, GRADIENT } from "../styles/theme";
 import { optimizeImageUrl } from "../utils/imageOptimizer";
 import { handleLinkHover } from "../utils/prefetch";
-
-const formatDateShort = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-};
 
 /* ─── Shared design tokens ─────────────────────────────────────────────────── */
 
@@ -69,35 +59,12 @@ const SectionLabel = ({ children }: { children: React.ReactNode }) => (
 
 
 
-/** Modern stat item for trust section */
-const StatBadge = ({
-  value,
-  label,
-}: {
-  value: string;
-  label: string;
-  icon: React.ReactNode;
-}) => (
-  <div className="yg-stat-badge">
-    <span className="yg-stat-value">
-      {value}
-    </span>
-    <span className="yg-stat-label">
-      {label}
-    </span>
-  </div>
-);
-
 /* ─── Main Component ────────────────────────────────────────────────────────── */
 const Home = () => {
   useScrollReveal();
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const { content: homeContent } = useHomeContent();
-  const { events: initialFeatured, isLoading: loadingFeatured } = useEvents({ featured: true, limit: 3 });
-  const { events: recentEvents, isLoading: loadingRecent } = useEvents({ limit: 6 });
-  const featuredEvents = initialFeatured.length > 0 ? initialFeatured : recentEvents;
-  const isLoadingEvents = loadingFeatured && loadingRecent;
-  const { contactInfo } = useContactInfo();
+  const { events: recentEvents } = useEvents({ limit: 6 });
 
   useEffect(() => {
     document.title = "YENEGE | Professional Event Production & Academy Addis Ababa";
@@ -410,6 +377,9 @@ const Home = () => {
           .yg-service-grid { grid-template-columns: 1fr !important; }
           .yg-community-grid { grid-template-columns: 1fr !important; }
           .yg-community-images { display: none !important; }
+          .yg-mobile-hide { display: none !important; }
+          .yg-section-padding { padding: 60px 20px !important; }
+          .yg-grid-1col { grid-template-columns: 1fr !important; }
         }
 
         @media (max-width: 480px) {
@@ -448,7 +418,7 @@ const Home = () => {
           ACADEMY
         </div>
 
-        <div className="reveal-wrapper" style={{ maxWidth: "1300px", margin: "0 auto", padding: "100px 40px", position: "relative", zIndex: 1 }}>
+        <div className="reveal-wrapper yg-section-padding" style={{ maxWidth: "1300px", margin: "0 auto", padding: "100px 40px", position: "relative", zIndex: 1 }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }} className="yg-grid-mobile">
 
             {/* LEFT: Editorial Text Block */}
@@ -581,7 +551,7 @@ const Home = () => {
               <div 
                 key={i}
                 style={{
-                  padding: "48px",
+                  padding: "clamp(24px, 5vw, 48px)",
                   background: "rgba(255,255,255,0.02)",
                   borderRadius: "32px",
                   border: "1px solid rgba(255,255,255,0.08)",
@@ -601,179 +571,6 @@ const Home = () => {
       {/* ── 3. What We Do ────────────────────────────────────────────────────── */}
 
 
-      {/* ── 6. Academy ───────────────────────────────────────────────────────── */}
-      <section
-        aria-labelledby="academy-heading"
-        style={{
-          padding: "120px 0",
-          backgroundImage: "url('/academy-bg.png')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundAttachment: "fixed",
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
-        {/* Gradient Overlay for Readability */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            inset: 0,
-            background: "linear-gradient(90deg, rgba(15,23,42,0.95) 0%, rgba(15,23,42,0.7) 50%, rgba(15,23,42,0) 100%)",
-          }}
-        />
-
-        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", position: "relative", zIndex: 10 }}>
-          <div style={{ maxWidth: "600px" }}>
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "6px 18px",
-                borderRadius: "999px",
-                background: "rgba(228,232,33,0.15)",
-                border: "1px solid rgba(228,232,33,0.3)",
-                backdropFilter: "blur(4px)",
-                marginBottom: "28px",
-              }}
-            >
-              <FaGraduationCap
-                style={{ color: BRAND.gold, fontSize: "14px" }}
-              />
-              <span
-                className="yg-font-sans"
-                style={{
-                  color: BRAND.gold,
-                  fontSize: "11px",
-                  fontWeight: 800,
-                  letterSpacing: "0.2em",
-                  textTransform: "uppercase",
-                }}
-              >
-                {t.academy.title}
-              </span>
-            </div>
-
-            <h2
-              id="academy-heading"
-              className="yg-font-serif"
-              style={{
-                fontSize: "clamp(44px, 6vw, 72px)",
-                fontWeight: 900,
-                color: BRAND.white,
-                lineHeight: 1.05,
-                letterSpacing: "-0.02em",
-                marginBottom: "24px",
-                textShadow: "0 4px 24px rgba(0,0,0,0.4)"
-              }}
-            >
-              {t.academy.masterPlanning.split(' ').slice(0, 2).join(' ')}{" "}
-              <span
-                style={{
-                  fontStyle: "italic",
-                  color: BRAND.coral,
-                }}
-              >
-                {t.academy.masterPlanning.split(' ').slice(2).join(' ')}.
-              </span>
-            </h2>
-
-            <p
-              className="yg-font-sans"
-              style={{
-                fontSize: "18px",
-                color: "rgba(255,255,255,0.85)",
-                lineHeight: 1.75,
-                marginBottom: "40px",
-                textShadow: "0 2px 10px rgba(0,0,0,0.5)"
-              }}
-            >
-              {t.academy.joinProgram}
-            </p>
-
-            {/* Key features list */}
-            <ul
-              style={{
-                listStyle: "none",
-                padding: 0,
-                margin: "0 0 44px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "16px",
-              }}
-            >
-              {[
-                t.academy.feature8weeks,
-                t.academy.featureRealPlanning,
-                t.academy.featureCert,
-              ].map((item) => (
-                <li
-                  key={item}
-                  className="yg-font-sans"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "14px",
-                    color: BRAND.white,
-                    fontSize: "16px",
-                    fontWeight: 500,
-                    textShadow: "0 2px 8px rgba(0,0,0,0.6)"
-                  }}
-                >
-                  <div
-                    style={{
-                      width: "24px",
-                      height: "24px",
-                      borderRadius: "50%",
-                      background: GRADIENT.brand,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                      boxShadow: "0 4px 12px rgba(255,111,94,0.4)"
-                    }}
-                  >
-                    <span
-                      style={{
-                        color: BRAND.navy,
-                        fontSize: "12px",
-                        fontWeight: 900,
-                      }}
-                    >
-                      ✓
-                    </span>
-                  </div>
-                  {item}
-                </li>
-              ))}
-            </ul>
-
-            <div style={{ display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap" }}>
-              <Link
-                to="/masterclass"
-                className="yg-btn-primary yg-shine"
-                aria-label="Join the Masterclass program"
-              >
-                Join Masterclass <FaArrowRight size={12} />
-              </Link>
-              <span
-                className="yg-font-sans"
-                style={{
-                  fontSize: "13px",
-                  fontWeight: 600,
-                  color: "rgba(255,255,255,0.7)",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.1em"
-                }}
-              >
-                {t.academy.nextCohort}
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
 
 
 
@@ -789,16 +586,16 @@ const Home = () => {
       >
         <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
            <div 
-             style={{ 
-               background: BRAND.white, 
-               borderRadius: "48px", 
-               padding: "64px 40px",
-               boxShadow: "0 32px 80px -16px rgba(15,23,42,0.08)",
-               border: "1px solid rgba(15,23,42,0.03)",
-               position: "relative",
-               overflow: "hidden"
-             }}
-             className="flex flex-col lg:flex-row items-center gap-16"
+              style={{ 
+                background: BRAND.white, 
+                borderRadius: "48px", 
+                padding: "clamp(32px, 8vw, 64px) clamp(24px, 5vw, 40px)",
+                boxShadow: "0 32px 80px -16px rgba(15,23,42,0.08)",
+                border: "1px solid rgba(15,23,42,0.03)",
+                position: "relative",
+                overflow: "hidden"
+              }}
+              className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16"
            >
              {/* Gradient Accent */}
              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '4px', background: GRADIENT.brand }} />
@@ -1009,7 +806,7 @@ const Home = () => {
                   Explore Events <FaArrowRight size={12} />
                 </Link>
                 <Link
-                  to="/apply"
+                  to="/masterclass-registration"
                   aria-label="Enroll in Yenege Event Academy"
                   style={{
                     display: "inline-flex",
@@ -1031,7 +828,7 @@ const Home = () => {
                     boxShadow: "0 0 30px rgba(255,212,71,0.08)",
                   }}
                   onMouseEnter={(e) => {
-                    handleLinkHover("/apply");
+                    handleLinkHover("/masterclass-registration");
                     (e.currentTarget as HTMLAnchorElement).style.background = "linear-gradient(135deg, rgba(255,212,71,0.22) 0%, rgba(255,111,94,0.14) 100%)";
                     (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(255,212,71,0.7)";
                     (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 0 40px rgba(255,212,71,0.2)";

@@ -161,9 +161,10 @@ const Masterclass = () => {
         }
 
         @media (max-width: 640px) {
-          .font-serif { font-size: clamp(2.5rem, 10vw, 4rem) !important; line-height: 1 !important; }
-          .bento-item { padding: 1.5rem !important; border-radius: 1.5rem !important; }
-          section { padding-top: 5rem !important; padding-bottom: 5rem !important; }
+          .font-serif { font-size: clamp(2.2rem, 10vw, 3.5rem) !important; line-height: 1.1 !important; }
+          .bento-item { padding: 1.25rem !important; border-radius: 1.25rem !important; }
+          section { padding-top: 4rem !important; padding-bottom: 4rem !important; }
+          .animate-marquee span { font-size: 1.5rem !important; gap: 0.75rem !important; }
         }
       `}</style>
 

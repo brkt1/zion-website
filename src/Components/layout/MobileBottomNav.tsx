@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FaArrowUp, FaCalendarAlt, FaEnvelope, FaHome, FaInfoCircle, FaUsers } from "react-icons/fa";
+import { FaArrowUp, FaCalendarAlt, FaEnvelope, FaGraduationCap, FaHome, FaInfoCircle, FaUsers } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
 import { useSiteConfig } from "../../hooks/useApi";
 import { handleLinkHover } from "../../utils/prefetch";
@@ -30,9 +30,9 @@ const MobileBottomNav = () => {
   const navItems = (config?.navigation || [
     { path: "/", label: "Home" },
     { path: "/events", label: "Events" },
+    { path: "/masterclass", label: "Masterclass" },
     { path: "/about", label: "About" },
     { path: "/contact", label: "Contact" },
-    { path: "/community", label: "Community" },
   ]).map(item => {
     let icon = FaHome;
     const label = item.label.toLowerCase();
@@ -40,6 +40,7 @@ const MobileBottomNav = () => {
     else if (label.includes('event')) icon = FaCalendarAlt;
     else if (label.includes('contact')) icon = FaEnvelope;
     else if (label.includes('community')) icon = FaUsers;
+    else if (label.includes('masterclass')) icon = FaGraduationCap;
     else if (label.includes('about')) icon = FaInfoCircle;
     
     return { ...item, icon };

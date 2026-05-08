@@ -821,7 +821,7 @@ const About = () => {
             <span style={{ fontStyle: "italic", color: BRAND.gold }}>Something Together?</span>
           </h2>
           <div style={{ display: "flex", justifyContent: "center", gap: "20px", flexWrap: "wrap", marginTop: "48px" }}>
-            <Link to="/apply" className="yg-btn-primary">
+            <Link to="/masterclass-registration" className="yg-btn-primary">
               Join The Academy <FaArrowRight size={12} />
             </Link>
             <a
