@@ -3,6 +3,7 @@ import { FaArrowUp, FaCalendarAlt, FaEnvelope, FaGraduationCap, FaHome, FaInfoCi
 import { Link, useLocation } from "react-router-dom";
 import { useSiteConfig } from "../../hooks/useApi";
 import { handleLinkHover } from "../../utils/prefetch";
+import { BRAND, GRADIENT } from "../../styles/theme";
 
 const MobileBottomNav = () => {
   const location = useLocation();
@@ -55,15 +56,15 @@ const MobileBottomNav = () => {
 
   return (
     <>
-      {/* Scroll to Top Button - Floating Bubble Design */}
+      {/* Scroll to Top Button - Floating Design */}
       {showScrollTop && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-24 right-4 z-50 w-12 h-12 rounded-full shadow-2xl flex items-center justify-center transition-all duration-500 hover:scale-110 active:scale-90"
+          className="fixed bottom-24 right-6 z-50 w-12 h-12 rounded-full shadow-2xl flex items-center justify-center transition-all duration-500 hover:scale-110 active:scale-90"
           style={{
-            background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
-            boxShadow: "0 8px 24px rgba(255, 111, 94, 0.5), 0 0 0 4px rgba(255, 111, 94, 0.1)",
-            animation: "float 3s ease-in-out infinite",
+            background: GRADIENT.brand,
+            boxShadow: `0 8px 24px rgba(255, 111, 94, 0.4)`,
+            animation: "yg-float 3s ease-in-out infinite",
           }}
           aria-label="Scroll to top"
         >
@@ -71,163 +72,107 @@ const MobileBottomNav = () => {
         </button>
       )}
 
-      {/* Unique Floating Curved Navigation Bar */}
+      {/* Floating Premium Navigation Dock */}
       <nav 
         role="navigation"
         aria-label="Mobile bottom navigation"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 pointer-events-none"
+        className="md:hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 w-[92%] max-w-md"
       >
-        {/* Curved background with gradient */}
         <div 
-          className="relative h-24"
+          className="relative px-2 py-3 rounded-[32px] border border-white/10 shadow-2xl overflow-hidden"
           style={{
-            background: "linear-gradient(to top, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 60%, transparent 100%)",
-            backdropFilter: "blur(30px)",
-            WebkitBackdropFilter: "blur(30px)",
+            background: `${BRAND.navy}E6`, // 90% opacity navy
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
           }}
         >
-          {/* Curved top edge using SVG */}
-          <svg 
-            className="absolute top-0 left-0 w-full h-8"
-            viewBox="0 0 400 32"
-            preserveAspectRatio="none"
-            style={{ fill: 'rgba(255, 255, 255, 0.98)' }}
-          >
-            <path d="M0,32 Q200,0 400,32 L400,32 L0,32 Z" />
-          </svg>
-          
-          {/* Gradient overlay on curve */}
+          {/* Subtle accent glow */}
           <div 
-            className="absolute top-0 left-0 w-full h-8"
-            style={{
-              background: "linear-gradient(90deg, transparent 0%, rgba(255, 212, 71, 0.3) 25%, rgba(255, 111, 94, 0.3) 50%, rgba(255, 212, 71, 0.3) 75%, transparent 100%)",
-              maskImage: "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 400 32\"><path d=\"M0,32 Q200,0 400,32 L400,32 L0,32 Z\"/></svg>')",
-              WebkitMaskImage: "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 400 32\"><path d=\"M0,32 Q200,0 400,32 L400,32 L0,32 Z\"/></svg>')",
-              maskSize: "100% 100%",
-              WebkitMaskSize: "100% 100%",
-            }}
+            className="absolute -top-10 -left-10 w-32 h-32 rounded-full blur-[60px] opacity-20 pointer-events-none"
+            style={{ background: BRAND.gold }}
           />
-        </div>
+          <div 
+            className="absolute -bottom-10 -right-10 w-32 h-32 rounded-full blur-[60px] opacity-20 pointer-events-none"
+            style={{ background: BRAND.coral }}
+          />
 
-        {/* Navigation Items Container */}
-        <div className="absolute bottom-0 left-0 right-0 flex items-center justify-around px-4 pb-2 pointer-events-auto">
-          {navItems.map((item, index) => {
-            const Icon = item.icon;
-            const active = isActive(item.path);
-            
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                onMouseEnter={() => handleLinkHover(item.path)}
-                className="flex flex-col items-center justify-center relative group"
-                style={{ flex: '0 0 auto' }}
-                aria-current={isActive(item.path) ? "page" : undefined}
-                aria-label={item.label}
-              >
-                {/* Floating active indicator */}
-                {active && (
-                  <>
-                    {/* Glow effect */}
-                    <div 
-                      className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-16 h-16 rounded-full blur-xl opacity-30 transition-all duration-500"
-                      style={{
-                        background: "radial-gradient(circle, #FFD447 0%, #FF6F5E 100%)",
-                        animation: "pulse-glow 2s ease-in-out infinite",
-                      }}
-                    />
-                    {/* Active dot indicator */}
-                    <div 
-                      className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 rounded-full transition-all duration-300"
-                      style={{
-                        background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
-                        boxShadow: "0 0 8px rgba(255, 111, 94, 0.6)",
-                      }}
-                    />
-                  </>
-                )}
-                
-                {/* Icon with unique floating animation */}
-                <div 
-                  className={`relative mb-1 transition-all duration-500 ${
-                    active 
-                      ? 'transform translate-y-[-4px]' 
-                      : 'group-active:scale-90'
-                  }`}
-                  style={active ? {
-                    animation: "float-icon 2s ease-in-out infinite",
-                  } : {}}
+          <div className="relative flex items-center justify-around">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item.path);
+              
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onMouseEnter={() => handleLinkHover(item.path)}
+                  className="flex flex-col items-center justify-center relative py-1 px-3 min-w-[64px] transition-all duration-300"
+                  aria-current={active ? "page" : undefined}
+                  aria-label={item.label}
                 >
-                  {/* Icon background circle */}
+                  {/* Active background pill */}
+                  {active && (
+                    <div 
+                      className="absolute inset-0 rounded-2xl opacity-10"
+                      style={{ background: GRADIENT.brand }}
+                    />
+                  )}
+                  
+                  {/* Icon */}
                   <div 
-                    className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 ${
-                      active 
-                        ? 'shadow-lg' 
-                        : 'bg-gray-100 group-hover:bg-gray-200'
+                    className={`relative mb-1.5 transition-all duration-300 ${
+                      active ? 'transform -translate-y-0.5 scale-110' : 'opacity-50'
                     }`}
-                    style={active ? {
-                      background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
-                      boxShadow: "0 6px 20px rgba(255, 111, 94, 0.4), 0 0 0 3px rgba(255, 111, 94, 0.1)",
-                    } : {}}
                   >
                     <Icon 
-                      size={22} 
-                      className={`transition-all duration-300 ${
-                        active 
-                          ? 'text-white' 
-                          : 'text-gray-600 group-hover:text-gray-800'
-                      }`}
+                      size={20} 
+                      style={{ 
+                        color: active ? BRAND.gold : 'white',
+                        filter: active ? `drop-shadow(0 0 8px ${BRAND.gold}40)` : 'none'
+                      }}
                     />
                   </div>
-                </div>
-                
-                {/* Label with slide animation */}
-                <span 
-                  className={`text-[9px] font-bold transition-all duration-300 ${
-                    active 
-                      ? 'text-[#FF6F5E] translate-y-0 opacity-100' 
-                      : 'text-gray-500 translate-y-1 opacity-70 group-hover:opacity-100'
-                  }`}
-                >
-                  {item.label}
-                </span>
-              </Link>
-            );
-          })}
+                  
+                  {/* Label */}
+                  <span 
+                    className={`text-[10px] font-bold uppercase tracking-wider transition-all duration-300 ${
+                      active 
+                        ? 'text-white opacity-100' 
+                        : 'text-white/40 opacity-70'
+                    }`}
+                    style={{ fontSize: '9px' }}
+                  >
+                    {item.label}
+                  </span>
+
+                  {/* Active Indicator Dot */}
+                  {active && (
+                    <div 
+                      className="absolute -bottom-1 w-1 h-1 rounded-full"
+                      style={{ 
+                        background: BRAND.gold,
+                        boxShadow: `0 0 10px ${BRAND.gold}`
+                      }}
+                    />
+                  )}
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </nav>
 
-      {/* Spacer */}
-      <div className="md:hidden h-20" />
+      {/* Spacer to prevent content from being hidden behind the floating nav */}
+      <div className="md:hidden h-28" />
 
       {/* Custom Animations */}
       <style>{`
-        @keyframes float {
+        @keyframes yg-float {
           0%, 100% {
             transform: translateY(0px);
           }
           50% {
             transform: translateY(-8px);
-          }
-        }
-        
-        @keyframes float-icon {
-          0%, 100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-6px);
-          }
-        }
-        
-        @keyframes pulse-glow {
-          0%, 100% {
-            opacity: 0.3;
-            transform: translate(-50%, 0) scale(1);
-          }
-          50% {
-            opacity: 0.5;
-            transform: translate(-50%, 0) scale(1.1);
           }
         }
       `}</style>

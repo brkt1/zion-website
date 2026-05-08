@@ -27,18 +27,26 @@ export const useScrollReveal = () => {
 
     const intersectionObserver = new IntersectionObserver(observerCallback, observerOptions);
     
+    const observedElements = new WeakSet();
+
     const observeElements = () => {
-      // Find all reveal wrappers that aren't yet revealed or being observed
-      const elements = document.querySelectorAll('.reveal-wrapper:not(.is-revealed):not(.is-observing)');
+      // Find all reveal wrappers that aren't yet revealed
+      const elements = document.querySelectorAll('.reveal-wrapper:not(.is-revealed)');
       
       elements.forEach(el => {
-        el.classList.add('is-observing');
+        // Skip if already being observed by THIS observer instance
+        if (observedElements.has(el)) return;
+        
+        observedElements.add(el);
         intersectionObserver.observe(el);
         
         // Immediate check: if element is already in viewport, reveal it
-        // This is a safety measure for SPAs
+        // This is crucial for SPA navigation where elements might already be in view
         const rect = el.getBoundingClientRect();
-        if (rect.top < window.innerHeight && rect.bottom > 0) {
+        const isInViewport = rect.top < (window.innerHeight || document.documentElement.clientHeight) && 
+                            rect.bottom > 0;
+        
+        if (isInViewport) {
           el.classList.add('is-revealed');
           intersectionObserver.unobserve(el);
         }

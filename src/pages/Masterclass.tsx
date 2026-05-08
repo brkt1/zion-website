@@ -203,16 +203,6 @@ const Masterclass = () => {
                   Register for the Program
                   <FaArrowRight className="group-hover:translate-x-2 transition-transform" />
                 </Link>
-                <div className="flex items-center gap-3">
-                  <div className="flex -space-x-3">
-                    {[1,2,3,4].map(i => (
-                      <div key={i} className="w-10 h-10 rounded-full border-2 border-[#020617] bg-slate-800 flex items-center justify-center overflow-hidden">
-                        <img src={`https://i.pravatar.cc/100?u=${i}`} alt="student" className="w-full h-full object-cover opacity-80" />
-                      </div>
-                    ))}
-                  </div>
-                  <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Join 15,000+ Students</span>
-                </div>
               </div>
             </div>
 
@@ -253,7 +243,7 @@ const Masterclass = () => {
                 <FaStar className="text-amber-400 text-sm" /> 4.9 STUDENT RATING
               </span>
               <span className="flex items-center gap-4 text-4xl font-serif">
-                <FaUsers className="text-amber-400 text-sm" /> 15K+ COMMUNITY
+                <FaUsers className="text-amber-400 text-sm" /> 1K+ COMMUNITY
               </span>
               <span className="flex items-center gap-4 text-4xl font-serif">
                 <FaCertificate className="text-amber-400 text-sm" /> PROFESSIONAL CERTIFICATION

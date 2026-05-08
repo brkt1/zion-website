@@ -15,7 +15,7 @@ import EventSlider from "../Components/EventSlider";
 import Gallery from "../Components/Gallery";
 import Hero from "../Components/Hero";
 import { useLanguage } from "../contexts/LanguageContext";
-import { useEvents, useHomeContent } from "../hooks/useApi";
+import { useEvents, useHomeContent, useGalleryItems } from "../hooks/useApi";
 import { useScrollReveal } from "../hooks/useScrollReveal";
 import { BRAND, GRADIENT } from "../styles/theme";
 import { optimizeImageUrl } from "../utils/imageOptimizer";
@@ -466,7 +466,7 @@ const Home = () => {
               {/* Top stat row */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
                 {[
-                  { val: "15k+", label: "Community Members", icon: <FaUsers size={18} /> },
+                  { val: "1k+", label: "Community Members", icon: <FaUsers size={18} /> },
                   { val: "4.9★", label: "Student Rating", icon: <FaStar size={18} /> },
                 ].map((s, i) => (
                   <div key={i} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "24px", padding: "28px 24px", backdropFilter: "blur(12px)", position: "relative", overflow: "hidden" }}>
@@ -490,12 +490,7 @@ const Home = () => {
                   Our structured curriculum covers event design, vendor coordination, financial strategy, and live execution — from day one.
                 </p>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <div style={{ display: "flex" }}>
-                    {[1,2,3,4,5].map(i => (
-                      <div key={i} style={{ width: "24px", height: "24px", borderRadius: "50%", border: "2px solid #0F172A", background: `hsl(${i * 40}, 70%, 60%)`, marginLeft: i > 1 ? "-8px" : "0", zIndex: 6 - i }} />
-                    ))}
-                  </div>
-                  <span className="yg-font-sans" style={{ fontSize: "12px", color: "rgba(255,255,255,0.45)", fontWeight: 600 }}>Join 15,000+ students learning events</span>
+                  <span className="yg-font-sans" style={{ fontSize: "12px", color: "rgba(255,255,255,0.45)", fontWeight: 600 }}>Join 1,000+ students learning events</span>
                 </div>
               </div>
             </div>
@@ -509,63 +504,171 @@ const Home = () => {
       {/* ── 2.5 The Yenege Distinction ───────────────────────────────────────── */}
       <section
         style={{
-          padding: "120px 0",
+          padding: "160px 0",
           background: BRAND.navy,
           position: "relative",
           overflow: "hidden",
         }}
       >
+        {/* Background Atmosphere */}
+        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "80%", height: "80%", background: "radial-gradient(circle, rgba(255,212,71,0.03) 0%, transparent 70%)", pointerEvents: "none" }} />
+        
         <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
-          <div style={{ textAlign: "center", marginBottom: "80px" }}>
+          <div style={{ textAlign: "center", marginBottom: "100px" }}>
             <SectionLabel>The Yenege Distinction</SectionLabel>
-            <h2 className="yg-font-serif" style={{ fontSize: "clamp(36px, 5vw, 56px)", fontWeight: 900, color: "#fff", marginBottom: "24px" }}>
-              Why Leading Brands <span style={{ fontStyle: "italic", color: BRAND.gold }}>Trust Us.</span>
+            <h2 className="yg-font-serif" style={{ fontSize: "clamp(40px, 7vw, 72px)", fontWeight: 900, color: "#fff", marginBottom: "24px", lineHeight: 1 }}>
+              The <span style={{ color: BRAND.gold, fontStyle: "italic" }}>Journey</span> of Excellence.
             </h2>
+            <p className="yg-font-sans" style={{ color: "rgba(255,255,255,0.4)", fontSize: "18px", maxWidth: "600px", margin: "0 auto" }}>
+              Our methodology is a continuous cycle of innovation, education, and proven results.
+            </p>
           </div>
 
-          <div 
-            className="yg-grid-mobile" 
-            style={{ 
-              display: "grid", 
-              gridTemplateColumns: "repeat(3, 1fr)", 
-              gap: "32px" 
-            }}
-          >
+          {/* THE FLOW CONTAINER */}
+          <div style={{ position: "relative", display: "flex", flexDirection: "column", gap: "100px" }}>
+            
+            {/* SVG Connecting Path (Desktop Only) */}
+            <svg 
+              className="hidden lg:block"
+              style={{ position: "absolute", top: "100px", left: "50%", transform: "translateX(-50%)", width: "100%", height: "calc(100% - 200px)", pointerEvents: "none", zIndex: 0 }}
+              viewBox="0 0 1000 800"
+              fill="none"
+            >
+              <path 
+                d="M500,0 C500,200 850,200 850,400 C850,600 500,600 500,800" 
+                stroke="url(#flowGradient)" 
+                strokeWidth="2" 
+                strokeDasharray="10 10"
+                opacity="0.2"
+              >
+                <animate attributeName="stroke-dashoffset" from="0" to="200" dur="10s" repeatCount="indefinite" />
+              </path>
+              <defs>
+                <linearGradient id="flowGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor={BRAND.gold} />
+                  <stop offset="50%" stopColor={BRAND.coral} />
+                  <stop offset="100%" stopColor={BRAND.gold} />
+                </linearGradient>
+              </defs>
+            </svg>
+
             {[
               {
+                id: "01",
                 title: "Architectural Precision",
                 desc: "We don't just organize; we design experience systems that ensure every detail is intentional and every moment is impactful.",
-                icon: <FaRocket />
+                icon: <FaRocket />,
+                align: "center",
+                offset: "-250px",
+                color: BRAND.gold
               },
               {
+                id: "02",
                 title: "Educational Core",
                 desc: "As home to East Africa's leading Event Academy, our team stays at the absolute forefront of industry innovation and trends.",
-                icon: <FaGraduationCap />
+                icon: <FaGraduationCap />,
+                align: "center",
+                offset: "250px",
+                color: BRAND.coral
               },
               {
+                id: "03",
                 title: "Verified Footprint",
                 desc: "With thousands of successful events and a community that spans the globe, our track record is our strongest seal of quality.",
-                icon: <FaCheckCircle />
+                icon: <FaCheckCircle />,
+                align: "center",
+                offset: "-250px",
+                color: BRAND.gold
               }
-            ].map((item, i) => (
+            ].map((step, i) => (
               <div 
                 key={i}
+                className="reveal-wrapper"
                 style={{
-                  padding: "clamp(24px, 5vw, 48px)",
-                  background: "rgba(255,255,255,0.02)",
-                  borderRadius: "32px",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  backdropFilter: "blur(20px)",
-                  transition: "all 0.4s ease"
+                  display: "flex",
+                  justifyContent: "center",
+                  position: "relative",
+                  zIndex: 1
                 }}
               >
-                <div style={{ color: BRAND.gold, fontSize: "32px", marginBottom: "24px" }}>{item.icon}</div>
-                <h3 className="yg-font-serif" style={{ fontSize: "24px", color: "#fff", marginBottom: "16px", fontWeight: 700 }}>{item.title}</h3>
-                <p className="yg-font-sans" style={{ color: "rgba(255,255,255,0.5)", lineHeight: 1.7, fontSize: "16px" }}>{item.desc}</p>
+                <div 
+                  className="yg-shine"
+                  style={{
+                    width: "100%",
+                    maxWidth: "500px",
+                    padding: "50px",
+                    background: "rgba(255,255,255,0.03)",
+                    borderRadius: "40px",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    backdropFilter: "blur(20px)",
+                    marginLeft: step.offset,
+                    transition: "all 0.6s cubic-bezier(0.16, 1, 0.3, 1)",
+                    position: "relative"
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLDivElement).style.transform = "scale(1.05) translateY(-10px)";
+                    (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.2)";
+                    (e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.05)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLDivElement).style.transform = "scale(1) translateY(0)";
+                    (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.08)";
+                    (e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.03)";
+                  }}
+                >
+                  {/* Connection Node */}
+                  <div style={{
+                    position: "absolute",
+                    top: "50%",
+                    [i === 1 ? "left" : "right"]: "-40px",
+                    transform: "translateY(-50%)",
+                    width: "12px",
+                    height: "12px",
+                    borderRadius: "50%",
+                    background: step.color,
+                    boxShadow: `0 0 20px ${step.color}`,
+                    zIndex: 2
+                  }} />
+
+                  <div style={{ display: "flex", gap: "30px", alignItems: "flex-start" }}>
+                    <div style={{ 
+                      fontSize: "48px", 
+                      fontWeight: 900, 
+                      color: "rgba(255,255,255,0.05)", 
+                      fontFamily: "'Playfair Display', serif",
+                      lineHeight: 1
+                    }}>
+                      {step.id}
+                    </div>
+                    <div>
+                      <div style={{ 
+                        color: step.color, 
+                        fontSize: "24px", 
+                        marginBottom: "20px" 
+                      }}>
+                        {step.icon}
+                      </div>
+                      <h3 className="yg-font-serif" style={{ fontSize: "28px", color: "#fff", marginBottom: "16px", fontWeight: 800 }}>
+                        {step.title}
+                      </h3>
+                      <p className="yg-font-sans" style={{ color: "rgba(255,255,255,0.45)", lineHeight: 1.8, fontSize: "15px" }}>
+                        {step.desc}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
         </div>
+        
+        {/* Style injection for responsive offset override */}
+        <style>{`
+          @media (max-width: 1024px) {
+            .yg-shine { margin-left: 0 !important; }
+            svg { display: none !important; }
+          }
+        `}</style>
       </section>
 
       {/* ── 3. What We Do ────────────────────────────────────────────────────── */}
@@ -639,16 +742,22 @@ const Home = () => {
              <div className="flex-1 w-full lg:w-auto" style={{ position: 'relative' }}>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex flex-col gap-4">
-                    <div style={{ height: "140px", background: "rgba(15,23,42,0.03)", borderRadius: "24px" }} />
-                    <div style={{ height: "240px", background: BRAND.navy, borderRadius: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                       <FaChartLine className="text-[#FFD447]" size={48} />
+                    <div style={{ height: "140px", background: "rgba(15,23,42,0.03)", borderRadius: "24px", overflow: "hidden" }}>
+                      <img src="/generated/ethiopian_event_learning.png" alt="Ethiopian Event Learning" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.9 }} />
+                    </div>
+                    <div style={{ height: "240px", background: BRAND.navy, borderRadius: "24px", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", position: "relative" }}>
+                       <img src="/generated/addis_strategy.png" alt="Addis Strategy" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.7 }} />
+                       <FaChartLine className="text-[#FFD447]" size={48} style={{ position: "absolute", zIndex: 2 }} />
                     </div>
                   </div>
                   <div className="flex flex-col gap-4" style={{ paddingTop: "48px" }}>
-                    <div style={{ height: "240px", background: "#FFD447", borderRadius: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                       <FaClipboardList className="text-[#0F172A]" size={48} />
+                    <div style={{ height: "240px", background: "#FFD447", borderRadius: "24px", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", position: "relative" }}>
+                       <img src="/generated/ethiopian_event_learning.png" alt="Addis Ababa Workshop" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.4 }} />
+                       <FaClipboardList className="text-[#0F172A]" size={48} style={{ position: "absolute", zIndex: 2 }} />
                     </div>
-                    <div style={{ height: "140px", background: "rgba(15,23,42,0.03)", borderRadius: "24px" }} />
+                    <div style={{ height: "140px", background: "rgba(15,23,42,0.03)", borderRadius: "24px", overflow: "hidden" }}>
+                      <img src="/generated/addis_strategy.png" alt="Ethiopian Strategy Session" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.9 }} />
+                    </div>
                   </div>
                 </div>
                 

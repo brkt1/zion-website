@@ -9,6 +9,7 @@ import { LoadingState } from "./Components/ui/LoadingState";
 
 import VisitTracker from "./Components/VisitTracker";
 import { LanguageProvider } from "./contexts/LanguageContext";
+import LanguageSelectorModal from "./Components/ui/LanguageSelectorModal";
 // Removed static imports for About and Contact to enable lazy loading
 // import About from "./pages/About";
 // import Contact from "./pages/Contact";
@@ -74,6 +75,7 @@ const AdminFeasibilityBriefs = lazy(() => import("./pages/admin/FeasibilityBrief
 function App() {
   return (
     <LanguageProvider>
+      <LanguageSelectorModal />
       <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <BrowserCompatibility />
         <ScrollToTop />

@@ -738,7 +738,7 @@ const About = () => {
                 <h3 className="yg-font-serif" style={{ fontSize: "28px", fontWeight: 900, color: BRAND.white, margin: 0 }}>Ready to Start Learning?</h3>
               </div>
               <p className="yg-font-sans" style={{ fontSize: "15px", color: "rgba(255,255,255,0.45)", margin: 0, maxWidth: "480px" }}>
-                Join 15,000+ students who have transformed their careers through our professional event education program.
+                Join 1,000+ students who have transformed their careers through our professional event education program.
               </p>
             </div>
             <div style={{ display: "flex", gap: "14px", flexWrap: "wrap" }}>
