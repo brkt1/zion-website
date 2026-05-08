@@ -12,6 +12,7 @@ import {
     FaWhatsapp
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import EventSlider from "../Components/EventSlider";
 import Gallery from "../Components/Gallery";
 import Hero from "../Components/Hero";
 import OptimizedImage from "../Components/ui/OptimizedImage";
@@ -93,7 +94,7 @@ const Home = () => {
   const { t, language } = useLanguage();
   const { content: homeContent } = useHomeContent();
   const { events: initialFeatured, isLoading: loadingFeatured } = useEvents({ featured: true, limit: 3 });
-  const { events: recentEvents, isLoading: loadingRecent } = useEvents({ limit: 3 });
+  const { events: recentEvents, isLoading: loadingRecent } = useEvents({ limit: 6 });
   const featuredEvents = initialFeatured.length > 0 ? initialFeatured : recentEvents;
   const isLoadingEvents = loadingFeatured && loadingRecent;
   const { contactInfo } = useContactInfo();
@@ -401,6 +402,10 @@ const Home = () => {
             height: 32px;
             align-self: center;
           }
+          .yg-grid-mobile { grid-template-columns: 1fr !important; gap: 48px !important; }
+          .yg-grid-mobile > div { align-items: center; text-align: center; }
+          .yg-grid-mobile p { margin-left: auto; margin-right: auto; }
+          .yg-grid-mobile > div > div:last-child[style*="display: flex"] { justify-content: center; }
           .yg-event-grid { grid-template-columns: 1fr !important; }
           .yg-service-grid { grid-template-columns: 1fr !important; }
           .yg-community-grid { grid-template-columns: 1fr !important; }
@@ -421,81 +426,115 @@ const Home = () => {
       {/* ── 1. Hero ──────────────────────────────────────────────────────────── */}
       <Hero />
 
-      {/* ── 2. Trust Seal & Social Proof ────────────────────────────────────────── */}
+      {/* ── 2. ልዩ ስልጠና — Academy Spotlight ─────────────────────────────────────── */}
       <section
-        aria-label="Our community by the numbers"
+        aria-label="ልዩ ስልጠና - Special Training Academy"
         style={{
           background: BRAND.navy,
           position: "relative",
           overflow: "hidden",
+          padding: "0",
         }}
       >
         {/* Top gradient border */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: "2px",
-            background: "linear-gradient(90deg, transparent, #FFD447, #FF6F5E, transparent)",
-          }}
-        />
-        
-        {/* Decorative background text */}
-        <div 
-          style={{ 
-            position: 'absolute', 
-            top: '50%', 
-            left: '50%', 
-            transform: 'translate(-50%, -50%)',
-            fontSize: 'max(15vw, 200px)',
-            fontWeight: 900,
-            fontFamily: "'Playfair Display', serif",
-            color: 'rgba(255, 212, 71, 0.02)', 
-            whiteSpace: 'nowrap',
-            pointerEvents: 'none',
-            zIndex: 0,
-            userSelect: 'none'
-          }}
-        >
-          TRUSTED
+        <div aria-hidden="true" style={{ position: "absolute", top: 0, left: 0, right: 0, height: "2px", background: "linear-gradient(90deg, transparent, #FFD447, #FF6F5E, transparent)" }} />
+
+        {/* Deep ambient glow */}
+        <div aria-hidden="true" style={{ position: "absolute", top: "-20%", right: "-10%", width: "600px", height: "600px", background: "radial-gradient(circle, rgba(255,212,71,0.06) 0%, transparent 65%)", filter: "blur(60px)", pointerEvents: "none", zIndex: 0 }} />
+        <div aria-hidden="true" style={{ position: "absolute", bottom: "-20%", left: "-10%", width: "500px", height: "500px", background: "radial-gradient(circle, rgba(255,111,94,0.05) 0%, transparent 65%)", filter: "blur(80px)", pointerEvents: "none", zIndex: 0 }} />
+
+        {/* Giant watermark */}
+        <div aria-hidden="true" style={{ position: "absolute", top: "50%", right: "-5%", transform: "translateY(-50%)", fontSize: "clamp(120px, 20vw, 260px)", fontWeight: 900, fontFamily: "'Playfair Display', serif", color: "rgba(255,212,71,0.025)", lineHeight: 1, pointerEvents: "none", zIndex: 0, userSelect: "none", letterSpacing: "-0.05em" }}>
+          ACADEMY
         </div>
 
-        <div
-          className="reveal-wrapper yg-stats-container"
-          style={{
-            maxWidth: "1200px",
-            margin: "0 auto",
-            padding: "80px 24px",
-            position: 'relative',
-            zIndex: 1
-          }}
-        >
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
-            {/* Trust Badge */}
-            <div className="flex-1 text-center lg:text-left">
-              <span className="text-[#FFD447] font-black tracking-[0.4em] text-[10px] uppercase mb-4 block">Our Digital Footprint</span>
-              <h2 className="font-serif text-3xl md:text-5xl text-white mb-6 leading-tight">
-                One of East Africa's <br />
-                <span className="italic text-gold-gradient">Leading Event Architects.</span>
+        <div className="reveal-wrapper" style={{ maxWidth: "1300px", margin: "0 auto", padding: "100px 40px", position: "relative", zIndex: 1 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }} className="yg-grid-mobile">
+
+            {/* LEFT: Editorial Text Block */}
+            <div>
+              {/* Label pill */}
+              <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(255,212,71,0.08)", border: "1px solid rgba(255,212,71,0.25)", borderRadius: "999px", padding: "6px 16px", marginBottom: "28px" }}>
+                <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#FFD447", boxShadow: "0 0 8px #FFD447" }} />
+                <span style={{ color: "#FFD447", fontFamily: "'Manrope', sans-serif", fontSize: "10px", fontWeight: 800, letterSpacing: "0.35em", textTransform: "uppercase" }}>ልዩ ስልጠና · Special Training</span>
+              </div>
+
+              <h2 className="yg-font-serif" style={{ fontSize: "clamp(40px, 5.5vw, 68px)", fontWeight: 900, color: "#fff", lineHeight: 1.0, letterSpacing: "-0.03em", marginBottom: "28px" }}>
+                Learn the Art of<br />
+                <span style={{ fontStyle: "italic", background: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Event Architecture.</span>
               </h2>
-              <p className="text-white/40 text-lg font-light max-w-xl">
-                With a footprint spanning multiple countries and a community of thousands, we don't just plan events—we seal the future of culture and execution.
+
+              <p className="yg-font-sans" style={{ fontSize: "17px", color: "rgba(255,255,255,0.45)", lineHeight: 1.8, maxWidth: "480px", marginBottom: "40px" }}>
+                East Africa's most comprehensive event training program. From logistics to execution — we build the next generation of professional event architects.
               </p>
+
+              {/* Feature pills */}
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "44px" }}>
+                {["Professional Certification", "Hands-on Masterclasses", "Real-world Projects", "Industry Mentors"].map((feat) => (
+                  <span key={feat} style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "999px", padding: "7px 16px", fontFamily: "'Manrope', sans-serif", fontSize: "11px", fontWeight: 600, color: "rgba(255,255,255,0.55)", letterSpacing: "0.04em" }}>
+                    <FaCheckCircle size={10} style={{ color: "#FFD447" }} /> {feat}
+                  </span>
+                ))}
+              </div>
+
+              {/* CTAs */}
+              <div style={{ display: "flex", gap: "14px", flexWrap: "wrap" }}>
+                <Link to="/masterclass-registration" className="yg-btn-primary yg-shine" style={{ gap: "10px" }}>
+                  Enroll Now <FaGraduationCap size={15} />
+                </Link>
+                <Link to="/events" style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "16px 32px", borderRadius: "999px", border: "1.5px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.7)", fontFamily: "'Manrope', sans-serif", fontWeight: 700, fontSize: "12px", letterSpacing: "0.1em", textTransform: "uppercase", textDecoration: "none", transition: "all 0.25s" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(255,212,71,0.5)"; (e.currentTarget as HTMLAnchorElement).style.color = "#FFD447"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(255,255,255,0.15)"; (e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.7)"; }}
+                >
+                  View Programs <FaArrowRight size={11} />
+                </Link>
+              </div>
             </div>
 
-            <div className="flex-1 yg-stats-row bg-white/5 backdrop-blur-md rounded-[40px] p-10 border border-white/10 shadow-2xl">
-              <StatBadge value="15k+" label={t.stats.happyMembers} icon={<FaUsers />} />
-              <div className="yg-stat-divider" />
-              <StatBadge value="4.9★" label={t.stats.avgRating} icon={<FaStar />} />
-              <div className="yg-stat-divider" />
-              <StatBadge value="24/7" label="Support" icon={<FaWhatsapp />} />
+            {/* RIGHT: Stats + Info Cards */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+              {/* Top stat row */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                {[
+                  { val: "15k+", label: "Community Members", icon: <FaUsers size={18} /> },
+                  { val: "4.9★", label: "Student Rating", icon: <FaStar size={18} /> },
+                ].map((s, i) => (
+                  <div key={i} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "24px", padding: "28px 24px", backdropFilter: "blur(12px)", position: "relative", overflow: "hidden" }}>
+                    <div style={{ position: "absolute", top: "-10px", right: "-10px", fontSize: "60px", opacity: 0.03, color: "#FFD447", fontFamily: "'Playfair Display', serif", fontWeight: 900, lineHeight: 1 }}>{s.val.replace(/[^0-9k+★]/g, '')}</div>
+                    <div style={{ color: "#FFD447", marginBottom: "12px" }}>{s.icon}</div>
+                    <div className="yg-font-serif" style={{ fontSize: "36px", fontWeight: 900, color: "#fff", lineHeight: 1, marginBottom: "6px" }}>{s.val}</div>
+                    <div className="yg-font-sans" style={{ fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: "0.18em" }}>{s.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Academy highlight card */}
+              <div style={{ background: "linear-gradient(135deg, rgba(255,212,71,0.08) 0%, rgba(255,111,94,0.06) 100%)", border: "1px solid rgba(255,212,71,0.2)", borderRadius: "28px", padding: "36px 32px", backdropFilter: "blur(16px)", position: "relative", overflow: "hidden" }}>
+                {/* Decorative corner accent */}
+                <div style={{ position: "absolute", top: 0, right: 0, width: "120px", height: "120px", background: "radial-gradient(circle at top right, rgba(255,212,71,0.15) 0%, transparent 65%)", borderRadius: "0 28px 0 0" }} />
+                <div style={{ color: "#FFD447", marginBottom: "16px" }}><FaGraduationCap size={28} /></div>
+                <h3 className="yg-font-serif" style={{ fontSize: "22px", fontWeight: 800, color: "#fff", marginBottom: "10px" }}>
+                  Learn Event<br /><span style={{ color: "#FFD447", fontStyle: "italic" }}>Like a Pro.</span>
+                </h3>
+                <p className="yg-font-sans" style={{ fontSize: "14px", color: "rgba(255,255,255,0.45)", lineHeight: 1.7, marginBottom: "20px" }}>
+                  Our structured curriculum covers event design, vendor coordination, financial strategy, and live execution — from day one.
+                </p>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <div style={{ display: "flex" }}>
+                    {[1,2,3,4,5].map(i => (
+                      <div key={i} style={{ width: "24px", height: "24px", borderRadius: "50%", border: "2px solid #0F172A", background: `hsl(${i * 40}, 70%, 60%)`, marginLeft: i > 1 ? "-8px" : "0", zIndex: 6 - i }} />
+                    ))}
+                  </div>
+                  <span className="yg-font-sans" style={{ fontSize: "12px", color: "rgba(255,255,255,0.45)", fontWeight: 600 }}>Join 15,000+ students learning events</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
+
+      {/* ── Event Slider Display ──────────────────────────────────────────────── */}
+      <EventSlider events={recentEvents} />
 
       {/* ── 2.5 The Yenege Distinction ───────────────────────────────────────── */}
       <section
@@ -560,477 +599,7 @@ const Home = () => {
       </section>
 
       {/* ── 3. What We Do ────────────────────────────────────────────────────── */}
-      {/* ── 4. Event Categories (service category cards) ─────────────────────── */}
-      <section
-        aria-labelledby="services-heading"
-        style={{
-          padding: "100px 0",
-          background: BRAND.white,
-          position: "relative",
-        }}
-      >
-        {/* Background decoration */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            top: 0,
-            right: 0,
-            width: "480px",
-            height: "480px",
-            background:
-              "radial-gradient(circle, rgba(228,232,33,0.07) 0%, transparent 70%)",
-            pointerEvents: "none",
-          }}
-        />
 
-        <div
-          className="reveal-wrapper"
-          style={{
-            maxWidth: "1200px",
-            margin: "0 auto",
-            padding: "0 24px",
-          }}
-        >
-          {/* Section header */}
-          <div style={{ textAlign: "center", marginBottom: "64px" }}>
-            <SectionLabel>{t.portfolio.title}</SectionLabel>
-            <h2
-              id="services-heading"
-              className="yg-font-serif"
-              style={{
-                fontSize: "clamp(36px, 5vw, 56px)",
-                fontWeight: 900,
-                color: BRAND.navy,
-                margin: "0 0 16px",
-                lineHeight: 1.1,
-                letterSpacing: "-0.02em",
-              }}
-            >
-              {t.portfolio.subtitle.split(',')[0]},{" "}
-              <span
-                style={{
-                  background: GRADIENT.brand,
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                  fontStyle: "italic",
-                }}
-              >
-                {t.portfolio.subtitle.split(',')[1]}
-              </span>
-            </h2>
-            <p
-              className="yg-font-sans"
-              style={{
-                fontSize: "17px",
-                color: BRAND.gray500,
-                maxWidth: "600px",
-                margin: "0 auto",
-                lineHeight: 1.7,
-              }}
-            >
-              {language === 'am' ? "በባለሙያ የተመረጡ የጉዞ መዳረሻዎች እና ልዩ የደስታ ጊዜያት። በልዩ ስብስባችን የኢትዮጵያን ውበት ያግኙ።" : "Bespoke travels and curated moments designed for the discerning explorer. Discover the soul of Ethiopia through our exclusive collection."}
-            </p>
-          </div>
-
-          {/* Service cards */}
-          <div
-            className="yg-service-grid"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))",
-              gap: "40px",
-            }}
-          >
-            {homeContent?.categories && homeContent.categories.length > 0 ? (
-              homeContent.categories
-                .map((category, index) => (
-                <Link
-                  key={category.id || index}
-                  to={category.link}
-                  className="yg-service-card group"
-                  onMouseEnter={() => handleLinkHover(category.link)}
-                  style={{ 
-                    textDecoration: "none",
-                    position: "relative",
-                    display: "block",
-                    padding: "48px",
-                    background: BRAND.cream,
-                    borderRadius: "24px",
-                    border: "1px solid rgba(15,23,42,0.05)",
-                    overflow: "hidden",
-                    transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)"
-                  }}
-                  aria-label={`Learn more about ${category.title}`}
-                >
-                  <div
-                    className="yg-font-sans"
-                    style={{
-                      position: "absolute",
-                      top: "24px",
-                      right: "32px",
-                      fontSize: "80px",
-                      fontWeight: 900,
-                      color: "rgba(15,23,42,0.03)",
-                      lineHeight: 1,
-                      pointerEvents: "none",
-                      transition: "color 0.5s ease"
-                    }}
-                  >
-                    {category.number || `0${index + 1}`}
-                  </div>
-                  
-                  <div
-                    style={{
-                      width: "48px",
-                      height: "4px",
-                      background: GRADIENT.brand,
-                      borderRadius: "2px",
-                      marginBottom: "32px",
-                      transition: "width 0.4s ease"
-                    }}
-                    className="group-hover:w-16"
-                  />
-
-                  <h3
-                    className="yg-font-serif"
-                    style={{
-                      fontSize: "32px",
-                      fontWeight: 800,
-                      color: BRAND.navy,
-                      marginBottom: "16px",
-                    }}
-                  >
-                    {category.title}
-                  </h3>
-                  <p
-                    className="yg-font-sans"
-                    style={{
-                      fontSize: "17px",
-                      color: BRAND.gray500,
-                      lineHeight: 1.7,
-                      marginBottom: "40px",
-                      maxWidth: "85%",
-                    }}
-                  >
-                    {category.description}
-                  </p>
-
-                  <div
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "10px",
-                      color: BRAND.coral,
-                      fontWeight: 700,
-                      fontSize: "13px",
-                      letterSpacing: "0.15em",
-                      textTransform: "uppercase",
-                      transition: "gap 0.3s ease"
-                    }}
-                    className="group-hover:gap-4"
-                  >
-                    Discover <FaArrowRight size={12} />
-                  </div>
-                </Link>
-              ))
-            ) : (
-              /* Fallback: hardcoded services */
-              <>
-                {[
-                  {
-                    number: "01",
-                    title: "Travel",
-                    desc: "Explore breathtaking destinations across Ethiopia and beyond. From desert safaris to mountain escapes.",
-                    link: "/events?category=travel",
-                  },
-                ].map((s, i) => (
-                  <Link
-                    key={i}
-                    to={s.link}
-                    className="yg-service-card group"
-                    onMouseEnter={() => handleLinkHover(s.link)}
-                    style={{ 
-                      textDecoration: "none",
-                      position: "relative",
-                      display: "block",
-                      padding: "48px",
-                      background: BRAND.cream,
-                      borderRadius: "24px",
-                      border: "1px solid rgba(15,23,42,0.05)",
-                      overflow: "hidden",
-                      transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)"
-                    }}
-                    aria-label={`Learn more about ${s.title}`}
-                  >
-                    <div
-                      className="yg-font-sans"
-                      style={{
-                        position: "absolute",
-                        top: "24px",
-                        right: "32px",
-                        fontSize: "80px",
-                        fontWeight: 900,
-                        color: "rgba(15,23,42,0.03)",
-                        lineHeight: 1,
-                        pointerEvents: "none",
-                        transition: "color 0.5s ease"
-                      }}
-                    >
-                      {s.number}
-                    </div>
-
-                    <div
-                      style={{
-                        width: "48px",
-                        height: "4px",
-                        background: GRADIENT.brand,
-                        borderRadius: "2px",
-                        marginBottom: "32px",
-                        transition: "width 0.4s ease"
-                      }}
-                      className="group-hover:w-16"
-                    />
-
-                    <h3
-                      className="yg-font-serif"
-                      style={{
-                        fontSize: "32px",
-                        fontWeight: 800,
-                        color: BRAND.navy,
-                        marginBottom: "16px",
-                      }}
-                    >
-                      {s.title}
-                    </h3>
-                    <p
-                      className="yg-font-sans"
-                      style={{
-                        fontSize: "17px",
-                        color: BRAND.gray500,
-                        lineHeight: 1.7,
-                        marginBottom: "40px",
-                        maxWidth: "85%",
-                      }}
-                    >
-                      {s.desc}
-                    </p>
-                    <div
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "10px",
-                        color: BRAND.coral,
-                        fontWeight: 700,
-                        fontSize: "13px",
-                        letterSpacing: "0.15em",
-                        textTransform: "uppercase",
-                        transition: "gap 0.3s ease"
-                      }}
-                      className="group-hover:gap-4"
-                    >
-                      {t.portfolio.discover} <FaArrowRight size={12} />
-                    </div>
-                  </Link>
-                ))}
-              </>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* ── 5. Featured Events ────────────────────────────────────────────────── */}
-      <section
-        aria-labelledby="experiences-heading"
-        style={{ 
-          padding: "160px 0", 
-          background: BRAND.primary, 
-          position: 'relative', 
-          overflow: 'hidden' 
-        }}
-      >
-        {/* Creative Layer 1: Massive Background Watermark */}
-        <div 
-          style={{ 
-            position: 'absolute', 
-            top: '50%', 
-            left: '50%', 
-            transform: 'translate(-50%, -50%)',
-            fontSize: 'max(20vw, 300px)',
-            fontWeight: 900,
-            fontFamily: "'Playfair Display', serif",
-            color: 'rgba(255, 212, 71, 0.03)', // Extremely subtle gold
-            whiteSpace: 'nowrap',
-            pointerEvents: 'none',
-            zIndex: 0,
-            userSelect: 'none'
-          }}
-        >
-          CURATED
-        </div>
-
-        {/* Creative Layer 2: Grain Overlay for Print Feel */}
-        <div className="noise-bk" />
-
-        {/* Vertical Sidebrand */}
-        <div className="sidebrand">YENEGE CURATION Portfolio 2024</div>
-
-        {/* Creative Layer 3: Dynamic Glows */}
-        <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '40%', height: '40%', background: 'radial-gradient(circle, rgba(255,111,94,0.1) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none', zIndex: 1 }} />
-        <div style={{ position: 'absolute', bottom: '-10%', right: '-10%', width: '50%', height: '50%', background: 'radial-gradient(circle, rgba(228,232,33,0.05) 0%, transparent 70%)', filter: 'blur(100px)', pointerEvents: 'none', zIndex: 1 }} />
-
-        <div className="reveal-wrapper" style={{ maxWidth: "1500px", margin: "0 auto", padding: "0 40px", position: 'relative', zIndex: 2 }}>
-          {/* Creative Header: Asymmetrical & Bold */}
-          <div
-            className="yg-creative-header flex flex-col lg:flex-row lg:items-end justify-between w-full mb-16 md:mb-32"
-          >
-            <div className="max-w-2xl">
-              <SectionLabel>Available Experiences</SectionLabel>
-              <h2 className="yg-font-serif text-white text-6xl md:text-8xl font-black leading-[0.9] tracking-tighter mt-8">
-                The <span className="italic" style={{ color: BRAND.gold }}>Curation</span> <br />
-                <span className="text-[12px] md:text-[14px] font-black uppercase tracking-[0.6em] text-white/30 block mt-6">Selected Portfolio 2024</span>
-              </h2>
-            </div>
-            
-            <div className="hidden lg:block pb-4 text-right border-r-2 border-[#FFD447]/20 pr-8">
-                <p className="text-[11px] font-bold text-white/40 uppercase tracking-[0.3em] max-w-[250px] leading-relaxed">
-                  Exclusive events and <br />
-                  bespoke moments designed <br />
-                  for the discerning soul.
-                </p>
-            </div>
-          </div>
-
-
-          {/* Event cards grid */}
-          {isLoadingEvents ? (
-            <div className="flex justify-center items-center py-20 w-full">
-              <div className="w-12 h-12 border-4 border-[#FFD447] border-t-transparent rounded-full animate-spin"></div>
-            </div>
-          ) : featuredEvents.length > 0 ? (
-              <div
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-14 w-full"
-              >
-                {featuredEvents.map((event, index) => (
-                  <Link
-                    key={event.id}
-                    to={`/events/${event.id}`}
-                    className="yg-event-card yg-creative-card group"
-                    style={{ 
-                      textDecoration: "none", 
-                      borderRadius: '48px', 
-                      overflow: 'hidden', 
-                      position: 'relative', 
-                      display: 'block',
-                      zIndex: index === 1 ? 10 : 1
-                    }}
-                    aria-label={`View details for ${event.title}`}
-                  >
-                    {/* Floating Number Branding */}
-                    <div className="absolute top-10 left-10 z-20 pointer-events-none">
-                       <span className="text-[120px] font-black text-white/5 leading-none select-none">0{index + 1}</span>
-                    </div>
-
-                    <div className="relative aspect-[4/5] overflow-hidden">
-
-                      {event.image ? (
-                        <OptimizedImage
-                          src={event.image}
-                          alt={event.title}
-                          width={800}
-                          height={1000}
-                          className="card-img w-full h-full object-cover transition-transform duration-1000 cubic-bezier(0.16,1,0.3,1)"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-[#0F172A] flex items-center justify-center">
-                          <FaCalendarAlt size={40} className="text-[#FFD447]/20" />
-                        </div>
-                      )}
-
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A]/90 via-transparent to-black/20" />
-                      
-                      {/* Vertical Date Branding */}
-                      <div className="absolute right-6 top-10 flex flex-col items-center gap-6">
-                         <div className="w-px h-12 bg-white/20" />
-                         <span className="vertical-date text-[9px] font-black uppercase tracking-[0.4em] text-white/40" style={{ writingMode: 'vertical-rl' }}>
-                           {formatDateShort(event.date)}
-                         </span>
-                      </div>
-
-                      {/* Content Over the Image */}
-                      <div className="absolute bottom-10 left-10 right-10 flex flex-col items-start">
-                         <div className="flex items-center gap-3 mb-4">
-                            <span className="px-3 py-1.5 rounded-full border border-white/10 bg-white/10 backdrop-blur-md text-[8px] font-black text-white uppercase tracking-widest">{event.category}</span>
-                            <span className="h-1 w-1 bg-[#FFD447] rounded-full" />
-                            <span className="text-[8px] font-black text-white/50 uppercase tracking-[0.3em]">
-                              {event.location === "Addis Ababa, Ethiopia" ? "Amir Commercial Complex, 12th Floor, Office No. 12-003, Gabon St (Olympia), Bole Sub-city, Addis Ababa, Ethiopia" : event.location}
-                            </span>
-                         </div>
-                         
-                         <h3 className="yg-font-serif text-2xl font-black text-white leading-[1.1] mb-8 group-hover:text-[#FFD447] transition-colors">
-                           {event.title}
-                         </h3>
-
-                         <div className="flex items-center justify-between w-full">
-                           <div className="bg-[#0F172A] text-[#FFD447] py-2 px-4 rounded-xl text-sm font-serif italic font-black shadow-lg">
-                             {event.price === "Free" ? "Gratis" : `${event.price} ${event.currency}`}
-                           </div>
-                           
-                           <div className="arrow-circle w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-white transition-all duration-500 group-hover:bg-[#0F172A] group-hover:text-[#FFD447] group-hover:rotate-[-45deg]">
-                             <FaArrowRight size={12} />
-                           </div>
-                         </div>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-               <div
-                 style={{
-                   textAlign: "center",
-                   padding: "100px 24px",
-                   background: "rgba(255,255,255,0.03)",
-                   borderRadius: "40px",
-                   border: "1px dashed rgba(255,212,71,0.2)",
-                   backdropFilter: 'blur(10px)'
-                 }}
-               >
-                 <h3
-                   className="yg-font-serif"
-                   style={{
-                     fontSize: "28px",
-                     fontWeight: 900,
-                     color: BRAND.white,
-                     marginBottom: "16px",
-                   }}
-                 >
-                   No upcoming experiences right now
-                 </h3>
-                 <p
-                   className="yg-font-sans"
-                   style={{
-                     color: "rgba(255,255,255,0.5)",
-                     fontSize: "17px",
-                     marginBottom: "40px",
-                     maxWidth: "400px",
-                     margin: "0 auto 40px"
-                   }}
-                 >
-                   We're curating something special. Check back later to discover our latest bespoke experiences.
-                 </p>
-                 <Link
-                   to="/events"
-                   className="yg-btn-primary yg-shine"
-                   style={{ background: BRAND.gold, color: BRAND.primary }}
-                 >
-                   Explore Portfolio <FaArrowRight size={12} />
-                 </Link>
-               </div>
-            )}
-        </div>
-      </section>
 
       {/* ── 6. Academy ───────────────────────────────────────────────────────── */}
       <section
@@ -1433,24 +1002,51 @@ const Home = () => {
               <>
                 <Link
                   to="/events"
-                  className="yg-btn-primary"
+                  className="yg-btn-primary yg-shine"
                   onMouseEnter={() => handleLinkHover("/events")}
                   aria-label="Explore upcoming events"
                 >
                   Explore Events <FaArrowRight size={12} />
                 </Link>
-                <a
-                  href={`https://wa.me/${
-                    contactInfo?.phone?.replace(/\D/g, "") || "251978639887"
-                  }`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="yg-btn-whatsapp"
-                  aria-label="Contact us on WhatsApp"
+                <Link
+                  to="/apply"
+                  aria-label="Enroll in Yenege Event Academy"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    padding: "16px 36px",
+                    borderRadius: "999px",
+                    background: "linear-gradient(135deg, rgba(255,212,71,0.12) 0%, rgba(255,111,94,0.08) 100%)",
+                    border: "1.5px solid rgba(255,212,71,0.35)",
+                    color: "#FFD447",
+                    fontFamily: "'Manrope', sans-serif",
+                    fontWeight: 800,
+                    fontSize: "13px",
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    textDecoration: "none",
+                    backdropFilter: "blur(10px)",
+                    transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
+                    boxShadow: "0 0 30px rgba(255,212,71,0.08)",
+                  }}
+                  onMouseEnter={(e) => {
+                    handleLinkHover("/apply");
+                    (e.currentTarget as HTMLAnchorElement).style.background = "linear-gradient(135deg, rgba(255,212,71,0.22) 0%, rgba(255,111,94,0.14) 100%)";
+                    (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(255,212,71,0.7)";
+                    (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 0 40px rgba(255,212,71,0.2)";
+                    (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-2px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLAnchorElement).style.background = "linear-gradient(135deg, rgba(255,212,71,0.12) 0%, rgba(255,111,94,0.08) 100%)";
+                    (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(255,212,71,0.35)";
+                    (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 0 30px rgba(255,212,71,0.08)";
+                    (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(0)";
+                  }}
                 >
-                  <FaWhatsapp size={16} />
-                  WhatsApp Us
-                </a>
+                  <FaGraduationCap size={16} />
+                  Learn Event
+                </Link>
               </>
             )}
           </div>

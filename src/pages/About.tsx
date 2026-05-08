@@ -6,12 +6,12 @@ import {
   FaNetworkWired,
   FaRocket,
   FaUsers,
-  FaWhatsapp
+  FaWhatsapp,
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import OptimizedImage from "../Components/ui/OptimizedImage";
 import CEOKnowledgeCard from "../Components/ui/CEOKnowledgeCard";
-import BrandSearchPreview from "../Components/ui/BrandSearchPreview";
+
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAboutContent, useContactInfo } from "../hooks/useApi";
 import { useScrollReveal } from "../hooks/useScrollReveal";
@@ -661,32 +661,96 @@ const About = () => {
         </div>
       </section>
 
-      <section 
-        style={{ padding: "140px 0", background: BRAND.primary, position: 'relative', overflow: 'hidden' }}
+      {/* ── ልዩ ስልጠና — Academy Section ─────────────────────────────────────────── */}
+      <section
+        style={{ padding: "140px 0", background: BRAND.primary, position: "relative", overflow: "hidden" }}
       >
         <div className="noise-bk" />
-        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", position: 'relative', zIndex: 2 }}>
+
+        {/* Ambient glows */}
+        <div aria-hidden="true" style={{ position: "absolute", top: "-10%", right: "-5%", width: "600px", height: "600px", background: "radial-gradient(circle, rgba(255,212,71,0.06) 0%, transparent 65%)", filter: "blur(80px)", pointerEvents: "none", zIndex: 0 }} />
+        <div aria-hidden="true" style={{ position: "absolute", bottom: "-10%", left: "-5%", width: "500px", height: "500px", background: "radial-gradient(circle, rgba(255,111,94,0.05) 0%, transparent 65%)", filter: "blur(80px)", pointerEvents: "none", zIndex: 0 }} />
+
+        {/* Giant watermark */}
+        <div aria-hidden="true" style={{ position: "absolute", bottom: "0", left: "-2%", fontSize: "clamp(100px, 18vw, 220px)", fontWeight: 900, fontFamily: "'Playfair Display', serif", color: "rgba(255,212,71,0.025)", lineHeight: 1, pointerEvents: "none", zIndex: 0, userSelect: "none", letterSpacing: "-0.05em" }}>
+          ACADEMY
+        </div>
+
+        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", position: "relative", zIndex: 2 }}>
+
+          {/* Section Header */}
           <div style={{ textAlign: "center", marginBottom: "80px" }}>
-            <SectionLabel>Our Digital Authority</SectionLabel>
-            <h2
-              className="yg-font-serif"
-              style={{
-                fontSize: "clamp(36px, 5vw, 56px)",
-                fontWeight: 900,
-                color: BRAND.white,
-                lineHeight: 1.1,
-                letterSpacing: "-0.02em",
-                marginBottom: "32px",
-              }}
-            >
-              How the World <span style={{ fontStyle: "italic", color: BRAND.gold }}>Sees Us.</span>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(255,212,71,0.08)", border: "1px solid rgba(255,212,71,0.25)", borderRadius: "999px", padding: "6px 20px", marginBottom: "28px" }}>
+              <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#FFD447", boxShadow: "0 0 8px #FFD447" }} />
+              <span style={{ color: "#FFD447", fontFamily: "'Manrope', sans-serif", fontSize: "10px", fontWeight: 800, letterSpacing: "0.35em", textTransform: "uppercase" }}>ልዩ ስልጠና · Special Training</span>
+            </div>
+            <h2 className="yg-font-serif" style={{ fontSize: "clamp(40px, 5vw, 64px)", fontWeight: 900, color: BRAND.white, lineHeight: 1.05, letterSpacing: "-0.03em", marginBottom: "24px" }}>
+              Learn the Art of<br />
+              <span style={{ fontStyle: "italic", background: GRADIENT.brand, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Event Architecture.</span>
             </h2>
-            <p className="yg-font-sans" style={{ color: 'rgba(255,255,255,0.5)', maxWidth: '600px', margin: '0 auto' }}>
-              We've architected our digital footprint to reflect our real-world impact. Explore our verified search presence.
+            <p className="yg-font-sans" style={{ fontSize: "18px", color: "rgba(255,255,255,0.45)", maxWidth: "600px", margin: "0 auto", lineHeight: 1.8 }}>
+              East Africa's most comprehensive event training program. We build certified, industry-ready event architects through structured education and real-world experience.
             </p>
           </div>
 
-          <BrandSearchPreview />
+          {/* Curriculum Cards Grid */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "24px", marginBottom: "60px" }} className="yg-grid-mobile">
+            {[
+              {
+                num: "01",
+                title: "Event Design",
+                desc: "Concept development, theme architecture, and experience mapping. Learn to build events that feel intentional.",
+                icon: <FaRocket />,
+                color: "#FFD447",
+              },
+              {
+                num: "02",
+                title: "Operations & Logistics",
+                desc: "Vendor coordination, timeline management, and on-ground execution for flawless event delivery.",
+                icon: <FaNetworkWired />,
+                color: "#FF6F5E",
+              },
+              {
+                num: "03",
+                title: "Financial Strategy",
+                desc: "Budgeting frameworks, sponsor acquisition, and ROI modelling for sustainable event businesses.",
+                icon: <FaCheckCircle />,
+                color: "#FFD447",
+              },
+            ].map((item, i) => (
+              <div key={i} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "28px", padding: "40px 32px", position: "relative", overflow: "hidden", transition: "all 0.4s cubic-bezier(0.16,1,0.3,1)" }}>
+                {/* Ghost number */}
+                <div className="yg-font-sans" style={{ position: "absolute", top: "16px", right: "24px", fontSize: "72px", fontWeight: 900, color: `${item.color}08`, lineHeight: 1 }}>{item.num}</div>
+                {/* Accent bar */}
+                <div style={{ width: "40px", height: "3px", background: `linear-gradient(90deg, ${item.color}, transparent)`, borderRadius: "2px", marginBottom: "28px" }} />
+                <div style={{ color: item.color, fontSize: "28px", marginBottom: "20px" }}>{item.icon}</div>
+                <h3 className="yg-font-serif" style={{ fontSize: "22px", fontWeight: 800, color: BRAND.white, marginBottom: "12px" }}>{item.title}</h3>
+                <p className="yg-font-sans" style={{ fontSize: "15px", color: "rgba(255,255,255,0.4)", lineHeight: 1.7 }}>{item.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Bottom CTA Row */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "32px", padding: "48px", background: "linear-gradient(135deg, rgba(255,212,71,0.07) 0%, rgba(255,111,94,0.04) 100%)", border: "1px solid rgba(255,212,71,0.15)", borderRadius: "32px" }}>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+                <FaGraduationCap style={{ color: "#FFD447", fontSize: "24px" }} />
+                <h3 className="yg-font-serif" style={{ fontSize: "28px", fontWeight: 900, color: BRAND.white, margin: 0 }}>Ready to Start Learning?</h3>
+              </div>
+              <p className="yg-font-sans" style={{ fontSize: "15px", color: "rgba(255,255,255,0.45)", margin: 0, maxWidth: "480px" }}>
+                Join 15,000+ students who have transformed their careers through our professional event education program.
+              </p>
+            </div>
+            <div style={{ display: "flex", gap: "14px", flexWrap: "wrap" }}>
+              <Link to="/masterclass-registration" className="yg-btn-primary" style={{ whiteSpace: "nowrap" }}>
+                Enroll Now <FaArrowRight size={13} />
+              </Link>
+              <Link to="/events" style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "16px 28px", borderRadius: "999px", border: "1.5px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.6)", fontFamily: "'Manrope', sans-serif", fontWeight: 700, fontSize: "12px", letterSpacing: "0.1em", textTransform: "uppercase", textDecoration: "none", whiteSpace: "nowrap" }}>
+                View Events <FaArrowRight size={10} />
+              </Link>
+            </div>
+          </div>
+
         </div>
       </section>
 
