@@ -99,6 +99,20 @@ const Dashboard = () => {
   const [expandedCustomerId, setExpandedCustomerId] = useState<string | null>(null);
 
   useEffect(() => {
+    const checkRole = async () => {
+      const { data: { user } } = await supabase.auth.getSession();
+      if (user) {
+        const { isAdmin, isMasterclassManager } = await import('../../services/auth');
+        const admin = await isAdmin();
+        const masterclass = await isMasterclassManager();
+        if (masterclass && !admin) {
+          window.location.href = '/admin/masterclass-dashboard';
+          return;
+        }
+      }
+    };
+    checkRole();
+    
     loadStats();
     loadTickets();
     loadExpoStats();

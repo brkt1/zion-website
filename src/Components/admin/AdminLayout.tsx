@@ -232,28 +232,30 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-3 px-2.5 scrollbar-hide space-y-0.5">
-          {/* Dashboard */}
-          <div className="mb-3">
-            <Link
-              to="/admin/dashboard"
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative ${
-                isActive('/admin/dashboard')
-                  ? 'bg-gradient-to-r from-[#1C2951] to-[#2d3d6b] text-white shadow-lg'
-                  : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'
-              }`}
-            >
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isActive('/admin/dashboard') ? 'bg-white/15' : 'bg-gray-100 group-hover:bg-white group-hover:shadow-sm'}`}>
-                <FaChartLine size={14} className={isActive('/admin/dashboard') ? 'text-white' : 'text-gray-500'} />
-              </div>
-              {sidebarOpen && <span className="font-bold text-sm">Dashboard</span>}
-              {!sidebarOpen && (
-                <div className="absolute left-full ml-3 px-2.5 py-1.5 bg-gray-900 text-white text-xs font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none whitespace-nowrap z-50 shadow-xl">
-                  Dashboard
-                  <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-gray-900" />
+          {/* Dashboard - Hidden for Masterclass Managers who are not Super Admins */}
+          {(!isMasterclass || isAdminUser) && (
+            <div className="mb-3">
+              <Link
+                to="/admin/dashboard"
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative ${
+                  isActive('/admin/dashboard')
+                    ? 'bg-gradient-to-r from-[#1C2951] to-[#2d3d6b] text-white shadow-lg'
+                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'
+                }`}
+              >
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isActive('/admin/dashboard') ? 'bg-white/15' : 'bg-gray-100 group-hover:bg-white group-hover:shadow-sm'}`}>
+                  <FaChartLine size={14} className={isActive('/admin/dashboard') ? 'text-white' : 'text-gray-500'} />
                 </div>
-              )}
-            </Link>
-          </div>
+                {sidebarOpen && <span className="font-bold text-sm">Dashboard</span>}
+                {!sidebarOpen && (
+                  <div className="absolute left-full ml-3 px-2.5 py-1.5 bg-gray-900 text-white text-xs font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none whitespace-nowrap z-50 shadow-xl">
+                    Dashboard
+                    <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-gray-900" />
+                  </div>
+                )}
+              </Link>
+            </div>
+          )}
 
           {/* Grouped Sections */}
           {filteredSections.map((section, idx) => (
@@ -388,15 +390,17 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
 
           {/* Nav */}
           <div className="flex-1 overflow-y-auto p-3 scrollbar-hide">
-            {/* Dashboard */}
-            <div className="mb-3">
-              <Link to="/admin/dashboard" onClick={() => setMobileMenuOpen(false)} className={`flex items-center gap-3 px-4 py-3 rounded-xl ${isActive('/admin/dashboard') ? 'bg-gradient-to-r from-[#1C2951] to-[#2d3d6b] text-white shadow-lg' : 'text-gray-500 hover:bg-gray-50'}`}>
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isActive('/admin/dashboard') ? 'bg-white/15' : 'bg-gray-100'}`}>
-                  <FaChartLine size={14} className={isActive('/admin/dashboard') ? 'text-white' : 'text-gray-500'} />
-                </div>
-                <span className="font-bold text-sm">Dashboard</span>
-              </Link>
-            </div>
+            {/* Dashboard - Hidden for Masterclass Managers who are not Super Admins */}
+            {(!isMasterclass || isAdminUser) && (
+              <div className="mb-3">
+                <Link to="/admin/dashboard" onClick={() => setMobileMenuOpen(false)} className={`flex items-center gap-3 px-4 py-3 rounded-xl ${isActive('/admin/dashboard') ? 'bg-gradient-to-r from-[#1C2951] to-[#2d3d6b] text-white shadow-lg' : 'text-gray-500 hover:bg-gray-50'}`}>
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isActive('/admin/dashboard') ? 'bg-white/15' : 'bg-gray-100'}`}>
+                    <FaChartLine size={14} className={isActive('/admin/dashboard') ? 'text-white' : 'text-gray-500'} />
+                  </div>
+                  <span className="font-bold text-sm">Dashboard</span>
+                </Link>
+              </div>
+            )}
 
             {filteredSections.map((section, idx) => (
               <div key={section.label} className={idx > 0 ? 'pt-3' : ''}>
