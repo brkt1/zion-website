@@ -100,8 +100,8 @@ const Dashboard = () => {
 
   useEffect(() => {
     const checkRole = async () => {
-      const { data: { user } } = await supabase.auth.getSession();
-      if (user) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
         const { isAdmin, isMasterclassManager } = await import('../../services/auth');
         const admin = await isAdmin();
         const masterclass = await isMasterclassManager();
