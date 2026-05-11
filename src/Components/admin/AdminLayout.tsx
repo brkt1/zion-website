@@ -4,7 +4,7 @@ import {
     FaChevronLeft, FaChevronRight, FaCog, FaEnvelope, FaFileAlt,
     FaGlobe, FaGraduationCap, FaHandshake, FaHome, FaImages,
     FaInfoCircle, FaMapMarkerAlt, FaNewspaper, FaQrcode,
-    FaSearch, FaSignOutAlt, FaTicketAlt, FaTimes, FaUser, FaUsers
+    FaSearch, FaSignOutAlt, FaTicketAlt, FaTimes, FaUser, FaUserShield, FaUsers
 } from 'react-icons/fa';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { isAdmin, isCommissionSeller, isMasterclassManager, isSponsorshipManager } from '../../services/auth';
@@ -130,6 +130,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
       emoji: '⚙️',
       items: [
         { icon: FaCog, label: 'Site Settings', path: '/admin/settings', color: 'from-gray-500 to-slate-600', adminOnly: true },
+        { icon: FaUserShield, label: 'Team & Roles', path: '/admin/admins', color: 'from-indigo-500 to-purple-600', adminOnly: true },
       ],
     },
   ];

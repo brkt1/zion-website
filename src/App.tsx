@@ -66,6 +66,7 @@ const AdminMasterclassReservations = lazy(() => import("./pages/admin/Masterclas
 const MasterclassDashboard = lazy(() => import("./pages/admin/MasterclassDashboard"));
 const RepresentativeDashboard = lazy(() => import("./pages/admin/RepresentativeDashboard"));
 const AdminFeasibilityBriefs = lazy(() => import("./pages/admin/FeasibilityBriefs"));
+const Admins = lazy(() => import("./pages/admin/Admins"));
 
 
 
@@ -383,6 +384,14 @@ function App() {
             element={
               <Suspense fallback={<LoadingState message="Loading briefs..." />}>
                 <AdminFeasibilityBriefs />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="/admin/admins" 
+            element={
+              <Suspense fallback={<LoadingState />}>
+                <Admins />
               </Suspense>
             } 
           />
