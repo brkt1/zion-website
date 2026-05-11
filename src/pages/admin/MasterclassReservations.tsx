@@ -16,7 +16,6 @@ const MasterclassReservations = () => {
   const [notes, setNotes] = useState('');
   const [selectedPackage, setSelectedPackage] = useState('');
   const [communicationMethod, setCommunicationMethod] = useState('');
-  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   useEffect(() => {
     loadReservations();
