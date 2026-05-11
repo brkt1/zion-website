@@ -13,6 +13,10 @@ const MasterclassReservations = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'reviewed' | 'accepted' | 'rejected'>('all');
   const [regionFilter, setRegionFilter] = useState<string>('all');
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
+  const [notes, setNotes] = useState('');
+  const [selectedPackage, setSelectedPackage] = useState('');
+  const [communicationMethod, setCommunicationMethod] = useState('');
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   useEffect(() => {
     loadReservations();
@@ -51,11 +55,15 @@ const MasterclassReservations = () => {
   };
 
   const handleStatusUpdate = async (id: string, newStatus: 'reviewed' | 'accepted' | 'rejected' | 'pending') => {
-    if (newStatus === 'pending') return; // Not supported by current API helper but can be added if needed
+    if (newStatus === 'pending') return;
     
     setUpdatingIds(prev => new Set(prev).add(id));
     try {
-      const updated = await adminApi.masterclassReservations.updateStatus(id, newStatus as any);
+      const updated = await adminApi.masterclassReservations.updateStatus(id, newStatus as any, {
+        notes: notes || undefined,
+        selected_package: selectedPackage || undefined,
+        communication_method: communicationMethod || undefined,
+      });
 
       setReservations(reservations.map(res =>
         res.id === id ? updated : res
@@ -64,6 +72,12 @@ const MasterclassReservations = () => {
       if (selectedReservation?.id === id) {
         setSelectedReservation(updated);
       }
+      
+      // Reset form
+      setNotes('');
+      setSelectedPackage('');
+      setCommunicationMethod('');
+      alert(`Status updated to ${newStatus}`);
     } catch (error) {
       console.error('Error updating status:', error);
       alert('Failed to update status. Please try again.');
@@ -326,11 +340,29 @@ const MasterclassReservations = () => {
                           </span>
                         </div>
                       </div>
+                      {selectedReservation.selected_package && (
+                        <div className="flex items-center gap-4">
+                          <FaCheck className="text-green-500" />
+                          <div>
+                            <p className="text-[10px] uppercase font-bold text-gray-400">Package</p>
+                            <p className="text-sm font-bold text-gray-900">{selectedReservation.selected_package}</p>
+                          </div>
+                        </div>
+                      )}
+                      {selectedReservation.communication_method && (
+                        <div className="flex items-center gap-4">
+                          <FaMapPin className="text-indigo-500" />
+                          <div>
+                            <p className="text-[10px] uppercase font-bold text-gray-400">Method</p>
+                            <p className="text-sm font-bold text-gray-900">{selectedReservation.communication_method}</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </section>
 
                   <section className="bg-indigo-50/50 p-6 rounded-3xl border border-indigo-100">
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-600/50 mb-6 border-b border-indigo-200/50 pb-2">Location</h3>
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-600/50 mb-6 border-b border-indigo-200/50 pb-2">Location & Notes</h3>
                     <div className="space-y-4">
                       <div className="flex items-center gap-4">
                         <FaMapPin className="text-indigo-500" />
@@ -339,25 +371,73 @@ const MasterclassReservations = () => {
                           <p className="text-sm font-bold text-gray-900">{selectedReservation.place}</p>
                         </div>
                       </div>
+                      {selectedReservation.notes && (
+                        <div className="mt-4 p-3 bg-white rounded-xl border border-indigo-100">
+                          <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">Admin Notes</p>
+                          <p className="text-xs text-gray-600 italic">"{selectedReservation.notes}"</p>
+                        </div>
+                      )}
                     </div>
                   </section>
                 </div>
 
                 <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
-                  <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-6 border-b border-slate-200 pb-2">Actions</h3>
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-6 border-b border-slate-200 pb-2">Actions — Update Lead Intelligence</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Package Choice</label>
+                      <select 
+                        value={selectedPackage}
+                        onChange={(e) => setSelectedPackage(e.target.value)}
+                        className="w-full px-4 py-3 rounded-2xl bg-white border border-slate-200 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                      >
+                        <option value="">Select Package...</option>
+                        <option value="Basic Package (5,000 ETB)">Basic Package (5,000 ETB)</option>
+                        <option value="Intermediate Package (10,000 ETB)">Intermediate Package (10,000 ETB)</option>
+                        <option value="Premium Package (25,000 ETB)">Premium Package (25,000 ETB)</option>
+                        <option value="Other / Custom">Other / Custom</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Way of Communication</label>
+                      <select 
+                        value={communicationMethod}
+                        onChange={(e) => setCommunicationMethod(e.target.value)}
+                        className="w-full px-4 py-3 rounded-2xl bg-white border border-slate-200 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                      >
+                        <option value="">Select Method...</option>
+                        <option value="Phone Call">Phone Call</option>
+                        <option value="Telegram">Telegram</option>
+                        <option value="WhatsApp">WhatsApp</option>
+                        <option value="Direct Meeting">Direct Meeting</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="mb-6">
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Call/Interaction Notes</label>
+                    <textarea 
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder="Add details about the conversation..."
+                      className="w-full px-4 py-3 rounded-2xl bg-white border border-slate-200 text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none min-h-[100px]"
+                    />
+                  </div>
+
                   <div className="flex flex-wrap gap-3">
                     {(['reviewed', 'accepted', 'rejected'] as const).map((s) => (
                       <button
                         key={s}
                         onClick={() => handleStatusUpdate(selectedReservation.id, s)}
-                        disabled={updatingIds.has(selectedReservation.id) || selectedReservation.status === s}
-                        className={`px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border ${
+                        disabled={updatingIds.has(selectedReservation.id) || (selectedReservation.status === s && !notes && !selectedPackage)}
+                        className={`px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border shadow-sm ${
                           selectedReservation.status === s
-                            ? getStatusColor(s) + ' cursor-default'
-                            : 'border-slate-200 bg-white text-slate-600 hover:border-indigo-500 hover:text-indigo-600'
+                            ? getStatusColor(s) + ' opacity-50 cursor-default'
+                            : 'border-slate-200 bg-white text-slate-600 hover:border-indigo-500 hover:text-indigo-600 hover:shadow-md'
                         }`}
                       >
-                       {s}
+                       {updatingIds.has(selectedReservation.id) ? <FaSpinner className="animate-spin" /> : s}
                       </button>
                     ))}
                   </div>

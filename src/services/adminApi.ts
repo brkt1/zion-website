@@ -1174,6 +1174,8 @@ export const adminApi = {
       place: data.place,
       status: data.status,
       notes: data.notes,
+      selected_package: data.selected_package,
+      communication_method: data.communication_method,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
     }),
@@ -1203,11 +1205,18 @@ export const adminApi = {
       return (data as any) && (data as any).length > 0 ? adminApi.masterclassReservations._map((data as any)[0]) : { success: true } as any;
     },
 
-    updateStatus: async (id: string, status: 'reviewed' | 'accepted' | 'rejected') => {
+    updateStatus: async (
+      id: string, 
+      status: 'reviewed' | 'accepted' | 'rejected', 
+      extras?: { notes?: string; selected_package?: string; communication_method?: string }
+    ) => {
       const { data, error } = await supabase
         .from('masterclass_reservations')
         .update({
           status,
+          notes: extras?.notes,
+          selected_package: extras?.selected_package,
+          communication_method: extras?.communication_method,
           updated_at: new Date().toISOString(),
         })
         .eq('id', id)

@@ -294,6 +294,8 @@ export interface MasterclassReservation {
   place: string;
   status: 'pending' | 'reviewed' | 'accepted' | 'rejected';
   notes?: string;
+  selected_package?: string;
+  communication_method?: string;
   createdAt: string;
   updatedAt: string;
 }
