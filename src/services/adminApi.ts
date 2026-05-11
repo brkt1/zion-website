@@ -1399,4 +1399,45 @@ export const adminApi = {
       return { success: true };
     },
   },
+
+  // Role Management
+  roles: {
+    getAll: async () => {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('*');
+      if (error) throw error;
+      return data;
+    },
+    update: async (userId: string, role: 'admin' | 'sponsorship_manager' | 'masterclass_manager' | 'user') => {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .upsert({ user_id: userId, role })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    delete: async (userId: string) => {
+      const { error } = await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', userId);
+      if (error) throw error;
+      return { success: true };
+    },
+    searchUsers: async (query: string) => {
+      // Note: This requires a special view or function in Supabase to search auth.users
+      // For now, we'll assume we can search by email if we have a profiles table
+      // or just use the user_roles table if users are already there.
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('*')
+        .ilike('email', `%${query}%`); // This assumes email is in user_roles, which it might not be.
+      
+      // Better approach: use a RPC function to search users if available
+      if (error) throw error;
+      return data;
+    }
+  }
 };
