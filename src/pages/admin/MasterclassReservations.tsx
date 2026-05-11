@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FaCalendarAlt, FaCheck, FaEye, FaMapPin, FaSpinner, FaTrash, FaUser, FaVenusMars } from 'react-icons/fa';
+import { FaCalendarAlt, FaCheck, FaEye, FaHistory, FaMapPin, FaPhoneAlt, FaSearch, FaSpinner, FaTrash, FaUser, FaVenusMars } from 'react-icons/fa';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { adminApi } from '../../services/adminApi';
 import { MasterclassReservation } from '../../types';
@@ -12,10 +12,14 @@ const MasterclassReservations = () => {
   const [showModal, setShowModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'reviewed' | 'accepted' | 'rejected'>('all');
   const [regionFilter, setRegionFilter] = useState<string>('all');
+  const [packageFilter, setPackageFilter] = useState<string>('all');
+  const [followUpFilter, setFollowUpFilter] = useState<'all' | 'today' | 'overdue' | 'none'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
   const [notes, setNotes] = useState('');
   const [selectedPackage, setSelectedPackage] = useState('');
   const [communicationMethod, setCommunicationMethod] = useState('');
+  const [followUpDate, setFollowUpDate] = useState('');
 
   useEffect(() => {
     loadReservations();
@@ -62,6 +66,7 @@ const MasterclassReservations = () => {
         notes: notes || undefined,
         selected_package: selectedPackage || undefined,
         communication_method: communicationMethod || undefined,
+        follow_up_date: followUpDate || undefined,
       });
 
       setReservations(reservations.map(res =>
@@ -76,6 +81,7 @@ const MasterclassReservations = () => {
       setNotes('');
       setSelectedPackage('');
       setCommunicationMethod('');
+      setFollowUpDate('');
       alert(`Status updated to ${newStatus}`);
     } catch (error) {
       console.error('Error updating status:', error);
@@ -119,7 +125,32 @@ const MasterclassReservations = () => {
   const filteredReservations = reservations.filter(res => {
     const matchesStatus = statusFilter === 'all' || res.status === statusFilter;
     const matchesRegion = regionFilter === 'all' || res.place === regionFilter;
-    return matchesStatus && matchesRegion;
+    const matchesPackage = packageFilter === 'all' || res.selected_package?.includes(packageFilter);
+    const matchesSearch = searchQuery === '' || 
+      res.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      res.phone.includes(searchQuery);
+
+    let matchesFollowUp = true;
+    if (followUpFilter !== 'all') {
+      if (followUpFilter === 'none') {
+        matchesFollowUp = !res.follow_up_date;
+      } else if (res.follow_up_date) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const fuDate = new Date(res.follow_up_date);
+        fuDate.setHours(0, 0, 0, 0);
+        
+        if (followUpFilter === 'today') {
+          matchesFollowUp = fuDate.getTime() === today.getTime();
+        } else if (followUpFilter === 'overdue') {
+          matchesFollowUp = fuDate.getTime() < today.getTime();
+        }
+      } else {
+        matchesFollowUp = false;
+      }
+    }
+
+    return matchesStatus && matchesRegion && matchesPackage && matchesSearch && matchesFollowUp;
   });
 
   if (loading) {
@@ -159,14 +190,43 @@ const MasterclassReservations = () => {
         )}
 
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="min-w-[200px]">
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Filter by Status</label>
+        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 p-8 mb-8 border border-slate-100">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+            {/* Search */}
+            <div className="lg:col-span-2">
+              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Search Student</label>
+              <div className="relative">
+                <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search by name or phone..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Follow-up Status</label>
+              <select
+                value={followUpFilter}
+                onChange={(e) => setFollowUpFilter(e.target.value as any)}
+                className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+              >
+                <option value="all">All Leads</option>
+                <option value="today">Call Today 📞</option>
+                <option value="overdue">Overdue ⚠️</option>
+                <option value="none">No Follow-up</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Registration Status</label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as any)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
+                className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
               >
                 <option value="all">All Statuses</option>
                 <option value="pending">Pending</option>
@@ -176,12 +236,12 @@ const MasterclassReservations = () => {
               </select>
             </div>
 
-            <div className="min-w-[200px]">
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Filter by Region</label>
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Region</label>
               <select
                 value={regionFilter}
                 onChange={(e) => setRegionFilter(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
+                className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
               >
                 <option value="all">All Regions</option>
                 <option value="Addis Ababa">Addis Ababa</option>
@@ -217,6 +277,7 @@ const MasterclassReservations = () => {
                   <tr>
                     <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Student</th>
                     <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Age / Sex</th>
+                    <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Follow-up</th>
                     <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Location (Region)</th>
                     <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Status</th>
                     <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Date</th>
@@ -240,6 +301,22 @@ const MasterclassReservations = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{res.age} yrs</div>
                         <div className="text-xs text-gray-500 uppercase font-black tracking-tighter">{res.sex}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {res.follow_up_date ? (
+                          <div>
+                            <div className={`text-[10px] font-black uppercase tracking-widest mb-1 ${
+                              new Date(res.follow_up_date).setHours(0,0,0,0) < new Date().setHours(0,0,0,0) ? 'text-red-500' : 
+                              new Date(res.follow_up_date).setHours(0,0,0,0) === new Date().setHours(0,0,0,0) ? 'text-amber-500' : 'text-indigo-500'
+                            }`}>
+                              {new Date(res.follow_up_date).setHours(0,0,0,0) < new Date().setHours(0,0,0,0) ? '⚠️ Overdue' : 
+                               new Date(res.follow_up_date).setHours(0,0,0,0) === new Date().setHours(0,0,0,0) ? '📞 Call Today' : '📅 Planned'}
+                            </div>
+                            <div className="text-xs font-bold text-gray-900">{new Date(res.follow_up_date).toLocaleDateString()}</div>
+                          </div>
+                        ) : (
+                          <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">None set</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{res.place}</div>
@@ -399,6 +476,15 @@ const MasterclassReservations = () => {
                       </select>
                     </div>
                     <div>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Next Follow-up Date</label>
+                      <input 
+                        type="date"
+                        value={followUpDate}
+                        onChange={(e) => setFollowUpDate(e.target.value)}
+                        className="w-full px-4 py-3 rounded-2xl bg-white border border-slate-200 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
                       <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Way of Communication</label>
                       <select 
                         value={communicationMethod}

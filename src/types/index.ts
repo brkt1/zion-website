@@ -296,6 +296,7 @@ export interface MasterclassReservation {
   notes?: string;
   selected_package?: string;
   communication_method?: string;
+  follow_up_date?: string;
   createdAt: string;
   updatedAt: string;
 }
