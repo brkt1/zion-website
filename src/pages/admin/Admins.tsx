@@ -195,13 +195,33 @@ const Admins = () => {
 
             <form onSubmit={handleAddRole} className="space-y-6">
               <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">User UUID (from Supabase)</label>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Identification Type</label>
+                <div className="flex gap-2 p-1 bg-gray-50 rounded-2xl mb-4 border border-gray-100">
+                  <button
+                    type="button"
+                    onClick={() => setNewRole({ ...newRole, type: 'email' })}
+                    className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${newRole.type === 'email' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-400 hover:text-gray-600'}`}
+                  >
+                    Email Address
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNewRole({ ...newRole, type: 'uuid' })}
+                    className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${newRole.type === 'uuid' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-400 hover:text-gray-600'}`}
+                  >
+                    User UUID
+                  </button>
+                </div>
+
+                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
+                  {newRole.type === 'email' ? 'Registered Email Address' : 'User UUID (from Supabase)'}
+                </label>
                 <input
-                  type="text"
+                  type={newRole.type === 'email' ? 'email' : 'text'}
                   required
-                  placeholder="e.g. 550e8400-e29b-41d4-a716-446655440000"
-                  value={newRole.userId}
-                  onChange={(e) => setNewRole({ ...newRole, userId: e.target.value })}
+                  placeholder={newRole.type === 'email' ? 'e.g. manager@yenege.com' : 'e.g. 550e8400-e29b-41d4-a716-...'}
+                  value={newRole.input}
+                  onChange={(e) => setNewRole({ ...newRole, input: e.target.value })}
                   className="w-full px-4 py-3 rounded-2xl bg-gray-50 border border-gray-100 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
                 />
               </div>

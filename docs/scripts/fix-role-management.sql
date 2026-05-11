@@ -37,17 +37,22 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 GRANT EXECUTE ON FUNCTION assign_role_by_email(TEXT, TEXT) TO authenticated;
 
 -- 3. Add policy to allow admins to UPDATE and INSERT into user_roles
--- (So they can also use the standard table interface if they have the UUID)
+-- We use a SECURITY DEFINER function to avoid infinite recursion
+CREATE OR REPLACE FUNCTION check_is_admin()
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM user_roles
+    WHERE user_id = auth.uid() AND role = 'admin'
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 DROP POLICY IF EXISTS "Admins can manage roles" ON user_roles;
 CREATE POLICY "Admins can manage roles" ON user_roles
   FOR ALL
   TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM user_roles
-      WHERE user_id = auth.uid() AND role = 'admin'
-    )
-  );
+  USING (check_is_admin());
 
 -- 4. Ensure masterclass_manager is in the role check constraint
 DO $$
