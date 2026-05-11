@@ -260,6 +260,20 @@ const MasterclassReservations = () => {
                 <option value="Tigray">Tigray</option>
               </select>
             </div>
+
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Package Choice</label>
+              <select
+                value={packageFilter}
+                onChange={(e) => setPackageFilter(e.target.value)}
+                className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+              >
+                <option value="all">All Packages</option>
+                <option value="Basic">Basic Package</option>
+                <option value="Intermediate">Intermediate Package</option>
+                <option value="Premium">Premium Package</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -427,10 +441,19 @@ const MasterclassReservations = () => {
                       )}
                       {selectedReservation.communication_method && (
                         <div className="flex items-center gap-4">
-                          <FaMapPin className="text-indigo-500" />
+                          <FaHistory className="text-indigo-500" />
                           <div>
                             <p className="text-[10px] uppercase font-bold text-gray-400">Method</p>
                             <p className="text-sm font-bold text-gray-900">{selectedReservation.communication_method}</p>
+                          </div>
+                        </div>
+                      )}
+                      {selectedReservation.follow_up_date && (
+                        <div className="flex items-center gap-4">
+                          <FaPhoneAlt className="text-amber-500" />
+                          <div>
+                            <p className="text-[10px] uppercase font-bold text-gray-400">Follow-up Date</p>
+                            <p className="text-sm font-bold text-gray-900">{new Date(selectedReservation.follow_up_date).toLocaleDateString()}</p>
                           </div>
                         </div>
                       )}
