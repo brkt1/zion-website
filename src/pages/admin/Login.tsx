@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { isAdmin, isCommissionSeller, isSponsorshipManager, isTicketScanner } from '../../services/auth';
+import { isAdmin, isCommissionSeller, isMasterclassManager, isSponsorshipManager, isTicketScanner } from '../../services/auth';
 import { supabase } from '../../services/supabase';
 
 const Login = () => {
@@ -25,13 +25,15 @@ const Login = () => {
         const manager = await isSponsorshipManager();
         const seller = await isCommissionSeller();
         const scanner = await isTicketScanner();
-        if (!admin && !seller && !scanner && !manager) {
+        const masterclass = await isMasterclassManager();
+        if (!admin && !seller && !scanner && !manager && !masterclass) {
           await supabase.auth.signOut();
           setError('You do not have access. Please contact an administrator.');
           setLoading(false); setGoogleLoading(false);
           return;
         }
         if (admin) navigate('/admin/dashboard');
+        else if (masterclass) navigate('/admin/masterclass-dashboard');
         else if (manager) navigate('/admin/sponsorship-department');
         else if (seller) navigate('/admin/seller-dashboard');
         else if (scanner) navigate('/admin/scanner-dashboard');
@@ -45,13 +47,15 @@ const Login = () => {
     const manager = await isSponsorshipManager();
     const seller = await isCommissionSeller();
     const scanner = await isTicketScanner();
-    if (!admin && !seller && !scanner && !manager) {
+    const masterclass = await isMasterclassManager();
+    if (!admin && !seller && !scanner && !manager && !masterclass) {
       await supabase.auth.signOut();
       setError('You do not have access. Please contact an administrator.');
       setLoading(false); setGoogleLoading(false);
       return;
     }
     if (admin) navigate('/admin/dashboard');
+    else if (masterclass) navigate('/admin/masterclass-dashboard');
     else if (manager) navigate('/admin/sponsorship-department');
     else if (seller) navigate('/admin/seller-dashboard');
     else if (scanner) navigate('/admin/scanner-dashboard');
