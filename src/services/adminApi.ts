@@ -1418,6 +1418,14 @@ export const adminApi = {
       if (error) throw error;
       return data;
     },
+    assignByEmail: async (email: string, role: string) => {
+      const { data, error } = await supabase.rpc('assign_role_by_email', {
+        target_email: email,
+        target_role: role
+      });
+      if (error) throw error;
+      return data;
+    },
     delete: async (userId: string) => {
       const { error } = await supabase
         .from('user_roles')
