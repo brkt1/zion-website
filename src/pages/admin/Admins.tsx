@@ -10,7 +10,8 @@ const Admins = () => {
   const [error, setError] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newRole, setNewRole] = useState({
-    userId: '',
+    input: '',
+    type: 'email' as 'email' | 'uuid',
     role: 'masterclass_manager' as any
   });
   const [saving, setSaving] = useState(false);
@@ -26,6 +27,9 @@ const Admins = () => {
       setRoles(data || []);
     } catch (err: any) {
       setError(err.message || 'Failed to load roles');
+      if (err.code === '42501') {
+        setError('Permission Denied (403). Please run the fix-role-management.sql script in Supabase.');
+      }
     } finally {
       setLoading(false);
     }
@@ -33,17 +37,32 @@ const Admins = () => {
 
   const handleAddRole = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newRole.userId) return;
+    if (!newRole.input) return;
 
     setSaving(true);
     try {
-      await adminApi.roles.update(newRole.userId, newRole.role);
+      if (newRole.type === 'email') {
+        const result = await adminApi.roles.assignByEmail(newRole.input, newRole.role);
+        if (result.success) {
+          alert(result.message);
+        } else {
+          throw new Error(result.message);
+        }
+      } else {
+        await adminApi.roles.update(newRole.input, newRole.role);
+        alert('Role assigned successfully!');
+      }
+      
       await loadRoles();
       setShowAddModal(false);
-      setNewRole({ userId: '', role: 'masterclass_manager' });
-      alert('Role assigned successfully!');
+      setNewRole({ input: '', type: 'email', role: 'masterclass_manager' });
     } catch (err: any) {
-      alert('Error: ' + err.message);
+      console.error('Error assigning role:', err);
+      if (err.code === '42501') {
+        alert('Error 403 Forbidden: You do not have permission to modify roles. Please run the fix-role-management.sql script in your Supabase SQL Editor.');
+      } else {
+        alert('Error: ' + err.message);
+      }
     } finally {
       setSaving(false);
     }
