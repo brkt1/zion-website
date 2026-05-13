@@ -67,6 +67,7 @@ const MasterclassDashboard = lazy(() => import("./pages/admin/MasterclassDashboa
 const RepresentativeDashboard = lazy(() => import("./pages/admin/RepresentativeDashboard"));
 const AdminFeasibilityBriefs = lazy(() => import("./pages/admin/FeasibilityBriefs"));
 const Admins = lazy(() => import("./pages/admin/Admins"));
+const AdminEventDetails = lazy(() => import("./pages/admin/EventDetails"));
 
 
 
@@ -280,6 +281,14 @@ function App() {
             element={
               <Suspense fallback={<LoadingState message="Loading events..." />}>
                 <AdminEvents />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="/admin/events/:id" 
+            element={
+              <Suspense fallback={<LoadingState message="Loading event details..." />}>
+                <AdminEventDetails />
               </Suspense>
             } 
           />

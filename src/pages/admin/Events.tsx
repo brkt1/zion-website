@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { FaEdit, FaPlus, FaSpinner, FaTimes, FaTrash, FaUpload } from 'react-icons/fa';
+import { FaEdit, FaPlus, FaSpinner, FaTimes, FaTrash, FaUpload, FaEye } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { ImageUpload } from '../../Components/admin/ImageUpload';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
@@ -304,6 +305,14 @@ const Events = () => {
                     </td>
                     <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center gap-2 sm:gap-3">
+                        <Link
+                          to={`/admin/events/${event.id}`}
+                          className="p-1.5 sm:p-2 rounded hover:bg-gray-100 transition-colors"
+                          style={{ color: '#6366f1' }}
+                          title="View Registrations"
+                        >
+                          <FaEye className="w-4 h-4" />
+                        </Link>
                         <button
                           onClick={() => handleEdit(event)}
                           className="p-1.5 sm:p-2 rounded hover:bg-gray-100 transition-colors"
