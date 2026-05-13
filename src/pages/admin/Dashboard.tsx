@@ -58,8 +58,8 @@ interface Stats {
 const Dashboard = () => {
   // Use cached hook for commission sellers
   const { sellers: commissionSellers } = useCommissionSellers();
-  const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [loadingTickets, setLoadingTickets] = useState(true);
+  const [activities, setActivities] = useState<any[]>([]);
+  const [loadingActivities, setLoadingActivities] = useState(true);
   const [expoStats, setExpoStats] = useState({ total: 0, pending: 0, accepted: 0 });
   const [loadingExpoStats, setLoadingExpoStats] = useState(true);
   const [briefStats, setBriefStats] = useState({ total: 0, pending: 0, accepted: 0 });
@@ -114,7 +114,7 @@ const Dashboard = () => {
     checkRole();
     
     loadStats();
-    loadTickets();
+    loadActivities();
     loadExpoStats();
     loadBriefStats();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -287,21 +287,64 @@ const Dashboard = () => {
     }
   };
 
-  const loadTickets = async () => {
+  const loadActivities = async () => {
     try {
-      setLoadingTickets(true);
-      let data;
-      if (ticketFilter === 'all') {
-        data = await adminApi.tickets.getAll();
-      } else {
-        data = await adminApi.tickets.getByStatus(ticketFilter);
-      }
-      setTickets(data || []);
+      setLoadingActivities(true);
+      
+      // Load both tickets and masterclass reservations
+      const [ticketsData, masterclassData] = await Promise.all([
+        ticketFilter === 'all' 
+          ? adminApi.tickets.getAll() 
+          : adminApi.tickets.getByStatus(ticketFilter as any),
+        adminApi.masterclassReservations.getAll()
+      ]);
+
+      // Transform tickets
+      const transformedTickets = (ticketsData || []).map(t => ({
+        ...t,
+        activity_type: 'ticket',
+        display_name: t.customer_name || 'Anonymous',
+        display_email: t.customer_email,
+        display_phone: t.customer_phone,
+        display_event: t.event_title || 'General Access',
+        display_amount: t.amount,
+        display_currency: t.currency || 'ETB',
+        display_quantity: t.quantity,
+        display_timestamp: t.payment_date || t.created_at,
+        display_status: t.status,
+      }));
+
+      // Transform masterclass reservations
+      const transformedMasterclass = (masterclassData || [])
+        .filter(m => ticketFilter === 'all' || m.status === (ticketFilter === 'success' ? 'accepted' : ticketFilter))
+        .map(m => ({
+          ...m,
+          activity_type: 'masterclass',
+          display_name: m.name,
+          display_email: m.phone, // Use phone as email if missing
+          display_phone: m.phone,
+          display_event: 'Masterclass Program',
+          display_amount: 0,
+          display_currency: 'ETB',
+          display_quantity: 1,
+          display_timestamp: m.createdAt,
+          display_status: m.status === 'accepted' ? 'success' : (m.status === 'rejected' ? 'failed' : 'pending'),
+        }));
+
+      // Combine and sort by timestamp
+      const combined = [...transformedTickets, ...transformedMasterclass].sort((a, b) => 
+        new Date(b.display_timestamp).getTime() - new Date(a.display_timestamp).getTime()
+      );
+
+      // CRITICAL: Filter out duplicates by ID to fix the "showing twice" issue
+      const uniqueActivities = Array.from(new Map(combined.map(a => [a.id, a])).values());
+
+      setActivities(uniqueActivities);
     } catch (error) {
-      console.error('Error loading tickets:', error);
-      setTickets([]);
+      console.error('Error loading activities:', error);
+      setActivities([]);
     } finally {
-      setLoadingTickets(false);
+      setLoadingActivities(false);
     }
   };
 
@@ -439,7 +482,7 @@ const Dashboard = () => {
                     <div className="animate-pulse h-9 bg-gray-100 rounded-lg w-20"></div>
                   ) : (
                     <h3 className="text-3xl font-black text-[#1C2951] tracking-tight">
-                       {new Set(tickets.map(t => t.customer_email)).size}
+                       {new Set(activities.map(a => a.display_email)).size}
                     </h3>
                   )}
                 </div>
@@ -885,12 +928,12 @@ const Dashboard = () => {
             </div>
 
             <div className="overflow-x-auto -mx-3 sm:-mx-4 md:-mx-6">
-              {loadingTickets ? (
+              {loadingActivities ? (
                 <div className="p-20 text-center">
                   <div className="w-16 h-16 border-4 border-[#FFD447] border-t-[#FF6F5E] rounded-full animate-spin mx-auto mb-6 shadow-lg shadow-[#FFD447]/20"></div>
-                  <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Streaming Transactions...</div>
+                  <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Streaming Activity Feed...</div>
                 </div>
-              ) : tickets.length === 0 ? (
+              ) : activities.length === 0 ? (
                 <div className="p-20 text-center">
                   <div className="max-w-md mx-auto">
                     <div className="w-20 h-20 bg-gray-50 rounded-3xl flex items-center justify-center mx-auto mb-8 border border-gray-100 shadow-sm">
@@ -926,83 +969,100 @@ const Dashboard = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
-                      {tickets.map((ticket) => (
-                        <tr key={ticket.id} className="group hover:bg-gray-50/50 transition-all duration-300">
+                      {activities.map((activity) => (
+                        <tr key={activity.id} className="group hover:bg-gray-50/50 transition-all duration-300">
                           <td className="px-8 py-6">
                             <div className="flex items-center gap-4">
-                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-50 to-indigo-100 flex items-center justify-center text-indigo-500 shadow-sm border border-indigo-200/50">
-                                <FaUser size={16} />
+                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-sm border ${
+                                activity.activity_type === 'masterclass' 
+                                  ? 'bg-gradient-to-br from-amber-50 to-amber-100 text-amber-500 border-amber-200/50' 
+                                  : 'bg-gradient-to-br from-indigo-50 to-indigo-100 text-indigo-500 border-indigo-200/50'
+                              }`}>
+                                {activity.activity_type === 'masterclass' ? <FaClipboardList size={16} /> : <FaUser size={16} />}
                               </div>
                               <div className="min-w-0">
                                 <button
-                                  onClick={() => setExpandedCustomerId(expandedCustomerId === ticket.id ? null : ticket.id)}
+                                  onClick={() => setExpandedCustomerId(expandedCustomerId === activity.id ? null : activity.id)}
                                   className="text-left group/btn"
                                 >
                                   <p className="text-sm font-black text-[#1C2951] truncate group-hover/btn:text-indigo-600 transition-colors uppercase tracking-tight">
-                                    {ticket.customer_name || 'Anonymous'}
+                                    {activity.display_name}
                                   </p>
-                                  <p className="text-[10px] font-bold text-gray-400 truncate tracking-tight">{ticket.customer_email}</p>
+                                  <p className="text-[10px] font-bold text-gray-400 truncate tracking-tight">{activity.display_email}</p>
                                 </button>
-                                {expandedCustomerId === ticket.id && (
+                                {expandedCustomerId === activity.id && (
                                   <div className="mt-3 flex gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                                    {ticket.customer_phone && (
+                                    {activity.display_phone && (
                                       <a
-                                        href={`tel:${ticket.customer_phone}`}
+                                        href={`tel:${activity.display_phone}`}
                                         className="px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-widest hover:bg-emerald-100 transition-colors"
                                       >
                                         Call
                                       </a>
                                     )}
-                                    <button
-                                      onClick={() => {
-                                        setSelectedCustomer({
-                                          email: ticket.customer_email,
-                                          name: ticket.customer_name,
-                                          phone: ticket.customer_phone,
-                                          ticketId: ticket.id,
-                                        });
-                                        setReminderModalOpen(true);
-                                      }}
-                                      className="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest hover:bg-indigo-100 transition-colors"
-                                    >
-                                      Remind
-                                    </button>
+                                    {activity.activity_type === 'ticket' && (
+                                      <button
+                                        onClick={() => {
+                                          setSelectedCustomer({
+                                            email: activity.display_email,
+                                            name: activity.display_name,
+                                            phone: activity.display_phone,
+                                            ticketId: activity.id,
+                                          });
+                                          setReminderModalOpen(true);
+                                        }}
+                                        className="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest hover:bg-indigo-100 transition-colors"
+                                      >
+                                        Remind
+                                      </button>
+                                    )}
                                   </div>
                                 )}
                               </div>
                             </div>
                           </td>
                           <td className="px-8 py-6 hidden sm:table-cell">
-                             <p className="text-xs font-bold text-[#1C2951] uppercase tracking-tight">{ticket.event_title || 'General Access'}</p>
-                             <div className="flex items-center gap-1.5 mt-1">
-                               <div className="w-1 h-1 rounded-full bg-indigo-300" />
-                               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{ticket.event_id?.slice(0, 8) || 'N/A'}</p>
+                             <div className="flex flex-col">
+                               <p className="text-xs font-bold text-[#1C2951] uppercase tracking-tight">{activity.display_event}</p>
+                               <div className="flex items-center gap-1.5 mt-1">
+                                 <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded ${
+                                   activity.activity_type === 'masterclass' ? 'bg-amber-100 text-amber-600' : 'bg-indigo-100 text-indigo-600'
+                                 }`}>
+                                   {activity.activity_type}
+                                 </span>
+                                 <div className="w-1 h-1 rounded-full bg-gray-300" />
+                                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{activity.id?.slice(0, 8) || 'N/A'}</p>
+                               </div>
                              </div>
                           </td>
                           <td className="px-8 py-6">
                             <div className="text-sm font-black text-[#1C2951]">
-                              {(() => {
-                                let amount = typeof ticket.amount === 'number' ? ticket.amount : parseFloat(ticket.amount) || 0;
+                              {activity.activity_type === 'masterclass' ? (
+                                <span className="text-amber-600">REGISTRATION</span>
+                              ) : (() => {
+                                let amount = typeof activity.display_amount === 'number' ? activity.display_amount : parseFloat(activity.display_amount) || 0;
                                 if (amount > 0 && amount < 10 && amount * 100 > 50) amount *= 100;
-                                return `${ticket.currency} ${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+                                return `${activity.display_currency} ${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
                               })()}
                             </div>
-                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-0.5">Value Captured</p>
+                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-0.5">
+                              {activity.activity_type === 'masterclass' ? 'Lead Value' : 'Value Captured'}
+                            </p>
                           </td>
                           <td className="px-8 py-6 hidden md:table-cell">
                             <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-[10px] font-black text-[#1C2951] border border-gray-100">
-                               {ticket.quantity}
+                               {activity.display_quantity}
                             </div>
                           </td>
                           <td className="px-8 py-6">
-                            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border ${getStatusColor(ticket.status)} shadow-sm transition-transform group-hover:scale-105`}>
+                            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border ${getStatusColor(activity.display_status)} shadow-sm transition-transform group-hover:scale-105`}>
                               <div className="w-1.5 h-1.5 rounded-full bg-current shadow-lg" />
-                              <span className="text-[10px] font-black uppercase tracking-widest">{ticket.status}</span>
+                              <span className="text-[10px] font-black uppercase tracking-widest">{activity.display_status}</span>
                             </div>
                           </td>
                           <td className="px-8 py-6 hidden lg:table-cell">
-                             <p className="text-xs font-bold text-[#1C2951] uppercase tracking-tighter">{formatDate(ticket.payment_date || ticket.created_at).split(',')[0]}</p>
-                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">{formatDate(ticket.payment_date || ticket.created_at).split(',')[1]}</p>
+                             <p className="text-xs font-bold text-[#1C2951] uppercase tracking-tighter">{formatDate(activity.display_timestamp).split(',')[0]}</p>
+                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">{formatDate(activity.display_timestamp).split(',')[1]}</p>
                           </td>
                         </tr>
                       ))}

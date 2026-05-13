@@ -297,6 +297,12 @@ export interface MasterclassReservation {
   selected_package?: string;
   communication_method?: string;
   follow_up_date?: string;
+  // Financial fields
+  payment_status?: 'unpaid' | 'partial' | 'full';
+  total_amount?: number;
+  paid_amount?: number;
+  remaining_amount?: number;
+  payment_completion_date?: string;
   createdAt: string;
   updatedAt: string;
 }

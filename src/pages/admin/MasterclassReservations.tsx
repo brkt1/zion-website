@@ -20,6 +20,11 @@ const MasterclassReservations = () => {
   const [selectedPackage, setSelectedPackage] = useState('');
   const [communicationMethod, setCommunicationMethod] = useState('');
   const [followUpDate, setFollowUpDate] = useState('');
+  // Financial fields state
+  const [paymentStatus, setPaymentStatus] = useState<'unpaid' | 'partial' | 'full'>('unpaid');
+  const [totalAmount, setTotalAmount] = useState<string>('');
+  const [paidAmount, setPaidAmount] = useState<string>('');
+  const [paymentCompletionDate, setPaymentCompletionDate] = useState('');
 
   useEffect(() => {
     loadReservations();
@@ -67,6 +72,11 @@ const MasterclassReservations = () => {
         selected_package: selectedPackage || undefined,
         communication_method: communicationMethod || undefined,
         follow_up_date: followUpDate || undefined,
+        payment_status: paymentStatus,
+        total_amount: totalAmount ? parseFloat(totalAmount) : undefined,
+        paid_amount: paidAmount ? parseFloat(paidAmount) : undefined,
+        remaining_amount: (totalAmount && paidAmount) ? (parseFloat(totalAmount) - parseFloat(paidAmount)) : undefined,
+        payment_completion_date: paymentCompletionDate || undefined,
       });
 
       setReservations(reservations.map(res =>
@@ -82,6 +92,10 @@ const MasterclassReservations = () => {
       setSelectedPackage('');
       setCommunicationMethod('');
       setFollowUpDate('');
+      setPaymentStatus('unpaid');
+      setTotalAmount('');
+      setPaidAmount('');
+      setPaymentCompletionDate('');
       alert(`Status updated to ${newStatus}`);
     } catch (error) {
       console.error('Error updating status:', error);
@@ -93,6 +107,20 @@ const MasterclassReservations = () => {
         return next;
       });
     }
+  };
+
+  const handleViewDetails = (res: MasterclassReservation) => {
+    setSelectedReservation(res);
+    setNotes(res.notes || '');
+    setSelectedPackage(res.selected_package || '');
+    setCommunicationMethod(res.communication_method || '');
+    setFollowUpDate(res.follow_up_date || '');
+    // Populate financial fields
+    setPaymentStatus(res.payment_status || 'unpaid');
+    setTotalAmount(res.total_amount?.toString() || '');
+    setPaidAmount(res.paid_amount?.toString() || '');
+    setPaymentCompletionDate(res.payment_completion_date || '');
+    setShowModal(true);
   };
 
   const formatDate = (dateString: string) => {
@@ -294,6 +322,7 @@ const MasterclassReservations = () => {
                     <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Follow-up</th>
                     <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Location (Region)</th>
                     <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Status</th>
+                    <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Payment</th>
                     <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Date</th>
                     <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Actions</th>
                   </tr>
@@ -340,13 +369,26 @@ const MasterclassReservations = () => {
                           {res.status.charAt(0).toUpperCase() + res.status.slice(1)}
                         </span>
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {res.payment_status ? (
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${
+                            res.payment_status === 'full' ? 'bg-green-100 text-green-800 border-green-200' :
+                            res.payment_status === 'partial' ? 'bg-blue-100 text-blue-800 border-blue-200' :
+                            'bg-gray-100 text-gray-800 border-gray-200'
+                          }`}>
+                            {res.payment_status}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Not Set</span>
+                        )}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {formatDate(res.createdAt)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center space-x-3">
                           <button
-                            onClick={() => { setSelectedReservation(res); setShowModal(true); }}
+                            onClick={() => handleViewDetails(res)}
                             className="text-amber-600 hover:text-amber-900 transition-colors"
                             title="View full details"
                           >
@@ -457,6 +499,28 @@ const MasterclassReservations = () => {
                           </div>
                         </div>
                       )}
+                      {selectedReservation.payment_status && (
+                        <div className="flex items-center gap-4 mt-2 p-3 bg-white rounded-2xl border border-indigo-100">
+                          <div className={`w-2 h-2 rounded-full ${
+                            selectedReservation.payment_status === 'full' ? 'bg-green-500' :
+                            selectedReservation.payment_status === 'partial' ? 'bg-blue-500' : 'bg-gray-400'
+                          }`} />
+                          <div>
+                            <p className="text-[10px] uppercase font-bold text-gray-400">Financial Status</p>
+                            <p className="text-sm font-bold text-gray-900 capitalize">{selectedReservation.payment_status}</p>
+                            {selectedReservation.total_amount && (
+                              <p className="text-[10px] text-gray-500">
+                                Paid: {selectedReservation.paid_amount?.toLocaleString()} / Total: {selectedReservation.total_amount?.toLocaleString()} ETB
+                              </p>
+                            )}
+                            {selectedReservation.payment_completion_date && (
+                              <p className="text-[10px] text-amber-600 font-bold">
+                                Completion: {new Date(selectedReservation.payment_completion_date).toLocaleDateString()}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </section>
 
@@ -520,6 +584,55 @@ const MasterclassReservations = () => {
                         <option value="WhatsApp">WhatsApp</option>
                         <option value="Direct Meeting">Direct Meeting</option>
                       </select>
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200 mb-6">
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-600 mb-4">Financial & Payment Status</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Payment Status</label>
+                        <select 
+                          value={paymentStatus}
+                          onChange={(e) => setPaymentStatus(e.target.value as any)}
+                          className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                        >
+                          <option value="unpaid">Unpaid</option>
+                          <option value="partial">Partial Payment</option>
+                          <option value="full">Full Payment</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Total Amount (ETB)</label>
+                        <input 
+                          type="number"
+                          value={totalAmount}
+                          onChange={(e) => setTotalAmount(e.target.value)}
+                          placeholder="e.g. 10000"
+                          className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Paid Amount (ETB)</label>
+                        <input 
+                          type="number"
+                          value={paidAmount}
+                          onChange={(e) => setPaidAmount(e.target.value)}
+                          placeholder="e.g. 5000"
+                          className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                        />
+                      </div>
+                      {paymentStatus === 'partial' && (
+                        <div>
+                          <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Payment Completion Date</label>
+                          <input 
+                            type="date"
+                            value={paymentCompletionDate}
+                            onChange={(e) => setPaymentCompletionDate(e.target.value)}
+                            className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
 

@@ -1177,6 +1177,11 @@ export const adminApi = {
       selected_package: data.selected_package,
       communication_method: data.communication_method,
       follow_up_date: data.follow_up_date,
+      payment_status: data.payment_status,
+      total_amount: data.total_amount,
+      paid_amount: data.paid_amount,
+      remaining_amount: data.remaining_amount,
+      payment_completion_date: data.payment_completion_date,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
     }),
@@ -1208,8 +1213,18 @@ export const adminApi = {
 
     updateStatus: async (
       id: string, 
-      status: 'reviewed' | 'accepted' | 'rejected', 
-      extras?: { notes?: string; selected_package?: string; communication_method?: string; follow_up_date?: string }
+      status: 'reviewed' | 'accepted' | 'rejected' | 'pending', 
+      extras?: { 
+        notes?: string; 
+        selected_package?: string; 
+        communication_method?: string; 
+        follow_up_date?: string;
+        payment_status?: 'unpaid' | 'partial' | 'full';
+        total_amount?: number;
+        paid_amount?: number;
+        remaining_amount?: number;
+        payment_completion_date?: string;
+      }
     ) => {
       const { data, error } = await supabase
         .from('masterclass_reservations')
@@ -1219,6 +1234,11 @@ export const adminApi = {
           selected_package: extras?.selected_package,
           communication_method: extras?.communication_method,
           follow_up_date: extras?.follow_up_date,
+          payment_status: extras?.payment_status,
+          total_amount: extras?.total_amount,
+          paid_amount: extras?.paid_amount,
+          remaining_amount: extras?.remaining_amount,
+          payment_completion_date: extras?.payment_completion_date,
           updated_at: new Date().toISOString(),
         })
         .eq('id', id)
