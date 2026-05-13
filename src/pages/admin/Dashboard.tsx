@@ -29,7 +29,6 @@ import { useCommissionSellers } from '../../hooks/useApi';
 import { adminApi } from '../../services/adminApi';
 import { getDailyVisitStats, getTodayVisits, getTotalVisits, getUniqueVisitorsToday } from '../../services/analytics';
 import { supabase } from '../../services/supabase';
-import { Ticket } from '../../types';
 
 interface Stats {
   totalEvents: number;
