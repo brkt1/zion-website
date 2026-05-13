@@ -9,7 +9,7 @@ interface DelaunayType {
   contains: (tri: [[number, number], [number, number], [number, number]], p: [number, number]) => [number, number] | null;
 }
 
-const Delaunay = DelaunayImport as any;
+const Delaunay = DelaunayImport as DelaunayType;
 
 interface ShatterableImageProps {
   src: string;
