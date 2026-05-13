@@ -26,8 +26,28 @@ const EventDetails = () => {
         api.getEvent(eventId),
         adminApi.tickets.getByEvent(eventId)
       ]);
+
+      // Deduplicate tickets that might have been created twice (common in free registrations)
+      // We deduplicate based on email, amount, quantity, and timestamp (rounded to nearest minute)
+      const uniqueTicketsMap = new Map();
+      (ticketsData || []).forEach((ticket: Ticket) => {
+        const timestamp = new Date(ticket.created_at).getTime();
+        const roundedTimestamp = Math.floor(timestamp / 60000); // Round to nearest minute
+        const key = `${ticket.customer_email}-${ticket.amount}-${ticket.quantity}-${roundedTimestamp}`;
+        
+        if (!uniqueTicketsMap.has(key)) {
+          uniqueTicketsMap.set(key, ticket);
+        } else {
+          // If we have a duplicate, prefer the one that doesn't start with 'free_reg_' 
+          const existing = uniqueTicketsMap.get(key);
+          if (existing.tx_ref.startsWith('free_reg_') && !ticket.tx_ref.startsWith('free_reg_')) {
+            uniqueTicketsMap.set(key, ticket);
+          }
+        }
+      });
+
       setEvent(eventData);
-      setTickets(ticketsData);
+      setTickets(Array.from(uniqueTicketsMap.values()));
     } catch (error) {
       console.error('Error loading event details:', error);
     } finally {
