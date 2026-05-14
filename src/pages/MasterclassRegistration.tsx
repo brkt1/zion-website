@@ -65,8 +65,9 @@ const MasterclassRegistration: React.FC = () => {
       setIsConfirming(false);
       window.scrollTo(0, 0);
     } catch (err: any) {
-      console.error('Error submitting reservation:', err);
-      setError(err?.message || 'Failed to submit reservation. Please try again.');
+      console.error('FULL SUBMISSION ERROR:', err);
+      const errorMessage = err?.details || err?.message || 'Failed to submit reservation.';
+      setError(`${errorMessage} (Check if the 'email' column exists in your database)`);
     } finally {
       setIsSubmitting(false);
     }
