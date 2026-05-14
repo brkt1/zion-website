@@ -2,6 +2,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import nodemailer from "https://esm.sh/nodemailer@6.9.1";
 
+declare const Deno: any;
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -36,8 +38,7 @@ serve(async (req) => {
       service: 'gmail',
       auth: {
         user: 'yenegeevents@gmail.com',
-        // In a real scenario, use an App Password stored in Supabase Secrets
-        pass: Deno.env.get('GMAIL_APP_PASSWORD'),
+        pass: 'oiok nbsq kstn bsvj', // Gmail App Password
       },
     });
 
