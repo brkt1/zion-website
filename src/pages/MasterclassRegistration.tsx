@@ -209,8 +209,8 @@ const MasterclassRegistration: React.FC = () => {
             </div>
 
             <div className="relative">
-              <label className={labelClasses}>Email Address</label>
-              <input required type="email" name="email" value={formData.email} onChange={handleChange} className={inputClasses} placeholder="your@email.com" />
+              <label className={labelClasses}>Email Address (Optional)</label>
+              <input type="email" name="email" value={formData.email} onChange={handleChange} className={inputClasses} placeholder="your@email.com (if available)" />
               <FiSend className="absolute left-5 top-[2.85rem] text-slate-300" />
             </div>
 
