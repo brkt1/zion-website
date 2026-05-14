@@ -142,7 +142,7 @@ const MasterclassReservations = () => {
         return;
       }
 
-      const { data, error } = await supabase.functions.invoke('send-masterclass-custom-email', {
+      const { error } = await supabase.functions.invoke('send-masterclass-custom-email', {
         body: {
           to: recipientEmails,
           subject: emailSubject,
