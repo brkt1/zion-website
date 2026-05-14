@@ -34,6 +34,8 @@ const MasterclassReservations = () => {
   const [emailBody, setEmailBody] = useState('');
   const [sendingEmail, setSendingEmail] = useState(false);
   const [emailRecipientType, setEmailRecipientType] = useState<'individual' | 'all'>('individual');
+  const [targetStatus, setTargetStatus] = useState<string>('');
+  const [shouldUpdateStatus, setShouldUpdateStatus] = useState(false);
 
   useEffect(() => {
     loadReservations();
@@ -128,18 +130,21 @@ const MasterclassReservations = () => {
 
     setSendingEmail(true);
     try {
-      const recipients = emailRecipientType === 'all' 
-        ? filteredReservations.map(r => r.email).filter(Boolean) as string[]
-        : [selectedReservation?.email].filter(Boolean) as string[];
+      const selectedRecipients = emailRecipientType === 'all' 
+        ? filteredReservations 
+        : [selectedReservation].filter(Boolean) as MasterclassReservation[];
 
-      if (recipients.length === 0) {
+      const recipientEmails = selectedRecipients.map(r => r.email).filter(Boolean) as string[];
+      const recipientIds = selectedRecipients.map(r => r.id);
+
+      if (recipientEmails.length === 0) {
         alert('No recipients with valid email addresses found');
         return;
       }
 
-      const { data, error } = await (supabase as any).functions.invoke('send-masterclass-custom-email', {
+      const { data, error } = await supabase.functions.invoke('send-masterclass-custom-email', {
         body: {
-          to: recipients,
+          to: recipientEmails,
           subject: emailSubject,
           body: emailBody,
           studentName: emailRecipientType === 'individual' ? selectedReservation?.name : undefined
@@ -147,11 +152,34 @@ const MasterclassReservations = () => {
       });
 
       if (error) throw error;
+
+      // Update statuses if requested
+      if (shouldUpdateStatus && targetStatus) {
+        const { error: updateError } = await supabase
+          .from('masterclass_reservations')
+          .update({ 
+            status: targetStatus,
+            updated_at: new Date().toISOString()
+          })
+          .in('id', recipientIds);
+
+        if (updateError) {
+          console.error('Error updating statuses:', updateError);
+          alert('Emails sent, but failed to update statuses in database.');
+        } else {
+          // Refresh local state
+          setReservations(reservations.map(res => 
+            recipientIds.includes(res.id) ? { ...res, status: targetStatus as any } : res
+          ));
+        }
+      }
       
       alert('Email(s) sent successfully!');
       setShowEmailModal(false);
       setEmailSubject('');
       setEmailBody('');
+      setTargetStatus('');
+      setShouldUpdateStatus(false);
     } catch (error) {
       console.error('Error sending email:', error);
       alert('Failed to send email. Make sure the Edge Function is deployed.');
@@ -787,6 +815,32 @@ const MasterclassReservations = () => {
                     placeholder="Write your message here... You can use HTML tags for formatting."
                     className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none min-h-[200px]"
                   />
+                </div>
+
+                <div className="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100">
+                  <label className="flex items-center gap-3 cursor-pointer mb-3">
+                    <input 
+                      type="checkbox" 
+                      checked={shouldUpdateStatus}
+                      onChange={(e) => setShouldUpdateStatus(e.target.checked)}
+                      className="w-4 h-4 accent-indigo-600 rounded"
+                    />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-indigo-900">Update Student Status?</span>
+                  </label>
+                  
+                  {shouldUpdateStatus && (
+                    <select
+                      value={targetStatus}
+                      onChange={(e) => setTargetStatus(e.target.value)}
+                      className="w-full px-4 py-2 rounded-xl bg-white border border-indigo-200 text-xs font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                    >
+                      <option value="">Select New Status...</option>
+                      <option value="pending">Pending</option>
+                      <option value="reviewed">Reviewed</option>
+                      <option value="accepted">Accepted</option>
+                      <option value="rejected">Rejected</option>
+                    </select>
+                  )}
                 </div>
 
                 <div className="flex gap-3 pt-4">
