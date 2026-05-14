@@ -6,6 +6,7 @@ import { adminApi } from '../services/adminApi';
 const MasterclassRegistration: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
+    email: '',
     phone: '',
     age: '',
     sex: '',
@@ -53,6 +54,7 @@ const MasterclassRegistration: React.FC = () => {
     try {
       await adminApi.masterclassReservations.create({
         name: formData.name,
+        email: formData.email,
         phone: formData.phone,
         age: parseInt(formData.age),
         sex: formData.sex as 'male' | 'female',
@@ -147,6 +149,7 @@ const MasterclassRegistration: React.FC = () => {
           <div className="bg-white rounded-[2.5rem] shadow-xl border border-slate-100 overflow-hidden">
             <div className="p-10 space-y-8">
               <ReviewField label="Full Name" value={formData.name} />
+              <ReviewField label="Email Address" value={formData.email} />
               <ReviewField label="Phone Number" value={formData.phone} />
               <div className="grid grid-cols-2 gap-8">
                 <ReviewField label="Age" value={formData.age} />
@@ -202,6 +205,12 @@ const MasterclassRegistration: React.FC = () => {
               <label className={labelClasses}>Full Name</label>
               <input required name="name" value={formData.name} onChange={handleChange} className={inputClasses} placeholder="Enter your full name" />
               <FiUser className="absolute left-5 top-[2.85rem] text-slate-300" />
+            </div>
+
+            <div className="relative">
+              <label className={labelClasses}>Email Address</label>
+              <input required type="email" name="email" value={formData.email} onChange={handleChange} className={inputClasses} placeholder="your@email.com" />
+              <FiSend className="absolute left-5 top-[2.85rem] text-slate-300" />
             </div>
 
             <div className="relative">

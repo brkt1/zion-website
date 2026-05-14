@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { FaCalendarAlt, FaCheck, FaEye, FaHistory, FaMapPin, FaPhoneAlt, FaSearch, FaSpinner, FaTrash, FaUser, FaVenusMars } from 'react-icons/fa';
+import { FaCalendarAlt, FaCheck, FaEnvelope, FaEye, FaHistory, FaMapPin, FaPaperPlane, FaPhoneAlt, FaSearch, FaSpinner, FaTrash, FaUser, FaVenusMars } from 'react-icons/fa';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { adminApi } from '../../services/adminApi';
-import { handleSupabaseError } from '../../services/supabase';
+import { handleSupabaseError, supabase } from '../../services/supabase';
 import { MasterclassReservation } from '../../types';
 import { NetworkErrorBanner } from '../../Components/ui/NetworkStatus';
 
@@ -28,6 +28,12 @@ const MasterclassReservations = () => {
   const [totalAmount, setTotalAmount] = useState<string>('');
   const [paidAmount, setPaidAmount] = useState<string>('');
   const [paymentCompletionDate, setPaymentCompletionDate] = useState('');
+  // Email system state
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailSubject, setEmailSubject] = useState('');
+  const [emailBody, setEmailBody] = useState('');
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailRecipientType, setEmailRecipientType] = useState<'individual' | 'all'>('individual');
 
   useEffect(() => {
     loadReservations();
@@ -111,6 +117,46 @@ const MasterclassReservations = () => {
         next.delete(id);
         return next;
       });
+    }
+  };
+
+  const handleSendEmail = async () => {
+    if (!emailSubject || !emailBody) {
+      alert('Please enter a subject and body');
+      return;
+    }
+
+    setSendingEmail(true);
+    try {
+      const recipients = emailRecipientType === 'all' 
+        ? filteredReservations.map(r => r.email).filter(Boolean) as string[]
+        : [selectedReservation?.email].filter(Boolean) as string[];
+
+      if (recipients.length === 0) {
+        alert('No recipients with valid email addresses found');
+        return;
+      }
+
+      const { data, error } = await (supabase as any).functions.invoke('send-masterclass-custom-email', {
+        body: {
+          to: recipients,
+          subject: emailSubject,
+          body: emailBody,
+          studentName: emailRecipientType === 'individual' ? selectedReservation?.name : undefined
+        },
+      });
+
+      if (error) throw error;
+      
+      alert('Email(s) sent successfully!');
+      setShowEmailModal(false);
+      setEmailSubject('');
+      setEmailBody('');
+    } catch (error) {
+      console.error('Error sending email:', error);
+      alert('Failed to send email. Make sure the Edge Function is deployed.');
+    } finally {
+      setSendingEmail(false);
     }
   };
 
@@ -207,9 +253,21 @@ const MasterclassReservations = () => {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Masterclass Reservations</h1>
             <p className="text-gray-600">Manage e-learning program registrations</p>
           </div>
-          <div className="flex items-center gap-2 bg-amber-50 px-4 py-2 rounded-lg border border-amber-100">
-            <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-            <span className="text-amber-800 text-sm font-bold">{reservations.length} Total Registered</span>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => {
+                setEmailRecipientType('all');
+                setEmailSubject('Important Update: Yenege Masterclass');
+                setShowEmailModal(true);
+              }}
+              className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-2.5 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200"
+            >
+              <FaEnvelope /> Email All Students
+            </button>
+            <div className="flex items-center gap-2 bg-amber-50 px-4 py-2 rounded-lg border border-amber-100">
+              <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+              <span className="text-amber-800 text-sm font-bold">{reservations.length} Total Registered</span>
+            </div>
           </div>
         </div>
 
@@ -342,6 +400,7 @@ const MasterclassReservations = () => {
                           <div className="ml-4">
                             <div className="text-sm font-bold text-gray-900">{res.name}</div>
                             <div className="text-xs text-gray-500">{res.phone}</div>
+                            {res.email && <div className="text-[10px] text-indigo-500 font-medium">{res.email}</div>}
                           </div>
                         </div>
                       </td>
@@ -408,6 +467,18 @@ const MasterclassReservations = () => {
                               {updatingIds.has(res.id) ? <FaSpinner className="animate-spin" /> : <FaCheck />}
                             </button>
                           )}
+                          <button
+                            onClick={() => {
+                              setSelectedReservation(res);
+                              setEmailRecipientType('individual');
+                              setEmailSubject(`Update for ${res.name} - Yenege Masterclass`);
+                              setShowEmailModal(true);
+                            }}
+                            className="text-indigo-600 hover:text-indigo-900 transition-colors"
+                            title="Send individual email"
+                          >
+                            <FaEnvelope />
+                          </button>
                           <button
                             onClick={() => handleDelete(res.id)}
                             className="text-red-600 hover:text-red-900 transition-colors"
@@ -666,6 +737,72 @@ const MasterclassReservations = () => {
                       </button>
                     ))}
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Email Modal */}
+        {showEmailModal && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+            <div className="bg-white rounded-[2rem] max-w-lg w-full shadow-2xl relative overflow-hidden">
+              <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-indigo-50/30">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white">
+                    <FaEnvelope />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-black text-gray-900">Send Email</h2>
+                    <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest">
+                      {emailRecipientType === 'all' ? 'To All Students' : `To ${selectedReservation?.name}`}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowEmailModal(false)}
+                  className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-gray-400 shadow-sm"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="p-8 space-y-6">
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Subject</label>
+                  <input
+                    type="text"
+                    value={emailSubject}
+                    onChange={(e) => setEmailSubject(e.target.value)}
+                    placeholder="Enter email subject..."
+                    className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Message Body</label>
+                  <textarea
+                    value={emailBody}
+                    onChange={(e) => setEmailBody(e.target.value)}
+                    placeholder="Write your message here... You can use HTML tags for formatting."
+                    className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none min-h-[200px]"
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={() => setShowEmailModal(false)}
+                    className="flex-1 py-4 rounded-2xl text-xs font-black uppercase tracking-widest text-slate-400 hover:bg-slate-50 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSendEmail}
+                    disabled={sendingEmail}
+                    className="flex-3 px-10 py-4 rounded-2xl bg-indigo-600 text-white text-xs font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 flex items-center justify-center gap-2"
+                  >
+                    {sendingEmail ? <FaSpinner className="animate-spin" /> : <><FaPaperPlane /> Send Now</>}
+                  </button>
                 </div>
               </div>
             </div>

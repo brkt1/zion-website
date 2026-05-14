@@ -288,6 +288,7 @@ export interface UpdateExpoApplicationData {
 export interface MasterclassReservation {
   id: string;
   name: string;
+  email?: string;
   phone: string;
   age: number;
   sex: 'male' | 'female';
@@ -309,6 +310,7 @@ export interface MasterclassReservation {
 
 export interface CreateMasterclassReservationData {
   name: string;
+  email: string;
   phone: string;
   age: number;
   sex: 'male' | 'female';

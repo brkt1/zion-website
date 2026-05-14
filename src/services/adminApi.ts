@@ -1168,6 +1168,7 @@ export const adminApi = {
     _map: (data: any): MasterclassReservation => ({
       id: data.id,
       name: data.name,
+      email: data.email,
       phone: data.phone,
       age: data.age,
       sex: data.sex,
@@ -1201,6 +1202,7 @@ export const adminApi = {
         .from('masterclass_reservations')
         .insert([{
           name: resData.name,
+          email: resData.email,
           phone: resData.phone,
           age: resData.age,
           sex: resData.sex,
