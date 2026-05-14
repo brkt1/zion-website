@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react';
 import { FaCheck, FaEnvelope, FaEye, FaGlobe, FaPhone, FaSpinner, FaTrash, FaUser } from 'react-icons/fa';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { adminApi } from '../../services/adminApi';
+import { handleSupabaseError } from '../../services/supabase';
 import { ExpoApplication } from '../../types';
+import { NetworkErrorBanner } from '../../Components/ui/NetworkStatus';
+
 
 const ExpoApplications = () => {
   const [applications, setApplications] = useState<ExpoApplication[]>([]);
@@ -26,9 +29,10 @@ const ExpoApplications = () => {
       const data = await adminApi.expoApplications.getAll();
       setApplications(data || []);
     } catch (error: any) {
-      console.error('Error loading expo applications:', error);
-      setError(error?.message || 'Failed to load applications. Please try again.');
+      const handled = handleSupabaseError(error, 'loadApplications');
+      setError(handled.message);
     } finally {
+
       setLoading(false);
     }
   };
@@ -184,13 +188,12 @@ const ExpoApplications = () => {
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-800 font-medium">Error: {error}</p>
-            <button onClick={loadApplications} className="mt-2 text-sm text-red-600 hover:text-red-800 underline font-medium">
-              Try again
-            </button>
-          </div>
+          <NetworkErrorBanner 
+            message={error} 
+            onRetry={loadApplications} 
+          />
         )}
+
 
         {/* Filters */}
         <div className="bg-white rounded-lg shadow-md p-4 mb-6">

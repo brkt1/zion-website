@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react';
 import { FaBriefcase, FaCalendarAlt, FaCheck, FaClock, FaEnvelope, FaEye, FaHandsHelping, FaInfoCircle, FaPhone, FaSpinner, FaTimes, FaTrash, FaUser, FaUserCircle } from 'react-icons/fa';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { adminApi } from '../../services/adminApi';
+import { handleSupabaseError } from '../../services/supabase';
 import { Application } from '../../types';
+import { NetworkErrorBanner } from '../../Components/ui/NetworkStatus';
+
 
 const Applications = () => {
   const [applications, setApplications] = useState<Application[]>([]);
@@ -27,9 +30,10 @@ const Applications = () => {
       const data = await adminApi.applications.getAll();
       setApplications(data || []);
     } catch (error: any) {
-      console.error('Error loading applications:', error);
-      setError(error?.message || 'Failed to load applications. Please try again.');
+      const handled = handleSupabaseError(error, 'loadApplications');
+      setError(handled.message);
     } finally {
+
       setLoading(false);
     }
   };
@@ -169,16 +173,12 @@ const Applications = () => {
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-800 font-medium">Error: {error}</p>
-            <button
-              onClick={loadApplications}
-              className="mt-2 text-sm text-red-600 hover:text-red-800 underline font-medium"
-            >
-              Try again
-            </button>
-          </div>
+          <NetworkErrorBanner 
+            message={error} 
+            onRetry={loadApplications} 
+          />
         )}
+
 
         {!error && !loading && applications.length === 0 && (
           <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">

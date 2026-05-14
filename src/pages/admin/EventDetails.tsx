@@ -4,7 +4,10 @@ import { FaArrowLeft, FaDownload, FaEnvelope, FaPhone, FaSearch, FaTicketAlt, Fa
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { adminApi } from '../../services/adminApi';
 import { api, Event } from '../../services/api';
+import { handleSupabaseError } from '../../services/supabase';
 import { Ticket } from '../../types';
+import { NetworkErrorBanner } from '../../Components/ui/NetworkStatus';
+
 
 const EventDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -12,6 +15,8 @@ const EventDetails = () => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
 
   useEffect(() => {
     if (id) {
@@ -48,9 +53,11 @@ const EventDetails = () => {
 
       setEvent(eventData);
       setTickets(Array.from(uniqueTicketsMap.values()));
-    } catch (error) {
-      console.error('Error loading event details:', error);
+    } catch (error: any) {
+      const handled = handleSupabaseError(error, 'loadData');
+      setError(handled.message);
     } finally {
+
       setLoading(false);
     }
   };
@@ -127,6 +134,16 @@ const EventDetails = () => {
   return (
     <AdminLayout title={`Event: ${event.title}`}>
       <div className="space-y-6">
+        {error && (
+          <NetworkErrorBanner 
+            message={error} 
+            onRetry={() => {
+              setError(null);
+              if (id) loadData(id);
+            }} 
+          />
+        )}
+
         {/* Header Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <Link 

@@ -28,7 +28,9 @@ import ReminderModal from '../../Components/admin/ReminderModal';
 import { useCommissionSellers } from '../../hooks/useApi';
 import { adminApi } from '../../services/adminApi';
 import { getDailyVisitStats, getTodayVisits, getTotalVisits, getUniqueVisitorsToday } from '../../services/analytics';
-import { supabase } from '../../services/supabase';
+import { handleSupabaseError, supabase } from '../../services/supabase';
+import { NetworkErrorBanner } from '../../Components/ui/NetworkStatus';
+
 
 interface Stats {
   totalEvents: number;
@@ -96,6 +98,8 @@ const Dashboard = () => {
     ticketId?: string;
   } | null>(null);
   const [expandedCustomerId, setExpandedCustomerId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
 
   useEffect(() => {
     const checkRole = async () => {
@@ -113,6 +117,7 @@ const Dashboard = () => {
     checkRole();
     
     loadStats();
+
     loadActivities();
     loadExpoStats();
     loadBriefStats();
@@ -280,8 +285,10 @@ const Dashboard = () => {
         dailyVisitStats,
       });
     } catch (error) {
-      console.error('Error loading stats:', error);
+      const handled = handleSupabaseError(error, 'loadStats');
+      setError(handled.message);
     } finally {
+
       setLoadingStats(false);
     }
   };
@@ -399,6 +406,19 @@ const Dashboard = () => {
 
   return (
     <AdminLayout title="Dashboard">
+          {error && (
+            <NetworkErrorBanner 
+              message={error} 
+              onRetry={() => {
+                setError(null);
+                loadStats();
+                loadActivities();
+                loadExpoStats();
+                loadBriefStats();
+              }} 
+            />
+          )}
+
           {/* Stats Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
             {/* Total Revenue */}

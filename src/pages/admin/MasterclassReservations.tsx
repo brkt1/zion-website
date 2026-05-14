@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react';
 import { FaCalendarAlt, FaCheck, FaEye, FaHistory, FaMapPin, FaPhoneAlt, FaSearch, FaSpinner, FaTrash, FaUser, FaVenusMars } from 'react-icons/fa';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { adminApi } from '../../services/adminApi';
+import { handleSupabaseError } from '../../services/supabase';
 import { MasterclassReservation } from '../../types';
+import { NetworkErrorBanner } from '../../Components/ui/NetworkStatus';
+
 
 const MasterclassReservations = () => {
   const [reservations, setReservations] = useState<MasterclassReservation[]>([]);
@@ -37,9 +40,10 @@ const MasterclassReservations = () => {
       const data = await adminApi.masterclassReservations.getAll();
       setReservations(data || []);
     } catch (error: any) {
-      console.error('Error loading masterclass reservations:', error);
-      setError(error?.message || 'Failed to load reservations. Please try again.');
+      const handled = handleSupabaseError(error, 'loadReservations');
+      setError(handled.message);
     } finally {
+
       setLoading(false);
     }
   };
@@ -97,10 +101,11 @@ const MasterclassReservations = () => {
       setPaidAmount('');
       setPaymentCompletionDate('');
       alert(`Status updated to ${newStatus}`);
-    } catch (error) {
-      console.error('Error updating status:', error);
-      alert('Failed to update status. Please try again.');
+    } catch (error: any) {
+      const handled = handleSupabaseError(error, 'updateStatus');
+      alert(handled.message);
     } finally {
+
       setUpdatingIds(prev => {
         const next = new Set(prev);
         next.delete(id);
@@ -209,13 +214,12 @@ const MasterclassReservations = () => {
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-800 font-medium">Error: {error}</p>
-            <button onClick={loadReservations} className="mt-2 text-sm text-red-600 hover:text-red-800 underline font-medium">
-              Try again
-            </button>
-          </div>
+          <NetworkErrorBanner 
+            message={error} 
+            onRetry={loadReservations} 
+          />
         )}
+
 
         {/* Filters */}
         <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 p-8 mb-8 border border-slate-100">

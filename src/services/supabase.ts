@@ -52,8 +52,7 @@ if (!isValidUrl(supabaseUrl)) {
   );
 }
 
-// Configure Supabase client - explicitly disable realtime to prevent WebSocket connections
-// This is critical for bfcache to work properly
+// Configure Supabase client
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   global: {
     headers: {
@@ -64,87 +63,65 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    // Disable realtime for auth to prevent WebSocket
     flowType: 'pkce',
   },
-  // Explicitly disable realtime
+  // Realtime configuration
   realtime: {
-    // Set to null to completely disable realtime
-    // This prevents any WebSocket connections
     params: {
-      eventsPerSecond: 0,
+      eventsPerSecond: 2,
     },
   },
 });
 
-// Prevent realtime from initializing at all - critical for bfcache
-// Override WebSocket constructor to prevent any WebSocket connections from Supabase
-if (typeof window !== 'undefined') {
-  // Store original WebSocket
-  const OriginalWebSocket = window.WebSocket;
+/**
+ * Utility to handle Supabase errors consistently
+ */
+export const handleSupabaseError = (error: any, context: string) => {
+  console.error(`Supabase Error [${context}]:`, error);
   
-  // Override WebSocket to block Supabase realtime connections
-  (window as any).WebSocket = class BlockedWebSocket extends OriginalWebSocket {
-    constructor(url: string | URL, protocols?: string | string[]) {
-      // Block WebSocket connections to Supabase realtime
-      if (typeof url === 'string' && url.includes('realtime.supabase.co')) {
-        console.warn('Supabase realtime WebSocket blocked for bfcache compatibility');
-        // Create a no-op WebSocket that never connects
-        super('ws://localhost', protocols);
-        // Immediately close it
-        setTimeout(() => {
-          try {
-            this.close();
-          } catch (e) {
-            // Ignore
-          }
-        }, 0);
-        return;
-      }
-      // Allow other WebSocket connections
-      super(url, protocols);
-    }
-  };
-  
-  // Also prevent realtime methods
-  if (supabase.realtime) {
-    supabase.realtime.channel = () => {
-      return {
-        subscribe: () => ({ unsubscribe: () => {} }),
-        on: () => ({ unsubscribe: () => {} }),
-        send: () => {},
-        unsubscribe: () => {},
-      } as any;
+  // Categorize errors
+  if (error.message?.includes('Failed to fetch') || error.code === 'PGRST301' || error.message?.includes('network')) {
+    return {
+      type: 'NETWORK_ERROR',
+      message: 'Connection failed. Please check your internet and try again.',
+      originalError: error
     };
-    
-    if (supabase.realtime.connect) {
-      supabase.realtime.connect = () => Promise.resolve();
-    }
   }
-}
+  
+  if (error.code === '42501' || error.status === 403) {
+    return {
+      type: 'AUTH_ERROR',
+      message: 'You don\'t have permission to perform this action.',
+      originalError: error
+    };
+  }
+
+  return {
+    type: 'UNKNOWN_ERROR',
+    message: error.message || 'An unexpected error occurred.',
+    originalError: error
+  };
+};
 
 // Ensure realtime is disconnected on page unload/hide for bfcache compatibility
 if (typeof window !== 'undefined') {
   const disconnectRealtime = () => {
     try {
-      // Only disconnect if realtime is actually connected
-      if (supabase.realtime.isConnected()) {
+      if (supabase.realtime && (supabase.realtime as any).isConnected()) {
         supabase.realtime.disconnect();
       }
     } catch (e) {
-      // Ignore errors if realtime isn't initialized
+      // Ignore
     }
   };
 
   window.addEventListener('beforeunload', disconnectRealtime);
   
-  // Disconnect when page is hidden (critical for bfcache)
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
       disconnectRealtime();
     }
   });
 
-  // Disconnect on pagehide (bfcache event)
   window.addEventListener('pagehide', disconnectRealtime);
 }

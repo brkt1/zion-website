@@ -10,6 +10,8 @@ import { LoadingState } from "./Components/ui/LoadingState";
 import VisitTracker from "./Components/VisitTracker";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import LanguageSelectorModal from "./Components/ui/LanguageSelectorModal";
+import { NetworkStatus } from "./Components/ui/NetworkStatus";
+
 // Removed static imports for About and Contact to enable lazy loading
 // import About from "./pages/About";
 // import Contact from "./pages/Contact";
@@ -78,6 +80,8 @@ function App() {
   return (
     <LanguageProvider>
       <LanguageSelectorModal />
+      <NetworkStatus />
+
       <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <BrowserCompatibility />
         <ScrollToTop />

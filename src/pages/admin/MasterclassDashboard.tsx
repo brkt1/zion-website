@@ -3,7 +3,10 @@ import { FaArrowRight, FaCheckCircle, FaClock, FaEye, FaGraduationCap, FaMapMark
 import { Link } from 'react-router-dom';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { adminApi } from '../../services/adminApi';
+import { handleSupabaseError } from '../../services/supabase';
 import { MasterclassReservation } from '../../types';
+import { NetworkErrorBanner } from '../../Components/ui/NetworkStatus';
+
 
 const MasterclassDashboard = () => {
     const [stats, setStats] = useState({
@@ -16,6 +19,8 @@ const MasterclassDashboard = () => {
         recent: [] as MasterclassReservation[]
     });
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
 
     useEffect(() => {
         loadData();
@@ -40,9 +45,11 @@ const MasterclassDashboard = () => {
                 byRegion: regions,
                 recent: data.slice(0, 5) // Assuming they are sorted by date in API
             });
-        } catch (error) {
-            console.error('Error loading masterclass stats:', error);
+        } catch (error: any) {
+            const handled = handleSupabaseError(error, 'loadData');
+            setError(handled.message);
         } finally {
+
             setLoading(false);
         }
     };
@@ -60,6 +67,16 @@ const MasterclassDashboard = () => {
     return (
         <AdminLayout title="Masterclass Management Stage">
             <div className="space-y-10 selection:bg-indigo-100 selection:text-indigo-900">
+                {error && (
+                    <NetworkErrorBanner 
+                        message={error} 
+                        onRetry={() => {
+                            setError(null);
+                            loadData();
+                        }} 
+                    />
+                )}
+
                 {/* Hero Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <StatCard 

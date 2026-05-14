@@ -2,12 +2,16 @@ import { useEffect, useState } from 'react';
 import { FaBriefcase, FaClock, FaEye, FaMoneyBillWave, FaSpinner, FaTrash, FaUserCircle } from 'react-icons/fa';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { adminApi } from '../../services/adminApi';
+import { handleSupabaseError } from '../../services/supabase';
 import { FeasibilityBrief } from '../../types';
+import { NetworkErrorBanner } from '../../Components/ui/NetworkStatus';
+
 
 const AdminFeasibilityBriefs = () => {
   const [briefs, setBriefs] = useState<FeasibilityBrief[]>([]);
   const [loading, setLoading] = useState(true);
-  const [, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
   const [selectedBrief, setSelectedBrief] = useState<FeasibilityBrief | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'reviewed' | 'accepted' | 'rejected'>('all');
@@ -25,9 +29,10 @@ const AdminFeasibilityBriefs = () => {
       const data = await adminApi.feasibilityBriefs.getAll();
       setBriefs(data || []);
     } catch (error: any) {
-      console.error('Error loading briefs:', error);
-      setError(error?.message || 'Failed to load briefs. Please try again.');
+      const handled = handleSupabaseError(error, 'loadBriefs');
+      setError(handled.message);
     } finally {
+
       setLoading(false);
     }
   };
@@ -114,6 +119,14 @@ const AdminFeasibilityBriefs = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Event Feasibility Briefs</h1>
           <p className="text-gray-600">Review technical feasibility and ROI assessments</p>
         </div>
+
+        {error && (
+          <NetworkErrorBanner 
+            message={error} 
+            onRetry={loadBriefs} 
+          />
+        )}
+
 
         {/* Filters */}
         <div className="bg-white rounded-lg shadow-md p-4 mb-6">
