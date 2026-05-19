@@ -97,6 +97,13 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
       ],
     },
     {
+      label: 'Yenege Unity',
+      emoji: '🌟',
+      items: [
+        { icon: FaHandshake, label: 'Unity CRM', path: '/admin/yenege-unity', color: 'from-amber-500 to-yellow-600', adminOnly: true },
+      ],
+    },
+    {
       label: 'Team & Sales',
       emoji: '👥',
       items: [

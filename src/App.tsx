@@ -71,6 +71,12 @@ const AdminFeasibilityBriefs = lazy(() => import("./pages/admin/FeasibilityBrief
 const Admins = lazy(() => import("./pages/admin/Admins"));
 const AdminEventDetails = lazy(() => import("./pages/admin/EventDetails"));
 
+// Yenege Unity platform pages
+const YenegeUnityLanding = lazy(() => import("./pages/yenege-unity/Landing"));
+const YenegeUnityApply = lazy(() => import("./pages/yenege-unity/Apply"));
+const YenegeUnityDashboard = lazy(() => import("./pages/admin/YenegeUnityDashboard"));
+
+
 
 
 
@@ -181,6 +187,17 @@ function App() {
           <Route path="/games/dice-roller" element={
             <Suspense fallback={<LoadingState />}>
               <DiceRoller />
+            </Suspense>
+          } />
+
+          <Route path="/yenege-unity" element={
+            <Suspense fallback={<LoadingState />}>
+              <YenegeUnityLanding />
+            </Suspense>
+          } />
+          <Route path="/yenege-unity/apply" element={
+            <Suspense fallback={<LoadingState />}>
+              <YenegeUnityApply />
             </Suspense>
           } />
           
@@ -405,6 +422,14 @@ function App() {
             element={
               <Suspense fallback={<LoadingState />}>
                 <Admins />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="/admin/yenege-unity" 
+            element={
+              <Suspense fallback={<LoadingState message="Loading CRM dashboard..." />}>
+                <YenegeUnityDashboard />
               </Suspense>
             } 
           />
