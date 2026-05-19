@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaCrown, FaUsers, FaHandshake, FaChartBar, FaCalendarAlt, FaChevronDown, FaCheckCircle, FaUserCheck } from 'react-icons/fa';
+import { FaCrown, FaUsers, FaHandshake, FaChartBar, FaChevronDown, FaCheckCircle, FaUserCheck } from 'react-icons/fa';
 
 export default function YenegeUnityLanding() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);

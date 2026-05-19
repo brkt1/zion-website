@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { 
-  FaUsers, FaCheckCircle, FaHourglassHalf, FaTimesCircle, FaCrown, FaHandshake, 
-  FaUser, FaPhone, FaSearch, FaFilter, FaTags, FaStickyNote, FaCalendarAlt, 
-  FaQrcode, FaPrint, FaArrowRight, FaChartPie, FaPlus, FaTrash, FaCheck, FaExclamationTriangle,
+  FaUsers, FaCheckCircle, FaHourglassHalf, FaCrown, FaHandshake, 
+  FaUser, FaSearch, FaQrcode, FaChartPie, FaPlus, FaExclamationTriangle,
   FaSpinner, FaBullseye
 } from 'react-icons/fa';
 import AdminLayout from '../../Components/admin/AdminLayout';
@@ -21,12 +20,11 @@ export default function YenegeUnityDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterIndustry, setFilterIndustry] = useState<string>('all');
-  const [filterTargetSector, setFilterTargetSector] = useState<string>('all');
+  const [filterTargetSector] = useState<string>('all');
   const [filterTag, setFilterTag] = useState<string>('all');
 
   // Selected attendee for CRM modal
   const [selectedAttendee, setSelectedAttendee] = useState<YenegeUnityAttendee | null>(null);
-  const [newNote, setNewNote] = useState('');
   const [newTag, setNewTag] = useState('');
   const [commType, setCommType] = useState<'call' | 'email' | 'whatsapp' | 'note'>('call');
   const [commNote, setCommNote] = useState('');
@@ -77,7 +75,6 @@ export default function YenegeUnityDashboard() {
   const totalCount = attendees.length;
   const approvedCount = attendees.filter(a => a.status === 'accepted').length;
   const pendingCount = attendees.filter(a => a.status === 'pending').length;
-  const rejectedCount = attendees.filter(a => a.status === 'rejected').length;
   const vipCount = attendees.filter(a => a.vipCandidate || a.interestLevel === 'vip').length;
   const sponsorProspects = attendees.filter(a => a.sponsorshipInterest || a.tags.includes('Sponsor')).length;
   const checkedInCount = attendees.filter(a => a.checkedIn).length;
