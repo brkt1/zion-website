@@ -157,7 +157,7 @@ const SellerDashboard = () => {
         </div>
 
         {/* Current Stats Overview */}
-        <div className={`mb-6 md:mb-8 grid grid-cols-2 ${salesStats.totalRevenue > 0 ? 'md:grid-cols-2 lg:grid-cols-4' : 'md:grid-cols-3'} gap-3 md:gap-4`}>
+        <div className="mb-6 md:mb-8 grid grid-cols-2 gap-3 md:gap-4">
           <div className="bg-white rounded-2xl shadow-md p-4 md:p-6 border border-gray-100 active:scale-95 transition-transform">
             <div className="flex flex-col">
               <div className="flex items-center justify-between mb-2">

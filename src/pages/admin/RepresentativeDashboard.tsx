@@ -78,7 +78,7 @@ const SponsorshipDepartment = () => {
     <AdminLayout title="Sponsorship Department">
       <div className="space-y-12 pb-20">
         {/* Department Overview Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 gap-8">
            <div className="bg-white rounded-[32px] p-8 border border-gray-100 shadow-xl shadow-gray-200/30 relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full blur-3xl -translate-y-16 translate-x-16 group-hover:scale-150 transition-transform duration-700" />
               <div className="relative z-10">

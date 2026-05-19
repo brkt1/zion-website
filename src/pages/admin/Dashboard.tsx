@@ -420,7 +420,7 @@ const Dashboard = () => {
           )}
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+          <div className="grid grid-cols-2 gap-6 mb-10">
             {/* Total Revenue */}
             <div className="group relative overflow-hidden rounded-[32px] p-6 bg-white border border-gray-100 shadow-xl shadow-gray-200/40 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#FF6F5E]/10">
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-[#FFD447]/10 to-[#FF6F5E]/10 rounded-full -translate-y-8 translate-x-8 blur-2xl group-hover:scale-150 transition-transform duration-700" />
@@ -842,7 +842,7 @@ const Dashboard = () => {
             )}
 
           {/* Secondary Stats */}
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-xs sm:text-sm font-medium text-gray-600">Categories</p>

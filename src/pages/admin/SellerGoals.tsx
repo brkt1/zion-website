@@ -116,7 +116,7 @@ const SellerGoals = () => {
             <FaChartLine className="text-yellow-600" size={20} />
             <span>Sales Goals & Rewards</span>
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+          <div className="grid grid-cols-2 gap-3 md:gap-4">
             {milestones.map((milestone) => {
               const Icon = milestone.icon;
               const isAchieved = salesStats.successfulTickets >= milestone.count;
