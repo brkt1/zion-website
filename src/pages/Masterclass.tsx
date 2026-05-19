@@ -195,10 +195,10 @@ const Masterclass = () => {
                 East Africa's most comprehensive event training program. From logistics to execution — we build the next generation of professional event architects.
               </p>
 
-              <div className="flex flex-col sm:flex-row items-center gap-6 pt-6">
+              <div className="flex flex-col sm:flex-row items-center gap-6 pt-6 w-full sm:w-auto">
                 <Link
                   to="/masterclass-registration"
-                  className="group relative inline-flex items-center gap-4 px-10 py-5 bg-white text-black rounded-full font-black text-xs uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-[0_20px_50px_rgba(255,255,255,0.1)]"
+                  className="group relative inline-flex items-center justify-center gap-4 w-full sm:w-auto px-8 py-4 sm:px-10 sm:py-5 bg-white text-black rounded-full font-black text-xs uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-[0_20px_50px_rgba(255,255,255,0.1)]"
                 >
                   Register for the Program
                   <FaArrowRight className="group-hover:translate-x-2 transition-transform" />
@@ -235,20 +235,20 @@ const Masterclass = () => {
       </section>
 
       {/* ── STATS MARQUEE ───────────────────────────────────────────────── */}
-      <div className="py-12 border-y border-white/5 bg-white/[0.01] overflow-hidden">
+      <div className="py-8 sm:py-12 border-y border-white/5 bg-white/[0.01] overflow-hidden">
         <div className="flex whitespace-nowrap animate-marquee">
           {[1,2,3,4].map(i => (
             <div key={i} className="flex items-center gap-16 px-8">
-              <span className="flex items-center gap-4 text-4xl font-serif">
+              <span className="flex items-center gap-4 text-2xl sm:text-4xl font-serif">
                 <FaStar className="text-amber-400 text-sm" /> 4.9 STUDENT RATING
               </span>
-              <span className="flex items-center gap-4 text-4xl font-serif">
+              <span className="flex items-center gap-4 text-2xl sm:text-4xl font-serif">
                 <FaUsers className="text-amber-400 text-sm" /> 1K+ COMMUNITY
               </span>
-              <span className="flex items-center gap-4 text-4xl font-serif">
+              <span className="flex items-center gap-4 text-2xl sm:text-4xl font-serif">
                 <FaCertificate className="text-amber-400 text-sm" /> PROFESSIONAL CERTIFICATION
               </span>
-              <span className="flex items-center gap-4 text-4xl font-serif">
+              <span className="flex items-center gap-4 text-2xl sm:text-4xl font-serif">
                 <FaGlobe className="text-amber-400 text-sm" /> GLOBAL NETWORK
               </span>
             </div>
@@ -257,18 +257,18 @@ const Masterclass = () => {
       </div>
 
       {/* ── INTRO SECTION ───────────────────────────────────────────────── */}
-      <section className="py-32 relative">
+      <section className="py-20 sm:py-32 relative">
         <div className="container mx-auto px-6">
-          <div className="max-w-4xl mx-auto text-center space-y-12">
-            <h2 className="font-serif text-[clamp(2.5rem,8vw,5rem)] leading-tight">
+          <div className="max-w-4xl mx-auto text-center space-y-8 sm:space-y-12">
+            <h2 className="font-serif text-[clamp(2.2rem,8vw,5rem)] leading-tight">
               Professional Event Production <br />
               <span className="italic text-white/40">From Idea to Execution.</span>
             </h2>
-            <div className="grid md:grid-cols-2 gap-12 text-left">
-              <p className="text-lg text-white/40 leading-relaxed font-light">
+            <div className="grid md:grid-cols-2 gap-8 sm:gap-12 text-left">
+              <p className="text-base sm:text-lg text-white/40 leading-relaxed font-light">
                 Events bring people together, create opportunities, and drive innovation. This program teaches you how professional event planners create successful events from idea to execution.
               </p>
-              <p className="text-lg text-white/40 leading-relaxed font-light">
+              <p className="text-base sm:text-lg text-white/40 leading-relaxed font-light">
                 More importantly, you will design your own event or expo during the course, giving you real-world experience in event planning and management.
               </p>
             </div>
@@ -277,16 +277,16 @@ const Masterclass = () => {
       </section>
 
       {/* ── CURRICULUM SECTION ──────────────────────────────────────────── */}
-      <section className="py-32 bg-[#020617] relative">
+      <section className="py-20 sm:py-32 bg-[#020617] relative">
         <div className="container mx-auto px-6">
-          <div className="flex flex-col md:flex-row items-end justify-between gap-8 mb-20">
+          <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-8 mb-16 sm:mb-20">
             <div className="space-y-4">
               <span className="text-amber-500 font-black text-[10px] uppercase tracking-widest">Curriculum Roadmap</span>
-              <h2 className="font-serif text-[clamp(3.5rem,10vw,8rem)] leading-none">
+              <h2 className="font-serif text-[clamp(2.5rem,10vw,8rem)] leading-none">
                 What You <br /><span className="italic text-white/30">Will Master.</span>
               </h2>
             </div>
-            <p className="max-w-xs text-white/30 text-sm uppercase tracking-widest border-l border-white/10 pl-8 mb-4">
+            <p className="max-w-xs text-white/30 text-xs sm:text-sm uppercase tracking-widest border-l border-white/10 pl-6 sm:pl-8 mb-2 sm:mb-4">
               A comprehensive system designed to build expertise through nine intensive modules.
             </p>
           </div>
@@ -295,31 +295,31 @@ const Masterclass = () => {
             {learningModules.map((module, i) => (
               <div 
                 key={i}
-                className={`glass-panel p-8 rounded-[2.5rem] cursor-pointer group ${activeModule === i ? 'border-amber-400 bg-white/[0.05]' : ''}`}
+                className={`glass-panel p-6 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] cursor-pointer group ${activeModule === i ? 'border-amber-400 bg-white/[0.05]' : ''}`}
                 onClick={() => setActiveModule(activeModule === i ? null : i)}
               >
-                <div className="flex items-start justify-between mb-8">
-                  <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-2xl text-amber-400 group-hover:scale-110 group-hover:rotate-6 transition-all">
+                <div className="flex items-start justify-between mb-6 sm:mb-8">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-xl sm:text-2xl text-amber-400 group-hover:scale-110 group-hover:rotate-6 transition-all">
                     {module.icon}
                   </div>
-                  <span className="font-serif italic text-4xl text-white/5">{module.id}</span>
+                  <span className="font-serif italic text-3xl sm:text-4xl text-white/5">{module.id}</span>
                 </div>
                 
-                <h3 className="text-2xl font-bold mb-4 group-hover:text-amber-400 transition-colors">{module.title}</h3>
-                <p className="text-white/40 text-sm font-light leading-relaxed mb-6">
+                <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 group-hover:text-amber-400 transition-colors">{module.title}</h3>
+                <p className="text-white/40 text-xs sm:text-sm font-light leading-relaxed mb-6">
                   {module.description}
                 </p>
 
                 <div className={`space-y-3 overflow-hidden transition-all duration-500 ${activeModule === i ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
                   {module.details.map((detail, d) => (
                     <div key={d} className="flex items-center gap-3 text-xs text-white/60">
-                      <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-amber-50" />
                       {detail}
                     </div>
                   ))}
                 </div>
 
-                <div className="mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/20 group-hover:text-amber-400 transition-colors">
+                <div className="mt-6 sm:mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/20 group-hover:text-amber-400 transition-colors">
                   {activeModule === i ? 'Close Details' : 'Explore Module'}
                   <FaChevronDown className={`transition-transform duration-500 ${activeModule === i ? 'rotate-180' : ''}`} />
                 </div>
@@ -330,40 +330,40 @@ const Masterclass = () => {
       </section>
 
       {/* ── BENTO AUDIENCE SECTION ───────────────────────────────────────── */}
-      <section className="py-32 relative bg-white/[0.01]">
+      <section className="py-20 sm:py-32 relative bg-white/[0.01]">
         <div className="container mx-auto px-6">
-          <div className="text-center mb-16 md:mb-24 space-y-4 md:space-y-6">
-            <h2 className="font-serif text-[clamp(3rem,10vw,8rem)]">Who This <span className="italic">Is For</span></h2>
+          <div className="text-center mb-12 sm:mb-24 space-y-4">
+            <h2 className="font-serif text-[clamp(2.5rem,10vw,8rem)]">Who This <span className="italic">Is For</span></h2>
             <p className="text-white/30 uppercase tracking-[0.4em] text-[8px] md:text-[10px] font-black">Open to visionaries from all industries</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 max-w-7xl mx-auto">
             <div className="bento-item md:col-span-2 space-y-4">
-              <FaUsers className="text-4xl text-amber-400 mb-6" />
-              <h4 className="text-2xl font-bold">Aspiring Professionals</h4>
-              <p className="text-white/40 font-light">Students interested in event management careers looking for a strong foundation in the African context.</p>
+              <FaUsers className="text-3xl sm:text-4xl text-amber-400 mb-4 sm:mb-6" />
+              <h4 className="text-xl sm:text-2xl font-bold">Aspiring Professionals</h4>
+              <p className="text-white/40 text-sm sm:text-base font-light">Students interested in event management careers looking for a strong foundation in the African context.</p>
             </div>
             <div className="bento-item lg:col-span-2 space-y-4 bg-[#FFD447] !text-[#020617]">
-              <FaRocket className="text-4xl mb-6" />
-              <h4 className="text-2xl font-bold">Entrepreneurs</h4>
-              <p className="text-black/60 font-medium">Individuals who want to organize their own expos, conferences, or festivals and build a sustainable business.</p>
+              <FaRocket className="text-3xl sm:text-4xl mb-4 sm:mb-6" />
+              <h4 className="text-xl sm:text-2xl font-bold">Entrepreneurs</h4>
+              <p className="text-black/60 text-sm sm:text-base font-medium">Individuals who want to organize their own expos, conferences, or festivals and build a sustainable business.</p>
             </div>
             <div className="bento-item space-y-4">
-              <FaBrain className="text-4xl text-rose-400 mb-6" />
-              <h4 className="text-xl font-bold">Marketers</h4>
-              <p className="text-white/40 text-sm">Professionals wanting to add experiential marketing and live event planning to their arsenal.</p>
+              <FaBrain className="text-3xl sm:text-4xl text-rose-400 mb-4 sm:mb-6" />
+              <h4 className="text-lg sm:text-xl font-bold">Marketers</h4>
+              <p className="text-white/40 text-xs sm:text-sm">Professionals wanting to add experiential marketing and live event planning to their arsenal.</p>
             </div>
             <div className="bento-item space-y-4">
-              <FaChartLine className="text-4xl text-blue-400 mb-6" />
-              <h4 className="text-xl font-bold">Business Owners</h4>
-              <p className="text-white/40 text-sm">Leaders looking to host high-impact corporate events that drive brand loyalty and revenue.</p>
+              <FaChartLine className="text-3xl sm:text-4xl text-blue-400 mb-4 sm:mb-6" />
+              <h4 className="text-lg sm:text-xl font-bold">Business Owners</h4>
+              <p className="text-white/40 text-xs sm:text-sm">Leaders looking to host high-impact corporate events that drive brand loyalty and revenue.</p>
             </div>
             <div className="bento-item md:col-span-2 space-y-4">
-              <h4 className="text-2xl font-bold">And Many More...</h4>
-              <p className="text-white/40">Community leaders, career changers, and anyone passionate about turning visions into reality.</p>
-              <div className="pt-6 flex flex-wrap gap-2">
+              <h4 className="text-xl sm:text-2xl font-bold">And Many More...</h4>
+              <p className="text-white/40 text-sm sm:text-base">Community leaders, career changers, and anyone passionate about turning visions into reality.</p>
+              <div className="pt-4 sm:pt-6 flex flex-wrap gap-2">
                 {["Public Events", "Weddings", "Concerts", "Corporate"].map(tag => (
-                  <span key={tag} className="px-4 py-2 rounded-full border border-white/10 text-[10px] uppercase font-black text-white/30 tracking-widest">{tag}</span>
+                  <span key={tag} className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full border border-white/10 text-[9px] sm:text-[10px] uppercase font-black text-white/30 tracking-widest">{tag}</span>
                 ))}
               </div>
             </div>
@@ -372,9 +372,9 @@ const Masterclass = () => {
       </section>
 
       {/* ── THE CAPSTONE SECTION ────────────────────────────────────────── */}
-      <section className="py-32 relative overflow-hidden">
+      <section className="py-20 sm:py-32 relative overflow-hidden">
         <div className="container mx-auto px-6">
-          <div className="glass-panel rounded-[4rem] p-12 md:p-24 relative overflow-hidden">
+          <div className="glass-panel rounded-[2rem] sm:rounded-[4rem] p-6 sm:p-12 md:p-24 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-full h-full -z-1 opacity-20">
               <OptimizedImage 
                 src="https://images.unsplash.com/photo-1540575861501-7ad05823c9f5?q=80&w=1200&auto=format&fit=crop" 
@@ -384,30 +384,30 @@ const Masterclass = () => {
             </div>
             <div className="absolute inset-0 bg-gradient-to-r from-[#020617] via-[#020617]/80 to-transparent" />
             
-            <div className="relative z-10 grid lg:grid-cols-2 gap-16 items-center">
-              <div className="space-y-10">
-                <div className="inline-block px-4 py-2 rounded-lg bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest">Capstone Project</div>
-                <h2 className="font-serif text-[clamp(3rem,10vw,8rem)] leading-tight">Your <br /><span className="italic text-rose-500">Masterpiece.</span></h2>
-                <p className="text-xl text-white/50 font-light leading-relaxed">
+            <div className="relative z-10 grid lg:grid-cols-2 gap-10 sm:gap-16 items-center">
+              <div className="space-y-6 sm:space-y-10">
+                <div className="inline-block px-3 py-1.5 rounded-lg bg-rose-500 text-white text-[9px] sm:text-[10px] font-black uppercase tracking-widest">Capstone Project</div>
+                <h2 className="font-serif text-[clamp(2.5rem,10vw,8rem)] leading-tight">Your <br /><span className="italic text-rose-500">Masterpiece.</span></h2>
+                <p className="text-lg sm:text-xl text-white/50 font-light leading-relaxed">
                   Throughout the course, you will design your own event or expo. Each module adds a new section until you complete a full professional event plan.
                 </p>
-                <div className="flex flex-wrap gap-6">
-                   <div className="flex items-center gap-3"><FaCheckCircle className="text-amber-400" /> <span className="text-sm font-bold tracking-widest uppercase">Financial Strategy</span></div>
-                   <div className="flex items-center gap-3"><FaCheckCircle className="text-amber-400" /> <span className="text-sm font-bold tracking-widest uppercase">Vendor Selection</span></div>
-                   <div className="flex items-center gap-3"><FaCheckCircle className="text-amber-400" /> <span className="text-sm font-bold tracking-widest uppercase">Marketing Plan</span></div>
+                <div className="flex flex-wrap gap-4 sm:gap-6">
+                   <div className="flex items-center gap-2 sm:gap-3"><FaCheckCircle className="text-amber-400 text-sm sm:text-base" /><span className="text-xs sm:text-sm font-bold tracking-widest uppercase">Financial Strategy</span></div>
+                   <div className="flex items-center gap-2 sm:gap-3"><FaCheckCircle className="text-amber-400 text-sm sm:text-base" /><span className="text-xs sm:text-sm font-bold tracking-widest uppercase">Vendor Selection</span></div>
+                   <div className="flex items-center gap-2 sm:gap-3"><FaCheckCircle className="text-amber-400 text-sm sm:text-base" /><span className="text-xs sm:text-sm font-bold tracking-widest uppercase">Marketing Plan</span></div>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="glass-panel p-8 rounded-3xl text-center">
-                   <FaGavel className="text-4xl text-amber-400 mx-auto mb-4" />
-                   <h4 className="font-bold mb-2">Legal Launch</h4>
-                   <p className="text-[10px] text-white/30 uppercase tracking-widest">Industry Licensing</p>
+                <div className="glass-panel p-4 sm:p-8 rounded-2xl sm:rounded-3xl text-center">
+                   <FaGavel className="text-3xl sm:text-4xl text-amber-400 mx-auto mb-3 sm:mb-4" />
+                   <h4 className="font-bold text-sm sm:text-base mb-1 sm:mb-2">Legal Launch</h4>
+                   <p className="text-[8px] sm:text-[10px] text-white/30 uppercase tracking-widest">Industry Licensing</p>
                 </div>
-                <div className="glass-panel p-8 rounded-3xl text-center translate-y-12">
-                   <FaPlayCircle className="text-4xl text-rose-400 mx-auto mb-4" />
-                   <h4 className="font-bold mb-2">Real Birth</h4>
-                   <p className="text-[10px] text-white/30 uppercase tracking-widest">Launch Vision</p>
+                <div className="glass-panel p-4 sm:p-8 rounded-2xl sm:rounded-3xl text-center translate-y-6 sm:translate-y-12">
+                   <FaPlayCircle className="text-3xl sm:text-4xl text-rose-400 mx-auto mb-3 sm:mb-4" />
+                   <h4 className="font-bold text-sm sm:text-base mb-1 sm:mb-2">Real Birth</h4>
+                   <p className="text-[8px] sm:text-[10px] text-white/30 uppercase tracking-widest">Launch Vision</p>
                 </div>
               </div>
             </div>
@@ -416,24 +416,24 @@ const Masterclass = () => {
       </section>
 
       {/* ── FINAL CTA ─────────────────────────────────────────────────── */}
-      <section className="py-48 relative text-center">
-        <div className="container mx-auto px-6 space-y-12">
-          <FaGraduationCap className="text-6xl text-amber-400 mx-auto mb-8 animate-bounce" />
-          <h2 className="font-serif text-[clamp(3.5rem,12vw,9rem)] tracking-tighter">
+      <section className="py-24 sm:py-48 relative text-center">
+        <div className="container mx-auto px-6 space-y-8 sm:space-y-12">
+          <FaGraduationCap className="text-5xl sm:text-6xl text-amber-400 mx-auto mb-4 sm:mb-8 animate-bounce" />
+          <h2 className="font-serif text-[clamp(2.5rem,12vw,9rem)] tracking-tighter">
             Launch Your <br /><span className="italic text-glow" style={{ color: BRAND.gold }}>Vision Today.</span>
           </h2>
-          <p className="text-white/40 text-xl md:text-2xl font-light max-w-2xl mx-auto mb-12">
+          <p className="text-white/40 text-lg sm:text-2xl font-light max-w-2xl mx-auto mb-8 sm:mb-12">
             The next cohort of event architects is being born. Will you be among them?
           </p>
           <Link
             to="/masterclass-registration"
-            className="inline-flex items-center gap-6 px-16 py-8 bg-amber-400 text-black rounded-full font-black text-sm uppercase tracking-[0.3em] hover:scale-110 transition-transform shadow-[0_30px_100px_rgba(255,212,71,0.2)]"
+            className="inline-flex items-center justify-center gap-4 sm:gap-6 w-full sm:w-auto px-8 py-5 sm:px-16 sm:py-8 bg-amber-400 text-black rounded-full font-black text-xs sm:text-sm uppercase tracking-wider sm:tracking-[0.3em] hover:scale-105 active:scale-95 transition-all shadow-[0_30px_100px_rgba(255,212,71,0.2)]"
           >
             Register for the Program
             <FaArrowRight />
           </Link>
-          <div className="pt-12">
-            <span className="text-[10px] font-black text-white/10 uppercase tracking-[1em]">YENEGE ACADEMY 2024</span>
+          <div className="pt-8 sm:pt-12">
+            <span className="text-[9px] sm:text-[10px] font-black text-white/10 uppercase tracking-[1em]">YENEGE ACADEMY 2024</span>
           </div>
         </div>
       </section>

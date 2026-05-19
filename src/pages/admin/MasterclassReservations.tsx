@@ -277,26 +277,26 @@ const MasterclassReservations = () => {
 
   return (
     <AdminLayout>
-      <div className="p-6">
-        <div className="mb-6 flex justify-between items-center">
+      <div className="p-4 sm:p-6">
+        <div className="mb-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Masterclass Reservations</h1>
-            <p className="text-gray-600">Manage e-learning program registrations</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Masterclass Reservations</h1>
+            <p className="text-sm text-gray-600">Manage e-learning program registrations</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
             <button 
               onClick={() => {
                 setEmailRecipientType('all');
                 setEmailSubject(`Update for ${statusFilter === 'all' ? 'All' : statusFilter} Students - Yenege Masterclass`);
                 setShowEmailModal(true);
               }}
-              className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-2.5 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200"
+              className="flex items-center justify-center gap-2 bg-indigo-600 text-white px-4 py-2.5 sm:px-6 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 w-full sm:w-auto"
             >
               <FaEnvelope /> Email {statusFilter === 'all' ? 'All Students' : `All ${statusFilter}s`}
             </button>
-            <div className="flex items-center gap-2 bg-amber-50 px-4 py-2 rounded-lg border border-amber-100">
+            <div className="flex items-center justify-center gap-2 bg-amber-50 px-4 py-2.5 rounded-2xl border border-amber-100 w-full sm:w-auto">
               <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-              <span className="text-amber-800 text-sm font-bold">{reservations.length} Total Registered</span>
+              <span className="text-amber-800 text-xs sm:text-sm font-bold">{reservations.length} Total Registered</span>
             </div>
           </div>
         </div>
@@ -319,8 +319,8 @@ const MasterclassReservations = () => {
 
 
         {/* Filters */}
-        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 p-8 mb-8 border border-slate-100">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 p-5 sm:p-8 mb-8 border border-slate-100">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
             {/* Search */}
             <div className="lg:col-span-2">
               <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Search Student</label>
@@ -407,131 +407,251 @@ const MasterclassReservations = () => {
         </div>
 
         {/* Reservations List */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="bg-white rounded-2xl sm:rounded-lg shadow-md overflow-hidden">
           {filteredReservations.length === 0 ? (
             <div className="p-12 text-center">
               <FaCalendarAlt className="text-6xl text-gray-300 mx-auto mb-4" />
               <p className="text-gray-600 text-lg">No reservations found</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-100">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Student</th>
-                    <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Age / Sex</th>
-                    <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Follow-up</th>
-                    <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Location (Region)</th>
-                    <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Status</th>
-                    <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Payment</th>
-                    <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Date</th>
-                    <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-100">
-                  {filteredReservations.map((res) => (
-                    <tr key={res.id} className="hover:bg-amber-50/30 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black shadow-lg">
-                            {res.name.charAt(0).toUpperCase()}
-                          </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-bold text-gray-900">{res.name}</div>
-                            <div className="text-xs text-gray-500">{res.phone}</div>
-                            {res.email && <div className="text-[10px] text-indigo-500 font-medium">{res.email}</div>}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{res.age} yrs</div>
-                        <div className="text-xs text-gray-500 uppercase font-black tracking-tighter">{res.sex}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {res.follow_up_date ? (
-                          <div>
-                            <div className={`text-[10px] font-black uppercase tracking-widest mb-1 ${
-                              new Date(res.follow_up_date).setHours(0,0,0,0) < new Date().setHours(0,0,0,0) ? 'text-red-500' : 
-                              new Date(res.follow_up_date).setHours(0,0,0,0) === new Date().setHours(0,0,0,0) ? 'text-amber-500' : 'text-indigo-500'
-                            }`}>
-                              {new Date(res.follow_up_date).setHours(0,0,0,0) < new Date().setHours(0,0,0,0) ? '⚠️ Overdue' : 
-                               new Date(res.follow_up_date).setHours(0,0,0,0) === new Date().setHours(0,0,0,0) ? '📞 Call Today' : '📅 Planned'}
-                            </div>
-                            <div className="text-xs font-bold text-gray-900">{new Date(res.follow_up_date).toLocaleDateString()}</div>
-                          </div>
-                        ) : (
-                          <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">None set</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{res.place}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full border ${getStatusColor(res.status)}`}>
-                          {res.status.charAt(0).toUpperCase() + res.status.slice(1)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {res.payment_status ? (
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${
-                            res.payment_status === 'full' ? 'bg-green-100 text-green-800 border-green-200' :
-                            res.payment_status === 'partial' ? 'bg-blue-100 text-blue-800 border-blue-200' :
-                            'bg-gray-100 text-gray-800 border-gray-200'
-                          }`}>
-                            {res.payment_status}
-                          </span>
-                        ) : (
-                          <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Not Set</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(res.createdAt)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex items-center space-x-3">
-                          <button
-                            onClick={() => handleViewDetails(res)}
-                            className="text-amber-600 hover:text-amber-900 transition-colors"
-                            title="View full details"
-                          >
-                            <FaEye className="text-lg" />
-                          </button>
-                          {res.status !== 'accepted' && (
-                            <button
-                              onClick={() => handleStatusUpdate(res.id, 'accepted')}
-                              disabled={updatingIds.has(res.id)}
-                              className="text-green-600 hover:text-green-900 disabled:opacity-50"
-                              title="Accept"
-                            >
-                              {updatingIds.has(res.id) ? <FaSpinner className="animate-spin" /> : <FaCheck />}
-                            </button>
-                          )}
-                          <button
-                            onClick={() => {
-                              setSelectedReservation(res);
-                              setEmailRecipientType('individual');
-                              setEmailSubject(`Update for ${res.name} - Yenege Masterclass`);
-                              setShowEmailModal(true);
-                            }}
-                            className="text-indigo-600 hover:text-indigo-900 transition-colors"
-                            title="Send individual email"
-                          >
-                            <FaEnvelope />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(res.id)}
-                            className="text-red-600 hover:text-red-900 transition-colors"
-                            title="Delete"
-                          >
-                            <FaTrash />
-                          </button>
-                        </div>
-                      </td>
+            <>
+              {/* Desktop Table View */}
+              <div className="hidden lg:block overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b border-gray-100">
+                    <tr>
+                      <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Student</th>
+                      <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Age / Sex</th>
+                      <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Follow-up</th>
+                      <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Location (Region)</th>
+                      <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Status</th>
+                      <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Payment</th>
+                      <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Date</th>
+                      <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-100">
+                    {filteredReservations.map((res) => (
+                      <tr key={res.id} className="hover:bg-amber-50/30 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black shadow-lg">
+                              {res.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="ml-4">
+                              <div className="text-sm font-bold text-gray-900">{res.name}</div>
+                              <div className="text-xs text-gray-500">{res.phone}</div>
+                              {res.email && <div className="text-[10px] text-indigo-500 font-medium">{res.email}</div>}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{res.age} yrs</div>
+                          <div className="text-xs text-gray-500 uppercase font-black tracking-tighter">{res.sex}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {res.follow_up_date ? (
+                            <div>
+                              <div className={`text-[10px] font-black uppercase tracking-widest mb-1 ${
+                                new Date(res.follow_up_date).setHours(0,0,0,0) < new Date().setHours(0,0,0,0) ? 'text-red-500' : 
+                                new Date(res.follow_up_date).setHours(0,0,0,0) === new Date().setHours(0,0,0,0) ? 'text-amber-500' : 'text-indigo-500'
+                              }`}>
+                                {new Date(res.follow_up_date).setHours(0,0,0,0) < new Date().setHours(0,0,0,0) ? '⚠️ Overdue' : 
+                                 new Date(res.follow_up_date).setHours(0,0,0,0) === new Date().setHours(0,0,0,0) ? '📞 Call Today' : '📅 Planned'}
+                              </div>
+                              <div className="text-xs font-bold text-gray-900">{new Date(res.follow_up_date).toLocaleDateString()}</div>
+                            </div>
+                          ) : (
+                            <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">None set</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">{res.place}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full border ${getStatusColor(res.status)}`}>
+                            {res.status.charAt(0).toUpperCase() + res.status.slice(1)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {res.payment_status ? (
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${
+                              res.payment_status === 'full' ? 'bg-green-100 text-green-800 border-green-200' :
+                              res.payment_status === 'partial' ? 'bg-blue-100 text-blue-800 border-blue-200' :
+                              'bg-gray-100 text-gray-800 border-gray-200'
+                            }`}>
+                              {res.payment_status}
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Not Set</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {formatDate(res.createdAt)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex items-center space-x-3">
+                            <button
+                              onClick={() => handleViewDetails(res)}
+                              className="text-amber-600 hover:text-amber-900 transition-colors"
+                              title="View full details"
+                            >
+                              <FaEye className="text-lg" />
+                            </button>
+                            {res.status !== 'accepted' && (
+                              <button
+                                onClick={() => handleStatusUpdate(res.id, 'accepted')}
+                                disabled={updatingIds.has(res.id)}
+                                className="text-green-600 hover:text-green-900 disabled:opacity-50"
+                                title="Accept"
+                              >
+                                {updatingIds.has(res.id) ? <FaSpinner className="animate-spin" /> : <FaCheck />}
+                              </button>
+                            )}
+                            <button
+                              onClick={() => {
+                                setSelectedReservation(res);
+                                setEmailRecipientType('individual');
+                                setEmailSubject(`Update for ${res.name} - Yenege Masterclass`);
+                                setShowEmailModal(true);
+                              }}
+                              className="text-indigo-600 hover:text-indigo-900 transition-colors"
+                              title="Send individual email"
+                            >
+                              <FaEnvelope />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(res.id)}
+                              className="text-red-600 hover:text-red-900 transition-colors"
+                              title="Delete"
+                            >
+                              <FaTrash />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="block lg:hidden divide-y divide-gray-100 bg-white">
+                {filteredReservations.map((res) => (
+                  <div key={res.id} className="p-4 hover:bg-amber-50/20 transition-colors space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="flex-shrink-0 h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black shadow-lg">
+                          {res.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className="text-sm font-bold text-gray-900 truncate">{res.name}</h3>
+                          <a href={`tel:${res.phone}`} className="text-xs text-indigo-600 font-semibold hover:underline block truncate">
+                            {res.phone}
+                          </a>
+                          {res.email && <p className="text-[10px] text-gray-500 truncate">{res.email}</p>}
+                        </div>
+                      </div>
+                      <span className={`px-2.5 py-0.5 text-[10px] leading-5 font-bold rounded-full border flex-shrink-0 ${getStatusColor(res.status)}`}>
+                        {res.status.charAt(0).toUpperCase() + res.status.slice(1)}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 text-xs border-t border-b border-gray-50 py-2">
+                      <div>
+                        <span className="text-gray-400 block text-[9px] uppercase tracking-wider">Age / Sex</span>
+                        <span className="font-bold text-gray-700">{res.age} yrs • {res.sex.toUpperCase()}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400 block text-[9px] uppercase tracking-wider">Location</span>
+                        <span className="font-bold text-gray-700">{res.place}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400 block text-[9px] uppercase tracking-wider">Payment Status</span>
+                        <span className={`inline-block px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase border ${
+                          res.payment_status === 'full' ? 'bg-green-100 text-green-800 border-green-200' :
+                          res.payment_status === 'partial' ? 'bg-blue-100 text-blue-800 border-blue-200' :
+                          'bg-gray-100 text-gray-800 border-gray-200'
+                        }`}>
+                          {res.payment_status || 'unpaid'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400 block text-[9px] uppercase tracking-wider">Registration Date</span>
+                        <span className="text-gray-500 font-medium">{formatDate(res.createdAt).split(',')[0]}</span>
+                      </div>
+                    </div>
+
+                    {res.follow_up_date && (
+                      <div className="bg-slate-50 p-2.5 rounded-xl flex items-center justify-between border border-slate-100">
+                        <div className="flex items-center gap-2">
+                          <FaCalendarAlt className="text-gray-400 text-xs" />
+                          <div>
+                            <span className="text-gray-400 block text-[8px] uppercase tracking-wider leading-none mb-0.5">Follow-up</span>
+                            <span className="text-xs font-bold text-gray-700">{new Date(res.follow_up_date).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                        <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                          new Date(res.follow_up_date).setHours(0,0,0,0) < new Date().setHours(0,0,0,0) ? 'bg-red-50 text-red-600 border border-red-100' : 
+                          new Date(res.follow_up_date).setHours(0,0,0,0) === new Date().setHours(0,0,0,0) ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-indigo-50 text-indigo-600 border border-indigo-100'
+                        }`}>
+                          {new Date(res.follow_up_date).setHours(0,0,0,0) < new Date().setHours(0,0,0,0) ? '⚠️ Overdue' : 
+                           new Date(res.follow_up_date).setHours(0,0,0,0) === new Date().setHours(0,0,0,0) ? '📞 Call Today' : '📅 Planned'}
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between pt-1 gap-2">
+                      <a
+                        href={`tel:${res.phone}`}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-green-50 text-green-700 text-xs font-bold hover:bg-green-100 border border-green-100 transition-colors shadow-sm"
+                      >
+                        <FaPhoneAlt className="text-[10px]" /> Call Student
+                      </a>
+
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => handleViewDetails(res)}
+                          className="p-2 rounded-xl bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-100 transition-colors"
+                          title="View/Edit full details"
+                        >
+                          <FaEye size={14} />
+                        </button>
+                        {res.status !== 'accepted' && (
+                          <button
+                            onClick={() => handleStatusUpdate(res.id, 'accepted')}
+                            disabled={updatingIds.has(res.id)}
+                            className="p-2 rounded-xl bg-green-50 text-green-600 hover:bg-green-100 border border-green-100 transition-colors disabled:opacity-50"
+                            title="Accept"
+                          >
+                            {updatingIds.has(res.id) ? <FaSpinner className="animate-spin" /> : <FaCheck size={14} />}
+                          </button>
+                        )}
+                        <button
+                          onClick={() => {
+                            setSelectedReservation(res);
+                            setEmailRecipientType('individual');
+                            setEmailSubject(`Update for ${res.name} - Yenege Masterclass`);
+                            setShowEmailModal(true);
+                          }}
+                          className="p-2 rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border border-indigo-100 transition-colors"
+                          title="Send individual email"
+                        >
+                          <FaEnvelope size={14} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(res.id)}
+                          className="p-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 transition-colors"
+                          title="Delete"
+                        >
+                          <FaTrash size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
 
@@ -557,8 +677,8 @@ const MasterclassReservations = () => {
                 </button>
               </div>
 
-              <div className="p-8 space-y-8">
-                <div className="grid grid-cols-2 gap-8">
+              <div className="p-5 sm:p-8 space-y-6 sm:space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                   <section className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
                     <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-6 border-b border-slate-200 pb-2">Profile</h3>
                     <div className="space-y-4">
