@@ -42,6 +42,21 @@ export const yenegeUnityApi = {
       | 'checkedIn'
     >
   ): Promise<YenegeUnityAttendee> => {
+    // Check if an applicant with this email or phone number is already registered to avoid duplicates
+    const { data: existing } = await supabase
+      .from('yenege_unity_attendees')
+      .select('id, email, phone')
+      .or(`email.eq.${attendee.email.trim().toLowerCase()},phone.eq.${attendee.phone.trim()}`)
+      .maybeSingle();
+
+    if (existing) {
+      if (existing.email && existing.email.toLowerCase() === attendee.email.trim().toLowerCase()) {
+        throw new Error('DUPLICATE_EMAIL');
+      } else {
+        throw new Error('DUPLICATE_PHONE');
+      }
+    }
+
     const dbRow = {
       full_name: attendee.fullName,
       profile_photo: attendee.profilePhoto || null,

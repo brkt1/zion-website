@@ -7,6 +7,7 @@ export default function YenegeUnityApply() {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [duplicateMessage, setDuplicateMessage] = useState<'email' | 'phone' | null>(null);
   
   // State for form data
   const [formData, setFormData] = useState({
@@ -152,6 +153,7 @@ export default function YenegeUnityApply() {
     if (!validateStep()) return;
 
     setIsSubmitting(true);
+    setDuplicateMessage(null);
     try {
       // Merge valueOffer and customValueOffer if present
       const finalValueOffer = formData.valueOffer + 
@@ -165,13 +167,60 @@ export default function YenegeUnityApply() {
       // Simulation of email notification
       console.log('Sending confirmation email to: ', formData.email);
       setSubmitted(true);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert('Failed to submit application. Please try again.');
+      if (err.message === 'DUPLICATE_EMAIL') {
+        setDuplicateMessage('email');
+      } else if (err.message === 'DUPLICATE_PHONE') {
+        setDuplicateMessage('phone');
+      } else {
+        alert('Failed to submit application. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (duplicateMessage) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
+        <div className="max-w-xl w-full bg-neutral-900 border border-amber-500/30 rounded-3xl p-8 text-center space-y-6 shadow-2xl relative overflow-hidden animate-fade-in">
+          <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600" />
+          
+          <div className="w-20 h-20 bg-amber-500/10 border border-amber-500/30 rounded-full flex items-center justify-center text-amber-400 mx-auto">
+            <FaBullseye size={48} className="animate-pulse text-amber-500" />
+          </div>
+
+          <h1 className="text-3xl font-extrabold tracking-tight text-amber-500">Dossier Already Active</h1>
+          
+          <div className="space-y-3 text-gray-400 font-light text-sm leading-relaxed">
+            <p>
+              Our database indicates that an active registration dossier is already registered under {duplicateMessage === 'email' ? (
+                <>the email <span className="text-white font-semibold">{formData.email}</span></>
+              ) : (
+                <>the phone number <span className="text-white font-semibold">{formData.phone}</span></>
+              )}.
+            </p>
+            <p>
+              To ensure event curation standards, our vetting committee only reviews one primary application per professional visionary.
+            </p>
+            <p className="bg-black/40 border border-white/5 p-4 rounded-2xl text-xs text-left leading-relaxed">
+              💬 <strong className="text-white">Current Status:</strong> Your profile is currently under review by our executive matchmaking panel. If you need to update any business metrics, target sectors, or professional details, please contact the <strong className="text-white">Yenege Unity Event Desk</strong> directly.
+            </p>
+          </div>
+
+          <div className="pt-4 flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              to="/yenege-unity"
+              className="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl font-bold text-center transition duration-200"
+            >
+              Return to Summit Page
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (submitted) {
     return (

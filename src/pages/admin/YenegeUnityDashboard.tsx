@@ -38,6 +38,16 @@ export default function YenegeUnityDashboard() {
 
   // Group creation state
   const [newGroupName, setNewGroupName] = useState('');
+
+  const getDuplicatesFor = (att: YenegeUnityAttendee) => {
+    return attendees.filter(other => 
+      other.id !== att.id && 
+      (
+        (other.email && other.email.trim().toLowerCase() === att.email.trim().toLowerCase()) ||
+        (other.phone && other.phone.trim() === att.phone.trim())
+      )
+    );
+  };
   const [newGroupDesc, setNewGroupDesc] = useState('');
 
   // Check-in input
@@ -497,7 +507,14 @@ export default function YenegeUnityDashboard() {
                             )}
                           </div>
                           <div>
-                            <p className="font-bold text-gray-900 text-sm">{att.fullName}</p>
+                            <p className="font-bold text-gray-900 text-sm flex items-center gap-1.5">
+                              {att.fullName}
+                              {getDuplicatesFor(att).length > 0 && (
+                                <span className="px-1.5 py-0.5 bg-red-50 text-red-600 border border-red-100 rounded text-[9px] font-bold flex items-center gap-0.5 animate-pulse">
+                                  <FaExclamationTriangle size={8} /> Dup
+                                </span>
+                              )}
+                            </p>
                             <p className="text-xs text-gray-500">{att.jobTitle} @ <span className="font-semibold text-gray-700">{att.companyName}</span></p>
                           </div>
                         </div>
@@ -1007,6 +1024,41 @@ export default function YenegeUnityDashboard() {
 
             {/* Modal Body */}
             <div className="p-6 grid grid-cols-1 md:grid-cols-12 gap-6">
+              {(() => {
+                const dupes = getDuplicatesFor(selectedAttendee);
+                if (dupes.length === 0) return null;
+                return (
+                  <div className="col-span-12 bg-amber-50 border border-amber-200 p-4 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 animate-fade-in mb-2">
+                    <div className="flex gap-2.5">
+                      <FaExclamationTriangle className="text-amber-500 mt-0.5 shrink-0" size={18} />
+                      <div>
+                        <h4 className="text-sm font-bold text-amber-900">Potential Duplicate Submission Detected</h4>
+                        <p className="text-xs text-amber-700 font-light mt-0.5">
+                          This visionary has registered {dupes.length} other times with matching details ({dupes.map(d => `${d.fullName} - ${d.email}`).join(', ')}).
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={async () => {
+                        if (window.confirm(`Are you absolutely sure you want to purge this duplicate dossier for ${selectedAttendee.fullName}? This operation will remove it from the Supabase CRM instantly.`)) {
+                          try {
+                            await yenegeUnityApi.deleteAttendee(selectedAttendee.id);
+                            setAttendees(prev => prev.filter(a => a.id !== selectedAttendee.id));
+                            setSelectedAttendee(null);
+                          } catch (err) {
+                            console.error(err);
+                            alert("Failed to delete this duplicate entry from the database.");
+                          }
+                        }
+                      }}
+                      className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition duration-200 shrink-0 shadow-sm"
+                    >
+                      Purge This Duplicate
+                    </button>
+                  </div>
+                );
+              })()}
+
               {/* Left Column: Details dossier */}
               <div className="md:col-span-7 space-y-6">
                 {/* Business description */}
