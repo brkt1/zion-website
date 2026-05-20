@@ -254,10 +254,10 @@ export default function YenegeUnityApply() {
               Return to Summit Page
             </Link>
             <Link
-              to="/"
+              to="/yenege-unity/portal"
               className="px-6 py-3 bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-black rounded-xl text-center shadow-lg shadow-amber-500/15 hover:scale-[1.02] transition duration-200"
             >
-              Explore Yenege Website
+              Check Application Status
             </Link>
           </div>
         </div>

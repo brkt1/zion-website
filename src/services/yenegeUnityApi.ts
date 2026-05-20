@@ -102,6 +102,7 @@ export const yenegeUnityApi = {
       checked_in: false,
       qr_code: `unity-${crypto.randomUUID()}`,
       badge_printed: false,
+      welcome_email_sent: false,
     };
 
     const { data, error } = await supabase
@@ -286,6 +287,68 @@ export const yenegeUnityApi = {
 
     if (error) throw new Error(`Failed to delete group: ${error.message}`);
   },
+
+  // ── PORTAL AUTH & MATCHES ──────────────────────────────
+
+  loginAttendee: async (email: string): Promise<YenegeUnityAttendee> => {
+    const { data, error } = await supabase
+      .from('yenege_unity_attendees')
+      .select('*')
+      .eq('email', email.trim().toLowerCase())
+      .single();
+
+    if (error || !data) throw new Error('Invalid email');
+    
+    const attendee = mapDbToAttendee(data);
+    
+    if (attendee.status !== 'accepted') {
+      throw new Error('Your application is still under review (ማመልከቻዎ እየታየ ነው).');
+    }
+    
+    return attendee;
+  },
+
+  getAttendeeMatches: async (attendeeId: string) => {
+    const { data, error } = await supabase
+      .from('yenege_unity_matches')
+      .select(`
+        id,
+        attendee_id,
+        matched_attendee_id,
+        status,
+        notes,
+        created_at,
+        updated_at,
+        matched_attendee:matched_attendee_id (*)
+      `)
+      .eq('attendee_id', attendeeId);
+
+    if (error) throw new Error(`Failed to fetch matches: ${error.message}`);
+    
+    return (data ?? []).map((row: any) => ({
+      id: row.id,
+      attendeeId: row.attendee_id,
+      matchedAttendeeId: row.matched_attendee_id,
+      status: row.status,
+      notes: row.notes || '',
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      matchedAttendee: row.matched_attendee ? mapDbToAttendee(row.matched_attendee) : undefined
+    }));
+  },
+
+  updateMatch: async (id: string, updates: { status?: string; notes?: string; }): Promise<void> => {
+    const dbUpdates: Record<string, any> = {};
+    if (updates.status) dbUpdates.status = updates.status;
+    if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
+
+    const { error } = await supabase
+      .from('yenege_unity_matches')
+      .update(dbUpdates)
+      .eq('id', id);
+
+    if (error) throw new Error(`Failed to update match: ${error.message}`);
+  },
 };
 
 // ─────────────────────────────────────────────────────────────
@@ -339,8 +402,10 @@ function mapDbToAttendee(row: Record<string, unknown>): YenegeUnityAttendee {
     checkedInAt: row.checked_in_at as string | undefined,
     qrCode: row.qr_code as string | undefined,
     badgePrinted: (row.badge_printed as boolean) ?? false,
+    welcomeEmailSent: (row.welcome_email_sent as boolean) ?? false,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
+    accessCode: row.access_code as string | undefined,
   };
 }
 
@@ -390,6 +455,8 @@ function mapPartialAttendeeToDb(att: Partial<YenegeUnityAttendee>): Record<strin
   if (att.checkedInAt !== undefined)            db.checked_in_at = att.checkedInAt;
   if (att.qrCode !== undefined)                 db.qr_code = att.qrCode;
   if (att.badgePrinted !== undefined)           db.badge_printed = att.badgePrinted;
+  if (att.welcomeEmailSent !== undefined)       db.welcome_email_sent = att.welcomeEmailSent;
+  if (att.accessCode !== undefined)             db.access_code = att.accessCode;
   return db;
 }
 

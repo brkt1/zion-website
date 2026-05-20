@@ -1192,6 +1192,19 @@ export default function YenegeUnityDashboard() {
                       className="rounded border-gray-300 text-amber-500 focus:ring-amber-500"
                     />
                   </div>
+
+                  <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-100">
+                    <div>
+                      <span className="font-bold text-gray-900 block">Welcome Email Sent?</span>
+                      <span className="text-[10px] text-gray-500">Manual tracking for access code emails.</span>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={selectedAttendee.welcomeEmailSent || false}
+                      onChange={(e) => handleUpdateCRMField(selectedAttendee.id, 'welcomeEmailSent', e.target.checked)}
+                      className="rounded border-gray-300 text-emerald-500 focus:ring-emerald-500 w-5 h-5"
+                    />
+                  </div>
                 </div>
 
                 {/* Tags management */}

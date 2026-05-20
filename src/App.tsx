@@ -74,6 +74,7 @@ const AdminEventDetails = lazy(() => import("./pages/admin/EventDetails"));
 // Yenege Unity platform pages
 const YenegeUnityLanding = lazy(() => import("./pages/yenege-unity/Landing"));
 const YenegeUnityApply = lazy(() => import("./pages/yenege-unity/Apply"));
+const YenegeUnityPortal = lazy(() => import("./pages/yenege-unity/Portal"));
 const YenegeUnityDashboard = lazy(() => import("./pages/admin/YenegeUnityDashboard"));
 
 
@@ -198,6 +199,11 @@ function App() {
           <Route path="/yenege-unity/apply" element={
             <Suspense fallback={<LoadingState />}>
               <YenegeUnityApply />
+            </Suspense>
+          } />
+          <Route path="/yenege-unity/portal" element={
+            <Suspense fallback={<LoadingState />}>
+              <YenegeUnityPortal />
             </Suspense>
           } />
           

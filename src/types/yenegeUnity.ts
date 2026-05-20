@@ -58,9 +58,11 @@ export interface YenegeUnityAttendee {
   checkedInAt?: string;
   qrCode?: string; // QR code payload or representation
   badgePrinted?: boolean;
+  welcomeEmailSent?: boolean;
 
   createdAt: string;
   updatedAt: string;
+  accessCode?: string; // For Attendee Portal Login
 }
 
 export interface YenegeUnityCommLog {
@@ -107,4 +109,15 @@ export interface YenegeUnityGroup {
   description: string;
   attendeeIds: string[];
   type: 'circle' | 'table' | 'custom';
+}
+
+export interface YenegeUnityMatch {
+  id: string;
+  attendeeId: string;
+  matchedAttendeeId: string;
+  status: 'pending' | 'met' | 'follow_up' | 'closed';
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+  matchedAttendee?: YenegeUnityAttendee; // Populated by join
 }
