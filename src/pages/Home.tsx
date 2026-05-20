@@ -675,7 +675,32 @@ const Home = () => {
 
 
 
-
+      {/* ── 7. Yenege Unity Ecosystem ────────────────────────────────────────── */}
+      <section
+        style={{
+          padding: "120px 0",
+          background: BRAND.navy,
+          position: "relative",
+          overflow: "hidden"
+        }}
+      >
+        <div style={{ position: "absolute", top: 0, right: 0, width: "50%", height: "100%", background: "radial-gradient(circle at right, rgba(255,212,71,0.05) 0%, transparent 70%)", pointerEvents: "none" }} />
+        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", position: "relative", zIndex: 1 }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+            <SectionLabel>Yenege Unity</SectionLabel>
+            <h2 className="yg-font-serif" style={{ fontSize: "clamp(40px, 6vw, 64px)", fontWeight: 900, color: "#fff", marginBottom: "24px", lineHeight: 1.1 }}>
+              Curated Access.<br/>
+              <span style={{ color: BRAND.gold, fontStyle: "italic" }}>Premium Connections.</span>
+            </h2>
+            <p className="yg-font-sans" style={{ fontSize: "18px", color: "rgba(255,255,255,0.6)", maxWidth: "600px", marginBottom: "48px", lineHeight: 1.6 }}>
+              Join an exclusive ecosystem of event professionals, corporate partners, and service providers. Elevate your brand and forge strategic partnerships.
+            </p>
+            <Link to="/yenege-unity" className="yg-btn-primary yg-shine" style={{ gap: "10px", padding: "18px 40px", fontSize: "14px" }}>
+              Explore Yenege Unity <FaArrowRight size={14} />
+            </Link>
+          </div>
+        </div>
+      </section>
 
       {/* ── 7.5 Event Strategy & Feasibility Section ─────────── */}
       <section
