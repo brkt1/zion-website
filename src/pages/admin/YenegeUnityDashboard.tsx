@@ -108,7 +108,7 @@ export default function YenegeUnityDashboard() {
 
   const handleUpdateCRMField = async (
     id: string, 
-    field: 'calledStatus' | 'interestLevel' | 'paymentStatus' | 'followUpNeeded' | 'confirmedAttendance' | 'vipCandidate' | 'internalNotes',
+    field: 'calledStatus' | 'interestLevel' | 'paymentStatus' | 'followUpNeeded' | 'confirmedAttendance' | 'vipCandidate' | 'internalNotes' | 'welcomeEmailSent',
     value: any
   ) => {
     try {
