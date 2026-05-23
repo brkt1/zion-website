@@ -1184,6 +1184,7 @@ export const adminApi = {
       remaining_amount: data.remaining_amount,
       payment_completion_date: data.payment_completion_date,
       referral_code: data.referral_code,
+      status_updated_by: data.status_updated_by,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
     }),
@@ -1248,10 +1249,14 @@ export const adminApi = {
         payment_completion_date?: string;
       }
     ) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      const status_updated_by = user?.email || 'Unknown';
+
       const { data, error } = await supabase
         .from('masterclass_reservations')
         .update({
           status,
+          status_updated_by,
           notes: extras?.notes,
           selected_package: extras?.selected_package,
           communication_method: extras?.communication_method,

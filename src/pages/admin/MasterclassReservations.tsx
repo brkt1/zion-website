@@ -17,6 +17,7 @@ const MasterclassReservations = () => {
   const [regionFilter, setRegionFilter] = useState<string>('all');
   const [packageFilter, setPackageFilter] = useState<string>('all');
   const [followUpFilter, setFollowUpFilter] = useState<'all' | 'today' | 'overdue' | 'none'>('all');
+  const [updatedByFilter, setUpdatedByFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
   const [notes, setNotes] = useState('');
@@ -62,7 +63,8 @@ const MasterclassReservations = () => {
       setLoading(true);
       setError(null);
       const data = await adminApi.masterclassReservations.getAll();
-      setReservations(data || []);
+      // Only show DIRECT registrations (no referral code) on this page
+      setReservations((data || []).filter(r => !r.referral_code));
     } catch (error: any) {
       const handled = handleSupabaseError(error, 'loadReservations');
       setError(handled.message);
@@ -249,6 +251,7 @@ const MasterclassReservations = () => {
     const matchesStatus = statusFilter === 'all' || res.status === statusFilter;
     const matchesRegion = regionFilter === 'all' || res.place === regionFilter;
     const matchesPackage = packageFilter === 'all' || res.selected_package?.includes(packageFilter);
+    const matchesUpdatedBy = updatedByFilter === 'all' || res.status_updated_by === updatedByFilter;
     const matchesSearch = searchQuery === '' || 
       res.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       res.phone.includes(searchQuery);
@@ -273,8 +276,10 @@ const MasterclassReservations = () => {
       }
     }
 
-    return matchesStatus && matchesRegion && matchesPackage && matchesSearch && matchesFollowUp;
+    return matchesStatus && matchesRegion && matchesPackage && matchesUpdatedBy && matchesSearch && matchesFollowUp;
   });
+
+  const uniqueUpdatedBy = Array.from(new Set(reservations.map(r => r.status_updated_by).filter(Boolean))) as string[];
 
   const studentsWithEmail = filteredReservations.filter(r => r.email).length;
 
@@ -497,6 +502,20 @@ const MasterclassReservations = () => {
                 <option value="Basic">Basic Package</option>
                 <option value="Intermediate">Intermediate Package</option>
                 <option value="Premium">Premium Package</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Updated By</label>
+              <select
+                value={updatedByFilter}
+                onChange={(e) => setUpdatedByFilter(e.target.value)}
+                className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+              >
+                <option value="all">Everyone</option>
+                {uniqueUpdatedBy.map(email => (
+                  <option key={email} value={email}>{email}</option>
+                ))}
               </select>
             </div>
           </div>
@@ -894,6 +913,14 @@ const MasterclassReservations = () => {
                       )}
                     </div>
                   </section>
+                  {selectedReservation.status_updated_by && (
+                    <div className="mt-4 p-4 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-between">
+                      <div>
+                        <p className="text-[10px] uppercase font-bold text-indigo-400">Last Updated By</p>
+                        <p className="text-sm font-bold text-indigo-900">{selectedReservation.status_updated_by}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">

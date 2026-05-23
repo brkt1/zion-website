@@ -3,7 +3,7 @@ import {
     FaBars, FaBell, FaBriefcase, FaCalendarAlt, FaChartLine,
     FaChevronLeft, FaChevronRight, FaCog, FaEnvelope, FaFileAlt,
     FaGlobe, FaGraduationCap, FaHandshake, FaHome, FaImages,
-    FaInfoCircle, FaMapMarkerAlt, FaNewspaper, FaQrcode,
+    FaInfoCircle, FaLink, FaMapMarkerAlt, FaNewspaper, FaQrcode,
     FaSearch, FaSignOutAlt, FaTicketAlt, FaTimes, FaUser, FaUserShield, FaUsers
 } from 'react-icons/fa';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -118,6 +118,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
       items: [
         { icon: FaChartLine, label: 'MC Dashboard', path: '/admin/masterclass-dashboard', color: 'from-indigo-600 to-blue-500' },
         { icon: FaGraduationCap, label: 'MC Reservations', path: '/admin/masterclass-reservations', color: 'from-indigo-400 to-purple-500' },
+        { icon: FaLink, label: 'MC Referrals', path: '/admin/masterclass-referrals', color: 'from-violet-500 to-purple-600' },
       ],
     },
     {

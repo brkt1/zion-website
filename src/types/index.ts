@@ -306,6 +306,7 @@ export interface MasterclassReservation {
   payment_completion_date?: string;
   // Referral / Marketing tracking
   referral_code?: string;
+  status_updated_by?: string;
   createdAt: string;
   updatedAt: string;
 }

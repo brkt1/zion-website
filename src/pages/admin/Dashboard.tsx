@@ -54,6 +54,7 @@ interface Stats {
   uniqueVisitorsToday: number;
   totalVisits: number;
   dailyVisitStats: Array<{ date: string; count: number; unique_visitors: number }>;
+  eventPerformance: Array<{ eventName: string; ticketsSold: number; revenue: number }>;
 }
 
 const Dashboard = () => {
@@ -87,6 +88,7 @@ const Dashboard = () => {
     uniqueVisitorsToday: 0,
     totalVisits: 0,
     dailyVisitStats: [],
+    eventPerformance: [],
   });
   const [loadingStats, setLoadingStats] = useState(true);
   const [ticketFilter, setTicketFilter] = useState<'all' | 'success' | 'pending' | 'failed'>('all');
@@ -261,6 +263,24 @@ const Dashboard = () => {
         getDailyVisitStats(7), // Last 7 days
       ]);
 
+      // Calculate Event Performance
+      const eventStatsMap = new Map<string, { ticketsSold: number; revenue: number }>();
+      allTickets?.filter(t => t.status === 'success' || t.status === 'used').forEach(ticket => {
+        const eventName = ticket.event_title || 'General Access';
+        const amount = typeof ticket.amount === 'number' ? ticket.amount : parseFloat(ticket.amount.toString()) || 0;
+        let correctedAmount = (amount > 0 && amount < 10 && amount * 100 > 50) ? amount * 100 : amount;
+        
+        const current = eventStatsMap.get(eventName) || { ticketsSold: 0, revenue: 0 };
+        eventStatsMap.set(eventName, {
+          ticketsSold: current.ticketsSold + ticket.quantity,
+          revenue: current.revenue + (correctedAmount * ticket.quantity)
+        });
+      });
+      const eventPerformance = Array.from(eventStatsMap.entries())
+        .map(([eventName, stats]) => ({ eventName, ...stats }))
+        .sort((a, b) => b.revenue - a.revenue)
+        .slice(0, 5); // Top 5 events
+
       setStats({
         totalEvents: events.count || 0,
         totalCategories: categories.count || 0,
@@ -283,6 +303,7 @@ const Dashboard = () => {
         uniqueVisitorsToday,
         totalVisits,
         dailyVisitStats,
+        eventPerformance,
       });
     } catch (error) {
       const handled = handleSupabaseError(error, 'loadStats');
@@ -746,6 +767,54 @@ const Dashboard = () => {
                   {stats.venueFeedback > 0 ? 'Feedback received' : 'Coming soon'}
                 </p>
               </div>
+            </div>
+          </div>
+
+          {/* Event Performance Section */}
+          <div className="bg-white rounded-[40px] shadow-xl shadow-gray-200/40 border border-gray-100 p-8 sm:p-10 mb-10 overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-bl from-blue-50 to-indigo-50 rounded-full -translate-y-1/2 translate-x-1/2 blur-[100px] -z-10" />
+            
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 text-white">
+                <FaStar size={20} />
+              </div>
+              <div>
+                <h2 className="text-2xl font-black text-[#1C2951] tracking-tight">Event Performance</h2>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Top Selling Events</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
+              {stats.eventPerformance.length === 0 ? (
+                <div className="text-center py-10 text-gray-400 font-medium">No event sales data available yet.</div>
+              ) : (
+                stats.eventPerformance.map((event, idx) => {
+                  const maxRevenue = Math.max(...stats.eventPerformance.map(e => e.revenue), 1);
+                  const width = `${(event.revenue / maxRevenue) * 100}%`;
+                  
+                  return (
+                    <div key={idx} className="group relative bg-gray-50/80 hover:bg-white rounded-3xl p-4 sm:p-6 transition-all duration-300 border border-gray-100 hover:shadow-lg hover:shadow-indigo-500/10">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+                        <div className="flex items-center gap-4">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shadow-sm ${idx === 0 ? 'bg-amber-400 text-white shadow-amber-200' : 'bg-white text-gray-500 border border-gray-100'}`}>
+                            #{idx + 1}
+                          </div>
+                          <div>
+                            <h4 className="text-sm sm:text-base font-black text-[#1C2951]">{event.eventName}</h4>
+                            <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase mt-1 tracking-wider">{event.ticketsSold} Tickets Sold</p>
+                          </div>
+                        </div>
+                        <div className="text-left sm:text-right">
+                          <p className="text-lg sm:text-xl font-black text-indigo-600">{formatCurrency(event.revenue, 'ETB')}</p>
+                          <p className="text-[9px] font-bold text-indigo-300 uppercase tracking-widest mt-0.5">Gross Revenue</p>
+                        </div>
+                      </div>
+                      {/* Progress Bar background effect */}
+                      <div className="absolute bottom-0 left-0 h-1.5 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-b-3xl opacity-50 group-hover:opacity-100 transition-opacity" style={{ width }} />
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
 

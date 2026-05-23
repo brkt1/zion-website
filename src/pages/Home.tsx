@@ -452,11 +452,11 @@ const Home = () => {
                 <Link to="/masterclass-registration" className="yg-btn-primary yg-shine" style={{ gap: "10px" }}>
                   Enroll Now <FaGraduationCap size={15} />
                 </Link>
-                <Link to="/events" style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "16px 32px", borderRadius: "999px", border: "1.5px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.7)", fontFamily: "'Manrope', sans-serif", fontWeight: 700, fontSize: "12px", letterSpacing: "0.1em", textTransform: "uppercase", textDecoration: "none", transition: "all 0.25s" }}
+                <Link to="/masterclass" style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "16px 32px", borderRadius: "999px", border: "1.5px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.7)", fontFamily: "'Manrope', sans-serif", fontWeight: 700, fontSize: "12px", letterSpacing: "0.1em", textTransform: "uppercase", textDecoration: "none", transition: "all 0.25s" }}
                   onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(255,212,71,0.5)"; (e.currentTarget as HTMLAnchorElement).style.color = "#FFD447"; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(255,255,255,0.15)"; (e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.7)"; }}
                 >
-                  View Programs <FaArrowRight size={11} />
+                  See More <FaArrowRight size={11} />
                 </Link>
               </div>
             </div>
