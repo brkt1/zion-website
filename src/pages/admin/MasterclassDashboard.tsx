@@ -16,7 +16,7 @@ const MasterclassDashboard = () => {
         accepted: 0,
         rejected: 0,
         byRegion: {} as Record<string, number>,
-        byAdmin: {} as Record<string, number>,
+        byAdmin: {} as Record<string, { accepted: number; reviewed: number; rejected: number; total: number }>,
         recent: [] as MasterclassReservation[]
     });
     const [loading, setLoading] = useState(true);
@@ -33,14 +33,21 @@ const MasterclassDashboard = () => {
             const data = await adminApi.masterclassReservations.getAll();
             
             const regions: Record<string, number> = {};
-            const admins: Record<string, number> = {};
+            const admins: Record<string, { accepted: number; reviewed: number; rejected: number; total: number }> = {};
             
             data.forEach(res => {
                 regions[res.place] = (regions[res.place] || 0) + 1;
                 
-                // Track successful sales by admin
-                if (res.status === 'accepted' && res.status_updated_by) {
-                    admins[res.status_updated_by] = (admins[res.status_updated_by] || 0) + 1;
+                // Track all activity by admin
+                if (res.status_updated_by) {
+                    const email = res.status_updated_by;
+                    if (!admins[email]) {
+                        admins[email] = { accepted: 0, reviewed: 0, rejected: 0, total: 0 };
+                    }
+                    if (res.status === 'accepted') admins[email].accepted += 1;
+                    if (res.status === 'reviewed') admins[email].reviewed += 1;
+                    if (res.status === 'rejected') admins[email].rejected += 1;
+                    admins[email].total += 1;
                 }
             });
 
@@ -140,12 +147,12 @@ const MasterclassDashboard = () => {
                         </div>
                     </div>
 
-                    {/* Sales Leaderboard */}
+                    {/* Admin Activity Leaderboard */}
                     <div className="lg:col-span-1 bg-white rounded-3xl sm:rounded-[2.5rem] shadow-xl shadow-amber-100/20 border border-slate-50 p-6 sm:p-8 flex flex-col">
                         <div className="flex items-center justify-between mb-6">
                             <div>
-                                <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">Top Sales Admin</h3>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Enrollment Leaders</p>
+                                <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">Admin Activity</h3>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Approvals & Reviews</p>
                             </div>
                             <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500">
                                 <span className="text-xl">🏆</span>
@@ -154,21 +161,34 @@ const MasterclassDashboard = () => {
                         
                         <div className="flex-1 overflow-y-auto space-y-4 pr-2">
                             {Object.keys(stats.byAdmin).length === 0 ? (
-                                <div className="text-center text-slate-400 text-sm mt-10">No enrollments recorded yet.</div>
+                                <div className="text-center text-slate-400 text-sm mt-10">No admin activity recorded yet.</div>
                             ) : (
-                                Object.entries(stats.byAdmin).sort((a, b) => b[1] - a[1]).map(([email, count], idx) => (
-                                    <div key={email} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shadow-sm ${idx === 0 ? 'bg-amber-400 text-white shadow-amber-200' : 'bg-white text-slate-500'}`}>
-                                                {idx + 1}
-                                            </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-xs font-bold text-slate-800 truncate max-w-[120px] sm:max-w-[150px]">{email.split('@')[0]}</span>
-                                                <span className="text-[9px] font-bold text-slate-400 uppercase">Sales Rep</span>
+                                Object.entries(stats.byAdmin).sort((a, b) => b[1].total - a[1].total).map(([email, activity], idx) => (
+                                    <div key={email} className="flex flex-col p-4 rounded-2xl bg-slate-50 border border-slate-100 group hover:border-amber-200 transition-colors">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shadow-sm ${idx === 0 ? 'bg-amber-400 text-white shadow-amber-200' : 'bg-white text-slate-500'}`}>
+                                                    {idx + 1}
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs font-bold text-slate-800 truncate max-w-[120px] sm:max-w-[150px]">{email.split('@')[0]}</span>
+                                                    <span className="text-[9px] font-bold text-slate-400 uppercase">{activity.total} Total Actions</span>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-xl text-xs font-black">
-                                            {count}
+                                        <div className="grid grid-cols-3 gap-2">
+                                            <div className="bg-emerald-50 text-emerald-700 p-2 rounded-xl text-center">
+                                                <p className="text-[9px] font-black uppercase tracking-widest opacity-70 mb-0.5">Accepted</p>
+                                                <p className="text-sm font-black">{activity.accepted}</p>
+                                            </div>
+                                            <div className="bg-blue-50 text-blue-700 p-2 rounded-xl text-center">
+                                                <p className="text-[9px] font-black uppercase tracking-widest opacity-70 mb-0.5">Reviewed</p>
+                                                <p className="text-sm font-black">{activity.reviewed}</p>
+                                            </div>
+                                            <div className="bg-rose-50 text-rose-700 p-2 rounded-xl text-center">
+                                                <p className="text-[9px] font-black uppercase tracking-widest opacity-70 mb-0.5">Rejected</p>
+                                                <p className="text-sm font-black">{activity.rejected}</p>
+                                            </div>
                                         </div>
                                     </div>
                                 ))
