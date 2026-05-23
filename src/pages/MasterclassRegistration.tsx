@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { FiArrowLeft, FiCheckCircle, FiChevronDown, FiLoader, FiMapPin, FiPhone, FiSend, FiUser } from 'react-icons/fi';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { adminApi } from '../services/adminApi';
 
 const MasterclassRegistration: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const referralCode = searchParams.get('ref') || undefined;
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -59,6 +62,7 @@ const MasterclassRegistration: React.FC = () => {
         age: parseInt(formData.age),
         sex: formData.sex as 'male' | 'female',
         place: formData.place,
+        referral_code: referralCode,
       });
 
       setIsSubmitted(true);

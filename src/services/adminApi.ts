@@ -1183,6 +1183,7 @@ export const adminApi = {
       paid_amount: data.paid_amount,
       remaining_amount: data.remaining_amount,
       payment_completion_date: data.payment_completion_date,
+      referral_code: data.referral_code,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
     }),
@@ -1207,10 +1208,29 @@ export const adminApi = {
           age: resData.age,
           sex: resData.sex,
           place: resData.place,
+          referral_code: resData.referral_code || null,
         }]);
 
       if (error) throw error;
       return (data as any) && (data as any).length > 0 ? adminApi.masterclassReservations._map((data as any)[0]) : { success: true } as any;
+    },
+
+    // Public method — returns only non-sensitive fields for the referral dashboard
+    getByReferralCode: async (code: string) => {
+      const { data, error } = await supabase
+        .from('masterclass_reservations')
+        .select('id, name, status, created_at, referral_code')
+        .eq('referral_code', code)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return (data || []) as Array<{
+        id: string;
+        name: string;
+        status: string;
+        created_at: string;
+        referral_code: string;
+      }>;
     },
 
     updateStatus: async (

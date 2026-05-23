@@ -26,6 +26,19 @@ export default function YenegeUnityLanding() {
       <div className="absolute top-20 left-1/4 w-[500px] h-[500px] bg-amber-500/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-20 right-1/4 w-[600px] h-[600px] bg-yellow-600/10 rounded-full blur-[150px] pointer-events-none" />
 
+      {/* Top Bar for Login */}
+      <div className="absolute top-0 inset-x-0 h-24 z-50 flex items-center justify-between px-6 md:px-8 max-w-7xl mx-auto">
+        <Link to="/" className="text-2xl font-black tracking-widest text-white uppercase flex items-center gap-2">
+          <span className="text-amber-500">YENEGE</span> UNITY
+        </Link>
+        <Link 
+          to="/yenege-unity/portal" 
+          className="px-5 py-2.5 bg-white/5 hover:bg-white/15 border border-white/10 hover:border-white/30 rounded-xl text-sm font-bold transition-all flex items-center gap-2"
+        >
+          <FaUserCheck className="text-amber-500" /> አባል መግቢያ (Portal Login)
+        </Link>
+      </div>
+
       {/* Hero Section */}
       <section className="relative min-h-[90vh] flex items-center justify-center pt-24 pb-16 px-4 md:px-8 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center w-full z-10">

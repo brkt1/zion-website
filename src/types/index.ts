@@ -304,6 +304,8 @@ export interface MasterclassReservation {
   paid_amount?: number;
   remaining_amount?: number;
   payment_completion_date?: string;
+  // Referral / Marketing tracking
+  referral_code?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -315,6 +317,7 @@ export interface CreateMasterclassReservationData {
   age: number;
   sex: 'male' | 'female';
   place: string;
+  referral_code?: string;
 }
 
 

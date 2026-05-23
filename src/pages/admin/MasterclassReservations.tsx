@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FaCalendarAlt, FaCheck, FaEnvelope, FaEye, FaHistory, FaMapPin, FaPaperPlane, FaPhoneAlt, FaSearch, FaSpinner, FaTrash, FaUser, FaVenusMars } from 'react-icons/fa';
+import { FaCalendarAlt, FaCheck, FaEnvelope, FaEye, FaHistory, FaLink, FaMapPin, FaPaperPlane, FaPhoneAlt, FaSearch, FaSpinner, FaTrash, FaUser, FaVenusMars, FaCopy, FaExternalLinkAlt, FaChevronDown } from 'react-icons/fa';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { adminApi } from '../../services/adminApi';
 import { handleSupabaseError, supabase } from '../../services/supabase';
@@ -28,6 +28,22 @@ const MasterclassReservations = () => {
   const [totalAmount, setTotalAmount] = useState<string>('');
   const [paidAmount, setPaidAmount] = useState<string>('');
   const [paymentCompletionDate, setPaymentCompletionDate] = useState('');
+  // Referral link generator
+  const [showReferralPanel, setShowReferralPanel] = useState(false);
+  const [referralInput, setReferralInput] = useState('');
+  const [copiedRef, setCopiedRef] = useState(false);
+  const generatedRefLink = referralInput.trim()
+    ? `${window.location.origin}/masterclass-registration?ref=${encodeURIComponent(referralInput.trim().replace(/\s+/g, '_').toLowerCase())}`
+    : '';
+  const generatedDashLink = referralInput.trim()
+    ? `${window.location.origin}/masterclass/ref/${encodeURIComponent(referralInput.trim().replace(/\s+/g, '_').toLowerCase())}`
+    : '';
+  const handleCopyRef = () => {
+    if (!generatedRefLink) return;
+    navigator.clipboard.writeText(generatedRefLink);
+    setCopiedRef(true);
+    setTimeout(() => setCopiedRef(false), 2500);
+  };
   // Email system state
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [emailSubject, setEmailSubject] = useState('');
@@ -310,6 +326,86 @@ const MasterclassReservations = () => {
           </div>
         )}
 
+        {/* ── Referral Link Generator Panel ──────────────────────────────── */}
+        <div className="mb-6 bg-white rounded-3xl shadow-md shadow-slate-200/50 border border-slate-100 overflow-hidden">
+          <button
+            onClick={() => setShowReferralPanel(p => !p)}
+            className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-slate-50 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-violet-100 flex items-center justify-center text-violet-600">
+                <FaLink size={13} />
+              </div>
+              <div>
+                <p className="font-black text-slate-800 text-sm">Referral Link Generator</p>
+                <p className="text-[10px] text-slate-400 font-medium">Create tracking links for TikTokers &amp; marketing agencies</p>
+              </div>
+            </div>
+            <FaChevronDown className={`text-slate-400 transition-transform duration-300 ${showReferralPanel ? 'rotate-180' : ''}`} />
+          </button>
+
+          {showReferralPanel && (
+            <div className="px-6 pb-6 border-t border-slate-100">
+              <div className="pt-5 space-y-4">
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">
+                    Marketer / Agency Code
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g.  tiktoker_abel   or   agency_xyz"
+                    value={referralInput}
+                    onChange={e => setReferralInput(e.target.value)}
+                    className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-sm font-bold focus:ring-2 focus:ring-violet-500 outline-none"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1.5">
+                    Spaces → underscores. Letters are lowercased automatically.
+                  </p>
+                </div>
+
+                {generatedRefLink && (
+                  <div className="space-y-3">
+                    {/* Registration link */}
+                    <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                        📎 Registration Link — share this with the marketer
+                      </p>
+                      <p className="text-xs font-mono text-slate-700 break-all">{generatedRefLink}</p>
+                      <button
+                        onClick={handleCopyRef}
+                        className={`flex items-center gap-1.5 px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${
+                          copiedRef
+                            ? 'bg-green-600 text-white'
+                            : 'bg-violet-600 hover:bg-violet-700 text-white'
+                        }`}
+                      >
+                        <FaCopy size={10} />
+                        {copiedRef ? 'Copied!' : 'Copy Registration Link'}
+                      </button>
+                    </div>
+
+                    {/* Dashboard link */}
+                    <div className="bg-violet-50 border border-violet-100 rounded-2xl p-4 space-y-2">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-violet-500">
+                        📊 Marketer Dashboard — they track their referrals here
+                      </p>
+                      <p className="text-xs font-mono text-violet-700 break-all">{generatedDashLink}</p>
+                      <a
+                        href={generatedDashLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-black text-[10px] uppercase tracking-widest transition-all"
+                      >
+                        <FaExternalLinkAlt size={10} /> Preview Dashboard
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
         {error && (
           <NetworkErrorBanner 
             message={error} 
@@ -442,6 +538,11 @@ const MasterclassReservations = () => {
                               <div className="text-sm font-bold text-gray-900">{res.name}</div>
                               <div className="text-xs text-gray-500">{res.phone}</div>
                               {res.email && <div className="text-[10px] text-indigo-500 font-medium">{res.email}</div>}
+                              {res.referral_code && (
+                                <div className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-100 border border-violet-200 text-[9px] font-black uppercase tracking-wider text-violet-600">
+                                  <FaLink size={7} /> {res.referral_code}
+                                </div>
+                              )}
                             </div>
                           </div>
                         </td>
@@ -753,6 +854,23 @@ const MasterclassReservations = () => {
                               </p>
                             )}
                           </div>
+                        </div>
+                      )}
+                      {selectedReservation.referral_code && (
+                        <div className="flex items-center gap-4 mt-2 p-3 bg-violet-50 rounded-2xl border border-violet-100">
+                          <FaLink className="text-violet-500 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[10px] uppercase font-bold text-gray-400">Referred Via</p>
+                            <p className="text-sm font-black text-violet-700 truncate">{selectedReservation.referral_code}</p>
+                          </div>
+                          <a
+                            href={`/masterclass/ref/${encodeURIComponent(selectedReservation.referral_code)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-[9px] font-black uppercase tracking-widest transition-all"
+                          >
+                            <FaExternalLinkAlt size={8} /> Dashboard
+                          </a>
                         </div>
                       )}
                     </div>

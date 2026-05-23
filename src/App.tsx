@@ -34,6 +34,7 @@ const ExpoRegistration = lazy(() => import("./pages/ExpoRegistration"));
 const Certification = lazy(() => import("./pages/Certification"));
 const Masterclass = lazy(() => import("./pages/Masterclass"));
 const MasterclassRegistration = lazy(() => import("./pages/MasterclassRegistration"));
+const MasterclassReferralDashboard = lazy(() => import("./pages/MasterclassReferralDashboard"));
 const EventFeasibilityForm = lazy(() => import("./pages/EventFeasibilityForm"));
 const About = lazy(() => import("./pages/About"));
 const Contact = lazy(() => import("./pages/Contact"));
@@ -157,6 +158,11 @@ function App() {
           <Route path="/masterclass-registration" element={
             <Suspense fallback={<LoadingState />}>
               <MasterclassRegistration />
+            </Suspense>
+          } />
+          <Route path="/masterclass/ref/:refCode" element={
+            <Suspense fallback={<LoadingState message="Loading referral dashboard..." />}>
+              <MasterclassReferralDashboard />
             </Suspense>
           } />
           <Route path="/event-feasibility" element={
