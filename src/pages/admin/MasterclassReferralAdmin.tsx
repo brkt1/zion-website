@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   FaLink, FaUsers, FaChevronDown, FaChevronUp,
   FaSpinner, FaSearch, FaCheck, FaEye, FaTrash,
-  FaExternalLinkAlt, FaCopy, FaEnvelope, FaPhoneAlt,
-  FaMapPin, FaCalendarAlt, FaUser,
+  FaExternalLinkAlt, FaCopy, FaPhoneAlt,
 } from 'react-icons/fa';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { adminApi } from '../../services/adminApi';

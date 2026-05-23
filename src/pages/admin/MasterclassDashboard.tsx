@@ -75,7 +75,6 @@ const MasterclassDashboard = () => {
 
     const successRate = stats.total > 0 ? Math.round((stats.accepted / stats.total) * 100) : 0;
     const failureRate = stats.total > 0 ? Math.round((stats.rejected / stats.total) * 100) : 0;
-    const pendingRate = stats.total > 0 ? Math.round((stats.pending / stats.total) * 100) : 0;
 
     return (
         <AdminLayout title="Masterclass Management Stage">
