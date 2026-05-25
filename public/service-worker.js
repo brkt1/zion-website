@@ -75,6 +75,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Skip Google Fonts - let the browser handle them directly to avoid CSP connect-src issues
+  // This prevents the SW fetch() from triggering connect-src violations for fonts
+  if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
+    return;
+  }
+
   // API requests - Network First with cache fallback
   if (url.pathname.startsWith('/api/') || url.origin.includes('supabase')) {
     event.respondWith(networkFirstStrategy(request));

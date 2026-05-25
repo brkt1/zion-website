@@ -194,6 +194,7 @@ export const yenegeUnityApi = {
         time: eventData.time ?? '',
         location: eventData.location ?? '',
         capacity: eventData.capacity ?? 120,
+        attendee_ids: eventData.attendeeIds ?? [],
         sessions: eventData.sessions ?? [],
         sponsors: eventData.sponsors ?? [],
       }])
@@ -227,6 +228,80 @@ export const yenegeUnityApi = {
 
     if (error) throw new Error(`Failed to delete event: ${error.message}`);
   },
+
+  /**
+   * Add an attendee to an event, then automatically generate/save
+   * matches between ALL attendees in that event.
+   * Returns the updated event.
+   */
+  addAttendeeToEvent: async (
+    eventId: string,
+    attendeeId: string,
+    allAttendees: import('../types/yenegeUnity').YenegeUnityAttendee[]
+  ): Promise<YenegeUnityEvent> => {
+    // 1. Fetch current event
+    const { data: ev, error: fetchErr } = await supabase
+      .from('yenege_unity_events')
+      .select('attendee_ids')
+      .eq('id', eventId)
+      .single();
+    if (fetchErr) throw new Error(`Failed to fetch event: ${fetchErr.message}`);
+
+    const currentIds: string[] = ev?.attendee_ids ?? [];
+    if (currentIds.includes(attendeeId)) {
+      // Already in event — return current state
+      const { data: existing } = await supabase
+        .from('yenege_unity_events').select('*').eq('id', eventId).single();
+      return mapDbToEvent(existing);
+    }
+
+    const updatedIds = [...currentIds, attendeeId];
+
+    // 2. Persist updated attendee list
+    const { data, error } = await supabase
+      .from('yenege_unity_events')
+      .update({ attendee_ids: updatedIds })
+      .eq('id', eventId)
+      .select()
+      .single();
+    if (error) throw new Error(`Failed to add attendee to event: ${error.message}`);
+
+    // 3. Auto-generate matches between event attendees
+    const eventAttendees = allAttendees.filter(a => updatedIds.includes(a.id));
+    if (eventAttendees.length >= 2) {
+      // Use the existing generateAllMatches logic on only event attendees
+      await yenegeUnityApi.generateAllMatches(eventAttendees);
+    }
+
+    return mapDbToEvent(data);
+  },
+
+  /** Remove an attendee from an event (does NOT delete their matches). */
+  removeAttendeeFromEvent: async (
+    eventId: string,
+    attendeeId: string
+  ): Promise<YenegeUnityEvent> => {
+    const { data: ev, error: fetchErr } = await supabase
+      .from('yenege_unity_events')
+      .select('attendee_ids')
+      .eq('id', eventId)
+      .single();
+    if (fetchErr) throw new Error(`Failed to fetch event: ${fetchErr.message}`);
+
+    const updatedIds = ((ev?.attendee_ids ?? []) as string[]).filter(
+      (id: string) => id !== attendeeId
+    );
+
+    const { data, error } = await supabase
+      .from('yenege_unity_events')
+      .update({ attendee_ids: updatedIds })
+      .eq('id', eventId)
+      .select()
+      .single();
+    if (error) throw new Error(`Failed to remove attendee from event: ${error.message}`);
+    return mapDbToEvent(data);
+  },
+
 
   // ── GROUPS / NETWORKING CIRCLES ───────────────────────────
 
@@ -349,6 +424,105 @@ export const yenegeUnityApi = {
 
     if (error) throw new Error(`Failed to update match: ${error.message}`);
   },
+
+  // ── MATCH CREATION ─────────────────────────────────────────
+
+  /**
+   * Save a single bidirectional match between two attendees.
+   * Creates TWO rows so each person sees the match in their portal:
+   *   attendeeId → matchedAttendeeId
+   *   matchedAttendeeId → attendeeId
+   * Silently skips if the pair already exists.
+   */
+  createMatch: async (attendeeId: string, matchedAttendeeId: string): Promise<void> => {
+    // Fetch existing matches to detect duplicates
+    const { data: existing } = await supabase
+      .from('yenege_unity_matches')
+      .select('attendee_id, matched_attendee_id')
+      .or(
+        `and(attendee_id.eq.${attendeeId},matched_attendee_id.eq.${matchedAttendeeId}),` +
+        `and(attendee_id.eq.${matchedAttendeeId},matched_attendee_id.eq.${attendeeId})`
+      );
+
+    const rows: { attendee_id: string; matched_attendee_id: string; status: string; notes: string }[] = [];
+
+    const alreadyForward = existing?.some(
+      r => r.attendee_id === attendeeId && r.matched_attendee_id === matchedAttendeeId
+    );
+    const alreadyReverse = existing?.some(
+      r => r.attendee_id === matchedAttendeeId && r.matched_attendee_id === attendeeId
+    );
+
+    if (!alreadyForward) {
+      rows.push({ attendee_id: attendeeId, matched_attendee_id: matchedAttendeeId, status: 'pending', notes: '' });
+    }
+    if (!alreadyReverse) {
+      rows.push({ attendee_id: matchedAttendeeId, matched_attendee_id: attendeeId, status: 'pending', notes: '' });
+    }
+
+    if (rows.length === 0) return; // already linked
+
+    const { error } = await supabase.from('yenege_unity_matches').insert(rows);
+    if (error) throw new Error(`Failed to create match: ${error.message}`);
+  },
+
+  /**
+   * Run the full cross-industry matchmaking algorithm over all accepted attendees
+   * and persist every match pair that doesn't already exist.
+   * Returns the number of NEW pairs created.
+   */
+  generateAllMatches: async (acceptedAttendees: import('../types/yenegeUnity').YenegeUnityAttendee[]): Promise<number> => {
+    // Build unique pairs first (avoid A→B and B→A duplicates in iteration)
+    const pairs = new Set<string>();
+    const toInsert: { attendee_id: string; matched_attendee_id: string; status: string; notes: string }[] = [];
+
+    for (const att of acceptedAttendees) {
+      for (const other of acceptedAttendees) {
+        if (other.id === att.id) continue;
+
+        const targetMatches = att.targetNetworkingSectors.includes(other.industry);
+        const otherTargetMatches = other.targetNetworkingSectors.includes(att.industry);
+        if (!targetMatches && !otherTargetMatches) continue;
+
+        // Canonical pair key (lower id first) to de-duplicate
+        const pairKey = [att.id, other.id].sort().join('|');
+        if (pairs.has(pairKey)) continue;
+        pairs.add(pairKey);
+      }
+    }
+
+    if (pairs.size === 0) return 0;
+
+    // Fetch all existing match pairs in one query
+    const allIds = acceptedAttendees.map(a => a.id);
+    const { data: existing } = await supabase
+      .from('yenege_unity_matches')
+      .select('attendee_id, matched_attendee_id')
+      .in('attendee_id', allIds);
+
+    const existingSet = new Set<string>(
+      (existing ?? []).map(r => `${r.attendee_id}|${r.matched_attendee_id}`)
+    );
+
+    // Build insert rows for both directions of each new pair
+    for (const pairKey of pairs) {
+      const [idA, idB] = pairKey.split('|');
+      if (!existingSet.has(`${idA}|${idB}`)) {
+        toInsert.push({ attendee_id: idA, matched_attendee_id: idB, status: 'pending', notes: '' });
+      }
+      if (!existingSet.has(`${idB}|${idA}`)) {
+        toInsert.push({ attendee_id: idB, matched_attendee_id: idA, status: 'pending', notes: '' });
+      }
+    }
+
+    if (toInsert.length === 0) return 0;
+
+    const { error } = await supabase.from('yenege_unity_matches').insert(toInsert);
+    if (error) throw new Error(`Failed to bulk-insert matches: ${error.message}`);
+
+    // Return number of unique pairs created
+    return toInsert.length / 2;
+  },
 };
 
 // ─────────────────────────────────────────────────────────────
@@ -469,6 +643,7 @@ function mapDbToEvent(row: Record<string, unknown>): YenegeUnityEvent {
     time: (row.time as string) ?? '',
     location: (row.location as string) ?? '',
     capacity: (row.capacity as number) ?? 120,
+    attendeeIds: (row.attendee_ids as string[]) ?? [],
     sessions: (row.sessions as YenegeUnityEvent['sessions']) ?? [],
     sponsors: (row.sponsors as YenegeUnityEvent['sponsors']) ?? [],
   };

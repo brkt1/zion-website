@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { 
   FaUsers, FaCheckCircle, FaHourglassHalf, FaCrown, FaHandshake, 
   FaUser, FaSearch, FaQrcode, FaChartPie, FaPlus, FaExclamationTriangle,
-  FaSpinner, FaBullseye
+  FaSpinner, FaBullseye, FaLink
 } from 'react-icons/fa';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { yenegeUnityApi } from '../../services/yenegeUnityApi';
@@ -47,6 +47,11 @@ export default function YenegeUnityDashboard() {
     );
   };
   const [newGroupDesc, setNewGroupDesc] = useState('');
+
+  // Matchmaking link state
+  // Tracks canonical pair keys (sortedIdA|sortedIdB) that have been persisted
+  const [linkedPairs, setLinkedPairs] = useState<Set<string>>(new Set());
+  const [isGeneratingMatches, setIsGeneratingMatches] = useState(false);
 
   // Check-in input
   const [checkInCode, setCheckInCode] = useState('');
@@ -270,6 +275,50 @@ export default function YenegeUnityDashboard() {
       setCheckInCode('');
     } else {
       alert('No matching attendee found for this ticket code.');
+    }
+  };
+
+  // ── MATCH LINKAGE ──────────────────────────────────────────
+
+  /** Save a single bidirectional match pair to the DB */
+  const handleLinkMatch = async (attId: string, otherId: string) => {
+    const pairKey = [attId, otherId].sort().join('|');
+    try {
+      await yenegeUnityApi.createMatch(attId, otherId);
+      setLinkedPairs(prev => new Set([...prev, pairKey]));
+    } catch (err) {
+      alert('Failed to link match. Please try again.');
+    }
+  };
+
+  /** Run the full algorithm and bulk-save all new pairs */
+  const handleGenerateAllMatches = async () => {
+    const accepted = attendees.filter(a => a.status === 'accepted');
+    if (accepted.length === 0) {
+      alert('No accepted attendees to match yet.');
+      return;
+    }
+    setIsGeneratingMatches(true);
+    try {
+      const newPairs = await yenegeUnityApi.generateAllMatches(accepted);
+      // Rebuild linked pairs set from all accepted attendees so buttons update
+      const allPairKeys = new Set<string>();
+      accepted.forEach(att => {
+        accepted.forEach(other => {
+          if (att.id === other.id) return;
+          const targetMatches = att.targetNetworkingSectors.includes(other.industry);
+          const otherTargetMatches = other.targetNetworkingSectors.includes(att.industry);
+          if (targetMatches || otherTargetMatches) {
+            allPairKeys.add([att.id, other.id].sort().join('|'));
+          }
+        });
+      });
+      setLinkedPairs(allPairKeys);
+      alert(`✅ Done! ${newPairs} new match pair${newPairs !== 1 ? 's' : ''} linked to attendee portals.`);
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    } finally {
+      setIsGeneratingMatches(false);
     }
   };
 
@@ -641,25 +690,27 @@ export default function YenegeUnityDashboard() {
                               ✕
                             </button>
                           </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Matchmaking Grid */}
+                              {/* Matchmaking Grid */}
           <div className="lg:col-span-8 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
-            <div>
-              <h3 className="text-xl font-bold text-gray-900">Cross-Industry Synergy Generator</h3>
-              <p className="text-xs text-gray-500 mt-1">Our system automatically suggests matches when one executive’s target sectors match another executive’s industry profile.</p>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">Cross-Industry Synergy Generator</h3>
+                <p className="text-xs text-gray-500 mt-1">Matches are saved bidirectionally — both attendees will see each other in their portal.</p>
+              </div>
+              {/* ── BULK GENERATE BUTTON ── */}
+              <button
+                onClick={handleGenerateAllMatches}
+                disabled={isGeneratingMatches}
+                className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 bg-[#4a0e17] text-white text-xs font-black rounded-xl hover:bg-[#6b1422] transition-all duration-300 hover:-translate-y-0.5 shadow-md shadow-[#4a0e17]/20 disabled:opacity-60 disabled:pointer-events-none"
+              >
+                {isGeneratingMatches ? <FaSpinner className="animate-spin" /> : <FaLink />}
+                {isGeneratingMatches ? 'Generating…' : 'Generate All Matches'}
+              </button>
             </div>
 
             <div className="space-y-6 max-h-[600px] overflow-y-auto pr-2">
               {attendees.filter(a => a.status === 'accepted').map(att => {
-                const matches = getMatchSuggestions(att);
+                const suggestions = getMatchSuggestions(att);
                 return (
                   <div key={att.id} className="p-4 bg-gray-50 rounded-2xl border border-gray-200 space-y-4">
                     <div className="flex justify-between items-start">
@@ -690,21 +741,45 @@ export default function YenegeUnityDashboard() {
 
                     {/* Suggestions list */}
                     <div className="space-y-2">
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Suggested matches ({matches.length})</p>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Suggested matches ({suggestions.length})</p>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        {matches.map(other => (
-                          <div key={other.id} className="p-2.5 bg-white rounded-xl border border-gray-150 flex items-center justify-between text-xs hover:border-amber-400/40 transition">
-                            <div>
-                              <p className="font-bold text-gray-900">{other.fullName}</p>
-                              <p className="text-[10px] text-gray-500">{other.companyName} | {other.industry}</p>
-                              <p className="text-[9px] text-gray-400 font-medium">Offers: {other.valueOffer}</p>
+                        {suggestions.map(other => {
+                          const pairKey = [att.id, other.id].sort().join('|');
+                          const isLinked = linkedPairs.has(pairKey);
+                          return (
+                            <div key={other.id} className={`p-2.5 bg-white rounded-xl border flex items-center justify-between text-xs transition ${isLinked ? 'border-emerald-300 bg-emerald-50' : 'border-gray-150 hover:border-[#4a0e17]/30'}`}>
+                              <div className="min-w-0 flex-1">
+                                <p className="font-bold text-gray-900 truncate">{other.fullName}</p>
+                                <p className="text-[10px] text-gray-500 truncate">{other.companyName} | {other.industry}</p>
+                                <p className="text-[9px] text-gray-400 font-medium truncate">Offers: {other.valueOffer}</p>
+                              </div>
+                              <div className="ml-2 flex-shrink-0">
+                                {isLinked ? (
+                                  <span className="flex items-center gap-1 text-[9px] font-extrabold px-1.5 py-0.5 bg-emerald-100 text-emerald-700 border border-emerald-200 rounded">
+                                    <FaCheckCircle size={8}/> Linked
+                                  </span>
+                                ) : (
+                                  <button
+                                    onClick={() => handleLinkMatch(att.id, other.id)}
+                                    className="flex items-center gap-1 text-[9px] font-extrabold px-2 py-1 bg-[#4a0e17] text-white rounded hover:bg-[#6b1422] transition-all hover:-translate-y-0.5"
+                                  >
+                                    <FaLink size={8}/> Link
+                                  </button>
+                                )}
+                              </div>
                             </div>
-                            <span className="text-[9px] font-extrabold px-1.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-100 rounded">Match</span>
-                          </div>
-                        ))}
-                        {matches.length === 0 && (
+                          );
+                        })}
+                        {suggestions.length === 0 && (
                           <p className="text-xs text-gray-400 italic">No direct targets registered yet.</p>
                         )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>              )}
                       </div>
                     </div>
                   </div>
@@ -718,7 +793,7 @@ export default function YenegeUnityDashboard() {
       {/* ────────────────── TAB 3: EVENTS & SESSIONS PLANNER ────────────────── */}
       {activeTab === 'events' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-5 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+          <div className="lg:col-span-4 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
             <h3 className="text-lg font-bold text-gray-900">Plan New Summit Event</h3>
             <form onSubmit={handleCreateEvent} className="space-y-4">
               <div>
@@ -759,60 +834,158 @@ export default function YenegeUnityDashboard() {
                 Plan Summit Module
               </button>
             </form>
+
+            {/* Paid attendees quick-stat */}
+            <div className="bg-[#fdfbf7] border border-[#d4af37]/20 rounded-xl p-4 space-y-1">
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#4a0e17]">Eligible to Assign</p>
+              <p className="text-2xl font-black text-gray-900">{attendees.filter(a => a.paymentStatus === 'paid' || a.paymentStatus === 'waived').length}</p>
+              <p className="text-[10px] text-gray-400 font-medium">Attendees with paid / waived status</p>
+            </div>
           </div>
 
-          <div className="lg:col-span-7 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
-            <h3 className="text-xl font-bold text-gray-900">Planned Events List</h3>
-            <div className="space-y-4">
+          <div className="lg:col-span-8 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
+            <h3 className="text-xl font-bold text-gray-900">Planned Events</h3>
+            <div className="space-y-6">
+              {events.length === 0 && (
+                <p className="text-sm text-gray-400 italic text-center py-8">No events planned yet. Create one on the left.</p>
+              )}
               {events.map(ev => {
-                const totalAtt = attendees.filter(a => a.status === 'accepted').length;
-                const capacityPct = Math.min(100, Math.round((totalAtt / ev.capacity) * 100));
+                const assignedCount = ev.attendeeIds?.length ?? 0;
+                const capacityPct = Math.min(100, Math.round((assignedCount / ev.capacity) * 100));
+                // Paid + waived attendees not yet in this event
+                const eligible = attendees.filter(
+                  a => (a.paymentStatus === 'paid' || a.paymentStatus === 'waived') && !(ev.attendeeIds ?? []).includes(a.id)
+                );
                 
                 return (
-                  <div key={ev.id} className="p-4 bg-gray-50 rounded-2xl border border-gray-200 space-y-4">
+                  <div key={ev.id} className="p-5 bg-gray-50 rounded-2xl border border-gray-200 space-y-5">
+                    {/* Event Header */}
                     <div className="flex justify-between items-start">
                       <div>
                         <h4 className="font-bold text-base text-gray-900">{ev.title}</h4>
-                        <p className="text-xs text-gray-500">{ev.location} | {ev.date} at {ev.time}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{ev.location} | <span className="font-bold text-[#4a0e17]">{ev.date}</span> at {ev.time}</p>
                       </div>
                       <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-bold">Planned</span>
                     </div>
 
-                    {/* Capacity Indicator bar */}
+                    {/* Capacity Bar */}
                     <div className="space-y-1">
                       <div className="flex justify-between text-xs text-gray-500 font-semibold">
-                        <span>Allocated Attendees: {totalAtt} / {ev.capacity}</span>
+                        <span>Assigned: {assignedCount} / {ev.capacity}</span>
                         <span>{capacityPct}% capacity</span>
                       </div>
                       <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-                        <div 
-                          className="bg-amber-500 h-full transition-all duration-500" 
+                        <div
+                          className={`h-full transition-all duration-500 ${capacityPct >= 100 ? 'bg-red-500' : 'bg-[#4a0e17]'}`}
                           style={{ width: `${capacityPct}%` }}
                         />
                       </div>
-                      {totalAtt >= ev.capacity && (
+                      {assignedCount >= ev.capacity && (
                         <p className="text-[10px] text-red-500 flex items-center gap-1 font-bold mt-1">
-                          <FaExclamationTriangle /> Warning: Executive capacity reached! Review waiting list.
+                          <FaExclamationTriangle /> Warning: Venue capacity reached!
                         </p>
                       )}
                     </div>
 
-                    {/* Sessions List */}
-                    <div className="space-y-2">
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Event Sessions ({ev.sessions.length})</p>
-                      <div className="space-y-2">
-                        {ev.sessions.map(s => (
-                          <div key={s.id} className="p-3 bg-white rounded-xl border border-gray-150 text-xs">
-                            <div className="flex justify-between font-bold text-gray-900">
-                              <span>{s.title}</span>
-                              <span className="text-amber-600">{s.time}</span>
-                            </div>
-                            <p className="text-[10px] text-gray-400 mt-0.5">Speaker: {s.speaker} | Location: {s.location}</p>
-                            <p className="text-[10px] text-gray-500 mt-1 font-light">{s.description}</p>
-                          </div>
-                        ))}
+                    {/* ── ASSIGN PAID ATTENDEES ── */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Assign Paid Attendees</p>
+                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                          🔗 Auto-matches on add
+                        </span>
                       </div>
+
+                      {/* Dropdown picker */}
+                      {eligible.length > 0 && assignedCount < ev.capacity ? (
+                        <select
+                          defaultValue=""
+                          onChange={async (e) => {
+                            if (!e.target.value) return;
+                            const attId = e.target.value;
+                            e.target.value = '';
+                            try {
+                              const updated = await yenegeUnityApi.addAttendeeToEvent(ev.id, attId, attendees);
+                              setEvents(prev => prev.map(x => x.id === ev.id ? updated : x));
+                              // Also mark all algorithm-generated pairs as linked in UI
+                              const eventAtts = attendees.filter(a => updated.attendeeIds.includes(a.id));
+                              const newPairs = new Set<string>(linkedPairs);
+                              eventAtts.forEach(a => eventAtts.forEach(b => {
+                                if (a.id !== b.id) newPairs.add([a.id, b.id].sort().join('|'));
+                              }));
+                              setLinkedPairs(newPairs);
+                            } catch (err: any) {
+                              alert(`Error: ${err.message}`);
+                            }
+                          }}
+                          className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-700 focus:ring-2 focus:ring-[#4a0e17] outline-none"
+                        >
+                          <option value="">＋ Add attendee to this event...</option>
+                          {eligible.map(a => (
+                            <option key={a.id} value={a.id}>
+                              {a.fullName} — {a.companyName} ({a.paymentStatus})
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <p className="text-xs text-gray-400 italic">
+                          {assignedCount >= ev.capacity ? 'Capacity reached.' : 'All paid attendees are assigned.'}
+                        </p>
+                      )}
+
+                      {/* Assigned list */}
+                      {(ev.attendeeIds ?? []).length > 0 && (
+                        <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
+                          {(ev.attendeeIds ?? []).map(attId => {
+                            const att = attendees.find(a => a.id === attId);
+                            if (!att) return null;
+                            return (
+                              <div key={attId} className="flex items-center justify-between bg-white p-2.5 px-3 rounded-xl border border-gray-100 text-xs">
+                                <div>
+                                  <span className="font-bold text-gray-900">{att.fullName}</span>
+                                  <span className="text-gray-400 ml-1.5">· {att.companyName} · {att.industry}</span>
+                                </div>
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                  <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${att.paymentStatus === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                                    {att.paymentStatus}
+                                  </span>
+                                  <button
+                                    onClick={async () => {
+                                      try {
+                                        const updated = await yenegeUnityApi.removeAttendeeFromEvent(ev.id, attId);
+                                        setEvents(prev => prev.map(x => x.id === ev.id ? updated : x));
+                                      } catch (err: any) {
+                                        alert(`Error: ${err.message}`);
+                                      }
+                                    }}
+                                    className="text-red-400 hover:text-red-600 transition-colors"
+                                    title="Remove from event"
+                                  >✕</button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
+
+                    {/* Sessions List */}
+                    {ev.sessions.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Sessions ({ev.sessions.length})</p>
+                        <div className="space-y-2">
+                          {ev.sessions.map(s => (
+                            <div key={s.id} className="p-3 bg-white rounded-xl border border-gray-150 text-xs">
+                              <div className="flex justify-between font-bold text-gray-900">
+                                <span>{s.title}</span>
+                                <span className="text-amber-600">{s.time}</span>
+                              </div>
+                              <p className="text-[10px] text-gray-400 mt-0.5">Speaker: {s.speaker} | {s.location}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -820,6 +993,7 @@ export default function YenegeUnityDashboard() {
           </div>
         </div>
       )}
+
 
       {/* ────────────────── TAB 4: CHECK-IN DESK & BADGES ────────────────── */}
       {activeTab === 'checkin' && (

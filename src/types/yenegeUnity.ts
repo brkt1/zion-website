@@ -82,6 +82,8 @@ export interface YenegeUnityEvent {
   time: string;
   location: string;
   capacity: number;
+  /** IDs of attendees registered for this event */
+  attendeeIds: string[];
   sessions: YenegeUnitySession[];
   sponsors: YenegeUnitySponsor[];
 }
