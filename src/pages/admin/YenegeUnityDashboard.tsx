@@ -211,7 +211,8 @@ export default function YenegeUnityDashboard() {
         location: 'Skylight Hotel, Addis Ababa',
         capacity: newEventCapacity,
         sessions: [],
-        sponsors: []
+        sponsors: [],
+        attendeeIds: []
       });
       setEvents(prev => [...prev, newEv]);
       setNewEventTitle('');
@@ -285,7 +286,12 @@ export default function YenegeUnityDashboard() {
     const pairKey = [attId, otherId].sort().join('|');
     try {
       await yenegeUnityApi.createMatch(attId, otherId);
-      setLinkedPairs(prev => new Set([...prev, pairKey]));
+      setLinkedPairs(prev => {
+        const next = new Set<string>();
+        prev.forEach(v => next.add(v));
+        next.add(pairKey);
+        return next;
+      });
     } catch (err) {
       alert('Failed to link match. Please try again.');
     }
@@ -690,7 +696,16 @@ export default function YenegeUnityDashboard() {
                               ✕
                             </button>
                           </div>
-                              {/* Matchmaking Grid */}
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Matchmaking Grid */}
           <div className="lg:col-span-8 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -773,13 +788,6 @@ export default function YenegeUnityDashboard() {
                         {suggestions.length === 0 && (
                           <p className="text-xs text-gray-400 italic">No direct targets registered yet.</p>
                         )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>              )}
                       </div>
                     </div>
                   </div>
@@ -909,7 +917,8 @@ export default function YenegeUnityDashboard() {
                               setEvents(prev => prev.map(x => x.id === ev.id ? updated : x));
                               // Also mark all algorithm-generated pairs as linked in UI
                               const eventAtts = attendees.filter(a => updated.attendeeIds.includes(a.id));
-                              const newPairs = new Set<string>(linkedPairs);
+                              const newPairs = new Set<string>();
+                              linkedPairs.forEach(p => newPairs.add(p));
                               eventAtts.forEach(a => eventAtts.forEach(b => {
                                 if (a.id !== b.id) newPairs.add([a.id, b.id].sort().join('|'));
                               }));

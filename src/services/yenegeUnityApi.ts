@@ -505,7 +505,7 @@ export const yenegeUnityApi = {
     );
 
     // Build insert rows for both directions of each new pair
-    for (const pairKey of pairs) {
+    pairs.forEach(pairKey => {
       const [idA, idB] = pairKey.split('|');
       if (!existingSet.has(`${idA}|${idB}`)) {
         toInsert.push({ attendee_id: idA, matched_attendee_id: idB, status: 'pending', notes: '' });
@@ -513,7 +513,7 @@ export const yenegeUnityApi = {
       if (!existingSet.has(`${idB}|${idA}`)) {
         toInsert.push({ attendee_id: idB, matched_attendee_id: idA, status: 'pending', notes: '' });
       }
-    }
+    });
 
     if (toInsert.length === 0) return 0;
 
