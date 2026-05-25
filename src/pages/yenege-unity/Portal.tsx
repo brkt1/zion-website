@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaUserTie, FaBuilding, FaCheckCircle, FaStar, FaEnvelope, FaMapMarkerAlt, FaSignOutAlt, FaCalendarAlt, FaHandshake, FaSpinner, FaChevronDown, FaPhoneAlt, FaLock, FaUnlock, FaLightbulb } from 'react-icons/fa';
 import { yenegeUnityApi } from '../../services/yenegeUnityApi';
