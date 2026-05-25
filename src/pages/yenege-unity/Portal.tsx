@@ -200,7 +200,7 @@ export default function YenegeUnityPortal() {
             </div>
             <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 px-4 py-2.5 rounded-2xl">
               <FaMapMarkerAlt className="text-[#d4af37]" size={14} />
-              <span className="text-xs font-bold tracking-wide">{event ? event.location : 'Skylight Hotel'}</span>
+              <span className="text-xs font-bold tracking-wide">{event ? event.location : 'Venue TBD'}</span>
             </div>
             {/* Contact Lock Status Badge */}
             <div className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl border ${isEventDay ? 'bg-emerald-500/20 border-emerald-400/30' : 'bg-white/10 border-white/20'}`}>
