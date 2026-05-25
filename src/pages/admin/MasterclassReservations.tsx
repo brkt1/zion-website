@@ -311,7 +311,7 @@ const MasterclassReservations = () => {
                 setEmailSubject(`Update for ${statusFilter === 'all' ? 'All' : statusFilter} Students - Yenege Masterclass`);
                 setShowEmailModal(true);
               }}
-              className="flex items-center justify-center gap-2 bg-indigo-600 text-white px-4 py-2.5 sm:px-6 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 w-full sm:w-auto"
+              className="flex items-center justify-center gap-2 bg-[#4a0e17] text-white px-4 py-2.5 sm:px-6 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-[#6b1422] transition-all duration-300 hover:-translate-y-0.5 shadow-lg shadow-[#4a0e17]/30 w-full sm:w-auto"
             >
               <FaEnvelope /> Email {statusFilter === 'all' ? 'All Students' : `All ${statusFilter}s`}
             </button>
@@ -432,7 +432,7 @@ const MasterclassReservations = () => {
                   placeholder="Search by name or phone..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                  className="w-full pl-12 pr-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-[#4a0e17] outline-none transition-all"
                 />
               </div>
             </div>
@@ -442,7 +442,7 @@ const MasterclassReservations = () => {
               <select
                 value={followUpFilter}
                 onChange={(e) => setFollowUpFilter(e.target.value as any)}
-                className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-[#4a0e17] outline-none"
               >
                 <option value="all">All Leads</option>
                 <option value="today">Call Today 📞</option>
@@ -456,7 +456,7 @@ const MasterclassReservations = () => {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as any)}
-                className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-[#4a0e17] outline-none"
               >
                 <option value="all">All Statuses</option>
                 <option value="pending">Pending</option>
@@ -471,7 +471,7 @@ const MasterclassReservations = () => {
               <select
                 value={regionFilter}
                 onChange={(e) => setRegionFilter(e.target.value)}
-                className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-[#4a0e17] outline-none"
               >
                 <option value="all">All Regions</option>
                 <option value="Addis Ababa">Addis Ababa</option>
@@ -496,7 +496,7 @@ const MasterclassReservations = () => {
               <select
                 value={packageFilter}
                 onChange={(e) => setPackageFilter(e.target.value)}
-                className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-[#4a0e17] outline-none"
               >
                 <option value="all">All Packages</option>
                 <option value="Basic">Basic Package</option>
@@ -510,7 +510,7 @@ const MasterclassReservations = () => {
               <select
                 value={updatedByFilter}
                 onChange={(e) => setUpdatedByFilter(e.target.value)}
-                className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-[#4a0e17] outline-none"
               >
                 <option value="all">Everyone</option>
                 {uniqueUpdatedBy.map(email => (
@@ -550,7 +550,7 @@ const MasterclassReservations = () => {
                       <tr key={res.id} className="hover:bg-amber-50/30 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
-                            <div className="flex-shrink-0 h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black shadow-lg">
+                            <div className="flex-shrink-0 h-10 w-10 rounded-xl bg-gradient-to-br from-[#4a0e17] to-[#791a29] flex items-center justify-center text-white font-black shadow-lg shadow-[#4a0e17]/20">
                               {res.name.charAt(0).toUpperCase()}
                             </div>
                             <div className="ml-4">
@@ -635,7 +635,7 @@ const MasterclassReservations = () => {
                                 setEmailSubject(`Update for ${res.name} - Yenege Masterclass`);
                                 setShowEmailModal(true);
                               }}
-                              className="text-indigo-600 hover:text-indigo-900 transition-colors"
+                              className="text-[#4a0e17] hover:text-[#6b1422] transition-colors"
                               title="Send individual email"
                             >
                               <FaEnvelope />
@@ -661,12 +661,12 @@ const MasterclassReservations = () => {
                   <div key={res.id} className="p-4 hover:bg-amber-50/20 transition-colors space-y-3">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="flex-shrink-0 h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black shadow-lg">
+                        <div className="flex-shrink-0 h-10 w-10 rounded-xl bg-gradient-to-br from-[#4a0e17] to-[#791a29] flex items-center justify-center text-white font-black shadow-lg shadow-[#4a0e17]/20">
                           {res.name.charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0">
                           <h3 className="text-sm font-bold text-gray-900 truncate">{res.name}</h3>
-                          <a href={`tel:${res.phone}`} className="text-xs text-indigo-600 font-semibold hover:underline block truncate">
+                          <a href={`tel:${res.phone}`} className="text-xs text-[#4a0e17] font-semibold hover:underline block truncate">
                             {res.phone}
                           </a>
                           {res.email && <p className="text-[10px] text-gray-500 truncate">{res.email}</p>}
@@ -777,16 +777,17 @@ const MasterclassReservations = () => {
 
         {/* Details Modal */}
         {showModal && selectedReservation && (
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-[2rem] max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative">
-              <div className="sticky top-0 bg-white border-b border-gray-100 p-6 flex items-center justify-between z-10">
+          <div className="fixed inset-0 bg-[#4a0e17]/40 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in">
+            <div className="bg-[#fdfbf7]/95 backdrop-blur-xl rounded-[2rem] max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl shadow-[#4a0e17]/20 relative border border-white/50">
+              <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-[#d4af37] via-[#ffd447] to-[#d4af37]" />
+              <div className="sticky top-0 bg-[#fdfbf7]/90 backdrop-blur border-b border-gray-100 p-6 flex items-center justify-between z-10">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-xl font-black">
+                  <div className="w-12 h-12 rounded-2xl bg-[#4a0e17] flex items-center justify-center text-white text-xl font-black shadow-md shadow-[#4a0e17]/30">
                     {selectedReservation.name.charAt(0)}
                   </div>
                   <div>
                     <h2 className="text-2xl font-black text-gray-900 tracking-tight">{selectedReservation.name}</h2>
-                    <p className="text-xs font-bold text-indigo-600 uppercase tracking-widest">Masterclass Candidate</p>
+                    <p className="text-xs font-bold text-[#d4af37] uppercase tracking-widest">Masterclass Candidate</p>
                   </div>
                 </div>
                 <button

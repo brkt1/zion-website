@@ -319,50 +319,50 @@ export default function YenegeUnityDashboard() {
       <div className="mb-6 flex flex-wrap gap-2 border-b border-gray-200 pb-3">
         <button
           onClick={() => setActiveTab('crm')}
-          className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+          className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 hover:-translate-y-0.5 ${
             activeTab === 'crm' 
-              ? 'bg-[#1C2951] text-white shadow-md' 
-              : 'text-gray-600 hover:bg-gray-100'
+              ? 'bg-[#4a0e17] text-white shadow-lg shadow-[#4a0e17]/30' 
+              : 'text-gray-600 hover:bg-[#fdfbf7] hover:shadow-sm border border-transparent hover:border-gray-200'
           }`}
         >
           👤 Executive CRM & Intake
         </button>
         <button
           onClick={() => setActiveTab('matchmaker')}
-          className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+          className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 hover:-translate-y-0.5 ${
             activeTab === 'matchmaker' 
-              ? 'bg-[#1C2951] text-white shadow-md' 
-              : 'text-gray-600 hover:bg-gray-100'
+              ? 'bg-[#4a0e17] text-white shadow-lg shadow-[#4a0e17]/30' 
+              : 'text-gray-600 hover:bg-[#fdfbf7] hover:shadow-sm border border-transparent hover:border-gray-200'
           }`}
         >
           🤝 Matchmaking Intelligence
         </button>
         <button
           onClick={() => setActiveTab('events')}
-          className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+          className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 hover:-translate-y-0.5 ${
             activeTab === 'events' 
-              ? 'bg-[#1C2951] text-white shadow-md' 
-              : 'text-gray-600 hover:bg-gray-100'
+              ? 'bg-[#4a0e17] text-white shadow-lg shadow-[#4a0e17]/30' 
+              : 'text-gray-600 hover:bg-[#fdfbf7] hover:shadow-sm border border-transparent hover:border-gray-200'
           }`}
         >
           📅 Event Planners & Capacity
         </button>
         <button
           onClick={() => setActiveTab('checkin')}
-          className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+          className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 hover:-translate-y-0.5 ${
             activeTab === 'checkin' 
-              ? 'bg-[#1C2951] text-white shadow-md' 
-              : 'text-gray-600 hover:bg-gray-100'
+              ? 'bg-[#4a0e17] text-white shadow-lg shadow-[#4a0e17]/30' 
+              : 'text-gray-600 hover:bg-[#fdfbf7] hover:shadow-sm border border-transparent hover:border-gray-200'
           }`}
         >
           🎟️ Check-In Desk & Badges
         </button>
         <button
           onClick={() => setActiveTab('analytics')}
-          className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+          className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 hover:-translate-y-0.5 ${
             activeTab === 'analytics' 
-              ? 'bg-[#1C2951] text-white shadow-md' 
-              : 'text-gray-600 hover:bg-gray-100'
+              ? 'bg-[#4a0e17] text-white shadow-lg shadow-[#4a0e17]/30' 
+              : 'text-gray-600 hover:bg-[#fdfbf7] hover:shadow-sm border border-transparent hover:border-gray-200'
           }`}
         >
           📊 Visual Analytics
@@ -552,7 +552,7 @@ export default function YenegeUnityDashboard() {
                       <td className="px-6 py-4">
                         <button
                           onClick={() => setSelectedAttendee(att)}
-                          className="px-3 py-1.5 bg-[#1C2951] text-white rounded-lg text-xs font-bold hover:bg-[#2d3d6b] transition"
+                          className="px-3 py-1.5 bg-[#4a0e17] text-white rounded-lg text-xs font-bold hover:bg-[#6b1422] transition-all duration-300 hover:-translate-y-0.5 shadow-md shadow-[#4a0e17]/20"
                         >
                           CRM Profile
                         </button>
@@ -606,7 +606,7 @@ export default function YenegeUnityDashboard() {
                 </div>
                 <button
                   type="submit"
-                  className="w-full py-2.5 bg-[#1C2951] text-white font-bold rounded-xl text-sm hover:bg-[#2d3d6b] transition flex items-center justify-center gap-2"
+                  className="w-full py-2.5 bg-[#4a0e17] text-white font-bold rounded-xl text-sm hover:bg-[#6b1422] transition-all duration-300 hover:-translate-y-0.5 shadow-md shadow-[#4a0e17]/20 flex items-center justify-center gap-2"
                 >
                   <FaPlus size={12} /> Plan Circle
                 </button>
@@ -754,7 +754,7 @@ export default function YenegeUnityDashboard() {
               </div>
               <button
                 type="submit"
-                className="w-full py-2.5 bg-[#1C2951] text-white font-bold rounded-xl text-sm hover:bg-[#2d3d6b] transition"
+                className="w-full py-2.5 bg-[#4a0e17] text-white font-bold rounded-xl text-sm hover:bg-[#6b1422] transition-all duration-300 hover:-translate-y-0.5 shadow-md shadow-[#4a0e17]/20"
               >
                 Plan Summit Module
               </button>
@@ -846,7 +846,7 @@ export default function YenegeUnityDashboard() {
                   />
                   <button
                     onClick={handleSimulateCheckInByCode}
-                    className="px-4 py-2 bg-[#1C2951] text-white font-bold rounded-xl text-sm hover:bg-[#2d3d6b] transition"
+                    className="px-4 py-2 bg-[#4a0e17] text-white font-bold rounded-xl text-sm hover:bg-[#6b1422] transition-all duration-300 hover:-translate-y-0.5 shadow-md shadow-[#4a0e17]/20"
                   >
                     Verify
                   </button>
@@ -991,9 +991,9 @@ export default function YenegeUnityDashboard() {
 
       {/* ────────────────── CRM DETAILS MODAL ────────────────── */}
       {selectedAttendee && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-white max-w-4xl w-full max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl relative">
-            <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-amber-500 to-yellow-600" />
+        <div className="fixed inset-0 bg-[#4a0e17]/40 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-[#fdfbf7]/95 backdrop-blur-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto rounded-[2rem] shadow-2xl shadow-[#4a0e17]/20 relative border border-white/50">
+            <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-[#d4af37] via-[#ffd447] to-[#d4af37]" />
             
             {/* Modal header */}
             <div className="p-6 border-b border-gray-100 flex justify-between items-start">
@@ -1231,7 +1231,7 @@ export default function YenegeUnityDashboard() {
                     </select>
                     <button
                       onClick={() => handleAddTag(selectedAttendee.id)}
-                      className="px-3 py-1 bg-[#1C2951] text-white text-xs font-bold rounded-lg hover:bg-[#2d3d6b]"
+                      className="px-3 py-1 bg-[#4a0e17] text-white text-xs font-bold rounded-lg hover:bg-[#6b1422] transition-all duration-300 hover:-translate-y-0.5 shadow-sm"
                     >
                       Add
                     </button>
@@ -1264,7 +1264,7 @@ export default function YenegeUnityDashboard() {
                       />
                       <button
                         onClick={() => handleAddCommLog(selectedAttendee.id)}
-                        className="px-3 py-1 bg-[#1C2951] text-white text-xs font-bold rounded hover:bg-[#2d3d6b]"
+                        className="px-3 py-1 bg-[#4a0e17] text-white text-xs font-bold rounded hover:bg-[#6b1422] transition-all duration-300 hover:-translate-y-0.5 shadow-sm"
                       >
                         Log
                       </button>
