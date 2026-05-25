@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaUserTie, FaBuilding, FaCheckCircle, FaStar, FaEnvelope, FaMapMarkerAlt, FaSignOutAlt, FaCalendarAlt, FaHandshake, FaSpinner, FaChevronDown, FaPhoneAlt, FaLock, FaUnlock, FaLightbulb } from 'react-icons/fa';
+import { FaUserTie, FaBuilding, FaCheckCircle, FaStar, FaEnvelope, FaMapMarkerAlt, FaSignOutAlt, FaCalendarAlt, FaHandshake, FaSpinner, FaChevronDown, FaPhoneAlt, FaLock, FaUnlock, FaLightbulb, FaUsers } from 'react-icons/fa';
 import { yenegeUnityApi } from '../../services/yenegeUnityApi';
 import { YenegeUnityAttendee, YenegeUnityEvent, YenegeUnityMatch } from '../../types/yenegeUnity';
 
@@ -19,6 +19,10 @@ export default function YenegeUnityPortal() {
 
   // Computed: are we on/after the event day? (contacts unlock)
   const isEventDay = event ? new Date() >= new Date(event.date) : false;
+
+  // Computed matches
+  const eventMatches = event && event.attendeeIds ? matches.filter(m => event.attendeeIds!.includes(m.matchedAttendeeId)) : [];
+  const generalMatchesCount = matches.length;
 
   // Local state for debouncing notes
   const [localNotes, setLocalNotes] = useState<Record<string, string>>({});
@@ -184,15 +188,15 @@ export default function YenegeUnityPortal() {
         <div className="bg-[#4a0e17] rounded-3xl p-6 sm:p-10 relative overflow-hidden shadow-xl shadow-[#4a0e17]/10 text-white">
           <div className="absolute top-0 right-0 w-64 h-64 bg-[#d4af37]/20 rounded-full blur-[60px] translate-x-1/3 -translate-y-1/3" />
           
-          <h1 className="text-2xl sm:text-4xl font-black mb-3 relative z-10 tracking-tight">Welcome, {attendee?.fullName?.split(' ')[0]}!</h1>
+          <h1 className="text-2xl sm:text-4xl font-black mb-3 relative z-10 tracking-tight">Welcome to {event?.title || 'Yenege Unity'}, {attendee?.fullName?.split(' ')[0]}!</h1>
           <p className="text-white/80 text-sm sm:text-base max-w-2xl relative z-10 leading-relaxed font-medium">
-            Based on your profile, we have handpicked <span className="text-[#d4af37] font-black text-lg">{matches.length}</span> key individuals for you to connect with today. Make the most of these opportunities.
+            Based on your profile, we have handpicked <span className="text-[#d4af37] font-black text-lg">{eventMatches.length}</span> key individuals for you to connect with today at this event. Make the most of these opportunities.
           </p>
 
           <div className="flex flex-wrap gap-3 mt-6 relative z-10">
             <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 px-4 py-2.5 rounded-2xl">
               <FaCalendarAlt className="text-[#d4af37]" size={14} />
-              <span className="text-xs font-bold tracking-wide">{event ? event.date : "Event date TBD"}</span>
+              <span className="text-xs font-bold tracking-wide">{event ? new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "Event date TBD"}</span>
             </div>
             <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 px-4 py-2.5 rounded-2xl">
               <FaMapMarkerAlt className="text-[#d4af37]" size={14} />
@@ -202,11 +206,25 @@ export default function YenegeUnityPortal() {
             <div className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl border ${isEventDay ? 'bg-emerald-500/20 border-emerald-400/30' : 'bg-white/10 border-white/20'}`}>
               {isEventDay ? <FaUnlock className="text-emerald-400" size={12} /> : <FaLock className="text-[#d4af37]" size={12} />}
               <span className="text-xs font-bold">
-                {isEventDay ? 'Contacts Unlocked!' : `Contacts unlock on ${event?.date ?? 'event day'}`}
+                {isEventDay ? 'Contacts Unlocked!' : `Contacts unlock on ${event ? new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'event day'}`}
               </span>
             </div>
           </div>
         </div>
+
+        {/* General Matching Summary */}
+        {generalMatchesCount > eventMatches.length && (
+          <div className="bg-[#4a0e17]/5 border border-[#4a0e17]/10 rounded-3xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#4a0e17]/5 rounded-full blur-[40px] translate-x-1/3 -translate-y-1/3" />
+            <div className="relative z-10">
+              <h3 className="font-black text-[#4a0e17] text-sm uppercase tracking-widest mb-1 flex items-center gap-2">
+                <FaUsers className="text-[#d4af37]" /> Broader Network Potential
+              </h3>
+              <p className="text-sm text-gray-700 font-medium">Our algorithm has identified <strong className="text-[#4a0e17] bg-[#4a0e17]/10 px-2 py-0.5 rounded text-lg">{generalMatchesCount}</strong> total highly-compatible connections across the entire Yenege Unity ecosystem.</p>
+              <p className="text-xs text-gray-500 mt-1 font-medium">You will meet your remaining {generalMatchesCount - eventMatches.length} matches at future summits.</p>
+            </div>
+          </div>
+        )}
 
         {/* Networking Tips Banner */}
         <div className="bg-white border border-[#d4af37]/20 rounded-2xl p-5 flex gap-4 items-start shadow-sm">
@@ -231,11 +249,11 @@ export default function YenegeUnityPortal() {
             <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center">
               <FaHandshake className="text-orange-500" size={18} />
             </div>
-            Your {matches.length} Strategic Matches
+            Your {eventMatches.length} Strategic Matches
           </h2>
         </div>
 
-        {matches.length === 0 ? (
+        {eventMatches.length === 0 ? (
           <div className="text-center py-16 bg-white border border-gray-100 rounded-3xl shadow-sm">
             <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
               <FaHandshake className="text-gray-300" size={24} />
@@ -245,7 +263,7 @@ export default function YenegeUnityPortal() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {matches.map((match, index) => {
+            {eventMatches.map((match, index) => {
               const profile = match.matchedAttendee;
               if (!profile) return null;
               

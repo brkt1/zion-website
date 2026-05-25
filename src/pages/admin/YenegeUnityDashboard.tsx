@@ -1242,35 +1242,56 @@ export default function YenegeUnityDashboard() {
               {/* Left Column: Details dossier */}
               <div className="md:col-span-7 space-y-6">
                 {/* Business description */}
-                <div className="space-y-2">
-                  <h4 className="font-bold text-gray-900 text-sm">Business Description</h4>
-                  <p className="text-xs text-gray-600 leading-relaxed font-light bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-3">
+                  <h4 className="font-black text-gray-900 text-xs uppercase tracking-widest text-[#4a0e17]">Business Description</h4>
+                  <p className="text-sm text-gray-700 leading-relaxed">
                     {selectedAttendee.businessDescription}
                   </p>
                 </div>
 
                 {/* Networking targets */}
-                <div className="grid grid-cols-2 gap-4 text-xs">
-                  <div className="space-y-2">
-                    <h4 className="font-bold text-gray-900">Networking Targets</h4>
-                    <p className="text-gray-600 leading-none">Goals: <span className="font-bold text-gray-900">{selectedAttendee.selectedGoals.join(', ')}</span></p>
-                    <p className="text-gray-600 leading-none">Industries: <span className="font-bold text-gray-900">{selectedAttendee.targetNetworkingSectors.join(', ')}</span></p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-3">
+                    <h4 className="font-black text-gray-900 text-xs uppercase tracking-widest text-amber-600">Networking Targets</h4>
+                    <div className="space-y-2">
+                      <div>
+                        <span className="text-[10px] uppercase text-gray-400 font-bold block mb-1">Goals</span>
+                        <div className="flex flex-wrap gap-1">
+                          {selectedAttendee.selectedGoals.map(g => (
+                            <span key={g} className="bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-xs font-medium">{g}</span>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-[10px] uppercase text-gray-400 font-bold block mb-1">Industries</span>
+                        <div className="flex flex-wrap gap-1">
+                          {selectedAttendee.targetNetworkingSectors.map(s => (
+                            <span key={s} className="bg-amber-50 text-amber-700 px-2 py-0.5 rounded text-xs font-medium">{s}</span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <h4 className="font-bold text-gray-900">Value Offering</h4>
-                    <p className="text-gray-600">{selectedAttendee.valueOffer}</p>
+                  <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-3">
+                    <h4 className="font-black text-gray-900 text-xs uppercase tracking-widest text-emerald-600">Value Offering</h4>
+                    <p className="text-sm text-gray-700 leading-relaxed font-medium">"{selectedAttendee.valueOffer}"</p>
                   </div>
                 </div>
 
                 {/* Match overlap recommendations */}
-                <div className="space-y-2">
-                  <h4 className="font-bold text-gray-900 text-sm">Direct Table Overlaps</h4>
-                  <div className="space-y-2">
+                <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+                  <h4 className="font-black text-gray-900 text-xs uppercase tracking-widest flex items-center gap-2">
+                    <FaUsers className="text-blue-500" /> Direct Table Overlaps
+                  </h4>
+                  <div className="space-y-3">
                     {getMatchSuggestions(selectedAttendee).slice(0, 3).map(oth => (
-                      <div key={oth.id} className="p-3 bg-amber-500/5 border border-amber-500/10 rounded-xl flex items-center justify-between text-xs">
-                        <div>
-                          <p className="font-bold text-gray-900">{oth.fullName} ({oth.companyName})</p>
-                          <p className="text-[10px] text-gray-500">Industry: {oth.industry} | Wants: {oth.targetNetworkingSectors.join(', ')}</p>
+                      <div key={oth.id} className="p-3 bg-blue-50/50 border border-blue-100/50 rounded-xl flex items-center justify-between transition-all hover:shadow-md hover:bg-white group">
+                        <div className="flex-1 min-w-0 pr-4">
+                          <p className="font-bold text-sm text-gray-900 truncate">{oth.fullName} <span className="text-gray-400 font-normal">({oth.companyName})</span></p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-[9px] font-bold uppercase tracking-wider">{oth.industry}</span>
+                            <span className="text-xs text-gray-400 truncate">Wants: <span className="font-medium text-gray-600">{oth.targetNetworkingSectors.join(', ')}</span></span>
+                          </div>
                         </div>
                         <button
                           onClick={() => {
@@ -1281,30 +1302,37 @@ export default function YenegeUnityDashboard() {
                               alert(`Seated ${selectedAttendee.fullName} and ${oth.fullName} together in "${matchingCircle.name}"!`);
                             }
                           }}
-                          className="px-2 py-1 bg-amber-500 text-black text-[9px] font-black rounded"
+                          className="shrink-0 px-3 py-1.5 bg-blue-100 text-blue-700 hover:bg-blue-600 hover:text-white text-xs font-bold rounded-lg transition-colors"
                         >
                           Seat Together
                         </button>
                       </div>
                     ))}
+                    {getMatchSuggestions(selectedAttendee).length === 0 && (
+                      <p className="text-sm text-gray-400 italic text-center py-4">No immediate overlap recommendations found.</p>
+                    )}
                   </div>
                 </div>
               </div>
 
               {/* Right Column: CRM Operations */}
-              <div className="md:col-span-5 space-y-6 border-l border-gray-100 pl-0 md:pl-6">
+              <div className="md:col-span-5 space-y-6">
+                
                 {/* Status selector */}
-                <div className="space-y-2">
-                  <h4 className="font-bold text-gray-900 text-sm">Review Status</h4>
-                  <div className="grid grid-cols-4 gap-1.5">
+                <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-3">
+                  <h4 className="font-black text-gray-900 text-xs uppercase tracking-widest">Application Status</h4>
+                  <div className="grid grid-cols-2 gap-2">
                     {(['pending', 'reviewed', 'accepted', 'rejected'] as const).map(st => (
                       <button
                         key={st}
                         onClick={() => handleUpdateStatus(selectedAttendee.id, st)}
-                        className={`py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border transition ${
+                        className={`py-2 px-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 border-2 ${
                           selectedAttendee.status === st 
-                            ? 'bg-amber-500 border-amber-500 text-black shadow' 
-                            : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
+                            ? st === 'accepted' ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm'
+                            : st === 'rejected' ? 'bg-red-50 border-red-500 text-red-700 shadow-sm'
+                            : st === 'reviewed' ? 'bg-blue-50 border-blue-500 text-blue-700 shadow-sm'
+                            : 'bg-amber-50 border-amber-500 text-amber-700 shadow-sm'
+                          : 'bg-white border-gray-100 text-gray-400 hover:border-gray-300 hover:text-gray-600'
                         }`}
                       >
                         {st}
@@ -1314,98 +1342,118 @@ export default function YenegeUnityDashboard() {
                 </div>
 
                 {/* CRM parameters */}
-                <div className="space-y-3 bg-gray-50 p-4 rounded-2xl border border-gray-150 text-xs">
-                  <div className="flex justify-between items-center">
-                    <span className="font-bold text-gray-600">Called Team Status</span>
-                    <select
-                      value={selectedAttendee.calledStatus}
-                      onChange={(e) => handleUpdateCRMField(selectedAttendee.id, 'calledStatus', e.target.value)}
-                      className="bg-white border border-gray-200 rounded px-2 py-0.5 text-xs text-gray-700"
-                    >
-                      <option value="not_called">Not Called</option>
-                      <option value="called">Called</option>
-                      <option value="no_answer">No Answer</option>
-                      <option value="left_message">Left Message</option>
-                    </select>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="font-bold text-gray-600">Interest Level</span>
-                    <select
-                      value={selectedAttendee.interestLevel}
-                      onChange={(e) => handleUpdateCRMField(selectedAttendee.id, 'interestLevel', e.target.value)}
-                      className="bg-white border border-gray-200 rounded px-2 py-0.5 text-xs text-gray-700"
-                    >
-                      <option value="low">Low</option>
-                      <option value="medium">Medium</option>
-                      <option value="high">High</option>
-                      <option value="vip">VIP</option>
-                    </select>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="font-bold text-gray-600">Payment Status</span>
-                    <select
-                      value={selectedAttendee.paymentStatus}
-                      onChange={(e) => handleUpdateCRMField(selectedAttendee.id, 'paymentStatus', e.target.value)}
-                      className="bg-white border border-gray-200 rounded px-2 py-0.5 text-xs text-gray-700"
-                    >
-                      <option value="unpaid">Unpaid</option>
-                      <option value="paid">Paid</option>
-                      <option value="waived">Waived</option>
-                    </select>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="font-bold text-gray-600">Follow-up needed</span>
-                    <input
-                      type="checkbox"
-                      checked={selectedAttendee.followUpNeeded}
-                      onChange={(e) => handleUpdateCRMField(selectedAttendee.id, 'followUpNeeded', e.target.checked)}
-                      className="rounded border-gray-300 text-amber-500 focus:ring-amber-500"
-                    />
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="font-bold text-gray-600">Confirmed Attendance</span>
-                    <input
-                      type="checkbox"
-                      checked={selectedAttendee.confirmedAttendance}
-                      onChange={(e) => handleUpdateCRMField(selectedAttendee.id, 'confirmedAttendance', e.target.checked)}
-                      className="rounded border-gray-300 text-amber-500 focus:ring-amber-500"
-                    />
-                  </div>
-
-                  <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-100">
-                    <div>
-                      <span className="font-bold text-gray-900 block">Welcome Email Sent?</span>
-                      <span className="text-[10px] text-gray-500">Manual tracking for access code emails.</span>
+                <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+                  <h4 className="font-black text-gray-900 text-xs uppercase tracking-widest">Pipeline Details</h4>
+                  
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center group">
+                      <span className="text-sm font-semibold text-gray-700">Called Team Status</span>
+                      <select
+                        value={selectedAttendee.calledStatus}
+                        onChange={(e) => handleUpdateCRMField(selectedAttendee.id, 'calledStatus', e.target.value)}
+                        className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-900 focus:ring-2 focus:ring-[#4a0e17] outline-none cursor-pointer hover:bg-gray-100 transition"
+                      >
+                        <option value="not_called">Not Called</option>
+                        <option value="called">Called</option>
+                        <option value="no_answer">No Answer</option>
+                        <option value="left_message">Left Message</option>
+                      </select>
                     </div>
-                    <input
-                      type="checkbox"
-                      checked={selectedAttendee.welcomeEmailSent || false}
-                      onChange={(e) => handleUpdateCRMField(selectedAttendee.id, 'welcomeEmailSent', e.target.checked)}
-                      className="rounded border-gray-300 text-emerald-500 focus:ring-emerald-500 w-5 h-5"
-                    />
+
+                    <div className="flex justify-between items-center group">
+                      <span className="text-sm font-semibold text-gray-700">Interest Level</span>
+                      <select
+                        value={selectedAttendee.interestLevel}
+                        onChange={(e) => handleUpdateCRMField(selectedAttendee.id, 'interestLevel', e.target.value)}
+                        className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-900 focus:ring-2 focus:ring-[#4a0e17] outline-none cursor-pointer hover:bg-gray-100 transition"
+                      >
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                        <option value="vip">VIP</option>
+                      </select>
+                    </div>
+
+                    <div className="flex justify-between items-center group">
+                      <span className="text-sm font-semibold text-gray-700">Payment Status</span>
+                      <select
+                        value={selectedAttendee.paymentStatus}
+                        onChange={(e) => handleUpdateCRMField(selectedAttendee.id, 'paymentStatus', e.target.value)}
+                        className={`border rounded-lg px-3 py-1.5 text-sm font-bold focus:ring-2 focus:ring-[#4a0e17] outline-none cursor-pointer transition ${
+                          selectedAttendee.paymentStatus === 'paid' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' :
+                          selectedAttendee.paymentStatus === 'waived' ? 'bg-purple-50 border-purple-200 text-purple-700' :
+                          'bg-gray-50 border-gray-200 text-gray-900 hover:bg-gray-100'
+                        }`}
+                      >
+                        <option value="unpaid">Unpaid</option>
+                        <option value="paid">Paid</option>
+                        <option value="waived">Waived</option>
+                      </select>
+                    </div>
+
+                    <div className="pt-4 border-t border-gray-100 space-y-3">
+                      <label className="flex items-center justify-between cursor-pointer group">
+                        <span className="text-sm font-semibold text-gray-700 group-hover:text-amber-600 transition">Follow-up needed</span>
+                        <div className="relative inline-block w-10 h-5">
+                          <input
+                            type="checkbox"
+                            checked={selectedAttendee.followUpNeeded}
+                            onChange={(e) => handleUpdateCRMField(selectedAttendee.id, 'followUpNeeded', e.target.checked)}
+                            className="peer sr-only"
+                          />
+                          <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                        </div>
+                      </label>
+
+                      <label className="flex items-center justify-between cursor-pointer group">
+                        <span className="text-sm font-semibold text-gray-700 group-hover:text-blue-600 transition">Confirmed Attendance</span>
+                        <div className="relative inline-block w-10 h-5">
+                          <input
+                            type="checkbox"
+                            checked={selectedAttendee.confirmedAttendance}
+                            onChange={(e) => handleUpdateCRMField(selectedAttendee.id, 'confirmedAttendance', e.target.checked)}
+                            className="peer sr-only"
+                          />
+                          <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500"></div>
+                        </div>
+                      </label>
+
+                      <label className="flex items-center justify-between cursor-pointer group">
+                        <div>
+                          <span className="text-sm font-semibold text-gray-700 group-hover:text-emerald-600 transition block">Welcome Email Sent?</span>
+                          <span className="text-[10px] text-gray-400 block mt-0.5">Manual tracking for access code</span>
+                        </div>
+                        <div className="relative inline-block w-10 h-5">
+                          <input
+                            type="checkbox"
+                            checked={selectedAttendee.welcomeEmailSent || false}
+                            onChange={(e) => handleUpdateCRMField(selectedAttendee.id, 'welcomeEmailSent', e.target.checked)}
+                            className="peer sr-only"
+                          />
+                          <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+                        </div>
+                      </label>
+                    </div>
                   </div>
                 </div>
 
                 {/* Tags management */}
-                <div className="space-y-2">
-                  <h4 className="font-bold text-gray-900 text-sm">Dossier Tags</h4>
-                  <div className="flex flex-wrap gap-1">
+                <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-3">
+                  <h4 className="font-black text-gray-900 text-xs uppercase tracking-widest">Dossier Tags</h4>
+                  <div className="flex flex-wrap gap-2 mb-2">
                     {selectedAttendee.tags.map(t => (
-                      <span key={t} className="px-2 py-1 bg-amber-50 text-amber-700 border border-amber-100 rounded-lg text-[10px] font-bold flex items-center gap-1">
+                      <span key={t} className="px-2.5 py-1 bg-gray-900 text-white rounded-lg text-[11px] font-bold flex items-center gap-1.5 shadow-sm">
                         {t}
-                        <button onClick={() => handleRemoveTag(selectedAttendee.id, t)} className="text-amber-500 hover:text-amber-700 font-bold">×</button>
+                        <button onClick={() => handleRemoveTag(selectedAttendee.id, t)} className="text-gray-400 hover:text-white font-bold transition">✕</button>
                       </span>
                     ))}
+                    {selectedAttendee.tags.length === 0 && <span className="text-xs text-gray-400 italic">No tags applied</span>}
                   </div>
                   <div className="flex gap-2">
                     <select
                       value={newTag}
                       onChange={(e) => setNewTag(e.target.value)}
-                      className="flex-1 px-3 py-1 bg-gray-50 border border-gray-200 rounded-lg text-xs"
+                      className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#4a0e17] outline-none"
                     >
                       <option value="">Choose Tag...</option>
                       {availableTags.map(tag => (
@@ -1414,7 +1462,7 @@ export default function YenegeUnityDashboard() {
                     </select>
                     <button
                       onClick={() => handleAddTag(selectedAttendee.id)}
-                      className="px-3 py-1 bg-[#4a0e17] text-white text-xs font-bold rounded-lg hover:bg-[#6b1422] transition-all duration-300 hover:-translate-y-0.5 shadow-sm"
+                      className="px-4 py-2 bg-[#4a0e17] text-white text-sm font-bold rounded-xl hover:bg-[#6b1422] transition-all duration-300 hover:-translate-y-0.5 shadow-md shadow-[#4a0e17]/20"
                     >
                       Add
                     </button>
@@ -1422,51 +1470,57 @@ export default function YenegeUnityDashboard() {
                 </div>
 
                 {/* Communication logs */}
-                <div className="space-y-3 pt-4 border-t border-gray-150">
-                  <h4 className="font-bold text-gray-900 text-sm">CRM Logs</h4>
+                <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+                  <h4 className="font-black text-gray-900 text-xs uppercase tracking-widest">CRM Activity Log</h4>
                   
                   {/* Comm logging form */}
-                  <div className="space-y-2">
-                    <div className="flex gap-2">
-                      <select
-                        value={commType}
-                        onChange={(e) => setCommType(e.target.value as any)}
-                        className="px-2 py-1 bg-gray-50 border border-gray-200 rounded text-xs text-gray-700"
-                      >
-                        <option value="call">📞 Call</option>
-                        <option value="email">✉️ Email</option>
-                        <option value="whatsapp">💬 WhatsApp</option>
-                        <option value="note">📝 Note</option>
-                      </select>
-                      <input
-                        type="text"
-                        placeholder="Log contact outcome details..."
-                        value={commNote}
-                        onChange={(e) => setCommNote(e.target.value)}
-                        className="flex-1 px-3 py-1 bg-gray-50 border border-gray-200 rounded text-xs focus:outline-none"
-                      />
-                      <button
-                        onClick={() => handleAddCommLog(selectedAttendee.id)}
-                        className="px-3 py-1 bg-[#4a0e17] text-white text-xs font-bold rounded hover:bg-[#6b1422] transition-all duration-300 hover:-translate-y-0.5 shadow-sm"
-                      >
-                        Log
-                      </button>
-                    </div>
+                  <div className="flex gap-2 bg-gray-50 p-1.5 rounded-xl border border-gray-200">
+                    <select
+                      value={commType}
+                      onChange={(e) => setCommType(e.target.value as any)}
+                      className="px-2 py-1.5 bg-transparent border-none text-sm text-gray-700 font-medium focus:ring-0 outline-none cursor-pointer"
+                    >
+                      <option value="call">📞 Call</option>
+                      <option value="email">✉️ Email</option>
+                      <option value="whatsapp">💬 WA</option>
+                      <option value="note">📝 Note</option>
+                    </select>
+                    <div className="w-px bg-gray-200 my-1"></div>
+                    <input
+                      type="text"
+                      placeholder="Add an outcome or note..."
+                      value={commNote}
+                      onChange={(e) => setCommNote(e.target.value)}
+                      className="flex-1 px-2 py-1.5 bg-transparent border-none text-sm focus:ring-0 outline-none"
+                    />
+                    <button
+                      onClick={() => handleAddCommLog(selectedAttendee.id)}
+                      className="px-4 py-1.5 bg-[#4a0e17] text-white text-xs font-bold rounded-lg hover:bg-[#6b1422] transition-colors"
+                    >
+                      Post
+                    </button>
                   </div>
 
                   {/* Comm history list */}
-                  <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
+                  <div className="space-y-3 max-h-[220px] overflow-y-auto pr-2 custom-scrollbar">
                     {selectedAttendee.communicationHistory?.map((c, i) => (
-                      <div key={i} className="p-2 bg-gray-50 rounded-xl border border-gray-100 text-[10px] space-y-1">
-                        <div className="flex justify-between font-bold text-gray-500 uppercase tracking-wider text-[8px]">
-                          <span>{c.userName} ({c.type})</span>
-                          <span>{new Date(c.createdAt).toLocaleDateString()}</span>
+                      <div key={i} className="pl-4 border-l-2 border-gray-200 relative pb-1">
+                        <div className="absolute w-2 h-2 bg-gray-300 rounded-full -left-[5px] top-1.5 border-2 border-white"></div>
+                        <div className="flex justify-between items-baseline mb-1">
+                          <span className="font-bold text-gray-800 text-xs flex items-center gap-1.5">
+                            {c.type === 'call' ? '📞' : c.type === 'email' ? '✉️' : c.type === 'whatsapp' ? '💬' : '📝'} 
+                            {c.userName}
+                          </span>
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{new Date(c.createdAt).toLocaleDateString()}</span>
                         </div>
-                        <p className="text-gray-700 font-medium">{c.note}</p>
+                        <p className="text-sm text-gray-600 leading-relaxed">{c.note}</p>
                       </div>
                     ))}
                     {(!selectedAttendee.communicationHistory || selectedAttendee.communicationHistory.length === 0) && (
-                      <p className="text-[10px] text-gray-400 italic">No communication logs recorded yet.</p>
+                      <div className="text-center py-6 px-4 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                        <p className="text-xs text-gray-400 font-medium">No activity logged yet.</p>
+                        <p className="text-[10px] text-gray-400 mt-1">Add a note above to track interactions.</p>
+                      </div>
                     )}
                   </div>
                 </div>
