@@ -3,7 +3,7 @@ import { supabase } from './supabase';
 export interface UserRole {
   id: string;
   user_id: string;
-  role: 'admin' | 'sponsorship_manager' | 'masterclass_manager' | 'user';
+  role: 'admin' | 'sponsorship_manager' | 'masterclass_manager' | 'masterclass_sales' | 'user';
   created_at: string;
 }
 
@@ -346,15 +346,50 @@ export const isMasterclassManager = async (): Promise<boolean> => {
 };
 
 /**
+ * Check if the current user is a masterclass sales agent
+ */
+export const isMasterclassSales = async (): Promise<boolean> => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session?.user) {
+      return false;
+    }
+
+    const { data } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', session.user.id)
+      .maybeSingle();
+
+    if (data?.role === 'masterclass_sales') {
+      return true;
+    }
+
+    // Fallback: Check user metadata
+    const userMetadata = session.user.user_metadata;
+    if (userMetadata?.role === 'masterclass_sales') {
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error('Error checking masterclass sales status:', error);
+    return false;
+  }
+};
+
+/**
  * Check if user has any admin access (either full admin, sponsorship manager, masterclass manager, commission seller, or rep)
  */
 export const hasAdminAccess = async (): Promise<boolean> => {
   const admin = await isAdmin();
   const manager = await isSponsorshipManager();
   const masterclass = await isMasterclassManager();
+  const masterclassSales = await isMasterclassSales();
   const seller = await isCommissionSeller();
   const rep = await isSponsorshipRepresentative();
-  return admin || manager || masterclass || seller || rep;
+  return admin || manager || masterclass || masterclassSales || seller || rep;
 };
 
 /**

@@ -68,6 +68,7 @@ const Applications = lazy(() => import("./pages/admin/Applications"));
 const AdminExpoApplications = lazy(() => import("./pages/admin/ExpoApplications"));
 const AdminMasterclassReservations = lazy(() => import("./pages/admin/MasterclassReservations"));
 const MasterclassDashboard = lazy(() => import("./pages/admin/MasterclassDashboard"));
+const MasterclassSalesTeam = lazy(() => import("./pages/admin/MasterclassSalesTeam"));
 const RepresentativeDashboard = lazy(() => import("./pages/admin/RepresentativeDashboard"));
 const AdminFeasibilityBriefs = lazy(() => import("./pages/admin/FeasibilityBriefs"));
 const Admins = lazy(() => import("./pages/admin/Admins"));
@@ -419,6 +420,14 @@ function App() {
             element={
               <Suspense fallback={<LoadingState />}>
                 <AdminMasterclassReservations />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="/admin/masterclass-sales-team" 
+            element={
+              <Suspense fallback={<LoadingState message="Loading sales team..." />}>
+                <MasterclassSalesTeam />
               </Suspense>
             } 
           />

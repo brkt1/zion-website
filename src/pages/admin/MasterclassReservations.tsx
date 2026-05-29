@@ -4,6 +4,7 @@ import AdminLayout from '../../Components/admin/AdminLayout';
 import { adminApi } from '../../services/adminApi';
 import { handleSupabaseError, supabase } from '../../services/supabase';
 import { MasterclassReservation } from '../../types';
+import { isMasterclassSales } from '../../services/auth';
 import { NetworkErrorBanner } from '../../Components/ui/NetworkStatus';
 
 
@@ -53,8 +54,14 @@ const MasterclassReservations = () => {
   const [emailRecipientType, setEmailRecipientType] = useState<'individual' | 'all'>('individual');
   const [targetStatus, setTargetStatus] = useState<string>('');
   const [shouldUpdateStatus, setShouldUpdateStatus] = useState(false);
+  const [isSales, setIsSales] = useState(false);
 
   useEffect(() => {
+    const checkRole = async () => {
+      const sales = await isMasterclassSales();
+      setIsSales(sales);
+    };
+    checkRole();
     loadReservations();
   }, []);
 
@@ -305,16 +312,18 @@ const MasterclassReservations = () => {
             <p className="text-sm text-gray-600">Manage e-learning program registrations</p>
           </div>
           <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-            <button 
-              onClick={() => {
-                setEmailRecipientType('all');
-                setEmailSubject(`Update for ${statusFilter === 'all' ? 'All' : statusFilter} Students - Yenege Masterclass`);
-                setShowEmailModal(true);
-              }}
-              className="flex items-center justify-center gap-2 bg-[#4a0e17] text-white px-4 py-2.5 sm:px-6 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-[#6b1422] transition-all duration-300 hover:-translate-y-0.5 shadow-lg shadow-[#4a0e17]/30 w-full sm:w-auto"
-            >
-              <FaEnvelope /> Email {statusFilter === 'all' ? 'All Students' : `All ${statusFilter}s`}
-            </button>
+            {!isSales && (
+              <button 
+                onClick={() => {
+                  setEmailRecipientType('all');
+                  setEmailSubject(`Update for ${statusFilter === 'all' ? 'All' : statusFilter} Students - Yenege Masterclass`);
+                  setShowEmailModal(true);
+                }}
+                className="flex items-center justify-center gap-2 bg-[#4a0e17] text-white px-4 py-2.5 sm:px-6 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-[#6b1422] transition-all duration-300 hover:-translate-y-0.5 shadow-lg shadow-[#4a0e17]/30 w-full sm:w-auto"
+              >
+                <FaEnvelope /> Email {statusFilter === 'all' ? 'All Students' : `All ${statusFilter}s`}
+              </button>
+            )}
             <div className="flex items-center justify-center gap-2 bg-amber-50 px-4 py-2.5 rounded-2xl border border-amber-100 w-full sm:w-auto">
               <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
               <span className="text-amber-800 text-xs sm:text-sm font-bold">{reservations.length} Total Registered</span>
@@ -332,6 +341,7 @@ const MasterclassReservations = () => {
         )}
 
         {/* ── Referral Link Generator Panel ──────────────────────────────── */}
+        {!isSales && (
         <div className="mb-6 bg-white rounded-3xl shadow-md shadow-slate-200/50 border border-slate-100 overflow-hidden">
           <button
             onClick={() => setShowReferralPanel(p => !p)}
@@ -410,6 +420,7 @@ const MasterclassReservations = () => {
             </div>
           )}
         </div>
+        )}
 
         {error && (
           <NetworkErrorBanner 
@@ -640,13 +651,15 @@ const MasterclassReservations = () => {
                             >
                               <FaEnvelope />
                             </button>
-                            <button
-                              onClick={() => handleDelete(res.id)}
-                              className="text-red-600 hover:text-red-900 transition-colors"
-                              title="Delete"
-                            >
-                              <FaTrash />
-                            </button>
+                            {!isSales && (
+                              <button
+                                onClick={() => handleDelete(res.id)}
+                                className="text-red-600 hover:text-red-900 transition-colors"
+                                title="Delete"
+                              >
+                                <FaTrash />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -759,13 +772,15 @@ const MasterclassReservations = () => {
                         >
                           <FaEnvelope size={14} />
                         </button>
-                        <button
-                          onClick={() => handleDelete(res.id)}
-                          className="p-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 transition-colors"
-                          title="Delete"
-                        >
-                          <FaTrash size={14} />
-                        </button>
+                        {!isSales && (
+                          <button
+                            onClick={() => handleDelete(res.id)}
+                            className="p-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 transition-colors"
+                            title="Delete"
+                          >
+                            <FaTrash size={14} />
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
