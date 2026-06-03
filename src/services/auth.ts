@@ -404,19 +404,3 @@ export const requireAdmin = async (): Promise<boolean> => {
   return true;
 };
 
-const ADMIN_NAMES: Record<string, string> = {
-  'ed8a03e2-8099-4b4f-b517-7a23abfcdea2': 'Event Organizer',
-  '9b2baa05-55b6-47a5-b13a-1e006c3dceee': 'Masterclass Manager',
-  '103303ca-5f7d-485f-a03e-e7c8b1585ed1': 'Masterclass Manager',
-  'ea95563d-e2bd-4334-b214-51e8491be89a': 'Masterclass Manager',
-  '9f47e5ca-f4d6-4c6c-b91b-16644d9f0d64': 'Masterclass Manager',
-  '654f4ef9-0a77-4ccb-8a46-cdc1391348e8': 'Masterclass Manager',
-  '9fdb6dac-0e9b-4201-a11a-f9828f98aa1f': 'Masterclass Manager'
-};
-
-export const resolveAdminName = (uuid?: string): string => {
-  if (!uuid) return 'System';
-  return ADMIN_NAMES[uuid] || uuid;
-};
-
-
