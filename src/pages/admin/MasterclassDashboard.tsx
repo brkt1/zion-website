@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FaArrowRight, FaCheckCircle, FaClock, FaEye, FaGraduationCap, FaMapMarkerAlt, FaTimesCircle, FaUsers } from 'react-icons/fa';
+import { FaArrowRight, FaCheckCircle, FaClock, FaGraduationCap, FaLink, FaMoneyBillWave, FaTimesCircle, FaUsers, FaExclamationTriangle } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { adminApi } from '../../services/adminApi';
@@ -7,317 +7,325 @@ import { handleSupabaseError } from '../../services/supabase';
 import { MasterclassReservation } from '../../types';
 import { NetworkErrorBanner } from '../../Components/ui/NetworkStatus';
 
+const REFERRAL_PRICE = 10000;
 
-const MasterclassDashboard = () => {
-    const [stats, setStats] = useState({
-        total: 0,
-        pending: 0,
-        reviewed: 0,
-        accepted: 0,
-        rejected: 0,
-        byRegion: {} as Record<string, number>,
-        byAdmin: {} as Record<string, { accepted: number; reviewed: number; rejected: number; total: number }>,
-        recent: [] as MasterclassReservation[]
-    });
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+const fmt = (n: number) => `ETB ${n.toLocaleString('en-US', { minimumFractionDigits: 0 })}`;
 
+interface Stats {
+  total: number; accepted: number; pending: number; rejected: number; reviewed: number;
+  directTotal: number; directAccepted: number;
+  referralTotal: number; referralAccepted: number;
+  referralPossible: number; referralCollected: number; referralOwed: number;
+  directPossible: number; directCollected: number; directOwed: number;
+  totalPossible: number; totalCollected: number; totalOwed: number;
+  fullPaid: number; partialPaid: number; unpaid: number;
+  partialStudents: Array<{ name: string; phone: string; isReferral: boolean; total: number; paid: number; owed: number; pkg?: string }>;
+  packages: Record<string, { count: number; possible: number; collected: number }>;
+}
 
-    useEffect(() => {
-        loadData();
-    }, []);
+export default function MasterclassDashboard() {
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-    const loadData = async () => {
-        try {
-            setLoading(true);
-            const data = await adminApi.masterclassReservations.getAll();
-            
-            const regions: Record<string, number> = {};
-            const admins: Record<string, { accepted: number; reviewed: number; rejected: number; total: number }> = {};
-            
-            data.forEach(res => {
-                regions[res.place] = (regions[res.place] || 0) + 1;
-                
-                // Track all activity by admin
-                if (res.status_updated_by) {
-                    const email = res.status_updated_by;
-                    if (!admins[email]) {
-                        admins[email] = { accepted: 0, reviewed: 0, rejected: 0, total: 0 };
-                    }
-                    if (res.status === 'accepted') admins[email].accepted += 1;
-                    if (res.status === 'reviewed') admins[email].reviewed += 1;
-                    if (res.status === 'rejected') admins[email].rejected += 1;
-                    admins[email].total += 1;
-                }
-            });
+  useEffect(() => { load(); }, []);
 
-            setStats({
-                total: data.length,
-                pending: data.filter(r => r.status === 'pending').length,
-                reviewed: data.filter(r => r.status === 'reviewed').length,
-                accepted: data.filter(r => r.status === 'accepted').length,
-                rejected: data.filter(r => r.status === 'rejected').length,
-                byRegion: regions,
-                byAdmin: admins,
-                recent: data.slice(0, 5) // Assuming they are sorted by date in API
-            });
-        } catch (error: any) {
-            const handled = handleSupabaseError(error, 'loadData');
-            setError(handled.message);
-        } finally {
+  const load = async () => {
+    try {
+      setLoading(true);
+      const data: MasterclassReservation[] = await adminApi.masterclassReservations.getAll();
+      const direct = data.filter(r => !r.referral_code);
+      const referral = data.filter(r => !!r.referral_code);
+      const accDirect = direct.filter(r => r.status === 'accepted');
+      const accReferral = referral.filter(r => r.status === 'accepted');
+      const accAll = [...accDirect, ...accReferral];
 
-            setLoading(false);
-        }
-    };
+      const refPossible = accReferral.length * REFERRAL_PRICE;
+      const refCollected = accReferral.reduce((s, r) => s + (r.paid_amount || 0), 0);
+      const dirPossible = accDirect.reduce((s, r) => s + (r.total_amount || 0), 0);
+      const dirCollected = accDirect.reduce((s, r) => s + (r.paid_amount || 0), 0);
 
-    if (loading) {
-        return (
-            <AdminLayout title="Masterclass Intelligence">
-                <div className="flex items-center justify-center min-h-[60vh]">
-                    <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+      const pkgs: Record<string, { count: number; possible: number; collected: number }> = {};
+      accDirect.forEach(r => {
+        const k = r.selected_package || 'Unassigned';
+        if (!pkgs[k]) pkgs[k] = { count: 0, possible: 0, collected: 0 };
+        pkgs[k].count++;
+        pkgs[k].possible += r.total_amount || 0;
+        pkgs[k].collected += r.paid_amount || 0;
+      });
+
+      const partialStudents = accAll
+        .filter(r => r.payment_status === 'partial')
+        .map(r => {
+          const isRef = !!r.referral_code;
+          const total = isRef ? REFERRAL_PRICE : (r.total_amount || 0);
+          const paid = r.paid_amount || 0;
+          return { name: r.name, phone: r.phone, isReferral: isRef, total, paid, owed: total - paid, pkg: r.selected_package };
+        });
+
+      setStats({
+        total: data.length,
+        accepted: data.filter(r => r.status === 'accepted').length,
+        pending: data.filter(r => r.status === 'pending').length,
+        rejected: data.filter(r => r.status === 'rejected').length,
+        reviewed: data.filter(r => r.status === 'reviewed').length,
+        directTotal: direct.length, directAccepted: accDirect.length,
+        referralTotal: referral.length, referralAccepted: accReferral.length,
+        referralPossible: refPossible, referralCollected: refCollected, referralOwed: refPossible - refCollected,
+        directPossible: dirPossible, directCollected: dirCollected, directOwed: dirPossible - dirCollected,
+        totalPossible: refPossible + dirPossible, totalCollected: refCollected + dirCollected, totalOwed: (refPossible - refCollected) + (dirPossible - dirCollected),
+        fullPaid: accAll.filter(r => r.payment_status === 'full').length,
+        partialPaid: accAll.filter(r => r.payment_status === 'partial').length,
+        unpaid: accAll.filter(r => !r.payment_status || r.payment_status === 'unpaid').length,
+        partialStudents, packages: pkgs,
+      });
+    } catch (e: any) {
+      setError(handleSupabaseError(e, 'load').message);
+    } finally { setLoading(false); }
+  };
+
+  if (loading) return (
+    <AdminLayout title="Masterclass Analytics">
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    </AdminLayout>
+  );
+
+  if (!stats) return null;
+
+  const acceptRate = stats.total > 0 ? Math.round((stats.accepted / stats.total) * 100) : 0;
+
+  return (
+    <AdminLayout title="Masterclass Analytics">
+      <div className="space-y-8 pb-10">
+        {error && <NetworkErrorBanner message={error} onRetry={() => { setError(null); load(); }} />}
+
+        {/* ── Section 1: Registration Overview ── */}
+        <section>
+          <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Registration Overview</h2>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { icon: FaUsers, label: 'Total Registered', value: stats.total, color: 'from-indigo-500 to-purple-600', glow: 'shadow-indigo-100' },
+              { icon: FaCheckCircle, label: 'Accepted', value: stats.accepted, color: 'from-emerald-400 to-teal-500', glow: 'shadow-emerald-100' },
+              { icon: FaClock, label: 'Pending / Reviewed', value: stats.pending + stats.reviewed, color: 'from-amber-400 to-orange-500', glow: 'shadow-amber-100' },
+              { icon: FaTimesCircle, label: 'Rejected', value: stats.rejected, color: 'from-rose-400 to-red-500', glow: 'shadow-rose-100' },
+            ].map(({ icon: Icon, label, value, color, glow }) => (
+              <div key={label} className={`bg-white rounded-2xl p-6 border border-slate-50 shadow-xl ${glow}/50 hover:-translate-y-1 transition-all`}>
+                <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center text-white shadow-lg mb-4`}>
+                  <Icon size={18} />
                 </div>
-            </AdminLayout>
-        );
-    }
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{label}</p>
+                <p className="text-3xl font-black text-slate-900">{value}</p>
+              </div>
+            ))}
+          </div>
+        </section>
 
-    const successRate = stats.total > 0 ? Math.round((stats.accepted / stats.total) * 100) : 0;
-    const failureRate = stats.total > 0 ? Math.round((stats.rejected / stats.total) * 100) : 0;
-
-    return (
-        <AdminLayout title="Masterclass Management Stage">
-            <div className="space-y-6 sm:space-y-10 selection:bg-indigo-100 selection:text-indigo-900">
-                {error && (
-                    <NetworkErrorBanner 
-                        message={error} 
-                        onRetry={() => {
-                            setError(null);
-                            loadData();
-                        }} 
-                    />
-                )}
-
-                {/* Hero Stats */}
-                <div className="grid grid-cols-2 gap-4 sm:gap-6">
-                    <StatCard 
-                        icon={FaUsers} 
-                        label="Total Registered" 
-                        value={stats.total} 
-                        color="from-indigo-500 to-purple-600" 
-                    />
-                    <StatCard 
-                        icon={FaClock} 
-                        label="Pending Review" 
-                        value={stats.pending} 
-                        color="from-amber-400 to-orange-500" 
-                    />
-                    <StatCard 
-                        icon={FaCheckCircle} 
-                        label="Accepted" 
-                        value={stats.accepted} 
-                        color="from-emerald-400 to-teal-500" 
-                    />
-                    <StatCard 
-                        icon={FaTimesCircle} 
-                        label="Rejected" 
-                        value={stats.rejected} 
-                        color="from-rose-400 to-red-500" 
-                    />
+        {/* ── Section 2: Direct vs Referral ── */}
+        <section>
+          <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Registration Source</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Direct */}
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-xl p-6 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600"><FaGraduationCap /></div>
+                <div>
+                  <p className="font-black text-slate-800">Direct Reservation</p>
+                  <p className="text-[10px] text-slate-400 uppercase tracking-widest">No referral code</p>
                 </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-                    {/* Success Rate Chart */}
-                    <div className="lg:col-span-1 bg-white rounded-3xl sm:rounded-[2.5rem] shadow-xl shadow-emerald-100/20 border border-slate-50 p-6 sm:p-8 flex flex-col items-center justify-center text-center">
-                        <div className="mb-4">
-                            <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">Conversion Rate</h3>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Success vs Failure</p>
-                        </div>
-                        
-                        {/* CSS Donut Chart / Circular Progress indicator representation */}
-                        <div className="relative w-40 h-40 rounded-full flex items-center justify-center my-4" 
-                             style={{ background: `conic-gradient(#10B981 ${successRate}%, #F43F5E ${successRate}% ${successRate + failureRate}%, #F1F5F9 ${successRate + failureRate}% 100%)` }}>
-                            <div className="w-28 h-28 bg-white rounded-full flex flex-col items-center justify-center shadow-inner">
-                                <span className="text-3xl font-black text-slate-800">{successRate}%</span>
-                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Accepted</span>
-                            </div>
-                        </div>
-
-                        <div className="w-full flex justify-between items-center mt-6 text-xs font-bold">
-                            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-emerald-500"></div><span className="text-slate-600">Accepted ({stats.accepted})</span></div>
-                            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-rose-500"></div><span className="text-slate-600">Rejected ({stats.rejected})</span></div>
-                        </div>
-                    </div>
-
-                    {/* Admin Activity Leaderboard */}
-                    <div className="lg:col-span-1 bg-white rounded-3xl sm:rounded-[2.5rem] shadow-xl shadow-amber-100/20 border border-slate-50 p-6 sm:p-8 flex flex-col">
-                        <div className="flex items-center justify-between mb-6">
-                            <div>
-                                <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">Admin Activity</h3>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Approvals & Reviews</p>
-                            </div>
-                            <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500">
-                                <span className="text-xl">🏆</span>
-                            </div>
-                        </div>
-                        
-                        <div className="flex-1 overflow-y-auto space-y-4 pr-2">
-                            {Object.keys(stats.byAdmin).length === 0 ? (
-                                <div className="text-center text-slate-400 text-sm mt-10">No admin activity recorded yet.</div>
-                            ) : (
-                                Object.entries(stats.byAdmin).sort((a, b) => b[1].total - a[1].total).map(([email, activity], idx) => (
-                                    <div key={email} className="flex flex-col p-4 rounded-2xl bg-slate-50 border border-slate-100 group hover:border-amber-200 transition-colors">
-                                        <div className="flex items-center justify-between mb-3">
-                                            <div className="flex items-center gap-3">
-                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shadow-sm ${idx === 0 ? 'bg-amber-400 text-white shadow-amber-200' : 'bg-white text-slate-500'}`}>
-                                                    {idx + 1}
-                                                </div>
-                                                <div className="flex flex-col">
-                                                    <span className="text-xs font-bold text-slate-800 truncate max-w-[120px] sm:max-w-[150px]">{email.split('@')[0]}</span>
-                                                    <span className="text-[9px] font-bold text-slate-400 uppercase">{activity.total} Total Actions</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-2">
-                                            <div className="bg-emerald-50 text-emerald-700 p-2 rounded-xl text-center">
-                                                <p className="text-[9px] font-black uppercase tracking-widest opacity-70 mb-0.5">Accepted</p>
-                                                <p className="text-sm font-black">{activity.accepted}</p>
-                                            </div>
-                                            <div className="bg-blue-50 text-blue-700 p-2 rounded-xl text-center">
-                                                <p className="text-[9px] font-black uppercase tracking-widest opacity-70 mb-0.5">Reviewed</p>
-                                                <p className="text-sm font-black">{activity.reviewed}</p>
-                                            </div>
-                                            <div className="bg-rose-50 text-rose-700 p-2 rounded-xl text-center">
-                                                <p className="text-[9px] font-black uppercase tracking-widest opacity-70 mb-0.5">Rejected</p>
-                                                <p className="text-sm font-black">{activity.rejected}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Regional Breakdown */}
-                    <div className="lg:col-span-1 bg-white rounded-3xl sm:rounded-[2.5rem] shadow-xl shadow-indigo-100/20 border border-slate-50 p-6 sm:p-8">
-                        <div className="flex items-center justify-between mb-6 sm:mb-8">
-                            <div>
-                                <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">Geographic Hubs</h3>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Regional Reach</p>
-                            </div>
-                            <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-500">
-                                <FaMapMarkerAlt />
-                            </div>
-                        </div>
-                        <div className="space-y-5 sm:space-y-6">
-                            {Object.keys(stats.byRegion).length === 0 ? (
-                                <div className="text-center text-slate-400 text-sm mt-10">No regions recorded yet.</div>
-                            ) : (
-                                Object.entries(stats.byRegion).sort((a, b) => b[1] - a[1]).slice(0,5).map(([region, count]) => (
-                                    <div key={region} className="group">
-                                        <div className="flex justify-between items-center mb-2">
-                                            <span className="text-xs sm:text-sm font-bold text-slate-700">{region}</span>
-                                            <span className="text-[10px] sm:text-xs font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg">{count}</span>
-                                        </div>
-                                        <div className="h-1.5 sm:h-2 w-full bg-slate-50 rounded-full overflow-hidden">
-                                            <div 
-                                                className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full transition-all duration-1000"
-                                                style={{ width: `${(count / stats.total) * 100}%` }}
-                                            />
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-slate-50 rounded-2xl p-4 text-center border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Registered</p>
+                  <p className="text-2xl font-black text-slate-800">{stats.directTotal}</p>
                 </div>
-
-                <div className="grid grid-cols-1 gap-6 sm:gap-8">
-                    {/* Recent Registrations Stage */}
-                    <div className="lg:col-span-1 bg-slate-900 rounded-3xl sm:rounded-[2.5rem] shadow-2xl p-6 sm:p-8 text-white relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-[80px]" />
-                        
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-10 relative z-10">
-                            <div>
-                                <h3 className="text-xl sm:text-2xl font-black tracking-tight">Management Stage</h3>
-                                <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.4em] mt-1">Incoming Stream</p>
-                            </div>
-                            <Link 
-                                to="/admin/masterclass-reservations" 
-                                className="px-4 py-2.5 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl bg-white/5 border border-white/10 text-[10px] sm:text-xs font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-2 w-full sm:w-auto text-center"
-                            >
-                                Enter Management Hub <FaArrowRight />
-                            </Link>
-                        </div>
-
-                        <div className="space-y-4 relative z-10">
-                            {stats.recent.map((res) => (
-                                <div key={res.id} className="bg-white/5 border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex items-center justify-between hover:bg-white/10 transition-all gap-4">
-                                    <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center font-black flex-shrink-0 text-sm sm:text-base">
-                                            {res.name.charAt(0)}
-                                        </div>
-                                        <div className="min-w-0">
-                                            <p className="font-bold text-white text-sm sm:text-base truncate">{res.name}</p>
-                                            <p className="text-[9px] sm:text-[10px] text-white/40 uppercase tracking-widest truncate">
-                                                {res.place} • {res.sex}
-                                                <span className="sm:hidden ml-2 px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/20 text-[8px] font-black uppercase tracking-wider inline-block">
-                                                    {res.status}
-                                                </span>
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-4 sm:gap-6 flex-shrink-0">
-                                        <div className="text-right hidden sm:block">
-                                            <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest leading-none mb-1">{res.status}</p>
-                                            <p className="text-[9px] text-white/20">{new Date(res.createdAt).toLocaleDateString()}</p>
-                                        </div>
-                                        <Link 
-                                            to="/admin/masterclass-reservations" 
-                                            className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-white/5 flex items-center justify-center text-white/60 hover:text-white transition-colors"
-                                        >
-                                            <FaEye size={14} />
-                                        </Link>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+                <div className="bg-emerald-50 rounded-2xl p-4 text-center border border-emerald-100">
+                  <p className="text-[10px] font-black text-emerald-600 uppercase mb-1">Accepted</p>
+                  <p className="text-2xl font-black text-emerald-700">{stats.directAccepted}</p>
                 </div>
-
-                {/* Final CTA */}
-                <Link
-                    to="/admin/masterclass-reservations"
-                    className="block group relative overflow-hidden rounded-[2rem] sm:rounded-[3rem] bg-gradient-to-r from-indigo-600 to-purple-700 p-0.5 sm:p-1 bg-white shadow-2xl shadow-indigo-500/30"
-                >
-                    <div className="bg-slate-900 rounded-[1.95rem] sm:rounded-[2.9rem] p-6 sm:p-12 flex flex-col md:flex-row items-center justify-between gap-8 md:gap-10">
-                        <div className="relative z-10 text-center md:text-left">
-                            <div className="inline-block px-3 py-1.5 bg-indigo-500/20 rounded-full text-indigo-400 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] mb-4 sm:mb-6 border border-indigo-500/20">Action Required</div>
-                            <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tighter leading-tight mb-3 sm:mb-4">
-                                Review & Select <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400 italic">Your Elite Cohort.</span>
-                            </h2>
-                            <p className="text-white/40 text-xs sm:text-sm font-medium max-w-xl">
-                                Access the full reservation control panel to update candidate statuses, filter by region, and finalize the program enrollment list.
-                            </p>
-                        </div>
-                        <div className="relative z-10 flex-shrink-0">
-                            <div className="w-20 h-20 sm:w-32 sm:h-32 rounded-2xl sm:rounded-[2.5rem] bg-indigo-50 flex items-center justify-center text-indigo-600 shadow-2xl shadow-indigo-500/50 group-hover:scale-110 transition-transform duration-500 rotate-12 group-hover:rotate-0">
-                                <FaGraduationCap className="w-10 h-10 sm:w-16 sm:h-16 text-indigo-600" />
-                            </div>
-                        </div>
-                    </div>
-                </Link>
+              </div>
             </div>
-        </AdminLayout>
-    );
-};
+            {/* Referral */}
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-xl p-6 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center text-violet-600"><FaLink /></div>
+                <div>
+                  <p className="font-black text-slate-800">Referral Students</p>
+                  <p className="text-[10px] text-slate-400 uppercase tracking-widest">Fixed price: {fmt(REFERRAL_PRICE)}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-slate-50 rounded-2xl p-4 text-center border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Registered</p>
+                  <p className="text-2xl font-black text-slate-800">{stats.referralTotal}</p>
+                </div>
+                <div className="bg-emerald-50 rounded-2xl p-4 text-center border border-emerald-100">
+                  <p className="text-[10px] font-black text-emerald-600 uppercase mb-1">Accepted</p>
+                  <p className="text-2xl font-black text-emerald-700">{stats.referralAccepted}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
-const StatCard = ({ icon: Icon, label, value, color }: any) => (
-    <div className="bg-white rounded-2xl sm:rounded-[2.5rem] p-5 sm:p-8 border border-slate-50 shadow-xl shadow-slate-100/50 group hover:-translate-y-1 transition-all">
-        <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center text-white shadow-lg mb-4 sm:mb-6 group-hover:scale-110 transition-transform`}>
-            <Icon size={20} className="sm:w-6 sm:h-6" />
+        {/* ── Section 3: Revenue by Package (Direct) ── */}
+        {Object.keys(stats.packages).length > 0 && (
+          <section>
+            <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Price List — Direct Accepted Students</h2>
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden">
+              <table className="w-full">
+                <thead className="bg-slate-50 border-b border-slate-100">
+                  <tr>
+                    {['Package', 'Students', 'Total Price', 'Collected', 'Outstanding'].map(h => (
+                      <th key={h} className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {Object.entries(stats.packages).map(([pkg, d]) => (
+                    <tr key={pkg} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-6 py-4">
+                        <span className="px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-black">{pkg}</span>
+                      </td>
+                      <td className="px-6 py-4 text-sm font-black text-slate-700">{d.count}</td>
+                      <td className="px-6 py-4 text-sm font-black text-slate-800">{fmt(d.possible)}</td>
+                      <td className="px-6 py-4 text-sm font-black text-emerald-600">{fmt(d.collected)}</td>
+                      <td className="px-6 py-4 text-sm font-black text-rose-500">{fmt(d.possible - d.collected)}</td>
+                    </tr>
+                  ))}
+                  {/* Referral row */}
+                  <tr className="hover:bg-slate-50 transition-colors bg-violet-50/40">
+                    <td className="px-6 py-4">
+                      <span className="px-3 py-1 rounded-full bg-violet-100 border border-violet-200 text-violet-700 text-xs font-black">Referral (Fixed {fmt(REFERRAL_PRICE)}/student)</span>
+                    </td>
+                    <td className="px-6 py-4 text-sm font-black text-slate-700">{stats.referralAccepted}</td>
+                    <td className="px-6 py-4 text-sm font-black text-slate-800">{fmt(stats.referralPossible)}</td>
+                    <td className="px-6 py-4 text-sm font-black text-emerald-600">{fmt(stats.referralCollected)}</td>
+                    <td className="px-6 py-4 text-sm font-black text-rose-500">{fmt(stats.referralOwed)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
+        {/* ── Section 4: Financial Summary ── */}
+        <section>
+          <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Financial Summary — Accepted Students</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="bg-slate-900 rounded-3xl p-6 text-white shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-8 translate-x-8 blur-2xl" />
+              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center mb-4"><FaMoneyBillWave className="text-white/80" /></div>
+              <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Total Expected</p>
+              <p className="text-2xl font-black text-white">{fmt(stats.totalPossible)}</p>
+              <p className="text-[10px] text-white/30 mt-2">If all accepted students pay in full</p>
+            </div>
+            <div className="bg-emerald-600 rounded-3xl p-6 text-white shadow-2xl shadow-emerald-200 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-8 translate-x-8 blur-2xl" />
+              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center mb-4"><FaCheckCircle className="text-white" /></div>
+              <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1">Total Collected</p>
+              <p className="text-2xl font-black text-white">{fmt(stats.totalCollected)}</p>
+              <p className="text-[10px] text-white/50 mt-2">{stats.fullPaid + stats.partialPaid} students have paid (full or partial)</p>
+            </div>
+            <div className="bg-rose-500 rounded-3xl p-6 text-white shadow-2xl shadow-rose-200 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-8 translate-x-8 blur-2xl" />
+              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center mb-4"><FaExclamationTriangle className="text-white" /></div>
+              <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1">Still To Collect</p>
+              <p className="text-2xl font-black text-white">{fmt(stats.totalOwed)}</p>
+              <p className="text-[10px] text-white/50 mt-2">{stats.unpaid} unpaid + {stats.partialPaid} half-paid students</p>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Section 5: Payment Status Breakdown ── */}
+        <section>
+          <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Payment Status — Accepted Students</h2>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="bg-white rounded-2xl border border-emerald-100 shadow-xl p-5 text-center">
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-3"><FaCheckCircle /></div>
+              <p className="text-2xl font-black text-emerald-700">{stats.fullPaid}</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Fully Paid</p>
+            </div>
+            <div className="bg-white rounded-2xl border border-amber-100 shadow-xl p-5 text-center">
+              <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-3"><FaMoneyBillWave /></div>
+              <p className="text-2xl font-black text-amber-700">{stats.partialPaid}</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Half Paid</p>
+            </div>
+            <div className="bg-white rounded-2xl border border-rose-100 shadow-xl p-5 text-center">
+              <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-3"><FaTimesCircle /></div>
+              <p className="text-2xl font-black text-rose-700">{stats.unpaid}</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Unpaid</p>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Section 6: Half-paid students detail ── */}
+        {stats.partialStudents.length > 0 && (
+          <section>
+            <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Students With Half Payment ({stats.partialStudents.length})</h2>
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden">
+              <table className="w-full">
+                <thead className="bg-slate-50 border-b border-slate-100">
+                  <tr>
+                    {['Student', 'Type', 'Package', 'Total', 'Paid', 'Still Owed'].map(h => (
+                      <th key={h} className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {stats.partialStudents.map((s, i) => (
+                    <tr key={i} className="hover:bg-amber-50/20 transition-colors">
+                      <td className="px-6 py-4">
+                        <p className="text-sm font-bold text-slate-800">{s.name}</p>
+                        <p className="text-xs text-slate-400">{s.phone}</p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase border ${s.isReferral ? 'bg-violet-50 text-violet-700 border-violet-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}>
+                          {s.isReferral ? 'Referral' : 'Direct'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-xs text-slate-500">{s.pkg || (s.isReferral ? 'Referral (Fixed)' : '—')}</td>
+                      <td className="px-6 py-4 text-sm font-black text-slate-700">{fmt(s.total)}</td>
+                      <td className="px-6 py-4 text-sm font-black text-emerald-600">{fmt(s.paid)}</td>
+                      <td className="px-6 py-4">
+                        <span className="px-3 py-1 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-black rounded-xl">{fmt(s.owed)}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot className="bg-slate-50 border-t-2 border-slate-200">
+                  <tr>
+                    <td colSpan={3} className="px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-widest">Totals</td>
+                    <td className="px-6 py-4 text-sm font-black text-slate-800">{fmt(stats.partialStudents.reduce((s, r) => s + r.total, 0))}</td>
+                    <td className="px-6 py-4 text-sm font-black text-emerald-600">{fmt(stats.partialStudents.reduce((s, r) => s + r.paid, 0))}</td>
+                    <td className="px-6 py-4 text-sm font-black text-rose-600">{fmt(stats.partialStudents.reduce((s, r) => s + r.owed, 0))}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </section>
+        )}
+
+        {/* ── CTA ── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Link to="/admin/masterclass-reservations" className="group flex items-center justify-between bg-slate-900 hover:bg-slate-800 transition-all rounded-2xl p-5 text-white shadow-xl">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">Direct Students</p>
+              <p className="font-black text-lg">Manage Reservations</p>
+            </div>
+            <FaArrowRight className="text-white/40 group-hover:text-white group-hover:translate-x-1 transition-all" />
+          </Link>
+          <Link to="/admin/masterclass-referrals" className="group flex items-center justify-between bg-violet-700 hover:bg-violet-600 transition-all rounded-2xl p-5 text-white shadow-xl shadow-violet-200">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-1">Referral Students</p>
+              <p className="font-black text-lg">Manage Referrals</p>
+            </div>
+            <FaArrowRight className="text-white/40 group-hover:text-white group-hover:translate-x-1 transition-all" />
+          </Link>
         </div>
-        <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">{label}</p>
-        <p className="text-2xl sm:text-4xl font-black text-slate-900">{value}</p>
-    </div>
-);
 
-export default MasterclassDashboard;
+      </div>
+    </AdminLayout>
+  );
+}
