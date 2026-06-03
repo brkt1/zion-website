@@ -106,17 +106,18 @@ export default function MasterclassDashboard() {
           <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Registration Overview</h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { icon: FaUsers, label: 'Total Registered', value: stats.total, color: 'from-indigo-500 to-purple-600', glow: 'shadow-indigo-100' },
-              { icon: FaCheckCircle, label: 'Accepted', value: stats.accepted, color: 'from-emerald-400 to-teal-500', glow: 'shadow-emerald-100' },
-              { icon: FaClock, label: 'Pending / Reviewed', value: stats.pending + stats.reviewed, color: 'from-amber-400 to-orange-500', glow: 'shadow-amber-100' },
-              { icon: FaTimesCircle, label: 'Rejected', value: stats.rejected, color: 'from-rose-400 to-red-500', glow: 'shadow-rose-100' },
-            ].map(({ icon: Icon, label, value, color, glow }) => (
+              { icon: FaUsers, label: 'Total Registered', value: stats.total, sub: '100% of registrations', color: 'from-indigo-500 to-purple-600', glow: 'shadow-indigo-100' },
+              { icon: FaCheckCircle, label: 'Accepted', value: stats.accepted, sub: `${acceptRate}% acceptance rate`, color: 'from-emerald-400 to-teal-500', glow: 'shadow-emerald-100' },
+              { icon: FaClock, label: 'Pending / Reviewed', value: stats.pending + stats.reviewed, sub: `${Math.round(((stats.pending + stats.reviewed) / (stats.total || 1)) * 100)}% of total`, color: 'from-amber-400 to-orange-500', glow: 'shadow-amber-100' },
+              { icon: FaTimesCircle, label: 'Rejected', value: stats.rejected, sub: `${Math.round((stats.rejected / (stats.total || 1)) * 100)}% rejection rate`, color: 'from-rose-400 to-red-500', glow: 'shadow-rose-100' },
+            ].map(({ icon: Icon, label, value, sub, color, glow }) => (
               <div key={label} className={`bg-white rounded-2xl p-6 border border-slate-50 shadow-xl ${glow}/50 hover:-translate-y-1 transition-all`}>
                 <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center text-white shadow-lg mb-4`}>
                   <Icon size={18} />
                 </div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{label}</p>
                 <p className="text-3xl font-black text-slate-900">{value}</p>
+                <p className="text-[10px] font-medium text-slate-400 mt-1">{sub}</p>
               </div>
             ))}
           </div>
