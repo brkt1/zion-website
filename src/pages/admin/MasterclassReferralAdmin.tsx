@@ -10,6 +10,8 @@ import { handleSupabaseError } from '../../services/supabase';
 import { MasterclassReservation } from '../../types';
 import { NetworkErrorBanner } from '../../Components/ui/NetworkStatus';
 
+const REFERRAL_PRICE = 10000;
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const STATUS_COLORS: Record<string, string> = {
@@ -70,7 +72,14 @@ export default function MasterclassReferralAdmin() {
   const handleStatusUpdate = async (id: string, status: 'reviewed' | 'accepted' | 'rejected') => {
     setUpdatingIds(prev => new Set(prev).add(id));
     try {
-      const updated = await adminApi.masterclassReservations.updateStatus(id, status);
+      // Referral students accepted → auto-mark as fully paid at the fixed price
+      const extras = status === 'accepted' ? {
+        payment_status: 'full' as const,
+        total_amount: REFERRAL_PRICE,
+        paid_amount: REFERRAL_PRICE,
+        remaining_amount: 0,
+      } : undefined;
+      const updated = await adminApi.masterclassReservations.updateStatus(id, status, extras);
       setReservations(prev => prev.map(r => r.id === id ? updated : r));
       if (selectedStudent?.id === id) setSelectedStudent(updated);
     } catch (err: any) {

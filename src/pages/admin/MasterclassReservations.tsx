@@ -7,7 +7,7 @@ import { MasterclassReservation } from '../../types';
 import { isMasterclassSales } from '../../services/auth';
 import { NetworkErrorBanner } from '../../Components/ui/NetworkStatus';
 
-
+const REFERRAL_PRICE = 10000;
 const MasterclassReservations = () => {
   const [reservations, setReservations] = useState<MasterclassReservation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -101,19 +101,33 @@ const MasterclassReservations = () => {
 
   const handleStatusUpdate = async (id: string, newStatus: 'reviewed' | 'accepted' | 'rejected' | 'pending') => {
     if (newStatus === 'pending') return;
-    
+
     setUpdatingIds(prev => new Set(prev).add(id));
     try {
+      // If the reservation came via referral and is being accepted,
+      // auto-set payment to full at the fixed 10k price
+      const reservation = reservations.find(r => r.id === id);
+      const isReferral = !!reservation?.referral_code;
+      const autoReferralPayment = (isReferral && newStatus === 'accepted') ? {
+        payment_status: 'full' as const,
+        total_amount: REFERRAL_PRICE,
+        paid_amount: REFERRAL_PRICE,
+        remaining_amount: 0,
+      } : {};
+
       const updated = await adminApi.masterclassReservations.updateStatus(id, newStatus as any, {
         notes: notes || undefined,
         selected_package: selectedPackage || undefined,
         communication_method: communicationMethod || undefined,
         follow_up_date: followUpDate || undefined,
-        payment_status: paymentStatus,
-        total_amount: totalAmount ? parseFloat(totalAmount) : undefined,
-        paid_amount: paidAmount ? parseFloat(paidAmount) : undefined,
-        remaining_amount: (totalAmount && paidAmount) ? (parseFloat(totalAmount) - parseFloat(paidAmount)) : undefined,
         payment_completion_date: paymentCompletionDate || undefined,
+        // referral auto-collect takes priority; otherwise use form values
+        ...(!isReferral || newStatus !== 'accepted' ? {
+          payment_status: paymentStatus,
+          total_amount: totalAmount ? parseFloat(totalAmount) : undefined,
+          paid_amount: paidAmount ? parseFloat(paidAmount) : undefined,
+          remaining_amount: (totalAmount && paidAmount) ? (parseFloat(totalAmount) - parseFloat(paidAmount)) : undefined,
+        } : autoReferralPayment),
       });
 
       setReservations(reservations.map(res =>

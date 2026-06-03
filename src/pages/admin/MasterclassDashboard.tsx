@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { FaArrowRight, FaCheckCircle, FaClock, FaGraduationCap, FaLink, FaMoneyBillWave, FaTimesCircle, FaUsers, FaExclamationTriangle } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import { FaArrowRight, FaCheckCircle, FaClock, FaGraduationCap, FaLink, FaMoneyBillWave, FaTimesCircle, FaUsers, FaExclamationTriangle, FaLock } from 'react-icons/fa';
+import { Link, useNavigate } from 'react-router-dom';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { adminApi } from '../../services/adminApi';
 import { handleSupabaseError } from '../../services/supabase';
+import { isAdmin } from '../../services/auth';
 import { MasterclassReservation } from '../../types';
 import { NetworkErrorBanner } from '../../Components/ui/NetworkStatus';
 
@@ -27,8 +28,16 @@ export default function MasterclassDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [authorized, setAuthorized] = useState<boolean | null>(null);
+  const navigate = useNavigate();
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    isAdmin().then(ok => {
+      setAuthorized(ok);
+      if (!ok) return; // don't load data for non-admins
+      load();
+    });
+  }, []);
 
   const load = async () => {
     try {
@@ -84,10 +93,25 @@ export default function MasterclassDashboard() {
     } finally { setLoading(false); }
   };
 
-  if (loading) return (
+  if (authorized === null || (authorized && loading)) return (
     <AdminLayout title="Masterclass Analytics">
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    </AdminLayout>
+  );
+
+  if (!authorized) return (
+    <AdminLayout title="Access Restricted">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center gap-4">
+        <div className="w-16 h-16 rounded-2xl bg-rose-100 flex items-center justify-center text-rose-500 text-2xl">
+          <FaLock />
+        </div>
+        <h2 className="text-xl font-black text-slate-800">Super Admin Only</h2>
+        <p className="text-sm text-slate-400 max-w-sm">The analytics dashboard is restricted to super administrators. Contact your admin for access.</p>
+        <button onClick={() => navigate(-1)} className="mt-2 px-6 py-3 bg-slate-900 text-white rounded-xl text-sm font-black hover:bg-slate-700 transition-all">
+          Go Back
+        </button>
       </div>
     </AdminLayout>
   );

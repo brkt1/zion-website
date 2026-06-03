@@ -35,7 +35,7 @@ const AdminRedirect = () => {
         if (admin) {
           setRedirectTo('/admin/dashboard');
         } else if (masterclass) {
-          setRedirectTo('/admin/masterclass-dashboard');
+          setRedirectTo('/admin/masterclass-reservations');
         } else if (seller) {
           setRedirectTo('/admin/seller-dashboard');
         } else if (rep) {
