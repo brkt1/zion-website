@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FaArrowRight, FaCheckCircle, FaClock, FaGraduationCap, FaLink, FaMoneyBillWave, FaTimesCircle, FaUsers, FaExclamationTriangle, FaLock } from 'react-icons/fa';
+import { FaArrowRight, FaCheckCircle, FaClock, FaGraduationCap, FaLink, FaMoneyBillWave, FaTimesCircle, FaUsers, FaExclamationTriangle, FaLock, FaGlobe, FaHourglassHalf, FaChartPie, FaLightbulb, FaVenusMars } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { adminApi } from '../../services/adminApi';
@@ -30,6 +30,17 @@ interface Stats {
   fullPaid: number; partialPaid: number; unpaid: number;
   partialStudents: Array<{ name: string; phone: string; isReferral: boolean; total: number; paid: number; owed: number; pkg?: string }>;
   packages: Record<string, { count: number; possible: number; collected: number }>;
+  avgAge: number;
+  ageGroups: {
+    under18: number;
+    youngAdults: number;
+    adults: number;
+    senior: number;
+  };
+  topLocations: Array<{ name: string; count: number; revenue: number }>;
+  avgPaymentGapDays: number;
+  weeklyTrend: Record<string, number>;
+  insights: string[];
 }
 
 export default function MasterclassDashboard() {
@@ -117,6 +128,110 @@ export default function MasterclassDashboard() {
             pkg: r.selected_package
           };
         });
+      // 1. Age Demographics
+      const ages = data.map(r => r.age).filter(a => typeof a === 'number' && a > 0);
+      const avgAge = ages.length > 0 ? Math.round(ages.reduce((s, a) => s + a, 0) / ages.length) : 0;
+      
+      const ageGroups = { under18: 0, youngAdults: 0, adults: 0, senior: 0 };
+      data.forEach(r => {
+        if (!r.age) return;
+        if (r.age < 18) ageGroups.under18++;
+        else if (r.age <= 25) ageGroups.youngAdults++;
+        else if (r.age <= 35) ageGroups.adults++;
+        else ageGroups.senior++;
+      });
+
+      // 2. Top Locations Breakdown
+      const locMap: Record<string, { count: number; revenue: number }> = {};
+      data.forEach(r => {
+        let loc = (r.place || 'Unknown').trim();
+        loc = loc.charAt(0).toUpperCase() + loc.slice(1).toLowerCase();
+        if (!locMap[loc]) locMap[loc] = { count: 0, revenue: 0 };
+        locMap[loc].count++;
+      });
+      accAll.forEach(r => {
+        let loc = (r.place || 'Unknown').trim();
+        loc = loc.charAt(0).toUpperCase() + loc.slice(1).toLowerCase();
+        if (locMap[loc]) {
+          locMap[loc].revenue += r.derivedPaid;
+        }
+      });
+      const topLocations = Object.entries(locMap)
+        .map(([name, s]) => ({ name, count: s.count, revenue: s.revenue }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5);
+
+      // 3. Payment Gap
+      let totalGapMs = 0;
+      let gapCount = 0;
+      accAll.forEach(r => {
+        if (r.createdAt) {
+          const regDate = new Date(r.createdAt);
+          const payDate = r.payment_completion_date ? new Date(r.payment_completion_date) : (r.updatedAt ? new Date(r.updatedAt) : null);
+          if (payDate && payDate.getTime() >= regDate.getTime()) {
+            totalGapMs += (payDate.getTime() - regDate.getTime());
+            gapCount++;
+          }
+        }
+      });
+      const avgPaymentGapDays = gapCount > 0 ? parseFloat((totalGapMs / (1000 * 60 * 60 * 24) / gapCount).toFixed(1)) : 0;
+
+      // 4. Day of the Week Trend
+      const weeklyTrend: Record<string, number> = {
+        'Monday': 0, 'Tuesday': 0, 'Wednesday': 0, 'Thursday': 0, 'Friday': 0, 'Saturday': 0, 'Sunday': 0
+      };
+      const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      data.forEach(r => {
+        if (r.createdAt) {
+          const d = new Date(r.createdAt).getDay();
+          weeklyTrend[daysOfWeek[d]]++;
+        }
+      });
+
+      // 5. Automated Data-driven Business Insights
+      const insights: string[] = [];
+      
+      let topPkg = '';
+      let topPkgCount = 0;
+      Object.entries(pkgs).forEach(([name, s]) => {
+        if (s.count > topPkgCount) {
+          topPkgCount = s.count;
+          topPkg = name;
+        }
+      });
+      if (topPkg) {
+        insights.push(`The <b>${topPkg}</b> is the most popular choice, representing ${Math.round((topPkgCount / (accDirect.length || 1)) * 100)}% of direct accepted reservations.`);
+      }
+
+      const totalAges = ageGroups.under18 + ageGroups.youngAdults + ageGroups.adults + ageGroups.senior;
+      if (totalAges > 0) {
+        const youthPct = Math.round(((ageGroups.youngAdults + ageGroups.under18) / totalAges) * 100);
+        if (youthPct > 50) {
+          insights.push(`Younger demographics under 25 represent the majority (<b>${youthPct}%</b>) of the applicant pool, showing high interest from students & early professionals.`);
+        } else {
+          insights.push(`Mature professionals/adults (26+) represent the majority (<b>${100 - youthPct}%</b>) of candidates, indicating strong demand for professional upskilling.`);
+        }
+      }
+
+      if (topLocations.length > 0) {
+        const topLoc = topLocations[0];
+        insights.push(`<b>${topLoc.name}</b> is the primary recruitment hub, contributing <b>${Math.round((topLoc.count / (data.length || 1)) * 100)}%</b> of all registrations.`);
+      }
+
+      if (avgPaymentGapDays > 0) {
+        if (avgPaymentGapDays <= 2) {
+          insights.push(`Payment collection is highly efficient, averaging <b>${avgPaymentGapDays} days</b> from registration to confirmed payment.`);
+        } else {
+          insights.push(`Registration-to-payment conversion takes an average of <b>${avgPaymentGapDays} days</b>, suggesting opportunity for follow-up reminders.`);
+        }
+      }
+
+      const males = data.filter(r => r.sex === 'male').length;
+      const females = data.filter(r => r.sex === 'female').length;
+      if (males + females > 0) {
+        const femalePct = Math.round((females / (males + females)) * 100);
+        insights.push(`Female participation stands at <b>${femalePct}%</b>, which can be monitored for diversity and targeted marketing campaigns.`);
+      }
 
       setStats({
         total: data.length,
@@ -133,6 +248,12 @@ export default function MasterclassDashboard() {
         partialPaid: accAll.filter(r => r.derivedPaid > 0 && r.derivedPaid < r.derivedTotal).length,
         unpaid: accAll.filter(r => r.derivedPaid === 0 && r.derivedTotal > 0).length,
         partialStudents, packages: pkgs,
+        avgAge,
+        ageGroups,
+        topLocations,
+        avgPaymentGapDays,
+        weeklyTrend,
+        insights,
       });
     } catch (e: any) {
       setError(handleSupabaseError(e, 'load').message);
@@ -377,6 +498,111 @@ export default function MasterclassDashboard() {
             </div>
           </section>
         )}
+
+        {/* ── Section 7: Lead Intelligence & Demographics Analysis ── */}
+        <section>
+          <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Lead Intelligence & Analytics</h2>
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            {/* Age Demographics */}
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-xl p-6 space-y-6">
+              <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
+                <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-600">
+                  <FaChartPie />
+                </div>
+                <div>
+                  <h3 className="font-black text-slate-800 text-sm">Age Distribution</h3>
+                  <p className="text-[10px] text-slate-400 uppercase tracking-widest">Average Age: {stats.avgAge} Years</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {[
+                  { label: 'Under 18', count: stats.ageGroups.under18, color: 'bg-indigo-500' },
+                  { label: '18 - 25 (Young Adults)', count: stats.ageGroups.youngAdults, color: 'bg-emerald-500' },
+                  { label: '26 - 35 (Adults)', count: stats.ageGroups.adults, color: 'bg-amber-500' },
+                  { label: '36+ (Seniors)', count: stats.ageGroups.senior, color: 'bg-rose-500' },
+                ].map(group => {
+                  const total = stats.ageGroups.under18 + stats.ageGroups.youngAdults + stats.ageGroups.adults + stats.ageGroups.senior || 1;
+                  const pct = Math.round((group.count / total) * 100);
+                  return (
+                    <div key={group.label} className="space-y-1">
+                      <div className="flex justify-between text-xs font-bold text-slate-700">
+                        <span>{group.label}</span>
+                        <span>{group.count} ({pct}%)</span>
+                      </div>
+                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full ${group.color}`} style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Geographical Distribution */}
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-xl p-6 space-y-6">
+              <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600">
+                  <FaGlobe />
+                </div>
+                <div>
+                  <h3 className="font-black text-slate-800 text-sm">Geographical Distribution</h3>
+                  <p className="text-[10px] text-slate-400 uppercase tracking-widest font-black">Top Recruitment Hubs</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {stats.topLocations.map((loc, idx) => {
+                  const total = stats.total || 1;
+                  const pct = Math.round((loc.count / total) * 100);
+                  return (
+                    <div key={loc.name} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-black text-slate-300 w-4">#{idx + 1}</span>
+                        <div>
+                          <p className="text-xs font-black text-slate-800">{loc.name}</p>
+                          <p className="text-[10px] font-bold text-slate-400">{loc.count} registration{loc.count > 1 ? 's' : ''}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-xs font-black text-indigo-600">{fmt(loc.revenue)}</span>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{pct}% of pool</p>
+                      </div>
+                    </div>
+                  );
+                })}
+                {stats.topLocations.length === 0 && (
+                  <p className="text-xs text-slate-400 text-center py-4">No location data registered.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Executive Observations */}
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-xl p-6 space-y-6">
+              <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600">
+                  <FaLightbulb />
+                </div>
+                <div>
+                  <h3 className="font-black text-slate-800 text-sm">Executive Insights</h3>
+                  <p className="text-[10px] text-slate-400 uppercase tracking-widest">Performance Diagnostics</p>
+                </div>
+              </div>
+
+              <div className="space-y-3 max-h-[220px] overflow-y-auto pr-1">
+                {stats.insights.map((insight, idx) => (
+                  <div key={idx} className="flex gap-2.5 text-xs text-slate-600 bg-slate-50 p-3 rounded-2xl border border-slate-100 leading-relaxed shadow-sm">
+                    <span className="text-amber-500 font-bold flex-shrink-0">💡</span>
+                    <p dangerouslySetInnerHTML={{ __html: insight }} />
+                  </div>
+                ))}
+                {stats.insights.length === 0 && (
+                  <p className="text-xs text-slate-400 text-center py-4">Sufficient metrics needed to generate insights.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* ── CTA ── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
