@@ -10,6 +10,14 @@ import { NetworkErrorBanner } from '../../Components/ui/NetworkStatus';
 
 const REFERRAL_PRICE = 10000;
 
+const getPackagePrice = (pkgName?: string): number => {
+  if (!pkgName) return 0;
+  if (pkgName.includes('5,000') || pkgName.includes('5000')) return 5000;
+  if (pkgName.includes('10,000') || pkgName.includes('10000')) return 10000;
+  if (pkgName.includes('25,000') || pkgName.includes('25000')) return 25000;
+  return 0;
+};
+
 const fmt = (n: number) => `ETB ${n.toLocaleString('en-US', { minimumFractionDigits: 0 })}`;
 
 interface Stats {
@@ -47,29 +55,67 @@ export default function MasterclassDashboard() {
       const referral = data.filter(r => !!r.referral_code);
       const accDirect = direct.filter(r => r.status === 'accepted');
       const accReferral = referral.filter(r => r.status === 'accepted');
-      const accAll = [...accDirect, ...accReferral];
 
-      const refPossible = accReferral.length * REFERRAL_PRICE;
-      const refCollected = accReferral.reduce((s, r) => s + (r.paid_amount || 0), 0);
-      const dirPossible = accDirect.reduce((s, r) => s + (r.total_amount || 0), 0);
-      const dirCollected = accDirect.reduce((s, r) => s + (r.paid_amount || 0), 0);
+      // Process direct accepted students, deriving values if missing in DB
+      const processedDirect = accDirect.map(r => {
+        const pkgPrice = getPackagePrice(r.selected_package);
+        const total = r.total_amount || pkgPrice || 0;
+        let paid = 0;
+        if (r.payment_status === 'full') {
+          paid = total;
+        } else if (r.payment_status === 'partial') {
+          paid = r.paid_amount || (total / 2);
+        } else if (r.payment_status === 'unpaid') {
+          paid = 0;
+        } else {
+          paid = r.paid_amount || 0;
+        }
+        return {
+          ...r,
+          derivedTotal: total,
+          derivedPaid: paid,
+          derivedOwed: total - paid,
+        };
+      });
+
+      // Process referral accepted students (auto-collected on accepted)
+      const processedReferral = accReferral.map(r => {
+        return {
+          ...r,
+          derivedTotal: REFERRAL_PRICE,
+          derivedPaid: REFERRAL_PRICE,
+          derivedOwed: 0,
+        };
+      });
+
+      const accAll = [...processedDirect, ...processedReferral];
+
+      const refPossible = processedReferral.reduce((s, r) => s + r.derivedTotal, 0);
+      const refCollected = processedReferral.reduce((s, r) => s + r.derivedPaid, 0);
+      const dirPossible = processedDirect.reduce((s, r) => s + r.derivedTotal, 0);
+      const dirCollected = processedDirect.reduce((s, r) => s + r.derivedPaid, 0);
 
       const pkgs: Record<string, { count: number; possible: number; collected: number }> = {};
-      accDirect.forEach(r => {
+      processedDirect.forEach(r => {
         const k = r.selected_package || 'Unassigned';
         if (!pkgs[k]) pkgs[k] = { count: 0, possible: 0, collected: 0 };
         pkgs[k].count++;
-        pkgs[k].possible += r.total_amount || 0;
-        pkgs[k].collected += r.paid_amount || 0;
+        pkgs[k].possible += r.derivedTotal;
+        pkgs[k].collected += r.derivedPaid;
       });
 
       const partialStudents = accAll
         .filter(r => r.payment_status === 'partial')
         .map(r => {
-          const isRef = !!r.referral_code;
-          const total = isRef ? REFERRAL_PRICE : (r.total_amount || 0);
-          const paid = r.paid_amount || 0;
-          return { name: r.name, phone: r.phone, isReferral: isRef, total, paid, owed: total - paid, pkg: r.selected_package };
+          return {
+            name: r.name,
+            phone: r.phone,
+            isReferral: !!r.referral_code,
+            total: r.derivedTotal,
+            paid: r.derivedPaid,
+            owed: r.derivedOwed,
+            pkg: r.selected_package
+          };
         });
 
       setStats({
@@ -83,9 +129,9 @@ export default function MasterclassDashboard() {
         referralPossible: refPossible, referralCollected: refCollected, referralOwed: refPossible - refCollected,
         directPossible: dirPossible, directCollected: dirCollected, directOwed: dirPossible - dirCollected,
         totalPossible: refPossible + dirPossible, totalCollected: refCollected + dirCollected, totalOwed: (refPossible - refCollected) + (dirPossible - dirCollected),
-        fullPaid: accAll.filter(r => r.payment_status === 'full').length,
-        partialPaid: accAll.filter(r => r.payment_status === 'partial').length,
-        unpaid: accAll.filter(r => !r.payment_status || r.payment_status === 'unpaid').length,
+        fullPaid: accAll.filter(r => r.derivedTotal > 0 && r.derivedPaid === r.derivedTotal).length,
+        partialPaid: accAll.filter(r => r.derivedPaid > 0 && r.derivedPaid < r.derivedTotal).length,
+        unpaid: accAll.filter(r => r.derivedPaid === 0 && r.derivedTotal > 0).length,
         partialStudents, packages: pkgs,
       });
     } catch (e: any) {
