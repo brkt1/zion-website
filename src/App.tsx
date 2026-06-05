@@ -29,8 +29,8 @@ const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const PaymentCallback = lazy(() => import("./pages/PaymentCallback"));
 const PaymentFailed = lazy(() => import("./pages/PaymentFailed"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const ExpoInfo = lazy(() => import("./pages/ExpoInfo"));
-const ExpoRegistration = lazy(() => import("./pages/ExpoRegistration"));
+
+
 const Certification = lazy(() => import("./pages/Certification"));
 const Masterclass = lazy(() => import("./pages/Masterclass"));
 const MasterclassRegistration = lazy(() => import("./pages/MasterclassRegistration"));
@@ -137,16 +137,8 @@ function App() {
               <Apply />
             </Suspense>
           } />
-          <Route path="/expo-info" element={
-            <Suspense fallback={<LoadingState />}>
-              <ExpoInfo />
-            </Suspense>
-          } />
-          <Route path="/expo-registration" element={
-            <Suspense fallback={<LoadingState />}>
-              <ExpoRegistration />
-            </Suspense>
-          } />
+
+
           <Route path="/certification" element={
             <Suspense fallback={<LoadingState />}>
               <Certification />

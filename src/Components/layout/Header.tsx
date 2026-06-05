@@ -36,14 +36,13 @@ const Header = () => {
     }
   };
 
-  const navLinks = (config?.navigation || [
+  const navLinks = [
     { path: "/", label: "Home" },
     { path: "/events", label: "Events" },
-    { path: "/expo-info", label: "Wedding Expo" },
     { path: "/masterclass", label: "Masterclass" },
     { path: "/about", label: "About" },
     { path: "/contact", label: "Contact" },
-  ]).map(link => ({
+  ].map(link => ({
     ...link,
     label: getTranslatedLabel(link.label, link.path)
   })).filter(link => 

@@ -28,13 +28,13 @@ const MobileBottomNav = () => {
 
   const { config } = useSiteConfig();
 
-  const navItems = (config?.navigation || [
+  const navItems = [
     { path: "/", label: "Home" },
     { path: "/events", label: "Events" },
     { path: "/masterclass", label: "Masterclass" },
     { path: "/about", label: "About" },
     { path: "/contact", label: "Contact" },
-  ]).map(item => {
+  ].map(item => {
     let icon = FaHome;
     const label = item.label.toLowerCase();
     if (label.includes('home')) icon = FaHome;
