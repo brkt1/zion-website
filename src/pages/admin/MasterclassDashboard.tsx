@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FaArrowRight, FaCheckCircle, FaClock, FaGraduationCap, FaLink, FaMoneyBillWave, FaTimesCircle, FaUsers, FaExclamationTriangle, FaLock, FaGlobe, FaHourglassHalf, FaChartPie, FaLightbulb, FaVenusMars } from 'react-icons/fa';
+import { FaArrowRight, FaCheckCircle, FaClock, FaGraduationCap, FaLink, FaMoneyBillWave, FaTimesCircle, FaUsers, FaExclamationTriangle, FaLock, FaGlobe, FaChartPie, FaLightbulb } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { adminApi } from '../../services/adminApi';

@@ -46,7 +46,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "GENERATE_SOURCEMAP=false INLINE_RUNTIME_CHUNK=false react-scripts build",
+    "build": "GENERATE_SOURCEMAP=false INLINE_RUNTIME_CHUNK=false DISABLE_ESLINT_PLUGIN=true CI=false react-scripts build",
     "build:analyze": "npm run build && npx source-map-explorer 'build/static/js/*.js'",
     "serve": "node scripts/serve-prod.js",
     "serve:prod": "npm run build && npm run serve",

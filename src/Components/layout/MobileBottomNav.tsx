@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { FaArrowUp, FaCalendarAlt, FaEnvelope, FaGraduationCap, FaHome, FaInfoCircle, FaUsers } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
-import { useSiteConfig } from "../../hooks/useApi";
+
 import { handleLinkHover } from "../../utils/prefetch";
 import { BRAND, GRADIENT } from "../../styles/theme";
 
@@ -26,7 +26,7 @@ const MobileBottomNav = () => {
     });
   };
 
-  const { config } = useSiteConfig();
+
 
   const navItems = [
     { path: "/", label: "Home" },

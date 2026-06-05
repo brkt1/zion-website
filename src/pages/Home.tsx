@@ -1,9 +1,7 @@
 import { useEffect, useMemo } from "react";
 import {
     FaArrowRight,
-    FaChartLine,
     FaCheckCircle,
-    FaClipboardList,
     FaGraduationCap,
     FaRocket,
     FaStar,

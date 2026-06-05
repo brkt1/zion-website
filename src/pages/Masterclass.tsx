@@ -2,10 +2,10 @@ import { useEffect } from "react";
 import { 
   FaArrowRight, FaChartLine, FaCheck, FaClipboardList, 
   FaCalendarAlt, FaLaptop, FaUsers, FaTrophy, FaGraduationCap,
-  FaMapMarkerAlt, FaComments
+  FaMapMarkerAlt
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import OptimizedImage from "../Components/ui/OptimizedImage";
+
 
 const Masterclass = () => {
   useEffect(() => {

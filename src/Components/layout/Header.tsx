@@ -10,12 +10,12 @@ import {
 } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
 import { useLanguage } from "../../contexts/LanguageContext";
-import { useContactInfo, useSiteConfig } from "../../hooks/useApi";
+import { useContactInfo } from "../../hooks/useApi";
 import { handleLinkHover } from "../../utils/prefetch";
 import OptimizedImage from "../ui/OptimizedImage";
 
 const Header = () => {
-  const { config } = useSiteConfig();
+
   const { contactInfo } = useContactInfo();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isScrolledDown, setIsScrolledDown] = useState(false);
