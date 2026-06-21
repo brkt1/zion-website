@@ -712,15 +712,40 @@ export const adminApi = {
       return data;
     },
 
-    getByEvent: async (eventId: string) => {
-      const { data, error } = await supabase
+    getByEvent: async (eventId: string, eventTitle?: string) => {
+      // Primary query: fetch by event_id
+      const { data: byId, error: error1 } = await supabase
         .from('tickets')
         .select('*')
         .eq('event_id', eventId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data;
+      if (error1) throw error1;
+
+      // Fallback query: fetch tickets where event_id is NULL but event_title matches
+      // (handles legacy tickets saved before event_id was properly set)
+      let byTitle: any[] = [];
+      if (eventTitle) {
+        const { data: titleData, error: error2 } = await supabase
+          .from('tickets')
+          .select('*')
+          .is('event_id', null)
+          .eq('event_title', eventTitle)
+          .order('created_at', { ascending: false });
+
+        if (!error2 && titleData) {
+          byTitle = titleData;
+        }
+      }
+
+      // Merge and deduplicate by ticket id
+      const allTickets = [...(byId || []), ...byTitle];
+      const seen = new Set<string>();
+      return allTickets.filter(t => {
+        if (seen.has(t.id)) return false;
+        seen.add(t.id);
+        return true;
+      });
     },
 
     getByCommissionSeller: async (commissionSellerId: string) => {

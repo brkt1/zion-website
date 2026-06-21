@@ -15,6 +15,7 @@ const EventDetails = () => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'success' | 'pending' | 'failed'>('all');
   const [error, setError] = useState<string | null>(null);
 
 
@@ -27,10 +28,8 @@ const EventDetails = () => {
   const loadData = async (eventId: string) => {
     try {
       setLoading(true);
-      const [eventData, ticketsData] = await Promise.all([
-        api.getEvent(eventId),
-        adminApi.tickets.getByEvent(eventId)
-      ]);
+      const eventData = await api.getEvent(eventId);
+      const ticketsData = await adminApi.tickets.getByEvent(eventId, eventData?.title);
 
       // Deduplicate tickets that might have been created twice (common in free registrations)
       // We deduplicate based on email, amount, quantity, and timestamp (rounded to nearest minute)
@@ -62,12 +61,15 @@ const EventDetails = () => {
     }
   };
 
-  const filteredTickets = tickets.filter(ticket => 
-    ticket.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    ticket.customer_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    ticket.customer_phone?.includes(searchTerm) ||
-    ticket.tx_ref.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredTickets = tickets.filter(ticket => {
+    const matchesSearch = !searchTerm ||
+      ticket.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ticket.customer_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ticket.customer_phone?.includes(searchTerm) ||
+      ticket.tx_ref?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || ticket.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   const stats = {
     totalTickets: tickets.length,
@@ -276,19 +278,42 @@ const EventDetails = () => {
 
         {/* Attendees Table Card */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="p-6 border-b border-gray-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <h3 className="text-lg font-bold text-gray-900">Attendees List</h3>
-            <div className="relative max-w-sm w-full">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaSearch className="text-gray-400" />
+          <div className="p-6 border-b border-gray-50 flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <h3 className="text-lg font-bold text-gray-900">Payment List</h3>
+              <div className="relative max-w-sm w-full">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaSearch className="text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search by name, email, or ref..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                />
               </div>
-              <input
-                type="text"
-                placeholder="Search by name, email, or ref..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-              />
+            </div>
+            {/* Status filter tabs */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {(['all', 'success', 'pending', 'failed'] as const).map((s) => {
+                const count = s === 'all' ? tickets.length : tickets.filter(t => t.status === s).length;
+                const colors: Record<string, string> = {
+                  all: statusFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
+                  success: statusFilter === 'success' ? 'bg-green-600 text-white' : 'bg-green-50 text-green-700 hover:bg-green-100',
+                  pending: statusFilter === 'pending' ? 'bg-amber-500 text-white' : 'bg-amber-50 text-amber-700 hover:bg-amber-100',
+                  failed: statusFilter === 'failed' ? 'bg-red-600 text-white' : 'bg-red-50 text-red-700 hover:bg-red-100',
+                };
+                return (
+                  <button
+                    key={s}
+                    onClick={() => setStatusFilter(s)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${colors[s]}`}
+                  >
+                    {s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)} ({count})
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -307,7 +332,11 @@ const EventDetails = () => {
                 {filteredTickets.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="px-6 py-12 text-center text-gray-500 italic">
-                      No registrants found matching your search.
+                      {searchTerm
+                        ? 'No payments found matching your search.'
+                        : statusFilter === 'all'
+                        ? 'No payments have been recorded for this event yet.'
+                        : `No ${statusFilter} payments found for this event.`}
                     </td>
                   </tr>
                 ) : (
