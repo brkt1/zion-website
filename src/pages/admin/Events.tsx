@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FaEdit, FaPlus, FaSpinner, FaTimes, FaTrash, FaUpload, FaEye } from 'react-icons/fa';
+import { FaEdit, FaPlus, FaSpinner, FaTimes, FaTrash, FaUpload, FaEye, FaTag } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { ImageUpload } from '../../Components/admin/ImageUpload';
@@ -33,6 +33,42 @@ const Events = () => {
     social_media_link: '',
     telegram_link: '',
   });
+
+  // ── Ticket tiers ─────────────────────────────────────────────────────────
+  // Each tier: { name: string; price: string }
+  // Serialised to/from event.price as "VIP: 1000, Regular: 500"
+  const [ticketTiers, setTicketTiers] = useState<{ name: string; price: string }[]>([
+    { name: '', price: '' },
+  ]);
+
+  /** Convert tiers array → price string stored in DB */
+  const serilaizeTiers = (tiers: { name: string; price: string }[]) => {
+    const filled = tiers.filter(t => t.price.trim() !== '');
+    if (filled.length === 0) return '';
+    if (filled.length === 1 && filled[0].name.trim() === '') return filled[0].price.trim();
+    return filled.map(t => `${t.name.trim() || 'Ticket'}: ${t.price.trim()}`).join(', ');
+  };
+
+  /** Parse a price string back to tiers for editing */
+  const parseTiers = (price: string): { name: string; price: string }[] => {
+    if (!price || price === '0' || price.toLowerCase() === 'free') return [{ name: '', price: price || '' }];
+    if (price.includes(':')) {
+      const parts = price.split(',').map(p => p.trim());
+      return parts.map(p => {
+        const idx = p.indexOf(':');
+        if (idx === -1) return { name: '', price: p.trim() };
+        return { name: p.substring(0, idx).trim(), price: p.substring(idx + 1).trim() };
+      });
+    }
+    return [{ name: '', price: price }];
+  };
+
+  const addTier = () => setTicketTiers(prev => [...prev, { name: '', price: '' }]);
+  const removeTier = (i: number) => setTicketTiers(prev => prev.filter((_, idx) => idx !== i));
+  const updateTier = (i: number, field: 'name' | 'price', value: string) =>
+    setTicketTiers(prev => prev.map((t, idx) => idx === i ? { ...t, [field]: value } : t));
+  // ─────────────────────────────────────────────────────────────────────────
+
   const [newGalleryImage, setNewGalleryImage] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<string>('');
@@ -64,11 +100,13 @@ const Events = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const serializedPrice = serilaizeTiers(ticketTiers);
+    const payload = { ...formData, price: serializedPrice };
     try {
       if (editingEvent) {
-        await adminApi.events.update(editingEvent.id, formData);
+        await adminApi.events.update(editingEvent.id, payload);
       } else {
-        await adminApi.events.create(formData);
+        await adminApi.events.create(payload);
       }
       setShowModal(false);
       setEditingEvent(null);
@@ -99,6 +137,7 @@ const Events = () => {
       social_media_link: event.social_media_link || '',
       telegram_link: event.telegram_link || '',
     });
+    setTicketTiers(parseTiers(event.price));
     setNewGalleryImage('');
     setUploading(false);
     setUploadProgress('');
@@ -134,6 +173,7 @@ const Events = () => {
       social_media_link: '',
       telegram_link: '',
     });
+    setTicketTiers([{ name: '', price: '' }]);
     setNewGalleryImage('');
     setUploading(false);
     setUploadProgress('');
@@ -445,51 +485,107 @@ const Events = () => {
                       required
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Price *</label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.price}
-                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
-                      disabled={formData.category === 'community'}
-                      placeholder="e.g. 500 or VIP: 1000, Regular: 500"
-                    />
-                    {formData.category === 'community' && (
-                      <p className="mt-1 text-xs text-gray-500">Community events are free (price automatically set to 0)</p>
-                    )}
-                    {formData.category !== 'community' && (
-                      <p className="mt-1 text-xs text-gray-500">For multiple ticket types, use format: VIP: 1000, Regular: 500</p>
+                  {/* ── Ticket Tiers / Pricing ─────────────────────────────── */}
+                  <div className="sm:col-span-2">
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Ticket Pricing *
+                      </label>
+                      {formData.category !== 'community' && (
+                        <button
+                          type="button"
+                          onClick={addTier}
+                          className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full text-white transition-all"
+                          style={{ background: 'linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)' }}
+                        >
+                          <FaPlus size={10} /> Add Ticket Type
+                        </button>
+                      )}
+                    </div>
+
+                    {formData.category === 'community' ? (
+                      <p className="text-sm text-gray-500 italic bg-gray-50 border border-gray-200 rounded-md px-3 py-2">
+                        Community events are free — no pricing required.
+                      </p>
+                    ) : (
+                      <div className="space-y-2">
+                        {ticketTiers.map((tier, i) => (
+                          <div key={i} className="flex gap-2 items-center">
+                            <div className="flex-1 relative">
+                              <FaTag className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={12} />
+                              <input
+                                type="text"
+                                value={tier.name}
+                                onChange={(e) => updateTier(i, 'name', e.target.value)}
+                                placeholder={ticketTiers.length === 1 ? 'Tier name (optional)' : `Tier name (e.g. VIP)`}
+                                className="w-full border border-gray-300 rounded-md pl-8 pr-3 py-2 text-sm focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none"
+                              />
+                            </div>
+                            <input
+                              type="number"
+                              min="0"
+                              value={tier.price}
+                              onChange={(e) => updateTier(i, 'price', e.target.value)}
+                              placeholder="Price"
+                              required={i === 0}
+                              className="w-28 border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none"
+                            />
+                            <span className="text-xs text-gray-500 w-8 shrink-0">{formData.currency}</span>
+                            {ticketTiers.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => removeTier(i)}
+                                className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                                title="Remove tier"
+                              >
+                                <FaTimes size={12} />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                        {ticketTiers.length > 1 && (
+                          <p className="text-xs text-gray-400 mt-1">
+                            Ticket types will appear as a dropdown on the event page.
+                          </p>
+                        )}
+                      </div>
                     )}
                   </div>
-                  {(formData.category === 'community' || formData.price === '0' || formData.price === 'Free') && (
-                    <>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">Telegram Group Link *</label>
-                        <input
-                          type="url"
-                          required={formData.category === 'community' || formData.price === '0' || formData.price === 'Free'}
-                          value={formData.telegram_link}
-                          onChange={(e) => setFormData({ ...formData, telegram_link: e.target.value })}
-                          placeholder="https://t.me/yourgroupname"
-                          className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
-                        />
-                        <p className="mt-1 text-xs text-gray-500">Telegram group link where users will be redirected after registration</p>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">Social Media Link (Optional)</label>
-                        <input
-                          type="url"
-                          value={formData.social_media_link}
-                          onChange={(e) => setFormData({ ...formData, social_media_link: e.target.value })}
-                          placeholder="https://www.facebook.com/events/..."
-                          className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
-                        />
-                        <p className="mt-1 text-xs text-gray-500">Additional social media link (Facebook, Instagram, etc.)</p>
-                      </div>
-                    </>
-                  )}
+                  {/* ─────────────────────────────────────────────────────────── */}
+                  {(() => {
+                    const isFreeEvent = formData.category === 'community' || (() => {
+                      const p = serilaizeTiers(ticketTiers);
+                      return p === '0' || p.toLowerCase() === 'free' || parseFloat(p.replace(/[^0-9.]/g, '') || '0') === 0;
+                    })();
+                    if (!isFreeEvent) return null;
+                    return (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Telegram Group Link *</label>
+                          <input
+                            type="url"
+                            required
+                            value={formData.telegram_link}
+                            onChange={(e) => setFormData({ ...formData, telegram_link: e.target.value })}
+                            placeholder="https://t.me/yourgroupname"
+                            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                          />
+                          <p className="mt-1 text-xs text-gray-500">Telegram group link where users will be redirected after registration</p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Social Media Link (Optional)</label>
+                          <input
+                            type="url"
+                            value={formData.social_media_link}
+                            onChange={(e) => setFormData({ ...formData, social_media_link: e.target.value })}
+                            placeholder="https://www.facebook.com/events/..."
+                            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                          />
+                          <p className="mt-1 text-xs text-gray-500">Additional social media link (Facebook, Instagram, etc.)</p>
+                        </div>
+                      </>
+                    );
+                  })()}
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Currency</label>
                     <input
