@@ -158,14 +158,14 @@ const PaymentSuccess = () => {
 
       await saveTicket({
         tx_ref: txRef,
-        event_id: eventIdParam || undefined,
-        event_title: eventTitleParam || undefined,
+        event_id: eventIdParam || paymentData.meta?.event_id || paymentData.event_id || undefined,
+        event_title: eventTitleParam || paymentData.meta?.event_title || paymentData.event_title || undefined,
         customer_name: customerName || undefined,
         customer_email: paymentData.email || '',
         customer_phone: paymentData.phone_number || undefined,
         amount: amount,
         currency: paymentData.currency || 'ETB',
-        quantity: quantity, // This should be the actual quantity purchased
+        quantity: quantity || paymentData.meta?.quantity || paymentData.quantity || 1,
         status: 'success',
         chapa_reference: paymentData.reference || undefined,
         commission_seller_id: validCommissionSellerId,

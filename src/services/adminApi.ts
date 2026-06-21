@@ -941,6 +941,88 @@ export const adminApi = {
     },
   },
 
+  // Event Collaborators - People who co-organized an event and can view its detail page
+  eventCollaborators: {
+    getByEvent: async (eventId: string) => {
+      const { data, error } = await supabase
+        .from('event_collaborators')
+        .select('*')
+        .eq('event_id', eventId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+
+    create: async (collaborator: {
+      event_id: string;
+      name: string;
+      email: string;
+      phone?: string;
+      role?: string;
+      access_code: string;
+      is_active?: boolean;
+      notes?: string;
+    }) => {
+      const { data, error } = await supabase
+        .from('event_collaborators')
+        .insert([{
+          event_id: collaborator.event_id,
+          name: collaborator.name,
+          email: collaborator.email,
+          phone: collaborator.phone || null,
+          role: collaborator.role || 'Collaborator',
+          access_code: collaborator.access_code,
+          is_active: collaborator.is_active !== undefined ? collaborator.is_active : true,
+          notes: collaborator.notes || null,
+        }])
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+
+    update: async (id: string, updates: {
+      name?: string;
+      email?: string;
+      phone?: string;
+      role?: string;
+      access_code?: string;
+      is_active?: boolean;
+      notes?: string;
+    }) => {
+      const { data, error } = await supabase
+        .from('event_collaborators')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+
+    delete: async (id: string) => {
+      const { error } = await supabase
+        .from('event_collaborators')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+      return { success: true };
+    },
+
+    // Login check: find a collaborator by email + access_code for a given event
+    login: async (email: string, accessCode: string) => {
+      const { data, error } = await supabase
+        .from('event_collaborators')
+        .select('*, events(id, title, image, date, time, location, category)')
+        .eq('email', email.toLowerCase().trim())
+        .eq('access_code', accessCode.trim())
+        .eq('is_active', true)
+        .single();
+      if (error) return null;
+      return data;
+    },
+  },
+
   // Ticket Scanners - Manage ticket scanners
   ticketScanners: {
     getAll: async () => {

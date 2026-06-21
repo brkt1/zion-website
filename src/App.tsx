@@ -80,6 +80,9 @@ const YenegeUnityApply = lazy(() => import("./pages/yenege-unity/Apply"));
 const YenegeUnityPortal = lazy(() => import("./pages/yenege-unity/Portal"));
 const YenegeUnityDashboard = lazy(() => import("./pages/admin/YenegeUnityDashboard"));
 
+const CollaboratorLogin = lazy(() => import("./pages/CollaboratorLogin"));
+const CollaboratorEventView = lazy(() => import("./pages/CollaboratorEventView"));
+
 
 
 
@@ -204,6 +207,17 @@ function App() {
           <Route path="/yenege-unity/portal" element={
             <Suspense fallback={<LoadingState />}>
               <YenegeUnityPortal />
+            </Suspense>
+          } />
+          
+          <Route path="/collaborator/login" element={
+            <Suspense fallback={<LoadingState />}>
+              <CollaboratorLogin />
+            </Suspense>
+          } />
+          <Route path="/collaborator/event/:eventId" element={
+            <Suspense fallback={<LoadingState />}>
+              <CollaboratorEventView />
             </Suspense>
           } />
           
