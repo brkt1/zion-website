@@ -66,12 +66,45 @@ const EventDetail = () => {
     return commissionSellers.find(s => s.id === paymentForm.commission_seller_id) || null;
   }, [paymentForm.commission_seller_id, commissionSellers]);
 
+  // Check if we have multiple ticket types (e.g. "VIP: 1000, Regular: 500")
+  const ticketTypes = useMemo(() => {
+    if (!event || event.price === "Free" || event.price?.toLowerCase() === "free" || event.price === "0" || parseFloat(event.price.toString().replace(/[^0-9.]/g, '') || '0') === 0) return [];
+    
+    if (event.price.includes(':') && event.price.includes(',')) {
+      try {
+        return event.price.split(',').map(type => {
+          const [name, priceStr] = type.split(':').map(s => s.trim());
+          const price = parseFloat(priceStr.replace(/[^0-9.]/g, '') || '0');
+          return { name, price, originalString: type.trim() };
+        });
+      } catch (e) {
+        return [];
+      }
+    } else if (event.price.includes(':')) {
+       try {
+        const [name, priceStr] = event.price.split(':').map(s => s.trim());
+        const price = parseFloat(priceStr.replace(/[^0-9.]/g, '') || '0');
+        return [{ name, price, originalString: event.price.trim() }];
+      } catch (e) {
+        return [];
+      }
+    }
+    return [];
+  }, [event]);
+
+  const [selectedTicketTypeIndex, setSelectedTicketTypeIndex] = useState(0);
+
   // Memoize base price calculation
   const basePrice = useMemo(() => {
     if (!event) return 0;
     if (event.price === "Free" || event.price?.toLowerCase() === "free") return 0;
+    
+    if (ticketTypes.length > 0) {
+      return ticketTypes[selectedTicketTypeIndex]?.price || 0;
+    }
+    
     return parseFloat(event.price.toString().replace(/[^0-9.]/g, '') || '0');
-  }, [event]);
+  }, [event, ticketTypes, selectedTicketTypeIndex]);
 
   // Memoize discount calculation for performance
   const discountCalculation = useMemo(() => {
@@ -255,6 +288,9 @@ const EventDetail = () => {
         returnUrlParams.set('event_id', event.id);
         returnUrlParams.set('event_title', event.title);
         returnUrlParams.set('quantity', quantity.toString());
+        if (ticketTypes.length > 1 && ticketTypes[selectedTicketTypeIndex]) {
+          returnUrlParams.set('ticket_type', ticketTypes[selectedTicketTypeIndex].name);
+        }
         if (paymentForm.commission_seller_id) {
           returnUrlParams.set('commission_seller_id', paymentForm.commission_seller_id);
         }
@@ -287,6 +323,7 @@ const EventDetail = () => {
             event_id: event.id,
             event_title: event.title,
             quantity: quantity.toString(),
+            ...(ticketTypes.length > 1 && ticketTypes[selectedTicketTypeIndex] && { ticket_type: ticketTypes[selectedTicketTypeIndex].name }),
             ...(paymentForm.commission_seller_id && { commission_seller_id: paymentForm.commission_seller_id }),
           },
         });
@@ -310,6 +347,7 @@ const EventDetail = () => {
           event_id: event.id,
           event_title: event.title,
           commission_seller_id: paymentForm.commission_seller_id || undefined,
+          ticket_type: (ticketTypes.length > 1 && ticketTypes[selectedTicketTypeIndex]) ? ticketTypes[selectedTicketTypeIndex].name : undefined,
           tx_ref: txRef,
         };
 
@@ -678,7 +716,7 @@ const EventDetail = () => {
                       Admission Fee
                     </span>
                     <div className="ed-font-serif text-4xl font-black text-[#0F172A]">
-                      {event.price === "Free" ? "Gratis" : `${event.price}`}
+                      {event.price === "Free" ? "Gratis" : ticketTypes.length > 1 ? `From ${Math.min(...ticketTypes.map(t => t.price))}` : `${event.price}`}
                       {event.price !== "Free" && <span className="text-lg ml-1 opacity-60 font-medium">{event.currency}</span>}
                     </div>
                   </div>
@@ -828,6 +866,23 @@ const EventDetail = () => {
                       placeholder="09..."
                     />
                   </div>
+                  {ticketTypes.length > 1 && (
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-black/40 uppercase tracking-widest pl-1">Ticket Type</label>
+                      <select
+                        value={selectedTicketTypeIndex}
+                        onChange={(e) => setSelectedTicketTypeIndex(parseInt(e.target.value, 10))}
+                        className="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-[#FFD447]/50 focus:bg-white transition-all ed-font-sans font-bold appearance-none"
+                        style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%2394A3B8\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'%3E%3C/path%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1.5rem center', backgroundSize: '1.25rem' }}
+                      >
+                        {ticketTypes.map((type, index) => (
+                          <option key={index} value={index}>
+                            {type.name} - {type.price} {event.currency}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-black/40 uppercase tracking-widest pl-1">Tickets</label>
                     <div className="flex items-center bg-slate-50 rounded-2xl border border-slate-100 p-1 h-16 overflow-hidden">

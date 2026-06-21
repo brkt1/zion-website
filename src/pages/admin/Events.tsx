@@ -442,9 +442,13 @@ const Events = () => {
                       onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                       className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
                       disabled={formData.category === 'community'}
+                      placeholder="e.g. 500 or VIP: 1000, Regular: 500"
                     />
                     {formData.category === 'community' && (
                       <p className="mt-1 text-xs text-gray-500">Community events are free (price automatically set to 0)</p>
+                    )}
+                    {formData.category !== 'community' && (
+                      <p className="mt-1 text-xs text-gray-500">For multiple ticket types, use format: VIP: 1000, Regular: 500</p>
                     )}
                   </div>
                   {(formData.category === 'community' || formData.price === '0' || formData.price === 'Free') && (

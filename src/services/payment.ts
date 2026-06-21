@@ -191,7 +191,7 @@ export const getChapaPublicKey = async (): Promise<string> => {
 
     // Fetch from server with timeout for free Render cold starts
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
     try {
       const response = await fetch(`${API_BASE_URL}/payments/public-key`, {

@@ -16,6 +16,7 @@ export interface PaymentRequest {
   event_title?: string;
   preferred_payment_method?: string; // Optional: preferred payment method
   commission_seller_id?: string; // Optional: commission seller who sold the ticket
+  ticket_type?: string; // Optional: ticket tier name (e.g. VIP, Regular)
 }
 
 export interface PaymentMethod {
