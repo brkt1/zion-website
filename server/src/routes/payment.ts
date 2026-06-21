@@ -717,8 +717,8 @@ router.get('/verify/:tx_ref', async (req: Request, res: Response) => {
                 .insert([ticketPayload]);
             }
 
-            // Update event attendees count
-            if (resolvedEventId) {
+            // Update event attendees count (only if ticket is new or previously not successful)
+            if (resolvedEventId && (!existingTicket || existingTicket.status !== 'success')) {
               const { data: eventData } = await supabase
                 .from('events')
                 .select('attendees')
@@ -958,8 +958,8 @@ router.post('/webhook', async (req: Request, res: Response) => {
                   .insert([ticketPayload]);
               }
 
-              // Update event attendees count
-              if (resolvedEventId) {
+              // Update event attendees count (only if ticket is new or previously not successful)
+              if (resolvedEventId && (!existingTicket || existingTicket.status !== 'success')) {
                 const { data: eventData } = await supabase
                   .from('events')
                   .select('attendees')
