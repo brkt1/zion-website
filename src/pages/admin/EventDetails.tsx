@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { FaArrowLeft, FaDownload, FaEnvelope, FaPhone, FaSearch, FaTicketAlt, FaUser, FaCalendarAlt, FaMapMarkerAlt, FaTag } from 'react-icons/fa';
+import { FaArrowLeft, FaDownload, FaEnvelope, FaPhone, FaSearch, FaTicketAlt, FaUser, FaCalendarAlt, FaMapMarkerAlt, FaTag, FaCheckCircle, FaTimesCircle, FaQrcode, FaShieldAlt } from 'react-icons/fa';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { adminApi } from '../../services/adminApi';
 import { api, Event } from '../../services/api';
@@ -317,81 +317,141 @@ const EventDetails = () => {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Contact</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Details</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-100">
-                {filteredTickets.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500 italic">
-                      {searchTerm
-                        ? 'No payments found matching your search.'
-                        : statusFilter === 'all'
-                        ? 'No payments have been recorded for this event yet.'
-                        : `No ${statusFilter} payments found for this event.`}
-                    </td>
-                  </tr>
-                ) : (
-                  filteredTickets.map((ticket) => (
-                    <tr key={ticket.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
-                            {ticket.customer_name ? ticket.customer_name.charAt(0).toUpperCase() : 'U'}
-                          </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-bold text-gray-900">{ticket.customer_name || 'Unknown User'}</div>
-                            <div className="text-xs text-gray-400">Ref: {ticket.tx_ref}</div>
-                          </div>
+          {/* Card Grid */}
+          {filteredTickets.length === 0 ? (
+            <div className="p-16 text-center text-gray-400">
+              <FaTicketAlt className="mx-auto text-4xl mb-3 opacity-30" />
+              <p className="text-sm italic">
+                {searchTerm
+                  ? 'No payments found matching your search.'
+                  : statusFilter === 'all'
+                  ? 'No payments have been recorded for this event yet.'
+                  : `No ${statusFilter} payments found for this event.`}
+              </p>
+            </div>
+          ) : (
+            <div className="p-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+              {filteredTickets.map((ticket) => {
+                const isVerified = !!ticket.verified_at;
+                const isSuccess = ticket.status === 'success';
+                const isPending = ticket.status === 'pending';
+                const initials = ticket.customer_name
+                  ? ticket.customer_name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)
+                  : 'U?';
+
+                return (
+                  <div
+                    key={ticket.id}
+                    className="relative rounded-2xl overflow-hidden shadow-md border border-gray-100 flex flex-col"
+                    style={{ minHeight: '240px' }}
+                  >
+                    {/* Wallpaper background */}
+                    <div className="absolute inset-0">
+                      {event?.image ? (
+                        <img
+                          src={event.image}
+                          alt={event.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-indigo-900 to-purple-900" />
+                      )}
+                      {/* Gradient overlay - darkens bottom more for readability */}
+                      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/85" />
+                    </div>
+
+                    {/* Top badges row */}
+                    <div className="relative flex items-center justify-between p-4 pb-0">
+                      {/* Payment status badge */}
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm ${
+                        isSuccess
+                          ? 'bg-green-500/80 text-white'
+                          : isPending
+                          ? 'bg-amber-400/80 text-black'
+                          : 'bg-red-500/80 text-white'
+                      }`}>
+                        {isSuccess ? '✓' : isPending ? '⏳' : '✕'} {ticket.status}
+                      </span>
+
+                      {/* Verified / Unverified badge */}
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm ${
+                        isVerified
+                          ? 'bg-emerald-500/90 text-white'
+                          : 'bg-white/20 text-white border border-white/30'
+                      }`}>
+                        {isVerified
+                          ? <><FaCheckCircle size={9} /> Verified</>  
+                          : <><FaTimesCircle size={9} /> Unverified</>}
+                      </span>
+                    </div>
+
+                    {/* Center content */}
+                    <div className="relative flex-1 flex flex-col justify-end p-4 pt-2">
+                      {/* Avatar + name */}
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-11 h-11 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-black text-sm flex-shrink-0 ring-2 ring-white/30">
+                          {initials}
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex flex-col gap-1">
-                          <div className="flex items-center gap-2 text-xs text-gray-600">
-                            <FaEnvelope className="text-gray-400" size={10} />
-                            <span>{ticket.customer_email}</span>
-                          </div>
-                          {ticket.customer_phone && (
-                            <div className="flex items-center gap-2 text-xs text-gray-600">
-                              <FaPhone className="text-gray-400" size={10} />
-                              <span>{ticket.customer_phone}</span>
-                            </div>
-                          )}
+                        <div className="min-w-0">
+                          <p className="text-white font-bold text-sm leading-tight truncate">
+                            {ticket.customer_name || 'Unknown User'}
+                          </p>
+                          <p className="text-white/60 text-[10px] font-mono mt-0.5 truncate">
+                            {ticket.tx_ref?.substring(0, 22)}…
+                          </p>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900 font-medium">{ticket.quantity} Ticket(s)</div>
-                        <div className="text-xs text-gray-500">{ticket.amount} {ticket.currency}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2.5 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${
-                          ticket.status === 'success' 
-                            ? 'bg-green-100 text-green-700' 
-                            : ticket.status === 'pending'
-                            ? 'bg-amber-100 text-amber-700'
-                            : 'bg-red-100 text-red-700'
-                        }`}>
-                          {ticket.status.toUpperCase()}
+                      </div>
+
+                      {/* Divider */}
+                      <div className="border-t border-white/10 mb-3" />
+
+                      {/* Contact + details grid */}
+                      <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[11px]">
+                        <div className="flex items-center gap-1.5 text-white/80 min-w-0">
+                          <FaEnvelope className="text-white/40 flex-shrink-0" size={9} />
+                          <span className="truncate">{ticket.customer_email}</span>
+                        </div>
+                        {ticket.customer_phone && (
+                          <div className="flex items-center gap-1.5 text-white/80 min-w-0">
+                            <FaPhone className="text-white/40 flex-shrink-0" size={9} />
+                            <span className="truncate">{ticket.customer_phone}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-1.5 text-white/80">
+                          <FaTicketAlt className="text-white/40 flex-shrink-0" size={9} />
+                          <span>{ticket.quantity} ticket{Number(ticket.quantity) !== 1 ? 's' : ''}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-white/80">
+                          <FaTag className="text-white/40 flex-shrink-0" size={9} />
+                          <span className="font-semibold">{Number(ticket.amount).toLocaleString()} {ticket.currency}</span>
+                        </div>
+                      </div>
+
+                      {/* Verified at detail (if verified) */}
+                      {isVerified && (
+                        <div className="mt-2 flex items-center gap-1.5 text-emerald-300 text-[10px]">
+                          <FaShieldAlt size={9} />
+                          <span>Scanned {new Date(ticket.verified_at!).toLocaleDateString()} at {new Date(ticket.verified_at!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
+                      )}
+
+                      {/* Date footer */}
+                      <div className="mt-2 flex items-center justify-between">
+                        <span className="text-white/40 text-[10px]">
+                          {new Date(ticket.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">
-                        {new Date(ticket.created_at).toLocaleDateString()}<br/>
-                        {new Date(ticket.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                        {ticket.qr_code_data && (
+                          <span className="text-white/40 text-[10px] flex items-center gap-1">
+                            <FaQrcode size={9} /> QR ready
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </AdminLayout>
