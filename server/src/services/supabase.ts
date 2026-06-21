@@ -1,31 +1,18 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.SUPABASE_URL || '';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
+const supabaseUrl = process.env.SUPABASE_URL || 'https://zjhnvtegoarvdqakqqkd.supabase.co';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqaG52dGVnb2FydmRxYWtxcWtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI1OTEwNjcsImV4cCI6MjA3ODE2NzA2N30.psUwlT7mj-N9p4JN2DByHLnayrIkoeBdI81lcQWgmII';
 
-// Create Supabase client only if credentials are provided
-// This allows the server to start even without Supabase (for basic Telegram bot functionality)
+// Create Supabase client
 let supabase: SupabaseClient;
 
-if (!supabaseUrl || !supabaseServiceKey) {
-  console.warn('⚠️  Supabase credentials not configured. Some features (push notifications, database queries) may not work.');
-  // Create a dummy client that will fail gracefully when used
-  // This prevents the server from crashing on startup
-  supabase = createClient('https://placeholder.supabase.co', 'placeholder-key', {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  });
-} else {
-  // Use service role key for backend operations (bypasses RLS)
-  supabase = createClient(supabaseUrl, supabaseServiceKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  });
-}
+// Use service role key or anon key for backend operations
+supabase = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+  },
+});
 
 // Helper function to check if Supabase is properly configured
 export const isSupabaseConfigured = (): boolean => {

@@ -175,58 +175,70 @@ const EventDetails = () => {
           </div>
         </div>
 
-        {/* Event Info Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="grid grid-cols-1 md:grid-cols-3">
-            <div className="h-48 md:h-auto relative">
-              <img 
-                src={event.image} 
-                alt={event.title} 
-                className="w-full h-full object-cover"
-              />
+        {/* Premium Event Info Card */}
+        <div className="relative rounded-3xl shadow-xl border border-gray-100 overflow-hidden bg-white mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3">
+            {/* Image Section */}
+            <div className="h-64 lg:h-auto relative">
+              {event.image ? (
+                <img 
+                  src={event.image} 
+                  alt={event.title} 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-indigo-900 to-purple-900" />
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent lg:bg-gradient-to-r lg:from-transparent lg:to-black/80" />
               <div className="absolute top-4 left-4">
-                <span className="px-3 py-1 rounded-full text-xs font-bold text-white shadow-lg uppercase tracking-wider" style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}>
+                <span className="px-4 py-1.5 rounded-full text-xs font-black text-white shadow-lg uppercase tracking-widest backdrop-blur-md bg-white/20 border border-white/30">
                   {event.category}
                 </span>
               </div>
             </div>
-            <div className="p-6 md:col-span-2 space-y-4">
-              <h2 className="text-2xl font-bold text-gray-900">{event.title}</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex items-center gap-3 text-gray-600">
-                  <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
-                    <FaCalendarAlt size={14} />
+            
+            {/* Info Section */}
+            <div className="p-8 lg:col-span-2 space-y-6 flex flex-col justify-center">
+              <h2 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight leading-tight">{event.title}</h2>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 border-t border-gray-100">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-50/80 flex items-center justify-center text-indigo-600 shadow-sm border border-indigo-100/50">
+                    <FaCalendarAlt size={18} />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400 font-medium">Date & Time</p>
-                    <p className="text-sm">{new Date(event.date).toLocaleDateString()} {event.time && `at ${event.time}`}</p>
+                    <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-0.5">Date & Time</p>
+                    <p className="text-sm font-bold text-gray-900">{new Date(event.date).toLocaleDateString()} {event.time && `at ${event.time}`}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 text-gray-600">
-                  <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center text-green-600">
-                    <FaMapMarkerAlt size={14} />
+                
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-green-50/80 flex items-center justify-center text-green-600 shadow-sm border border-green-100/50">
+                    <FaMapMarkerAlt size={18} />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400 font-medium">Location</p>
-                    <p className="text-sm truncate max-w-[200px]">{event.location}</p>
+                    <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-0.5">Location</p>
+                    <p className="text-sm font-bold text-gray-900 truncate max-w-[200px]" title={event.location}>{event.location}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 text-gray-600">
-                  <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center text-amber-600">
-                    <FaTag size={14} />
+                
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-50/80 flex items-center justify-center text-amber-600 shadow-sm border border-amber-100/50">
+                    <FaTag size={18} />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400 font-medium">Price</p>
-                    <p className="text-sm font-semibold text-gray-900">{event.price} {event.currency}</p>
+                    <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-0.5">Price</p>
+                    <p className="text-sm font-black text-gray-900">{event.price} <span className="text-xs text-gray-500 font-bold">{event.currency}</span></p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 text-gray-600">
-                  <div className="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center text-purple-600">
-                    <FaTicketAlt size={14} />
+                
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-purple-50/80 flex items-center justify-center text-purple-600 shadow-sm border border-purple-100/50">
+                    <FaTicketAlt size={18} />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400 font-medium">Capacity</p>
-                    <p className="text-sm">{event.attendees || 0} / {event.maxAttendees || '∞'} registered</p>
+                    <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-0.5">Capacity</p>
+                    <p className="text-sm font-bold text-gray-900">{event.attendees || 0} / <span className="text-gray-500">{event.maxAttendees || '∞'}</span> registered</p>
                   </div>
                 </div>
               </div>
@@ -235,54 +247,72 @@ const EventDetails = () => {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Total Orders</p>
-            <div className="flex items-end justify-between">
-              <p className="text-2xl font-bold text-gray-900">{stats.totalTickets}</p>
-              <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
-                <FaTicketAlt />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-md transition-shadow">
+            <div className="absolute -right-6 -top-6 w-24 h-24 bg-blue-50 rounded-full group-hover:scale-110 transition-transform duration-500" />
+            <div className="relative">
+              <div className="flex justify-between items-start mb-4">
+                <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shadow-inner">
+                  <FaTicketAlt size={16} />
+                </div>
               </div>
+              <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Orders</p>
+              <p className="text-3xl font-black text-gray-900 tracking-tight">{stats.totalTickets}</p>
             </div>
           </div>
-          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Attendees (Quantity)</p>
-            <div className="flex items-end justify-between">
-              <p className="text-2xl font-bold text-gray-900">{stats.successfulQuantity}</p>
-              <div className="p-2 bg-green-50 text-green-600 rounded-lg">
-                <FaUser />
+
+          <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-md transition-shadow">
+            <div className="absolute -right-6 -top-6 w-24 h-24 bg-green-50 rounded-full group-hover:scale-110 transition-transform duration-500" />
+            <div className="relative">
+              <div className="flex justify-between items-start mb-4">
+                <div className="w-10 h-10 rounded-xl bg-green-100 text-green-600 flex items-center justify-center shadow-inner">
+                  <FaUser size={16} />
+                </div>
               </div>
+              <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">Attendees</p>
+              <p className="text-3xl font-black text-gray-900 tracking-tight">{stats.successfulQuantity}</p>
             </div>
           </div>
-          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Total Revenue</p>
-            <div className="flex items-end justify-between">
-              <p className="text-2xl font-bold text-gray-900">
-                {stats.totalRevenue.toLocaleString()} <span className="text-sm font-normal text-gray-500">{event.currency}</span>
+
+          <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-md transition-shadow">
+            <div className="absolute -right-6 -top-6 w-24 h-24 bg-amber-50 rounded-full group-hover:scale-110 transition-transform duration-500" />
+            <div className="relative">
+              <div className="flex justify-between items-start mb-4">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shadow-inner">
+                  <span className="font-black text-lg">E</span>
+                </div>
+              </div>
+              <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">Revenue</p>
+              <p className="text-3xl font-black text-gray-900 tracking-tight">
+                {stats.totalRevenue.toLocaleString()} <span className="text-sm font-bold text-gray-400 uppercase tracking-widest ml-1">{event.currency}</span>
               </p>
-              <div className="p-2 bg-amber-50 text-amber-600 rounded-lg">
-                <span className="font-bold">E</span>
-              </div>
             </div>
           </div>
-          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Pending Orders</p>
-            <div className="flex items-end justify-between">
-              <p className="text-2xl font-bold text-gray-900">{stats.pendingTickets}</p>
-              <div className="p-2 bg-red-50 text-red-600 rounded-lg">
-                <FaTicketAlt />
+
+          <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-md transition-shadow">
+            <div className="absolute -right-6 -top-6 w-24 h-24 bg-red-50 rounded-full group-hover:scale-110 transition-transform duration-500" />
+            <div className="relative">
+              <div className="flex justify-between items-start mb-4">
+                <div className="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center shadow-inner">
+                  <FaTicketAlt size={16} />
+                </div>
               </div>
+              <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">Pending Orders</p>
+              <p className="text-3xl font-black text-gray-900 tracking-tight">{stats.pendingTickets}</p>
             </div>
           </div>
         </div>
 
-        {/* Attendees Table Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="p-6 border-b border-gray-50 flex flex-col gap-4">
+        {/* Attendees List Card */}
+        <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden mb-8">
+          <div className="p-8 border-b border-gray-50 flex flex-col gap-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <h3 className="text-lg font-bold text-gray-900">Payment List</h3>
+              <div>
+                <h3 className="text-xl font-black text-gray-900 tracking-tight">Payment & Attendee List</h3>
+                <p className="text-xs text-gray-500 font-medium mt-1">Manage all registrations and tickets for this event.</p>
+              </div>
               <div className="relative max-w-sm w-full">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <FaSearch className="text-gray-400" />
                 </div>
                 <input
@@ -290,7 +320,7 @@ const EventDetails = () => {
                   placeholder="Search by name, email, or ref..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                  className="block w-full pl-11 pr-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm transition-all outline-none"
                 />
               </div>
             </div>

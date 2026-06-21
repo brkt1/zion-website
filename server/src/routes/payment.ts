@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import chapa from '../services/chapa';
 import { notifyAdminsOfPayment } from '../services/telegram';
 import { generateThankYouMessage, sendWhatsAppMessage } from '../services/whatsapp';
+import { supabase, isSupabaseConfigured } from '../services/supabase';
 
 const router = express.Router();
 
@@ -168,6 +169,16 @@ router.post('/initialize', async (req: Request, res: Response) => {
           console.warn('Skipping customization due to invalid characters in event title:', event_title);
         }
       }
+
+      // Add meta fields for Chapa to pass back in verification and webhook
+      const metaData: any = {};
+      if (event_id) metaData.event_id = event_id;
+      if (event_title) metaData.event_title = event_title;
+      const ticketQuantity = quantity && quantity > 0 ? quantity : 1;
+      metaData.quantity = String(ticketQuantity);
+      if (commission_seller_id) metaData.commission_seller_id = commission_seller_id;
+      
+      paymentData.meta = metaData;
 
       // Initialize payment with Chapa
       const response = await chapa.initialize(paymentData);
@@ -474,9 +485,123 @@ router.get('/verify/:tx_ref', async (req: Request, res: Response) => {
         }).catch((error) => {
           console.error('❌ Error notifying admins of payment:', error);
         });
+
+        // Save ticket to Supabase directly from the server verification endpoint
+        if (isSupabaseConfigured()) {
+          try {
+            const txRefToUse = verificationData.tx_ref || tx_ref;
+            const eventId = verificationData.event_id || verificationData.meta?.event_id;
+            const eventTitle = verificationData.event_title || verificationData.meta?.event_title;
+            const quantity = verificationData.quantity || verificationData.meta?.quantity || 1;
+            const customerEmail = verificationData.email || verificationData.meta?.email;
+            const commissionSellerId = verificationData.commission_seller_id || verificationData.meta?.commission_seller_id;
+            let commissionSellerName = verificationData.commission_seller_name || verificationData.meta?.commission_seller_name;
+
+            // Resolve event_id if not present but we have event_title
+            let resolvedEventId = eventId;
+            if (!resolvedEventId && eventTitle) {
+              const { data: eventData } = await supabase
+                .from('events')
+                .select('id')
+                .eq('title', eventTitle)
+                .maybeSingle();
+              if (eventData) {
+                resolvedEventId = eventData.id;
+              }
+            }
+
+            // Resolve commission seller name if not present but we have ID
+            if (commissionSellerId && !commissionSellerName) {
+              const { data: sellerData } = await supabase
+                .from('commission_sellers')
+                .select('name')
+                .eq('id', commissionSellerId)
+                .maybeSingle();
+              if (sellerData) {
+                commissionSellerName = sellerData.name;
+              }
+            }
+
+            // Check if ticket already exists
+            const { data: existingTicket } = await supabase
+              .from('tickets')
+              .select('*')
+              .eq('tx_ref', txRefToUse)
+              .maybeSingle();
+
+            const qrData = {
+              tx_ref: txRefToUse,
+              amount: amount,
+              currency: verificationData.currency || "ETB",
+              date: verificationData.created_at || new Date().toISOString(),
+              status: "success",
+              reference: verificationData.reference || txRefToUse,
+              quantity: Number(quantity) || 1,
+              email: customerEmail || "",
+              name: customerName || ""
+            };
+
+            const ticketPayload = {
+              tx_ref: txRefToUse,
+              event_id: resolvedEventId || null,
+              event_title: eventTitle || null,
+              customer_name: customerName || null,
+              customer_email: customerEmail || '',
+              customer_phone: phoneNumber || null,
+              amount: amount,
+              currency: verificationData.currency || 'ETB',
+              quantity: Number(quantity) || 1,
+              status: 'success',
+              chapa_reference: verificationData.reference || null,
+              commission_seller_id: commissionSellerId || null,
+              commission_seller_name: commissionSellerName || null,
+              qr_code_data: qrData,
+              payment_date: verificationData.created_at || new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            };
+
+            if (existingTicket) {
+              console.log('🔄 Verification API: Updating existing ticket:', txRefToUse);
+              await supabase
+                .from('tickets')
+                .update(ticketPayload)
+                .eq('tx_ref', txRefToUse);
+            } else {
+              console.log('📥 Verification API: Inserting new ticket:', txRefToUse);
+              await supabase
+                .from('tickets')
+                .insert([ticketPayload]);
+            }
+
+            // Update event attendees count
+            if (resolvedEventId) {
+              const { data: eventData } = await supabase
+                .from('events')
+                .select('attendees')
+                .eq('id', resolvedEventId)
+                .maybeSingle();
+              if (eventData) {
+                const currentAttendees = eventData.attendees || 0;
+                const newAttendees = currentAttendees + (Number(quantity) || 1);
+                await supabase
+                  .from('events')
+                  .update({
+                    attendees: newAttendees,
+                    updated_at: new Date().toISOString()
+                  })
+                  .eq('id', resolvedEventId);
+                console.log(`✅ Verification API: Updated attendees count for event ${resolvedEventId} to ${newAttendees}`);
+              }
+            }
+          } catch (dbError) {
+            console.error('❌ Verification API error saving ticket to database:', dbError);
+          }
+        } else {
+          console.warn('⚠️ Verification API: Supabase is not configured, cannot save ticket to database.');
+        }
       } catch (error: any) {
         // Don't fail the verification if notifications fail
-        console.error('Error preparing notifications:', error);
+        console.error('Error preparing notifications and DB updates:', error);
       }
     }
 
@@ -604,25 +729,123 @@ router.post('/webhook', async (req: Request, res: Response) => {
           }).catch((error) => {
             console.error('❌ Error notifying admins of payment via webhook:', error);
           });
+
+          // Save ticket to Supabase directly from the server webhook
+          if (isSupabaseConfigured()) {
+            try {
+              const txRefToUse = verificationData.tx_ref || tx_ref;
+              const eventId = verificationData.event_id || verificationData.meta?.event_id || req.body.event_id;
+              const commissionSellerId = verificationData.commission_seller_id || verificationData.meta?.commission_seller_id;
+              let commissionSellerName = verificationData.commission_seller_name || verificationData.meta?.commission_seller_name;
+
+              // Resolve event_id if not present but we have event_title
+              let resolvedEventId = eventId;
+              if (!resolvedEventId && eventTitle) {
+                const { data: eventData } = await supabase
+                  .from('events')
+                  .select('id')
+                  .eq('title', eventTitle)
+                  .maybeSingle();
+                if (eventData) {
+                  resolvedEventId = eventData.id;
+                }
+              }
+
+              // Resolve commission seller name if not present but we have ID
+              if (commissionSellerId && !commissionSellerName) {
+                const { data: sellerData } = await supabase
+                  .from('commission_sellers')
+                  .select('name')
+                  .eq('id', commissionSellerId)
+                  .maybeSingle();
+                if (sellerData) {
+                  commissionSellerName = sellerData.name;
+                }
+              }
+
+              // Check if ticket already exists
+              const { data: existingTicket } = await supabase
+                .from('tickets')
+                .select('*')
+                .eq('tx_ref', txRefToUse)
+                .maybeSingle();
+
+              const qrData = {
+                tx_ref: txRefToUse,
+                amount: amount,
+                currency: verificationData.currency || "ETB",
+                date: verificationData.created_at || new Date().toISOString(),
+                status: "success",
+                reference: verificationData.reference || txRefToUse,
+                quantity: quantity || 1,
+                email: customerEmail || "",
+                name: customerName || ""
+              };
+
+              const ticketPayload = {
+                tx_ref: txRefToUse,
+                event_id: resolvedEventId || null,
+                event_title: eventTitle || null,
+                customer_name: customerName || null,
+                customer_email: customerEmail || '',
+                customer_phone: phoneNumber || null,
+                amount: amount,
+                currency: verificationData.currency || 'ETB',
+                quantity: quantity || 1,
+                status: 'success',
+                chapa_reference: verificationData.reference || null,
+                commission_seller_id: commissionSellerId || null,
+                commission_seller_name: commissionSellerName || null,
+                qr_code_data: qrData,
+                payment_date: verificationData.created_at || new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              };
+
+              if (existingTicket) {
+                console.log('🔄 Webhook: Updating existing ticket:', txRefToUse);
+                await supabase
+                  .from('tickets')
+                  .update(ticketPayload)
+                  .eq('tx_ref', txRefToUse);
+              } else {
+                console.log('📥 Webhook: Inserting new ticket:', txRefToUse);
+                await supabase
+                  .from('tickets')
+                  .insert([ticketPayload]);
+              }
+
+              // Update event attendees count
+              if (resolvedEventId) {
+                const { data: eventData } = await supabase
+                  .from('events')
+                  .select('attendees')
+                  .eq('id', resolvedEventId)
+                  .maybeSingle();
+                if (eventData) {
+                  const currentAttendees = eventData.attendees || 0;
+                  const newAttendees = currentAttendees + (Number(quantity) || 1);
+                  await supabase
+                    .from('events')
+                    .update({
+                      attendees: newAttendees,
+                      updated_at: new Date().toISOString()
+                    })
+                    .eq('id', resolvedEventId);
+                  console.log(`✅ Webhook: Updated attendees count for event ${resolvedEventId} to ${newAttendees}`);
+                }
+              }
+            } catch (dbError) {
+              console.error('❌ Webhook error saving ticket to database:', dbError);
+            }
+          } else {
+            console.warn('⚠️ Webhook: Supabase is not configured, cannot save ticket to database.');
+          }
+
         } catch (error: any) {
-          // Don't fail the webhook if notifications fail
+          // Don't fail the webhook if notifications or DB save fail
           console.error('Error preparing notifications in webhook:', error);
         }
       }
-
-      // Here you can update your database, send emails, etc.
-      // Example:
-      // - Update payment status in database
-      // - Send confirmation email to customer
-      // - Update event registration
-      // - Trigger other business logic
-      
-      // Note: Tickets are automatically saved to Supabase by the frontend
-      // after successful payment verification on the PaymentSuccess page.
-      // If you want to also save tickets server-side here, you would need to:
-      // 1. Install @supabase/supabase-js in the server
-      // 2. Set up Supabase client with service role key
-      // 3. Call saveTicket service here when status is 'success'
     }
 
     // Always return 200 to acknowledge receipt
