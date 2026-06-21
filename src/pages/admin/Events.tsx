@@ -341,11 +341,23 @@ const Events = () => {
         {/* Modal */}
         {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4">
-            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6">
-              <h2 className="text-xl sm:text-2xl font-bold mb-4">
-                {editingEvent ? 'Edit Event' : 'Add New Event'}
-              </h2>
-              <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] flex flex-col">
+              {/* Sticky header */}
+              <div className="flex items-center justify-between p-4 sm:p-6 pb-2 border-b border-gray-100 shrink-0">
+                <h2 className="text-xl sm:text-2xl font-bold">
+                  {editingEvent ? 'Edit Event' : 'Add New Event'}
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => { setShowModal(false); setEditingEvent(null); resetForm(); }}
+                  className="p-2 rounded-full hover:bg-gray-100 text-gray-500 transition-colors"
+                >
+                  <FaTimes />
+                </button>
+              </div>
+              {/* Scrollable body */}
+              <div className="overflow-y-auto flex-1 p-4 sm:p-6">
+              <form id="event-form" onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Title *</label>
@@ -673,27 +685,32 @@ const Events = () => {
                     <span className="text-sm font-medium text-gray-700">Featured Event</span>
                   </label>
                 </div>
-                <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowModal(false);
-                      setEditingEvent(null);
-                      resetForm();
-                    }}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 text-white rounded-md transition-all shadow-md hover:shadow-lg"
-                    style={{ background: 'linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)' }}
-                  >
-                    {editingEvent ? 'Update' : 'Create'}
-                  </button>
-                </div>
-              </form>
+
+                </form>
+              </div>
+
+              {/* Sticky footer with action buttons */}
+              <div className="shrink-0 border-t border-gray-100 px-4 sm:px-6 py-4 bg-white rounded-b-lg flex flex-col sm:flex-row justify-end gap-3 sm:gap-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowModal(false);
+                    setEditingEvent(null);
+                    resetForm();
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  form="event-form"
+                  className="px-6 py-2 text-white rounded-md transition-all shadow-md hover:shadow-lg font-semibold"
+                  style={{ background: 'linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)' }}
+                >
+                  {editingEvent ? 'Update Event' : 'Create Event'}
+                </button>
+              </div>
             </div>
           </div>
         )}
