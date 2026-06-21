@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { FaArrowLeft, FaDownload, FaEnvelope, FaPhone, FaSearch, FaTicketAlt, FaUser, FaCalendarAlt, FaMapMarkerAlt, FaTag, FaCheckCircle, FaTimesCircle, FaQrcode, FaShieldAlt } from 'react-icons/fa';
+import { FaArrowLeft, FaDownload, FaEnvelope, FaPhone, FaSearch, FaTicketAlt, FaUser, FaCalendarAlt, FaMapMarkerAlt, FaTag, FaCheckCircle, FaTimesCircle, FaQrcode, FaShieldAlt, FaSyncAlt, FaExclamationTriangle } from 'react-icons/fa';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { adminApi } from '../../services/adminApi';
 import { api, Event } from '../../services/api';
 import { handleSupabaseError } from '../../services/supabase';
+import { fetchChapaTransactions } from '../../services/payment';
 import { Ticket } from '../../types';
 import { NetworkErrorBanner } from '../../Components/ui/NetworkStatus';
 
@@ -14,9 +15,11 @@ const EventDetails = () => {
   const [event, setEvent] = useState<Event | null>(null);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'success' | 'pending' | 'failed'>('all');
   const [error, setError] = useState<string | null>(null);
+  const [dataSource, setDataSource] = useState<'chapa' | 'database' | 'merged'>('database');
 
 
   useEffect(() => {
@@ -25,39 +28,93 @@ const EventDetails = () => {
     }
   }, [id]);
 
-  const loadData = async (eventId: string) => {
+  const loadData = async (eventId: string, isRefresh = false) => {
     try {
-      setLoading(true);
-      const eventData = await api.getEvent(eventId);
-      const ticketsData = await adminApi.tickets.getByEvent(eventId, eventData?.title);
+      if (isRefresh) setRefreshing(true);
+      else setLoading(true);
 
-      // Deduplicate tickets that might have been created twice (common in free registrations)
-      // We deduplicate based on email, amount, quantity, and timestamp (rounded to nearest minute)
-      const uniqueTicketsMap = new Map();
-      (ticketsData || []).forEach((ticket: Ticket) => {
-        const timestamp = new Date(ticket.created_at).getTime();
-        const roundedTimestamp = Math.floor(timestamp / 60000); // Round to nearest minute
-        const key = `${ticket.customer_email}-${ticket.amount}-${ticket.quantity}-${roundedTimestamp}`;
-        
-        if (!uniqueTicketsMap.has(key)) {
-          uniqueTicketsMap.set(key, ticket);
+      const eventData = await api.getEvent(eventId);
+      setEvent(eventData);
+
+      // Try fetching from Chapa first (live, authoritative data)
+      let chapaTickets: any[] = [];
+      let chapaError = false;
+      try {
+        // Fetch all Chapa transactions and filter by event title
+        const allChapa = await fetchChapaTransactions(eventData?.title);
+        chapaTickets = allChapa;
+      } catch (err) {
+        console.warn('Could not load from Chapa, falling back to database:', err);
+        chapaError = true;
+      }
+
+      // Always fetch from database too (has verified_at, QR data, etc.)
+      const dbTickets = await adminApi.tickets.getByEvent(eventId, eventData?.title);
+
+      // Merge: Chapa is source of truth for status/amount; DB adds verified_at, QR
+      const mergedMap = new Map<string, any>();
+
+      // Start with DB tickets
+      (dbTickets || []).forEach((t: Ticket) => {
+        mergedMap.set(t.tx_ref, { ...t, _source: 'database' });
+      });
+
+      // Overlay Chapa data (Chapa status is always authoritative)
+      chapaTickets.forEach((t: any) => {
+        const existing = mergedMap.get(t.tx_ref);
+        if (existing) {
+          // Merge: keep DB fields like verified_at, qr_code_data; use Chapa for status/amount
+          mergedMap.set(t.tx_ref, {
+            ...existing,
+            status: t.status,       // Chapa status is authoritative
+            amount: t.amount,
+            currency: t.currency,
+            quantity: t.quantity || existing.quantity,
+            customer_name: t.customer_name || existing.customer_name,
+            customer_email: t.customer_email || existing.customer_email,
+            customer_phone: t.customer_phone || existing.customer_phone,
+            chapa_reference: t.chapa_reference || existing.chapa_reference,
+            _source: 'merged',
+          });
         } else {
-          // If we have a duplicate, prefer the one that doesn't start with 'free_reg_' 
-          const existing = uniqueTicketsMap.get(key);
-          if (existing.tx_ref.startsWith('free_reg_') && !ticket.tx_ref.startsWith('free_reg_')) {
-            uniqueTicketsMap.set(key, ticket);
+          // New transaction from Chapa not in DB — add it
+          mergedMap.set(t.tx_ref, { ...t, id: t.id || t.tx_ref, created_at: t.created_at || new Date().toISOString() });
+        }
+      });
+
+      const allTickets = Array.from(mergedMap.values());
+
+      // Determine data source label
+      if (chapaError) setDataSource('database');
+      else if (chapaTickets.length > 0 && (dbTickets || []).length > 0) setDataSource('merged');
+      else if (chapaTickets.length > 0) setDataSource('chapa');
+      else setDataSource('database');
+
+      // Deduplicate by email + amount + timestamp (rounded to minute)
+      const uniqueMap = new Map<string, any>();
+      allTickets.forEach((ticket: any) => {
+        const timestamp = new Date(ticket.created_at).getTime();
+        const roundedTimestamp = Math.floor(timestamp / 60000);
+        const key = `${ticket.customer_email}-${ticket.amount}-${ticket.quantity}-${roundedTimestamp}`;
+        if (!uniqueMap.has(key)) {
+          uniqueMap.set(key, ticket);
+        } else {
+          const existing = uniqueMap.get(key);
+          // Prefer merged or non-free_reg tickets
+          if ((existing.tx_ref?.startsWith('free_reg_') && !ticket.tx_ref?.startsWith('free_reg_')) ||
+              (existing._source === 'database' && ticket._source === 'merged')) {
+            uniqueMap.set(key, ticket);
           }
         }
       });
 
-      setEvent(eventData);
-      setTickets(Array.from(uniqueTicketsMap.values()));
+      setTickets(Array.from(uniqueMap.values()));
     } catch (error: any) {
       const handled = handleSupabaseError(error, 'loadData');
       setError(handled.message);
     } finally {
-
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -156,7 +213,30 @@ const EventDetails = () => {
             <span>Back to Events</span>
           </Link>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* Data source badge */}
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${
+              dataSource === 'chapa' ? 'bg-green-50 text-green-700 border border-green-200' :
+              dataSource === 'merged' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
+              'bg-gray-100 text-gray-600 border border-gray-200'
+            }`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${
+                dataSource === 'chapa' ? 'bg-green-500' :
+                dataSource === 'merged' ? 'bg-blue-500' : 'bg-gray-400'
+              }`} />
+              {dataSource === 'chapa' ? 'Live from Chapa' : dataSource === 'merged' ? 'Chapa + Database' : 'Database only'}
+            </span>
+            
+            {/* Refresh button */}
+            <button
+              onClick={() => id && loadData(id, true)}
+              disabled={refreshing}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-60 transition-all shadow-sm"
+            >
+              <FaSyncAlt className={refreshing ? 'animate-spin' : ''} />
+              <span>{refreshing ? 'Refreshing…' : 'Refresh'}</span>
+            </button>
+
             <button
               onClick={exportToCSV}
               className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all shadow-sm"

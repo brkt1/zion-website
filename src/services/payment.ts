@@ -144,6 +144,26 @@ export const verifyPayment = async (txRef: string): Promise<PaymentVerification>
   }
 };
 
+/**
+ * Fetch all transactions directly from Chapa via backend proxy.
+ * Optionally filter by event_title.
+ */
+export const fetchChapaTransactions = async (eventTitle?: string): Promise<any[]> => {
+  try {
+    const params = eventTitle ? `?event_title=${encodeURIComponent(eventTitle)}` : '';
+    const response = await fetch(`${API_BASE_URL}/payments/chapa-transactions${params}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || 'Failed to fetch Chapa transactions');
+    return data.data || [];
+  } catch (error: any) {
+    console.error('fetchChapaTransactions error:', error);
+    throw error;
+  }
+};
+
 export const generateTxRef = async (): Promise<string> => {
   try {
     const response = await fetch(`${API_BASE_URL}/payments/generate-tx-ref`, {

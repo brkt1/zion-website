@@ -344,6 +344,150 @@ router.post('/initialize', async (req: Request, res: Response) => {
   }
 });
 
+// Fetch all transactions from Chapa (for admin payment list)
+router.get('/chapa-transactions', async (req: Request, res: Response) => {
+  try {
+    const secretKey = process.env.CHAPA_SECRET_KEY || '';
+    if (!secretKey) {
+      return res.status(500).json({ success: false, message: 'Chapa secret key not configured' });
+    }
+
+    const https = require('https');
+    const { event_title } = req.query;
+
+    // Fetch all transactions from Chapa
+    const chapaData: any = await new Promise((resolve, reject) => {
+      const request = https.request({
+        hostname: 'api.chapa.co',
+        port: 443,
+        path: '/v1/transactions',
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${secretKey}`,
+          'Content-Type': 'application/json',
+        },
+      }, (response: any) => {
+        let data = '';
+        response.on('data', (chunk: any) => { data += chunk; });
+        response.on('end', () => {
+          try {
+            const jsonData = JSON.parse(data);
+            if (response.statusCode >= 200 && response.statusCode < 300) {
+              resolve(jsonData);
+            } else {
+              reject({ statusCode: response.statusCode, data: jsonData });
+            }
+          } catch (e) {
+            reject({ message: 'Failed to parse Chapa response', raw: data });
+          }
+        });
+      });
+      request.on('error', reject);
+      request.end();
+    });
+
+    // chapaData.data is an array of transactions
+    let transactions: any[] = chapaData.data || [];
+
+    // Filter by event_title if provided (check tx_ref prefix or customization title)
+    if (event_title && typeof event_title === 'string') {
+      const filterTitle = event_title.toLowerCase();
+      // We also try to match against supabase tickets for this event
+      // to only show relevant transactions
+    }
+
+    // Normalize transactions to our ticket shape
+    const normalized = transactions.map((tx: any) => {
+      const status = (tx.status || '').toLowerCase();
+      const normalizedStatus = 
+        status === 'success' || status === 'successful' || status === 'completed' ? 'success' :
+        status === 'pending' || status === 'processing' ? 'pending' :
+        'failed';
+
+      const rawAmount = parseFloat(String(tx.amount || 0));
+      // Chapa returns amount in ETB (not cents), so use as-is
+      const amount = rawAmount;
+
+      return {
+        id: tx.id || tx.tx_ref,
+        tx_ref: tx.tx_ref || tx.reference,
+        event_id: tx.meta?.event_id || null,
+        event_title: tx.meta?.event_title || tx.customization?.title || null,
+        customer_name: (tx.first_name && tx.last_name)
+          ? `${tx.first_name} ${tx.last_name}`.trim()
+          : tx.first_name || tx.last_name || null,
+        customer_email: tx.email || null,
+        customer_phone: tx.phone_number || null,
+        amount,
+        currency: tx.currency || 'ETB',
+        quantity: parseInt(String(tx.meta?.quantity || 1), 10),
+        status: normalizedStatus,
+        chapa_reference: tx.reference || null,
+        commission_seller_id: tx.meta?.commission_seller_id || null,
+        commission_seller_name: null,
+        qr_code_data: null,
+        payment_date: tx.created_at || tx.updated_at || null,
+        verified_at: null,
+        verified_by: null,
+        created_at: tx.created_at || new Date().toISOString(),
+        updated_at: tx.updated_at || new Date().toISOString(),
+        _source: 'chapa',
+      };
+    });
+
+    // Optionally enrich with supabase data (verified_at, verified_by, etc.)
+    if (isSupabaseConfigured() && normalized.length > 0) {
+      try {
+        const txRefs = normalized.map((t: any) => t.tx_ref).filter(Boolean);
+        const { data: dbTickets } = await supabase
+          .from('tickets')
+          .select('tx_ref, verified_at, verified_by, event_id, event_title, commission_seller_name, qr_code_data')
+          .in('tx_ref', txRefs);
+
+        if (dbTickets && dbTickets.length > 0) {
+          const dbMap = new Map(dbTickets.map((t: any) => [t.tx_ref, t]));
+          for (const tx of normalized) {
+            const db = dbMap.get(tx.tx_ref);
+            if (db) {
+              tx.verified_at = db.verified_at;
+              tx.verified_by = db.verified_by;
+              tx.event_id = tx.event_id || db.event_id;
+              tx.event_title = tx.event_title || db.event_title;
+              tx.commission_seller_name = db.commission_seller_name;
+              tx.qr_code_data = db.qr_code_data;
+            }
+          }
+        }
+      } catch (dbErr) {
+        console.warn('Could not enrich Chapa transactions with DB data:', dbErr);
+      }
+    }
+
+    // Filter by event_title if provided
+    let filtered = normalized;
+    if (event_title && typeof event_title === 'string') {
+      const filterLower = event_title.toLowerCase();
+      filtered = normalized.filter((tx: any) =>
+        tx.event_title?.toLowerCase().includes(filterLower) ||
+        tx.tx_ref?.toLowerCase().includes(filterLower)
+      );
+    }
+
+    return res.json({
+      success: true,
+      data: filtered,
+      total: filtered.length,
+      source: 'chapa',
+    });
+  } catch (error: any) {
+    console.error('Error fetching Chapa transactions:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to fetch transactions from Chapa',
+    });
+  }
+});
+
 // Verify payment
 router.get('/verify/:tx_ref', async (req: Request, res: Response) => {
   try {
