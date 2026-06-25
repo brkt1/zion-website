@@ -572,10 +572,11 @@ router.get('/verify/:tx_ref', async (req: Request, res: Response) => {
     
     if (status === "success" || status === "successful" || status === "completed") {
       try {
+        // Chapa returns amounts in base currency (ETB), NOT in cents
         const amount = verificationData.amount 
           ? (typeof verificationData.amount === 'string' 
-              ? parseFloat(verificationData.amount) / 100 
-              : verificationData.amount / 100)
+              ? parseFloat(verificationData.amount) 
+              : verificationData.amount)
           : 0;
         
         const customerName = verificationData.first_name && verificationData.last_name
@@ -812,10 +813,11 @@ router.post('/webhook', async (req: Request, res: Response) => {
       
       if (status === "success" || status === "successful" || status === "completed") {
         try {
+          // Chapa returns amounts in base currency (ETB), NOT in cents
           const amount = verificationData.amount 
             ? (typeof verificationData.amount === 'string' 
-                ? parseFloat(verificationData.amount) / 100 
-                : verificationData.amount / 100)
+                ? parseFloat(verificationData.amount) 
+                : verificationData.amount)
             : 0;
           
           const customerName = verificationData.first_name && verificationData.last_name

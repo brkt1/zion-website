@@ -39,32 +39,13 @@ const PaymentSuccess = () => {
     if (!txRef || ticketSaved) return; // Don't save twice
 
     try {
-      // Get amount value
-      // Chapa may return amounts in cents or base currency depending on the API version
-      // We need to detect which format it is:
-      // - If amount is very large (>= 1000) and has no decimal or is integer, it's likely in cents
-      // - If amount has decimal places or is reasonable (< 10000), it's likely in base currency
+      // Chapa returns amounts in base currency (ETB), NOT in cents
       let amount = 0;
       if (paymentData.amount) {
         if (typeof paymentData.amount === 'string') {
-          const parsed = parseFloat(paymentData.amount);
-          // Check if it looks like cents: very large number (>= 1000) and no meaningful decimal part
-          const isLikelyCents = parsed >= 1000 && (parsed % 1 === 0 || parsed % 100 === 0);
-          if (isLikelyCents) {
-            // Likely in cents, divide by 100
-            amount = parsed / 100;
-          } else {
-            // Already in base currency, use as is
-            amount = parsed;
-          }
+          amount = parseFloat(paymentData.amount) || 0;
         } else {
-          // For numeric values, apply same logic
-          const isLikelyCents = paymentData.amount >= 1000 && (paymentData.amount % 1 === 0 || paymentData.amount % 100 === 0);
-          if (isLikelyCents) {
-            amount = paymentData.amount / 100;
-          } else {
-            amount = paymentData.amount;
-          }
+          amount = paymentData.amount || 0;
         }
       }
 
@@ -187,22 +168,13 @@ const PaymentSuccess = () => {
     if (!txRef || whatsappSent || !paymentData.phone_number) return; // Don't send twice or if no phone number
 
     try {
-      // Get amount value
+      // Chapa returns amounts in base currency (ETB), NOT in cents
       let amount = 0;
       if (paymentData.amount) {
         if (typeof paymentData.amount === 'string') {
-          const parsed = parseFloat(paymentData.amount);
-          if (parsed >= 100) {
-            amount = parsed / 100;
-          } else {
-            amount = parsed;
-          }
+          amount = parseFloat(paymentData.amount) || 0;
         } else {
-          if (paymentData.amount >= 100) {
-            amount = paymentData.amount / 100;
-          } else {
-            amount = paymentData.amount;
-          }
+          amount = paymentData.amount || 0;
         }
       }
 
@@ -379,9 +351,9 @@ const PaymentSuccess = () => {
     const qrData = {
       tx_ref: paymentData.tx_ref || txRef || "",
       amount: paymentData.amount ? (() => {
+        // Chapa returns amounts in base currency, not cents
         const amt = typeof paymentData.amount === 'string' ? parseFloat(paymentData.amount) : paymentData.amount;
-        // Only divide by 100 if amount is >= 100 (likely in cents)
-        return amt >= 100 ? amt / 100 : amt;
+        return amt || 0;
       })() : 0,
       currency: paymentData.currency || "ETB",
       date: paymentData.created_at || new Date().toISOString(),
