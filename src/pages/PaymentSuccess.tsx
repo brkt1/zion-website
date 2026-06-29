@@ -66,6 +66,7 @@ const PaymentSuccess = () => {
       quantity: ticketQuantity,
       email: paymentData.email || "",
       name: getCustomerName(paymentData),
+      reference: paymentData.reference || paymentData.tx_ref || txRef || "",
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paymentData, txRef, ticketQuantity]);
@@ -77,7 +78,7 @@ const PaymentSuccess = () => {
       const amount = getAmount(pd);
       const customerName = getCustomerName(pd);
       let quantity = ticketQuantity;
-      const qrData = { tx_ref: pd.tx_ref || ref, amount, currency: pd.currency || "ETB", date: pd.created_at || new Date().toISOString(), status: "success", quantity, email: pd.email || "", name: customerName };
+      const qrData = { tx_ref: pd.tx_ref || ref, amount, currency: pd.currency || "ETB", date: pd.created_at || new Date().toISOString(), status: "success", quantity, email: pd.email || "", name: customerName, reference: pd.reference || pd.tx_ref || ref };
       const sellerName = commissionSeller?.name;
 
       const existing = await getTicketByTxRef(ref);
