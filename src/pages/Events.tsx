@@ -52,7 +52,22 @@ const formatDateShort = (dateString: string) => {
   });
 };
 
+type Orientation = 'portrait' | 'landscape' | 'unknown';
+
 const Events = () => {
+  const [imgOrientations, setImgOrientations] = useState<Record<string, Orientation>>({});
+
+  const detectOrientation = (id: string, src: string) => {
+    if (!src || imgOrientations[id]) return;
+    const img = new Image();
+    img.onload = () => {
+      setImgOrientations(prev => ({
+        ...prev,
+        [id]: img.naturalWidth >= img.naturalHeight ? 'landscape' : 'portrait',
+      }));
+    };
+    img.src = src;
+  };
   useScrollReveal();
 
   useEffect(() => {
@@ -287,7 +302,7 @@ const Events = () => {
         }
 
         @media (max-width: 768px) {
-          .yg-event-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
+          .yg-event-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
           .yg-category-nav { gap: 20px; overflow-x: auto; padding-bottom: 15px; }
           .yg-category-btn { white-space: nowrap; }
           .search-container { max-width: 100%; border-color: rgba(255,255,255,0.1) !important; background: rgba(255,255,255,0.05) !important; }
@@ -443,65 +458,91 @@ const Events = () => {
               className="yg-event-grid reveal-wrapper reveal-delay-200"
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(400px, 1fr))",
-                gap: "60px",
+                gridTemplateColumns: "repeat(2, 1fr)",
+                gap: "32px",
               }}
             >
-              {filteredEvents.map((event) => (
-                <Link
-                  key={event.id}
-                  to={`/events/${event.id}`}
-                  className="yg-event-card group"
-                >
-                  {/* Image Wrapper - Aspect 3:4 for vertical editorial feel */}
-                  <div className="relative aspect-[4/5] overflow-hidden">
-                    {event.image ? (
-                      <OptimizedImage
-                        src={event.image}
-                        alt={event.title}
-                        width={800}
-                        height={1000}
-                        className="card-img w-full h-full object-cover transition-transform duration-1000 cubic-bezier(0.16,1,0.3,1)"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-[#0F172A] flex items-center justify-center">
-                        <FaCalendarAlt size={40} className="text-[#FFD447]/20" />
+              {filteredEvents.map((event) => {
+                // Kick off orientation detection
+                if (event.image && !imgOrientations[event.id]) {
+                  detectOrientation(event.id, event.image);
+                }
+                const orient = imgOrientations[event.id] ?? 'portrait';
+                const isLandscape = orient === 'landscape';
+
+                return (
+                  <Link
+                    key={event.id}
+                    to={`/events/${event.id}`}
+                    className="yg-event-card group"
+                    style={isLandscape ? { gridColumn: '1 / -1' } : {}}
+                  >
+                    {/* Image fills full card — aspect ratio adapts to orientation */}
+                    <div
+                      className="relative overflow-hidden"
+                      style={{ aspectRatio: isLandscape ? '16/7' : '3/4' }}
+                    >
+                      {event.image ? (
+                        <OptimizedImage
+                          src={event.image}
+                          alt={event.title}
+                          width={isLandscape ? 1600 : 800}
+                          height={isLandscape ? 700 : 1067}
+                          className="card-img w-full h-full object-cover transition-transform duration-1000"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-[#0F172A] flex items-center justify-center">
+                          <FaCalendarAlt size={40} className="text-[#FFD447]/20" />
+                        </div>
+                      )}
+
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A]/95 via-[#0F172A]/20 to-black/10" />
+
+                      {/* Date pill — top right */}
+                      <div className="absolute right-6 top-6 flex flex-col items-center gap-3">
+                        <div className="w-px h-8 bg-white/20" />
+                        <span className="vertical-date">{formatDateShort(event.date)}</span>
                       </div>
-                    )}
 
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A]/90 via-transparent to-black/20" />
-                    
-                    {/* Vertical Date Branding */}
-                    <div className="absolute right-6 top-10 flex flex-col items-center gap-6">
-                       <div className="w-px h-12 bg-white/20" />
-                       <span className="vertical-date">{formatDateShort(event.date)}</span>
-                    </div>
-
-                    {/* Content Over the Image (High Contrast) */}
-                    <div className="absolute bottom-10 left-10 right-10 flex flex-col items-start">
-                       <div className="flex items-center gap-3 mb-4">
+                      {/* Content overlay */}
+                      <div
+                        className="absolute flex flex-col items-start"
+                        style={{
+                          bottom: isLandscape ? 40 : 36,
+                          left: isLandscape ? 48 : 32,
+                          right: isLandscape ? 48 : 32,
+                        }}
+                      >
+                        <div className="flex items-center gap-3 mb-4">
                           <span className="category-pill">{event.category}</span>
                           <span className="h-1 w-1 bg-[#FFD447] rounded-full" />
-                          <span className="text-[9px] font-black text-white/50 uppercase tracking-[0.3em]">{event.location}</span>
-                       </div>
-                       
-                       <h3 className="yg-font-serif text-3xl md:text-4xl font-black text-white leading-[1.05] tracking-tight mb-8">
-                         {event.title}
-                       </h3>
+                          <span className="text-[9px] font-black text-white/50 uppercase tracking-[0.3em] truncate max-w-[160px]">
+                            {event.location}
+                          </span>
+                        </div>
 
-                       <div className="flex items-center justify-between w-full">
-                         <div className="price-badge">
-                           {event.price === "Free" ? "Gratis" : `${event.price} ${event.currency}`}
-                         </div>
-                         
-                         <div className="arrow-circle w-14 h-14 rounded-full border border-white/20 flex items-center justify-center text-white transition-all duration-500">
-                           <FaArrowRight size={14} />
-                         </div>
-                       </div>
+                        <h3
+                          className="yg-font-serif font-black text-white leading-[1.05] tracking-tight mb-6"
+                          style={{ fontSize: isLandscape ? 'clamp(28px,3vw,48px)' : 'clamp(22px,2.5vw,36px)' }}
+                        >
+                          {event.title}
+                        </h3>
+
+                        <div className="flex items-center justify-between w-full">
+                          <div className="price-badge">
+                            {event.price === 'Free' || event.price === '0'
+                              ? 'Gratis'
+                              : `${event.price} ${event.currency}`}
+                          </div>
+                          <div className="arrow-circle w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-white transition-all duration-500">
+                            <FaArrowRight size={13} />
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                );
+              })}
             </div>
           )}
         </div>

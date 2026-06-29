@@ -1,6 +1,7 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
     FaArrowRight,
+    FaCalendarAlt,
     FaCheckCircle,
     FaGraduationCap,
     FaRocket,
@@ -9,9 +10,9 @@ import {
     FaWhatsapp
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import EventSlider from "../Components/EventSlider";
 import Gallery from "../Components/Gallery";
 import Hero from "../Components/Hero";
+import OptimizedImage from "../Components/ui/OptimizedImage";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useEvents, useHomeContent } from "../hooks/useApi";
 import { useScrollReveal } from "../hooks/useScrollReveal";
@@ -63,6 +64,20 @@ const Home = () => {
   const { t } = useLanguage();
   const { content: homeContent } = useHomeContent();
   const { events: recentEvents } = useEvents({ limit: 6 });
+
+  const [imgOrientations, setImgOrientations] = useState<Record<string, 'portrait' | 'landscape' | 'unknown'>>({});
+
+  const detectOrientation = (id: string, src: string) => {
+    if (!src || imgOrientations[id]) return;
+    const img = new Image();
+    img.onload = () => {
+      setImgOrientations(prev => ({
+        ...prev,
+        [id]: img.naturalWidth >= img.naturalHeight ? 'landscape' : 'portrait',
+      }));
+    };
+    img.src = src;
+  };
 
   useEffect(() => {
     document.title = "YENEGE | Professional Event Production & Academy Addis Ababa";
@@ -496,8 +511,141 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ── Event Slider Display ──────────────────────────────────────────────── */}
-      <EventSlider events={recentEvents} />
+      {/* ── Featured Events (Grid) ──────────────────────────────────────────────── */}
+      <section style={{ padding: "120px 0", background: BRAND.navy, position: 'relative' }}>
+        <div className="reveal-wrapper" style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 40px" }}>
+          <div style={{ textAlign: "center", marginBottom: "80px" }}>
+            <SectionLabel>Curated Experiences</SectionLabel>
+            <h2 className="yg-font-serif" style={{ fontSize: "clamp(40px, 6vw, 64px)", fontWeight: 900, color: "#fff", marginBottom: "24px", lineHeight: 1.1 }}>
+              Featured <span style={{ color: BRAND.gold, fontStyle: "italic" }}>Events</span>
+            </h2>
+          </div>
+          
+          <div
+            className="yg-event-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(2, 1fr)",
+              gap: "32px",
+            }}
+          >
+            {(recentEvents || []).map((event) => {
+              if (event.image && !imgOrientations[event.id]) {
+                detectOrientation(event.id, event.image);
+              }
+              const orient = imgOrientations[event.id] ?? 'portrait';
+              const isLandscape = orient === 'landscape';
+              
+              const dateObj = new Date(event.date);
+              const formattedDate = isNaN(dateObj.getTime()) ? event.date : dateObj.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+
+              return (
+                <Link
+                  key={event.id}
+                  to={`/events/${event.id}`}
+                  className="yg-event-card group"
+                  style={isLandscape ? { gridColumn: '1 / -1', height: '100%' } : { height: '100%' }}
+                >
+                  <div
+                    className="relative overflow-hidden w-full h-full"
+                    style={{ aspectRatio: isLandscape ? '16/7' : '3/4' }}
+                  >
+                    {event.image ? (
+                      <OptimizedImage
+                        src={event.image}
+                        alt={event.title}
+                        width={isLandscape ? 1600 : 800}
+                        height={isLandscape ? 700 : 1067}
+                        className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-[#0F172A] flex items-center justify-center">
+                        <FaCalendarAlt size={40} className="text-[#FFD447]/20" />
+                      </div>
+                    )}
+
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A]/95 via-[#0F172A]/20 to-black/10" />
+
+                    <div className="absolute right-6 top-6 flex flex-col items-center gap-3">
+                      <div className="w-px h-8 bg-white/20" />
+                      <span style={{
+                        writingMode: "vertical-rl",
+                        textOrientation: "mixed",
+                        fontFamily: "'Manrope', sans-serif",
+                        fontSize: "9px",
+                        fontWeight: 900,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.4em",
+                        color: "rgba(255, 255, 255, 0.4)"
+                      }}>{formattedDate}</span>
+                    </div>
+
+                    <div
+                      className="absolute flex flex-col items-start"
+                      style={{
+                        bottom: isLandscape ? 40 : 36,
+                        left: isLandscape ? 48 : 32,
+                        right: isLandscape ? 48 : 32,
+                      }}
+                    >
+                      <div className="flex items-center gap-3 mb-4">
+                        <span style={{
+                          background: "rgba(255, 255, 255, 0.1)",
+                          backdropFilter: "blur(12px)",
+                          color: "#fff",
+                          fontSize: "9px",
+                          fontWeight: 900,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.2em",
+                          padding: "6px 14px",
+                          borderRadius: "99px",
+                          border: "1px solid rgba(255, 255, 255, 0.1)"
+                        }}>{event.category}</span>
+                        <span className="h-1 w-1 bg-[#FFD447] rounded-full" />
+                        <span className="text-[9px] font-black text-white/50 uppercase tracking-[0.3em] truncate max-w-[160px]">
+                          {event.location}
+                        </span>
+                      </div>
+
+                      <h3
+                        className="yg-font-serif font-black text-white leading-[1.05] tracking-tight mb-6"
+                        style={{ fontSize: isLandscape ? 'clamp(28px,3vw,48px)' : 'clamp(22px,2.5vw,36px)' }}
+                      >
+                        {event.title}
+                      </h3>
+
+                      <div className="flex items-center justify-between w-full">
+                        <div style={{
+                          background: "#0F172A",
+                          color: "#FFD447",
+                          fontFamily: "'Playfair Display', serif",
+                          fontSize: "16px",
+                          fontStyle: "italic",
+                          fontWeight: 900,
+                          padding: "8px 18px",
+                          borderRadius: "16px",
+                          boxShadow: "0 10px 20px rgba(1, 33, 28, 0.2)"
+                        }}>
+                          {event.price === 'Free' || event.price === '0'
+                            ? 'Gratis'
+                            : `${event.price} ${event.currency}`}
+                        </div>
+                        <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-white transition-all duration-500 group-hover:bg-[#0F172A] group-hover:text-[#FFD447] group-hover:-rotate-45">
+                          <FaArrowRight size={13} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+          
+          <div style={{ textAlign: "center", marginTop: "60px" }}>
+             <Link to="/events" className="yg-btn-ghost">View All Events</Link>
+          </div>
+        </div>
+      </section>
 
       {/* ── 2.5 The Yenege Distinction ───────────────────────────────────────── */}
       <section
