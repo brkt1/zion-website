@@ -9,15 +9,15 @@ import { sendWhatsAppThankYou } from "../services/whatsapp";
 import { logger } from "../utils/logger";
 
 const PaymentSuccess = () => {
+  const [paymentData, setPaymentData] = useState<any>(null);
   const [searchParams] = useSearchParams();
   const txRef = searchParams.get("tx_ref");
   const quantityParam = searchParams.get("quantity");
-  const eventIdParam = searchParams.get("event_id");
-  const eventTitleParam = searchParams.get("event_title");
+  const eventIdParam = searchParams.get("event_id") || paymentData?.meta?.event_id;
+  const eventTitleParam = searchParams.get("event_title") || paymentData?.meta?.event_title;
   const commissionSellerIdParam = searchParams.get("commission_seller_id");
 
   const [verificationStatus, setVerificationStatus] = useState<"loading" | "success" | "failed" | "pending">("loading");
-  const [paymentData, setPaymentData] = useState<any>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [ticketSaved, setTicketSaved] = useState(false);
   const [whatsappSent, setWhatsappSent] = useState(false);
@@ -309,10 +309,8 @@ const PaymentSuccess = () => {
         </div>
 
         {/* Ticket tear line */}
-        <div className="relative h-5 flex items-center" style={{ background: "#0f172a" }}>
-          <div className="absolute -left-3 w-6 h-6 rounded-full" style={{ background: "linear-gradient(160deg,#0f172a,#1a1035)" }} />
-          <div className="flex-1 mx-3 border-t-2 border-dashed border-white/10" />
-          <div className="absolute -right-3 w-6 h-6 rounded-full" style={{ background: "linear-gradient(160deg,#0f172a,#1a1035)" }} />
+        <div className="relative h-5 flex items-center px-4" style={{ background: "#0f172a" }}>
+          <div className="flex-1 border-t-2 border-dashed border-white/10" />
         </div>
 
         {/* Ticket body */}
