@@ -359,9 +359,18 @@ export default function YenegeUnityDashboard() {
     return (
       <AdminLayout title="Yenege Unity Control Center">
         <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center space-y-2">
-            <FaSpinner className="animate-spin text-4xl text-amber-500 mx-auto" />
-            <p className="text-gray-500 font-semibold">Ingesting CRM Data...</p>
+          <div className="text-center space-y-4">
+            <div className="relative w-16 h-16 mx-auto">
+              <div className="absolute inset-0 rounded-full border-4 border-[#4a0e17]/10" />
+              <div className="absolute inset-0 rounded-full border-4 border-t-[#4a0e17] border-r-transparent border-b-transparent border-l-transparent animate-spin" />
+              <div className="absolute inset-2 rounded-full bg-[#4a0e17]/5 flex items-center justify-center">
+                <FaUsers className="text-[#4a0e17]" size={16} />
+              </div>
+            </div>
+            <div>
+              <p className="text-gray-900 font-bold text-sm">Loading CRM Data</p>
+              <p className="text-gray-400 text-xs mt-0.5">Fetching attendees &amp; events...</p>
+            </div>
           </div>
         </div>
       </AdminLayout>
@@ -370,254 +379,185 @@ export default function YenegeUnityDashboard() {
 
   return (
     <AdminLayout title="Yenege Unity Control Center">
-      {/* Tab Navigation header */}
-      <div className="mb-6 flex flex-wrap gap-2 border-b border-gray-200 pb-3">
-        <button
-          onClick={() => setActiveTab('crm')}
-          className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 hover:-translate-y-0.5 ${
-            activeTab === 'crm' 
-              ? 'bg-[#4a0e17] text-white shadow-lg shadow-[#4a0e17]/30' 
-              : 'text-gray-600 hover:bg-[#fdfbf7] hover:shadow-sm border border-transparent hover:border-gray-200'
-          }`}
-        >
-          👤 Executive CRM & Intake
-        </button>
-        <button
-          onClick={() => setActiveTab('matchmaker')}
-          className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 hover:-translate-y-0.5 ${
-            activeTab === 'matchmaker' 
-              ? 'bg-[#4a0e17] text-white shadow-lg shadow-[#4a0e17]/30' 
-              : 'text-gray-600 hover:bg-[#fdfbf7] hover:shadow-sm border border-transparent hover:border-gray-200'
-          }`}
-        >
-          🤝 Matchmaking Intelligence
-        </button>
-        <button
-          onClick={() => setActiveTab('events')}
-          className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 hover:-translate-y-0.5 ${
-            activeTab === 'events' 
-              ? 'bg-[#4a0e17] text-white shadow-lg shadow-[#4a0e17]/30' 
-              : 'text-gray-600 hover:bg-[#fdfbf7] hover:shadow-sm border border-transparent hover:border-gray-200'
-          }`}
-        >
-          📅 Event Planners & Capacity
-        </button>
-        <button
-          onClick={() => setActiveTab('checkin')}
-          className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 hover:-translate-y-0.5 ${
-            activeTab === 'checkin' 
-              ? 'bg-[#4a0e17] text-white shadow-lg shadow-[#4a0e17]/30' 
-              : 'text-gray-600 hover:bg-[#fdfbf7] hover:shadow-sm border border-transparent hover:border-gray-200'
-          }`}
-        >
-          🎟️ Check-In Desk & Badges
-        </button>
-        <button
-          onClick={() => setActiveTab('analytics')}
-          className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 hover:-translate-y-0.5 ${
-            activeTab === 'analytics' 
-              ? 'bg-[#4a0e17] text-white shadow-lg shadow-[#4a0e17]/30' 
-              : 'text-gray-600 hover:bg-[#fdfbf7] hover:shadow-sm border border-transparent hover:border-gray-200'
-          }`}
-        >
-          📊 Visual Analytics
-        </button>
+
+      {/* ── Tab Navigation ── */}
+      <div className="mb-6">
+        <div className="flex items-center gap-1 bg-gray-100/70 p-1 rounded-2xl w-fit flex-wrap">
+          {([
+            { key: 'crm',        label: 'CRM & Intake',        emoji: '👤' },
+            { key: 'matchmaker', label: 'Matchmaking',          emoji: '🤝' },
+            { key: 'events',     label: 'Events',               emoji: '📅' },
+            { key: 'checkin',    label: 'Check-In & Badges',    emoji: '🎟️' },
+            { key: 'analytics',  label: 'Analytics',            emoji: '📊' },
+          ] as const).map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                activeTab === tab.key
+                  ? 'bg-white text-[#4a0e17] shadow-sm ring-1 ring-black/5 font-bold'
+                  : 'text-gray-500 hover:text-gray-800 hover:bg-white/60'
+              }`}
+            >
+              <span>{tab.emoji}</span>
+              <span className="hidden sm:inline">{tab.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3">
-          <div className="p-3 bg-blue-50 text-blue-600 rounded-xl"><FaUsers size={18} /></div>
-          <div>
-            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Total Applicants</p>
-            <p className="text-xl font-black text-gray-900">{totalCount}</p>
+      {/* ── KPI Cards ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+        {[
+          { label: 'Total',       value: totalCount,        icon: FaUsers,        bg: 'bg-blue-500',    light: 'bg-blue-50',    text: 'text-blue-600'   },
+          { label: 'Approved',    value: approvedCount,     icon: FaCheckCircle,  bg: 'bg-emerald-500', light: 'bg-emerald-50', text: 'text-emerald-600'},
+          { label: 'Pending',     value: pendingCount,      icon: FaHourglassHalf,bg: 'bg-amber-400',   light: 'bg-amber-50',   text: 'text-amber-600'  },
+          { label: 'VIP',         value: vipCount,          icon: FaCrown,        bg: 'bg-purple-500',  light: 'bg-purple-50',  text: 'text-purple-600' },
+          { label: 'Sponsors',    value: sponsorProspects,  icon: FaHandshake,    bg: 'bg-rose-500',    light: 'bg-rose-50',    text: 'text-rose-600'   },
+          { label: 'Checked In',  value: `${checkedInCount}/${approvedCount}`, icon: FaCheckCircle, bg: 'bg-teal-500', light: 'bg-teal-50', text: 'text-teal-600' },
+        ].map(({ label, value, icon: Icon, light, text }) => (
+          <div key={label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center gap-3 hover:shadow-md transition-shadow duration-200">
+            <div className={`w-10 h-10 rounded-xl ${light} ${text} flex items-center justify-center flex-shrink-0`}>
+              <Icon size={17} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wide truncate">{label}</p>
+              <p className={`text-xl font-black ${text}`}>{value}</p>
+            </div>
           </div>
-        </div>
-        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3">
-          <div className="p-3 bg-green-50 text-green-600 rounded-xl"><FaCheckCircle size={18} /></div>
-          <div>
-            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Approved Vetted</p>
-            <p className="text-xl font-black text-green-600">{approvedCount}</p>
-          </div>
-        </div>
-        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3">
-          <div className="p-3 bg-yellow-50 text-yellow-600 rounded-xl"><FaHourglassHalf size={18} /></div>
-          <div>
-            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Pending Review</p>
-            <p className="text-xl font-black text-yellow-600">{pendingCount}</p>
-          </div>
-        </div>
-        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3">
-          <div className="p-3 bg-purple-50 text-purple-600 rounded-xl"><FaCrown size={18} /></div>
-          <div>
-            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">VIP Candidates</p>
-            <p className="text-xl font-black text-purple-600">{vipCount}</p>
-          </div>
-        </div>
-        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3">
-          <div className="p-3 bg-amber-50 text-amber-600 rounded-xl"><FaHandshake size={18} /></div>
-          <div>
-            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Sponsor Leads</p>
-            <p className="text-xl font-black text-amber-500">{sponsorProspects}</p>
-          </div>
-        </div>
-        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3">
-          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl"><FaCheckCircle size={18} /></div>
-          <div>
-            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Checked In</p>
-            <p className="text-xl font-black text-emerald-600">{checkedInCount} / {approvedCount}</p>
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* ────────────────── TAB 1: EXECUTIVE CRM & INTAKE ────────────────── */}
       {activeTab === 'crm' && (
-        <div className="space-y-6">
-          {/* Filters card */}
-          <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-4">
-            <div className="flex flex-col md:flex-row gap-4">
-              {/* Search */}
-              <div className="flex-1 flex items-center bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
-                <FaSearch className="text-gray-400 mr-2" size={14} />
+        <div className="space-y-4">
+          {/* Filters */}
+          <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+            <div className="flex flex-col md:flex-row gap-3">
+              <div className="flex-1 flex items-center bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 focus-within:border-[#4a0e17]/30 focus-within:ring-2 focus-within:ring-[#4a0e17]/10 transition-all">
+                <FaSearch className="text-gray-400 mr-2 flex-shrink-0" size={13} />
                 <input
                   type="text"
-                  placeholder="Search applicants by name, company, title..."
+                  placeholder="Search by name, company, title..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-transparent border-none focus:outline-none w-full text-sm text-gray-700"
+                  className="bg-transparent border-none focus:outline-none w-full text-sm text-gray-700 placeholder-gray-400"
                 />
+                {searchQuery && (
+                  <button onClick={() => setSearchQuery('')} className="text-gray-400 hover:text-gray-600 ml-1 flex-shrink-0 text-sm">✕</button>
+                )}
               </div>
-
-              {/* Status filter */}
-              <div className="w-full md:w-48">
-                <select
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-600 focus:outline-none"
-                >
-                  <option value="all">All Statuses</option>
-                  <option value="pending">Pending Review</option>
-                  <option value="accepted">Approved</option>
-                  <option value="rejected">Rejected</option>
-                </select>
-              </div>
-
-              {/* Industry filter */}
-              <div className="w-full md:w-48">
-                <select
-                  value={filterIndustry}
-                  onChange={(e) => setFilterIndustry(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-600 focus:outline-none"
-                >
-                  <option value="all">All Industries</option>
-                  {industries.map(ind => (
-                    <option key={ind} value={ind}>{ind}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Tag filter */}
-              <div className="w-full md:w-48">
-                <select
-                  value={filterTag}
-                  onChange={(e) => setFilterTag(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-600 focus:outline-none"
-                >
-                  <option value="all">All Tags</option>
-                  {availableTags.map(tag => (
-                    <option key={tag} value={tag}>{tag}</option>
-                  ))}
-                </select>
-              </div>
+              <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
+                className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 focus:outline-none cursor-pointer md:w-40">
+                <option value="all">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="accepted">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+              <select value={filterIndustry} onChange={(e) => setFilterIndustry(e.target.value)}
+                className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 focus:outline-none cursor-pointer md:w-44">
+                <option value="all">All Industries</option>
+                {industries.map(ind => <option key={ind} value={ind}>{ind}</option>)}
+              </select>
+              <select value={filterTag} onChange={(e) => setFilterTag(e.target.value)}
+                className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 focus:outline-none cursor-pointer md:w-36">
+                <option value="all">All Tags</option>
+                {availableTags.map(tag => <option key={tag} value={tag}>{tag}</option>)}
+              </select>
             </div>
+            {filteredAttendees.length !== attendees.length && (
+              <p className="text-xs text-gray-400 mt-2">Showing <span className="font-bold text-[#4a0e17]">{filteredAttendees.length}</span> of {attendees.length}</p>
+            )}
           </div>
 
-          {/* Attendee Grid */}
+          {/* Attendee Table */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-100">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Executive Info</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Industry Footprint</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Target Sectors</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">CRM Progress</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Tags</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Action</th>
+                <thead>
+                  <tr className="border-b border-gray-100 bg-gray-50/50">
+                    <th className="px-5 py-3 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">Person</th>
+                    <th className="px-5 py-3 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">Industry</th>
+                    <th className="px-5 py-3 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider hidden md:table-cell">Targets</th>
+                    <th className="px-5 py-3 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">Status</th>
+                    <th className="px-5 py-3 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider hidden lg:table-cell">Tags</th>
+                    <th className="px-5 py-3 text-right text-[11px] font-bold text-gray-400 uppercase tracking-wider">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-gray-50">
                   {filteredAttendees.map(att => (
-                    <tr key={att.id} className="hover:bg-gray-50 transition duration-150">
-                      <td className="px-6 py-4">
+                    <tr key={att.id} className="hover:bg-gray-50/60 transition-colors duration-100">
+                      <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl border border-gray-200 bg-gray-50 overflow-hidden flex items-center justify-center">
+                          <div className="w-9 h-9 rounded-xl bg-gray-100 overflow-hidden flex items-center justify-center flex-shrink-0 border border-gray-200">
                             {att.profilePhoto ? (
                               <img src={att.profilePhoto} alt={att.fullName} className="w-full h-full object-cover" />
                             ) : (
-                              <FaUser className="text-gray-400" />
+                              <FaUser className="text-gray-400" size={13} />
                             )}
                           </div>
                           <div>
-                            <p className="font-bold text-gray-900 text-sm flex items-center gap-1.5">
+                            <p className="font-semibold text-gray-900 text-sm leading-tight flex items-center gap-1.5">
                               {att.fullName}
                               {getDuplicatesFor(att).length > 0 && (
-                                <span className="px-1.5 py-0.5 bg-red-50 text-red-600 border border-red-100 rounded text-[9px] font-bold flex items-center gap-0.5 animate-pulse">
-                                  <FaExclamationTriangle size={8} /> Dup
-                                </span>
+                                <span className="px-1 py-0.5 bg-red-50 text-red-500 border border-red-100 rounded text-[9px] font-bold animate-pulse">DUP</span>
                               )}
                             </p>
-                            <p className="text-xs text-gray-500">{att.jobTitle} @ <span className="font-semibold text-gray-700">{att.companyName}</span></p>
+                            <p className="text-xs text-gray-400 leading-tight">{att.jobTitle} · {att.companyName}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-xs font-medium text-gray-700">
-                        <span className="px-2 py-1 bg-blue-50 text-blue-700 border border-blue-100 rounded-lg">{att.industry}</span>
-                        <p className="text-[10px] text-gray-400 mt-1.5">{att.yearsOfExperience} yrs exp | {att.companySize} staff</p>
+                      <td className="px-5 py-3.5">
+                        <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-lg text-xs font-semibold">{att.industry}</span>
+                        <p className="text-[10px] text-gray-400 mt-1">{att.yearsOfExperience}yr · {att.companySize} staff</p>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-5 py-3.5 hidden md:table-cell">
                         <div className="flex flex-wrap gap-1">
-                          {att.targetNetworkingSectors.slice(0, 3).map(sect => (
-                            <span key={sect} className="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-[9px] font-bold">{sect}</span>
+                          {att.targetNetworkingSectors.slice(0, 2).map(s => (
+                            <span key={s} className="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-[9px] font-semibold">{s}</span>
                           ))}
-                          {att.targetNetworkingSectors.length > 3 && (
-                            <span className="px-1.5 py-0.5 bg-gray-100 text-gray-400 rounded text-[9px] font-bold">+{att.targetNetworkingSectors.length - 3}</span>
+                          {att.targetNetworkingSectors.length > 2 && (
+                            <span className="text-[9px] text-gray-400">+{att.targetNetworkingSectors.length - 2}</span>
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="space-y-1 text-xs">
-                          <div className="flex items-center gap-1.5">
-                            <span className={`w-2 h-2 rounded-full ${
-                              att.status === 'accepted' ? 'bg-green-500' :
-                              att.status === 'rejected' ? 'bg-red-500' : 'bg-yellow-500'
-                            }`} />
-                            <span className="capitalize font-semibold">{att.status}</span>
-                          </div>
-                          <p className="text-[10px] text-gray-400 capitalize">Call: {att.calledStatus.replace('_', ' ')}</p>
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                            att.status === 'accepted' ? 'bg-emerald-500' :
+                            att.status === 'rejected' ? 'bg-red-400' : 'bg-amber-400'
+                          }`} />
+                          <span className={`text-xs font-semibold capitalize ${
+                            att.status === 'accepted' ? 'text-emerald-700' :
+                            att.status === 'rejected' ? 'text-red-600' : 'text-amber-700'
+                          }`}>{att.status}</span>
                         </div>
+                        <p className="text-[10px] text-gray-400 mt-0.5 capitalize">{att.calledStatus.replace(/_/g, ' ')}</p>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-wrap gap-1 max-w-[150px]">
-                          {att.tags.map(t => (
-                            <span key={t} className="px-1.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-100 rounded text-[9px] font-bold">{t}</span>
+                      <td className="px-5 py-3.5 hidden lg:table-cell">
+                        <div className="flex flex-wrap gap-1">
+                          {att.tags.slice(0, 2).map(t => (
+                            <span key={t} className="px-1.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-100/80 rounded text-[9px] font-semibold">{t}</span>
                           ))}
+                          {att.tags.length > 2 && <span className="text-[9px] text-gray-400">+{att.tags.length - 2}</span>}
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-5 py-3.5 text-right">
                         <button
                           onClick={() => setSelectedAttendee(att)}
-                          className="px-3 py-1.5 bg-[#4a0e17] text-white rounded-lg text-xs font-bold hover:bg-[#6b1422] transition-all duration-300 hover:-translate-y-0.5 shadow-md shadow-[#4a0e17]/20"
+                          className="px-3 py-1.5 bg-[#4a0e17] text-white rounded-lg text-xs font-semibold hover:bg-[#6b1422] transition-colors duration-200 shadow-sm"
                         >
-                          CRM Profile
+                          Open
                         </button>
                       </td>
                     </tr>
                   ))}
                   {filteredAttendees.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="text-center py-12 text-gray-400 font-semibold">
-                        No registered visionaries match these filter parameters.
+                      <td colSpan={6} className="text-center py-14">
+                        <FaUsers className="text-gray-200 mx-auto mb-2" size={28} />
+                        <p className="text-gray-400 text-sm font-medium">No applicants match your filters</p>
+                        <button onClick={() => { setSearchQuery(''); setFilterStatus('all'); setFilterIndustry('all'); setFilterTag('all'); }} className="text-xs text-[#4a0e17] font-semibold mt-1 hover:underline">Clear filters</button>
                       </td>
                     </tr>
                   )}
