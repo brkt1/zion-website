@@ -120,16 +120,13 @@ export default function YenegeUnityApply() {
       return formData.fullName && formData.phone && formData.email && formData.city;
     }
     if (step === 2) {
-      return formData.jobTitle && formData.companyName && formData.businessDescription;
+      return formData.jobTitle && formData.companyName;
     }
     if (step === 3) {
-      return formData.whyAttend && formData.selectedGoals.length > 0;
+      return formData.whyAttend && formData.opportunitiesSought && formData.selectedGoals.length > 0;
     }
     if (step === 4) {
-      return formData.biggestChallenge && formData.targetNetworkingSectors.length > 0;
-    }
-    if (step === 5) {
-      return formData.eventExpectations;
+      return formData.valueOffer && formData.targetNetworkingSectors.length > 0;
     }
     return true;
   };
@@ -269,8 +266,7 @@ export default function YenegeUnityApply() {
     { label: 'Personal', icon: FaUser },
     { label: 'Professional', icon: FaBriefcase },
     { label: 'Networking', icon: FaBullseye },
-    { label: 'Insights', icon: FaLightbulb },
-    { label: 'Expectations', icon: FaCalendarAlt },
+    { label: 'Matchmaking', icon: FaLightbulb },
     { label: 'Review', icon: FaCheckCircle }
   ];
 
@@ -321,7 +317,7 @@ export default function YenegeUnityApply() {
           <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 rounded-t-3xl" />
           
           <div className="flex justify-between items-center border-b border-white/5 pb-4">
-            <span className="text-xs font-bold text-amber-500 uppercase tracking-widest">Step {step} of 6</span>
+            <span className="text-xs font-bold text-amber-500 uppercase tracking-widest">Step {step} of 5</span>
             <span className="text-xs text-gray-500 font-medium">Fields marked * are required</span>
           </div>
 
@@ -562,21 +558,20 @@ export default function YenegeUnityApply() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">Brief Business Description *</label>
+                <label className="block text-sm font-semibold text-gray-300 mb-2">Brief Business Description <span className="text-gray-600 font-normal">(Optional)</span></label>
                 <textarea
                   name="businessDescription"
-                  required
-                  rows={4}
+                  rows={3}
                   value={formData.businessDescription}
                   onChange={handleTextChange}
                   className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500 text-white"
-                  placeholder="Describe your core company products, operations footprint, and target consumer market..."
+                  placeholder="Briefly describe what your company does..."
                 />
               </div>
             </div>
           )}
 
-          {/* STEP 3: NETWORKING GOALS */}
+          {/* STEP 3: NETWORKING OBJECTIVES */}
           {step === 3 && (
             <div className="space-y-6">
               <h3 className="text-xl font-bold text-white flex items-center gap-2">
@@ -585,47 +580,49 @@ export default function YenegeUnityApply() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">Why do you want to attend Yenege Unity? *</label>
-                  <textarea
+                  <label className="block text-sm font-semibold text-gray-300 mb-2">Why are you attending? *</label>
+                  <select
                     name="whyAttend"
-                    required
-                    rows={3}
                     value={formData.whyAttend}
                     onChange={handleTextChange}
                     className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500 text-white"
-                    placeholder="Detail your personal motivation and expectations from this summit..."
-                  />
+                  >
+                    <option value="">Select your main reason...</option>
+                    <option value="Find business partners">Find business partners</option>
+                    <option value="Raise investment / funding">Raise investment / funding</option>
+                    <option value="Find clients & sales leads">Find clients &amp; sales leads</option>
+                    <option value="Hire talent">Hire talent</option>
+                    <option value="Learn & get inspired">Learn &amp; get inspired</option>
+                    <option value="Promote my brand">Promote my brand</option>
+                    <option value="Explore collaborations">Explore collaborations</option>
+                    <option value="Network & expand connections">Network &amp; expand connections</option>
+                  </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">What specific opportunities are you looking for? *</label>
-                  <textarea
+                  <label className="block text-sm font-semibold text-gray-300 mb-2">What are you looking for? *</label>
+                  <select
                     name="opportunitiesSought"
-                    required
-                    rows={3}
                     value={formData.opportunitiesSought}
                     onChange={handleTextChange}
                     className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500 text-white"
-                    placeholder="e.g. Seed round investment, enterprise software distributors, eco-packaging manufacturers..."
-                  />
+                  >
+                    <option value="">Select primary opportunity...</option>
+                    <option value="Investors / Funding">Investors / Funding</option>
+                    <option value="Distribution partners">Distribution partners</option>
+                    <option value="Technology partners">Technology partners</option>
+                    <option value="Manufacturing suppliers">Manufacturing suppliers</option>
+                    <option value="Sales agents / Clients">Sales agents / Clients</option>
+                    <option value="Co-founders / Team members">Co-founders / Team members</option>
+                    <option value="Mentors / Advisors">Mentors / Advisors</option>
+                    <option value="Media & PR exposure">Media &amp; PR exposure</option>
+                    <option value="General networking">General networking</option>
+                  </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">What type of people do you want to meet? *</label>
-                  <input
-                    type="text"
-                    name="targetPeoples"
-                    required
-                    value={formData.targetPeoples}
-                    onChange={handleTextChange}
-                    className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500 text-white"
-                    placeholder="e.g. Venture capitalists, Manufacturing COOs, Creative directors..."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-3">Select your Primary Networking Goals * (Select all that apply)</label>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <label className="block text-sm font-semibold text-gray-300 mb-3">Your networking goals * <span className="text-gray-500 font-normal">(pick all that apply)</span></label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {goalsOptions.map(goal => {
                       const selected = formData.selectedGoals.includes(goal);
                       return (
@@ -633,9 +630,9 @@ export default function YenegeUnityApply() {
                           key={goal}
                           type="button"
                           onClick={() => toggleArrayItem('selectedGoals', goal)}
-                          className={`p-3 text-left rounded-xl border text-xs font-bold transition duration-200 ${
-                            selected 
-                              ? 'bg-amber-500 border-amber-500 text-black' 
+                          className={`p-2.5 text-left rounded-xl border text-xs font-bold transition duration-200 ${
+                            selected
+                              ? 'bg-amber-500 border-amber-500 text-black'
                               : 'bg-black border-white/10 text-gray-400 hover:border-white/20'
                           }`}
                         >
@@ -649,84 +646,44 @@ export default function YenegeUnityApply() {
             </div>
           )}
 
-          {/* STEP 4: BUSINESS INSIGHTS */}
+          {/* STEP 4: BUSINESS MATCHMAKING INTELLIGENCE */}
           {step === 4 && (
             <div className="space-y-6">
               <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                <FaLightbulb className="text-amber-500" /> Business Matchmaking Intelligence
+                <FaLightbulb className="text-amber-500" /> Business Matchmaking
               </h3>
 
-              <div className="space-y-6">
+              <div className="space-y-5">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">What is your biggest business or operational challenge? *</label>
-                  <textarea
+                  <label className="block text-sm font-semibold text-gray-300 mb-2">What can you offer other attendees? *</label>
+                  <select
+                    name="valueOffer"
+                    value={formData.valueOffer}
+                    onChange={handleTextChange}
+                    className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500 text-white"
+                  >
+                    <option value="">Select your primary offering...</option>
+                    {valueOptions.map(val => (
+                      <option key={val} value={val}>{val}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-300 mb-2">Your biggest business challenge <span className="text-gray-600 font-normal">(Optional)</span></label>
+                  <input
+                    type="text"
                     name="biggestChallenge"
-                    required
-                    rows={3}
                     value={formData.biggestChallenge}
                     onChange={handleTextChange}
                     className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500 text-white"
-                    placeholder="e.g. Finding high-quality manufacturing suppliers, local product manager recruitment, regulatory lobbying..."
+                    placeholder="e.g. Finding suppliers, scaling distribution..."
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">What are your current short-term business goals? *</label>
-                  <input
-                    type="text"
-                    name="currentGoals"
-                    required
-                    value={formData.currentGoals}
-                    onChange={handleTextChange}
-                    className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500 text-white"
-                    placeholder="e.g. Secure 10 new clients, complete Solar grid integration..."
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-300 mb-2">What can you offer/contribute to other attendees? *</label>
-                    <select
-                      name="valueOffer"
-                      value={formData.valueOffer}
-                      onChange={handleTextChange}
-                      className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500 text-white"
-                    >
-                      <option value="">Select primary offering...</option>
-                      {valueOptions.map(val => (
-                        <option key={val} value={val}>{val}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-300 mb-2">Custom Offering (Optional)</label>
-                    <input
-                      type="text"
-                      name="customValueOffer"
-                      value={formData.customValueOffer}
-                      onChange={handleTextChange}
-                      className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500 text-white"
-                      placeholder="e.g. Free API credits, legal drafting..."
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">What partnerships or collaborations are you open to? *</label>
-                  <input
-                    type="text"
-                    name="partnershipsOpen"
-                    required
-                    value={formData.partnershipsOpen}
-                    onChange={handleTextChange}
-                    className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500 text-white"
-                    placeholder="e.g. Co-investments, brand crossover capsules, technology integrations..."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-3">Which sectors do you want to connect with? * (Select all that apply)</label>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-2 bg-black border border-white/10 rounded-xl scrollbar-thin">
+                  <label className="block text-sm font-semibold text-gray-300 mb-3">Which sectors do you want to connect with? * <span className="text-gray-500 font-normal">(pick all that apply)</span></label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-52 overflow-y-auto p-2 bg-black border border-white/10 rounded-xl">
                     {industries.map(ind => {
                       const selected = formData.targetNetworkingSectors.includes(ind);
                       return (
@@ -735,8 +692,8 @@ export default function YenegeUnityApply() {
                           type="button"
                           onClick={() => toggleArrayItem('targetNetworkingSectors', ind)}
                           className={`p-2 text-left rounded-lg text-[10px] font-bold border transition duration-150 ${
-                            selected 
-                              ? 'bg-amber-500 border-amber-500 text-black' 
+                            selected
+                              ? 'bg-amber-500 border-amber-500 text-black'
                               : 'bg-black border-transparent text-gray-400 hover:border-white/10'
                           }`}
                         >
@@ -746,178 +703,41 @@ export default function YenegeUnityApply() {
                     })}
                   </div>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-3">Why do you want to connect with these sectors? * (Connection Purpose)</label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {purposeOptions.map(pur => {
-                      const selected = formData.connectionPurpose.includes(pur);
-                      return (
-                        <label key={pur} className="flex items-center gap-3 p-3 bg-black border border-white/5 rounded-xl cursor-pointer hover:border-white/10 text-xs">
-                          <input
-                            type="checkbox"
-                            checked={selected}
-                            onChange={() => toggleArrayItem('connectionPurpose', pur)}
-                            className="rounded border-white/10 bg-black text-amber-500 focus:ring-amber-500"
-                          />
-                          <span className="text-gray-300">{pur}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
               </div>
             </div>
           )}
 
-          {/* STEP 5: EVENT EXPECTATIONS */}
+          {/* STEP 5: REVIEW */}
           {step === 5 && (
             <div className="space-y-6">
               <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                <FaCalendarAlt className="text-amber-500" /> Event Settings & Sponsorship
-              </h3>
-
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">What do you expect to achieve at the event? *</label>
-                  <textarea
-                    name="eventExpectations"
-                    required
-                    rows={4}
-                    value={formData.eventExpectations}
-                    onChange={handleTextChange}
-                    className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500 text-white"
-                    placeholder="Outline your target deliverables (e.g. 5 investor meetings scheduled, 2 technology supplier partners shortlisted)..."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-3">Preferred Networking Style *</label>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <label className="p-4 bg-black border border-white/10 rounded-xl cursor-pointer flex flex-col gap-2 hover:border-amber-500/50">
-                      <div className="flex justify-between items-center">
-                        <span className="font-bold text-xs">Structured Matchmaking</span>
-                        <input
-                          type="radio"
-                          name="networkingStyle"
-                          value="structured"
-                          checked={formData.networkingStyle === 'structured'}
-                          onChange={handleTextChange}
-                          className="text-amber-500 focus:ring-amber-500"
-                        />
-                      </div>
-                      <p className="text-[10px] text-gray-500">Curated networking tables and scheduled C-suite 1-on-1s.</p>
-                    </label>
-
-                    <label className="p-4 bg-black border border-white/10 rounded-xl cursor-pointer flex flex-col gap-2 hover:border-amber-500/50">
-                      <div className="flex justify-between items-center">
-                        <span className="font-bold text-xs">Informal Lounge</span>
-                        <input
-                          type="radio"
-                          name="networkingStyle"
-                          value="informal"
-                          checked={formData.networkingStyle === 'informal'}
-                          onChange={handleTextChange}
-                          className="text-amber-500 focus:ring-amber-500"
-                        />
-                      </div>
-                      <p className="text-[10px] text-gray-500">Organic cocktail gatherings, receptions, and lounge interactions.</p>
-                    </label>
-
-                    <label className="p-4 bg-black border border-white/10 rounded-xl cursor-pointer flex flex-col gap-2 hover:border-amber-500/50">
-                      <div className="flex justify-between items-center">
-                        <span className="font-bold text-xs">Mixed Style</span>
-                        <input
-                          type="radio"
-                          name="networkingStyle"
-                          value="mix"
-                          checked={formData.networkingStyle === 'mix'}
-                          onChange={handleTextChange}
-                          className="text-amber-500 focus:ring-amber-500"
-                        />
-                      </div>
-                      <p className="text-[10px] text-gray-500">Structured table sessions followed by open terrace receptions.</p>
-                    </label>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-3">Which sessions are you interested in?</label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {['Tech & Industrial Plenary', 'Venture Capital Roundtable', 'AI Ecosystem Masterclass', '1-on-1 VIP Matchmaking Lounge'].map(sess => {
-                      const selected = formData.sessionsInterest.includes(sess);
-                      return (
-                        <button
-                          key={sess}
-                          type="button"
-                          onClick={() => toggleArrayItem('sessionsInterest', sess)}
-                          className={`p-3 rounded-xl border text-xs font-bold text-left transition duration-200 ${
-                            selected 
-                              ? 'bg-amber-500 border-amber-500 text-black' 
-                              : 'bg-black border-white/10 text-gray-400'
-                          }`}
-                        >
-                          {sess}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="p-4 bg-amber-500/5 border border-amber-500/20 rounded-2xl flex items-start gap-4">
-                  <input
-                    type="checkbox"
-                    id="sponsorshipInterest"
-                    checked={formData.sponsorshipInterest}
-                    onChange={(e) => setFormData(prev => ({ ...prev, sponsorshipInterest: e.target.checked }))}
-                    className="rounded border-white/10 bg-black text-amber-500 focus:ring-amber-500 mt-1"
-                  />
-                  <div>
-                    <label htmlFor="sponsorshipInterest" className="font-bold text-sm text-white cursor-pointer">
-                      I am interested in corporate sponsorship opportunities
-                    </label>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Check this box if your company wishes to explore exhibition spaces, branding, or VIP lounge naming rights.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 6: APPLICATION REVIEW */}
-          {step === 6 && (
-            <div className="space-y-6">
-              <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                <FaCheckCircle className="text-amber-500" /> Dossier Verification & Review
+                <FaCheckCircle className="text-amber-500" /> Review Your Application
               </h3>
 
               <div className="bg-black/40 border border-white/5 p-6 rounded-2xl space-y-6">
                 <div className="flex flex-col sm:flex-row gap-6 items-center border-b border-white/5 pb-6">
-                  {/* Photo Preview */}
-                  <div className="w-24 h-24 rounded-2xl bg-neutral-900 border border-amber-500/20 overflow-hidden flex items-center justify-center text-gray-500 flex-shrink-0">
+                  <div className="w-20 h-20 rounded-2xl bg-neutral-900 border border-amber-500/20 overflow-hidden flex items-center justify-center text-gray-500 flex-shrink-0">
                     {formData.profilePhoto ? (
                       <img src={formData.profilePhoto} alt="Avatar" className="w-full h-full object-cover" />
                     ) : (
-                      <FaUser size={36} />
+                      <FaUser size={32} />
                     )}
                   </div>
                   <div className="space-y-1 text-center sm:text-left">
-                    <h4 className="text-2xl font-bold text-white">{formData.fullName || 'Unnamed Applicant'}</h4>
+                    <h4 className="text-xl font-bold text-white">{formData.fullName || 'Unnamed'}</h4>
                     <p className="text-sm text-amber-400 font-medium">{formData.jobTitle} at {formData.companyName}</p>
-                    <p className="text-xs text-gray-500">{formData.city}, {formData.country} | {formData.phone}</p>
+                    <p className="text-xs text-gray-500">{formData.city}, {formData.country} · {formData.phone}</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-                  {/* Core details */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-sm">
                   <div className="space-y-4">
                     <div>
-                      <span className="text-gray-500 font-bold uppercase tracking-wider text-[10px]">Industry Vertical</span>
-                      <p className="text-white font-medium mt-1">{formData.industry} ({formData.companySize} employees)</p>
+                      <span className="text-gray-500 font-bold uppercase tracking-wider text-[10px]">Industry</span>
+                      <p className="text-white font-medium mt-1">{formData.industry} · {formData.companySize} employees</p>
                     </div>
                     <div>
-                      <span className="text-gray-500 font-bold uppercase tracking-wider text-[10px]">Primary Goals</span>
+                      <span className="text-gray-500 font-bold uppercase tracking-wider text-[10px]">Goals</span>
                       <div className="flex flex-wrap gap-1.5 mt-1.5">
                         {formData.selectedGoals.map(g => (
                           <span key={g} className="px-2 py-1 bg-amber-500/10 text-amber-400 rounded-lg text-[10px] font-bold">{g}</span>
@@ -925,7 +745,7 @@ export default function YenegeUnityApply() {
                       </div>
                     </div>
                     <div>
-                      <span className="text-gray-500 font-bold uppercase tracking-wider text-[10px]">Target Networking Sectors</span>
+                      <span className="text-gray-500 font-bold uppercase tracking-wider text-[10px]">Target Sectors</span>
                       <div className="flex flex-wrap gap-1.5 mt-1.5">
                         {formData.targetNetworkingSectors.map(s => (
                           <span key={s} className="px-2 py-1 bg-white/5 text-gray-300 rounded-lg text-[10px] font-bold">{s}</span>
@@ -933,33 +753,26 @@ export default function YenegeUnityApply() {
                       </div>
                     </div>
                   </div>
-
-                  {/* Business Insights */}
                   <div className="space-y-4">
                     <div>
-                      <span className="text-gray-500 font-bold uppercase tracking-wider text-[10px]">Value Offering</span>
-                      <p className="text-white font-medium mt-1">
-                        {formData.valueOffer} {formData.customValueOffer ? `(${formData.customValueOffer})` : ''}
-                      </p>
+                      <span className="text-gray-500 font-bold uppercase tracking-wider text-[10px]">What I Offer</span>
+                      <p className="text-white font-medium mt-1">{formData.valueOffer}</p>
                     </div>
                     <div>
-                      <span className="text-gray-500 font-bold uppercase tracking-wider text-[10px]">Major Operational Challenge</span>
-                      <p className="text-gray-400 font-light mt-1 line-clamp-2">{formData.biggestChallenge}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500 font-bold uppercase tracking-wider text-[10px]">Partnerships Open</span>
-                      <p className="text-gray-400 font-light mt-1">{formData.partnershipsOpen}</p>
+                      <span className="text-gray-500 font-bold uppercase tracking-wider text-[10px]">Why Attending</span>
+                      <p className="text-gray-400 font-light mt-1">{formData.whyAttend}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="border-t border-white/5 pt-6 text-xs text-gray-500 space-y-2">
-                  <p>✓ By submitting, you authorize the Yenege Unity Networking committee to verify your company's credentials and log this profile in the matchmaking database.</p>
-                  <p>✓ The profile photo will be prepared for executive badge printing and networking dossier reports.</p>
+                <div className="border-t border-white/5 pt-4 text-xs text-gray-500 space-y-1.5">
+                  <p>✓ By submitting, you authorize Yenege Unity to verify your credentials and add you to the matchmaking database.</p>
+                  <p>✓ A team member will contact you within 48 hours to confirm your details.</p>
                 </div>
               </div>
             </div>
           )}
+
 
           {/* Navigation Controls */}
           <div className="flex justify-between items-center border-t border-white/5 pt-6">
@@ -975,7 +788,7 @@ export default function YenegeUnityApply() {
               <div />
             )}
 
-            {step < 6 ? (
+            {step < 5 ? (
               <button
                 type="button"
                 onClick={handleNext}
