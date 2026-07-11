@@ -509,6 +509,7 @@ export default function YenegeUnityDashboard() {
                       </td>
                       <td className="px-5 py-3.5">
                         <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-lg text-xs font-semibold">{att.industry}</span>
+                        {att.participantType && <span className="ml-1.5 px-2 py-1 bg-amber-50 text-amber-700 rounded-lg text-xs font-semibold">{att.participantType}</span>}
                         <p className="text-[10px] text-gray-400 mt-1">{att.yearsOfExperience}yr · {att.companySize} staff</p>
                       </td>
                       <td className="px-5 py-3.5 hidden md:table-cell">
@@ -671,7 +672,7 @@ export default function YenegeUnityDashboard() {
                     <div className="flex justify-between items-start">
                       <div>
                         <h4 className="font-bold text-sm text-gray-900">{att.fullName}</h4>
-                        <p className="text-xs text-gray-500">{att.jobTitle} @ {att.companyName} | Industry: <span className="text-blue-600 font-semibold">{att.industry}</span></p>
+                        <p className="text-xs text-gray-500">{att.jobTitle} @ {att.companyName} | Industry: <span className="text-blue-600 font-semibold">{att.industry}</span> {att.participantType && <span className="text-amber-600 font-semibold ml-1">[{att.participantType}]</span>}</p>
                         <p className="text-[10px] text-amber-600 font-bold mt-1">🎯 Targets: {att.targetNetworkingSectors.join(', ')}</p>
                       </div>
                       
@@ -892,7 +893,7 @@ export default function YenegeUnityDashboard() {
                               <div key={attId} className="flex items-center justify-between bg-white p-2.5 px-3 rounded-xl border border-gray-100 text-xs">
                                 <div>
                                   <span className="font-bold text-gray-900">{att.fullName}</span>
-                                  <span className="text-gray-400 ml-1.5">· {att.companyName} · {att.industry}</span>
+                                  <span className="text-gray-400 ml-1.5">· {att.companyName} · {att.industry} {att.participantType && `· ${att.participantType}`}</span>
                                 </div>
                                 <div className="flex items-center gap-2 flex-shrink-0">
                                   <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${att.paymentStatus === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>

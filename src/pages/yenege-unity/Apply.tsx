@@ -11,6 +11,7 @@ export default function YenegeUnityApply() {
   
   // State for form data
   const [formData, setFormData] = useState({
+    participantType: '' as 'Investor' | 'Company' | 'Individual' | '',
     fullName: '',
     profilePhoto: '',
     gender: 'Male',
@@ -117,7 +118,7 @@ export default function YenegeUnityApply() {
 
   const validateStep = () => {
     if (step === 1) {
-      return formData.fullName && formData.phone && formData.email && formData.city;
+      return formData.participantType && formData.fullName && formData.phone && formData.email && formData.city;
     }
     if (step === 2) {
       return formData.jobTitle && formData.companyName;
@@ -181,29 +182,39 @@ export default function YenegeUnityApply() {
   if (duplicateMessage) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
-        <div className="max-w-xl w-full bg-neutral-900 border border-amber-500/30 rounded-3xl p-8 text-center space-y-6 shadow-2xl relative overflow-hidden animate-fade-in">
+        <div className="max-w-xl w-full bg-[#150000] border border-amber-500/30 rounded-3xl p-8 text-center space-y-6 shadow-[0_0_50px_rgba(217,119,6,0.15)] relative overflow-hidden animate-fade-in">
           <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600" />
           
           <div className="w-20 h-20 bg-amber-500/10 border border-amber-500/30 rounded-full flex items-center justify-center text-amber-400 mx-auto">
             <FaBullseye size={48} className="animate-pulse text-amber-500" />
           </div>
 
-          <h1 className="text-3xl font-extrabold tracking-tight text-amber-500">Dossier Already Active</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-amber-500 font-serif">
+            ማመልከቻዎ አስቀድሞ ተመዝግቧል<br/>
+            <span className="text-xl sm:text-2xl font-sans mt-2 block opacity-80">Application Already Exists</span>
+          </h1>
           
-          <div className="space-y-3 text-gray-400 font-light text-sm leading-relaxed">
-            <p>
-              Our database indicates that an active registration dossier is already registered under {duplicateMessage === 'email' ? (
+          <div className="space-y-4 text-gray-300 font-medium text-sm leading-relaxed text-left max-w-lg mx-auto">
+            <p className="bg-[#2a0000]/40 border-l-4 border-amber-500 p-4 rounded-r-xl">
+              በስርዓታችን ላይ ባደረግነው ማረጋገጫ፣ {duplicateMessage === 'email' ? (
+                <>በኢሜይል አድራሻ <span className="text-white font-bold">{formData.email}</span></>
+              ) : (
+                <>በስልክ ቁጥር <span className="text-white font-bold">{formData.phone}</span></>
+              )} አስቀድሞ የተመዘገበ ማመልከቻ አግኝተናል።
+            </p>
+            
+            <p className="bg-[#2a0000]/40 border-l-4 border-amber-500/50 p-4 rounded-r-xl text-gray-400">
+              Our records indicate that an active registration already exists under {duplicateMessage === 'email' ? (
                 <>the email <span className="text-white font-semibold">{formData.email}</span></>
               ) : (
                 <>the phone number <span className="text-white font-semibold">{formData.phone}</span></>
               )}.
             </p>
-            <p>
-              To ensure event curation standards, our vetting committee only reviews one primary application per professional visionary.
-            </p>
-            <p className="bg-black/40 border border-white/5 p-4 rounded-2xl text-xs text-left leading-relaxed">
-              💬 <strong className="text-white">Current Status:</strong> Your profile is currently under review by our executive matchmaking panel. If you need to update any business metrics, target sectors, or professional details, please contact the <strong className="text-white">Yenege Unity Event Desk</strong> directly.
-            </p>
+
+            <div className="bg-[#1a0000] border border-amber-500/20 p-4 rounded-2xl text-xs mt-6 text-center shadow-inner">
+              <p className="text-amber-400 font-bold mb-1">📞 ተጨማሪ መረጃ ከፈለጉ (Need Help?)</p>
+              <p className="text-gray-400">እባክዎ የነገ ዩኒቲ አዘጋጆችን በ <span className="text-white">+251 978 639 887</span> ያግኙ።</p>
+            </div>
           </div>
 
           <div className="pt-4 flex flex-col sm:flex-row gap-4 justify-center">
@@ -222,25 +233,42 @@ export default function YenegeUnityApply() {
   if (submitted) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
-        <div className="max-w-xl w-full bg-neutral-900 border border-amber-500/30 rounded-3xl p-8 text-center space-y-6 shadow-2xl relative overflow-hidden">
+        <div className="max-w-xl w-full bg-[#150000] border border-amber-500/30 rounded-3xl p-8 text-center space-y-6 shadow-[0_0_50px_rgba(217,119,6,0.15)] relative overflow-hidden">
           <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600" />
           
           <div className="w-20 h-20 bg-amber-500/10 border border-amber-500/30 rounded-full flex items-center justify-center text-amber-400 mx-auto">
             <FaCheckCircle size={48} className="animate-bounce" />
           </div>
 
-          <h1 className="text-3xl font-extrabold tracking-tight">Application Dossier Received</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-serif text-white">
+            ማመልከቻዎ ደርሶናል<br/>
+            <span className="text-xl sm:text-2xl font-sans mt-2 block opacity-80 text-amber-400">Application Received</span>
+          </h1>
           
-          <div className="space-y-3 text-gray-400 font-light text-sm leading-relaxed">
-            <p>
-              Thank you, <span className="text-white font-semibold">{formData.fullName}</span>. Your professional registration profile has been successfully ingested into the Yenege Unity Networking CRM.
-            </p>
-            <p>
-              Our committee is manually reviewing your target sectors: <span className="text-amber-400">{formData.targetNetworkingSectors.join(', ')}</span>.
-            </p>
-            <p className="bg-black/40 border border-white/5 p-3 rounded-xl text-xs text-left">
-              📧 A confirmation email has been dispatched to <span className="text-white font-medium">{formData.email}</span>. A Call Team representative will dial <span className="text-white font-medium">{formData.phone}</span> within 48 business hours to verify your details and set up your pre-arranged meeting slots.
-            </p>
+          <div className="space-y-5 text-gray-300 font-medium text-sm leading-relaxed text-left max-w-lg mx-auto">
+            <div className="bg-[#2a0000]/60 border border-amber-500/20 p-5 rounded-2xl space-y-3">
+              <p>
+                ክቡር/ርት <span className="text-white font-bold">{formData.fullName}</span>፣ የነገ ዩኒቲ ማመልከቻዎትን በተሳካ ሁኔታ ተቀብለናል።
+              </p>
+              <p className="text-xs text-amber-500/90 font-bold">
+                ✓ ኮሚቴያችን መረጃዎትን በማጥናት ላይ ይገኛል።
+              </p>
+              <p>
+                በቀጣይ 48 ሰዓታት ውስጥ በስልክ ቁጥር <span className="text-white font-bold">{formData.phone}</span> ደውለን ዝርዝር መረጃዎችን የምንለዋወጥ ይሆናል።
+              </p>
+            </div>
+
+            <div className="bg-[#1a0000] border-l-4 border-amber-500/30 p-4 rounded-r-2xl space-y-2 text-gray-400 text-xs sm:text-sm">
+              <p>
+                Thank you, <span className="text-white font-semibold">{formData.fullName}</span>. Your application for Yenege Unity has been successfully submitted.
+              </p>
+              <p>
+                Our executive committee is currently reviewing your profile. A representative will contact you at <span className="text-white font-semibold">{formData.phone}</span> within 48 hours to discuss your matchmaking preferences.
+              </p>
+              <p className="mt-2 pt-2 border-t border-white/5">
+                📧 A confirmation receipt has been sent to <span className="text-white">{formData.email}</span>.
+              </p>
+            </div>
           </div>
 
           <div className="pt-4 flex flex-col sm:flex-row gap-4 justify-center">
@@ -288,7 +316,25 @@ export default function YenegeUnityApply() {
         </div>
 
         {/* Stepper progress */}
-        <div className="hidden md:flex justify-between items-center bg-neutral-900 border border-white/5 p-4 rounded-2xl">
+        {/* Mobile stepper progress bar */}
+        <div className="md:hidden w-full bg-[#150000] border border-amber-500/5 p-4 rounded-2xl flex flex-col gap-3 shadow-lg">
+          <div className="flex justify-between items-end">
+            <div>
+              <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">Step {step} of 5</span>
+              <p className="text-sm font-black text-white mt-0.5">{stepsList[step - 1]?.label || 'Review'}</p>
+            </div>
+            <span className="text-xs font-bold text-gray-500">{Math.round((step / 5) * 100)}%</span>
+          </div>
+          <div className="w-full bg-black h-2 rounded-full overflow-hidden shadow-inner border border-amber-500/10">
+            <div 
+              className="bg-gradient-to-r from-amber-500 to-yellow-600 h-full rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${(step / 5) * 100}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Desktop stepper */}
+        <div className="hidden md:flex justify-between items-center bg-[#150000] border border-amber-500/5 p-4 rounded-2xl shadow-lg">
           {stepsList.map((s, idx) => {
             const stepNum = idx + 1;
             const Icon = s.icon;
@@ -299,7 +345,7 @@ export default function YenegeUnityApply() {
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center border transition-all duration-300 ${
                   isCompleted ? 'bg-amber-500 border-amber-500 text-black' :
                   isActive ? 'bg-white border-white text-black ring-4 ring-white/10' :
-                  'bg-neutral-950 border-white/10 text-gray-500'
+                  'bg-[#2a0000] border-amber-500/10 text-gray-500'
                 }`}>
                   <Icon size={12} />
                 </div>
@@ -313,7 +359,7 @@ export default function YenegeUnityApply() {
         </div>
 
         {/* Form Container */}
-        <form onSubmit={handleSubmit} className="bg-neutral-900 border border-white/10 rounded-3xl p-6 md:p-8 space-y-6 shadow-xl relative">
+        <form onSubmit={handleSubmit} className="bg-[#150000] border border-amber-500/10 rounded-3xl p-6 md:p-8 space-y-6 shadow-xl relative">
           <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 rounded-t-3xl" />
           
           <div className="flex justify-between items-center border-b border-white/5 pb-4">
@@ -327,7 +373,40 @@ export default function YenegeUnityApply() {
               <h3 className="text-xl font-bold text-white flex items-center gap-2">
                 <FaUser className="text-amber-500" /> Personal Identity
               </h3>
-              
+
+              {/* Participant Type Selector */}
+              <div className="space-y-3">
+                <label className="block text-sm font-semibold text-gray-300">I am joining as... *</label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {(['Investor', 'Company', 'Individual'] as const).map(type => {
+                    const icons: Record<string, string> = { Investor: '💼', Company: '🏢', Individual: '👤' };
+                    const descs: Record<string, string> = {
+                      Investor: 'Angel / VC / Fund',
+                      Company: 'Business / Startup',
+                      Individual: 'Professional / Freelancer'
+                    };
+                    const selected = formData.participantType === type;
+                    return (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, participantType: type }))}
+                        className={`flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border-2 transition-all duration-200 text-center ${
+                          selected
+                            ? 'bg-amber-500/15 border-amber-500 shadow-[0_0_20px_rgba(217,119,6,0.2)]'
+                            : 'bg-[#2a0000]/60 border-amber-500/10 hover:border-amber-500/30'
+                        }`}
+                      >
+                        <span className="text-2xl">{icons[type]}</span>
+                        <span className={`text-sm font-black tracking-wide ${selected ? 'text-amber-400' : 'text-white'}`}>{type}</span>
+                        <span className="text-[10px] text-gray-500 leading-tight">{descs[type]}</span>
+                        {selected && <span className="text-[9px] font-bold text-amber-500 uppercase tracking-widest">✓ Selected</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-300 mb-2">Full Name *</label>
@@ -337,7 +416,7 @@ export default function YenegeUnityApply() {
                     required
                     value={formData.fullName}
                     onChange={handleTextChange}
-                    className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent text-white"
+                    className="w-full px-4 py-3 bg-[#2a0000] border border-amber-500/10 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent text-white"
                     placeholder="e.g. Sara Abraham"
                   />
                 </div>
@@ -348,7 +427,7 @@ export default function YenegeUnityApply() {
                     name="gender"
                     value={formData.gender}
                     onChange={handleTextChange}
-                    className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500 text-white"
+                    className="w-full px-4 py-3 bg-[#2a0000] border border-amber-500/10 rounded-xl focus:ring-2 focus:ring-amber-400 text-white"
                   >
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
@@ -362,7 +441,7 @@ export default function YenegeUnityApply() {
                     name="ageRange"
                     value={formData.ageRange}
                     onChange={handleTextChange}
-                    className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500 text-white"
+                    className="w-full px-4 py-3 bg-[#2a0000] border border-amber-500/10 rounded-xl focus:ring-2 focus:ring-amber-400 text-white"
                   >
                     {ageOptions.map(o => (
                       <option key={o} value={o}>{o}</option>
@@ -378,7 +457,7 @@ export default function YenegeUnityApply() {
                     required
                     value={formData.phone}
                     onChange={handleTextChange}
-                    className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500 text-white"
+                    className="w-full px-4 py-3 bg-[#2a0000] border border-amber-500/10 rounded-xl focus:ring-2 focus:ring-amber-400 text-white"
                     placeholder="e.g. +251 911 203 405"
                   />
                 </div>
@@ -391,12 +470,12 @@ export default function YenegeUnityApply() {
                     required
                     value={formData.email}
                     onChange={handleTextChange}
-                    className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500 text-white"
+                    className="w-full px-4 py-3 bg-[#2a0000] border border-amber-500/10 rounded-xl focus:ring-2 focus:ring-amber-400 text-white"
                     placeholder="your.email@company.com"
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-gray-300 mb-2">City *</label>
                     <input
@@ -405,7 +484,7 @@ export default function YenegeUnityApply() {
                       required
                       value={formData.city}
                       onChange={handleTextChange}
-                      className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500 text-white"
+                      className="w-full px-4 py-3 bg-[#2a0000] border border-amber-500/10 rounded-xl focus:ring-2 focus:ring-amber-400 text-white"
                       placeholder="Addis Ababa"
                     />
                   </div>
@@ -417,7 +496,7 @@ export default function YenegeUnityApply() {
                       required
                       value={formData.country}
                       onChange={handleTextChange}
-                      className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500 text-white"
+                      className="w-full px-4 py-3 bg-[#2a0000] border border-amber-500/10 rounded-xl focus:ring-2 focus:ring-amber-400 text-white"
                       placeholder="Ethiopia"
                     />
                   </div>
@@ -472,7 +551,7 @@ export default function YenegeUnityApply() {
                     required
                     value={formData.jobTitle}
                     onChange={handleTextChange}
-                    className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500 text-white"
+                    className="w-full px-4 py-3 bg-[#2a0000] border border-amber-500/10 rounded-xl focus:ring-2 focus:ring-amber-400 text-white"
                     placeholder="e.g. Chief Executive Officer"
                   />
                 </div>
@@ -485,7 +564,7 @@ export default function YenegeUnityApply() {
                     required
                     value={formData.companyName}
                     onChange={handleTextChange}
-                    className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500 text-white"
+                    className="w-full px-4 py-3 bg-[#2a0000] border border-amber-500/10 rounded-xl focus:ring-2 focus:ring-amber-400 text-white"
                     placeholder="e.g. Quanta Technologies"
                   />
                 </div>
@@ -496,7 +575,7 @@ export default function YenegeUnityApply() {
                     name="industry"
                     value={formData.industry}
                     onChange={handleTextChange}
-                    className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500 text-white"
+                    className="w-full px-4 py-3 bg-[#2a0000] border border-amber-500/10 rounded-xl focus:ring-2 focus:ring-amber-400 text-white"
                   >
                     {industries.map(ind => (
                       <option key={ind} value={ind}>{ind}</option>
@@ -504,7 +583,7 @@ export default function YenegeUnityApply() {
                   </select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-gray-300 mb-2">Years of Exp *</label>
                     <input
@@ -514,7 +593,7 @@ export default function YenegeUnityApply() {
                       value={formData.yearsOfExperience}
                       onChange={handleNumberChange}
                       min="0"
-                      className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500 text-white"
+                      className="w-full px-4 py-3 bg-[#2a0000] border border-amber-500/10 rounded-xl focus:ring-2 focus:ring-amber-400 text-white"
                     />
                   </div>
                   <div>
@@ -523,7 +602,7 @@ export default function YenegeUnityApply() {
                       name="companySize"
                       value={formData.companySize}
                       onChange={handleTextChange}
-                      className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500 text-white"
+                      className="w-full px-4 py-3 bg-[#2a0000] border border-amber-500/10 rounded-xl focus:ring-2 focus:ring-amber-400 text-white"
                     >
                       {companySizes.map(sz => (
                         <option key={sz} value={sz}>{sz} Employees</option>
@@ -539,7 +618,7 @@ export default function YenegeUnityApply() {
                     name="website"
                     value={formData.website}
                     onChange={handleTextChange}
-                    className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500 text-white"
+                    className="w-full px-4 py-3 bg-[#2a0000] border border-amber-500/10 rounded-xl focus:ring-2 focus:ring-amber-400 text-white"
                     placeholder="https://company.com"
                   />
                 </div>
@@ -551,7 +630,7 @@ export default function YenegeUnityApply() {
                     name="linkedin"
                     value={formData.linkedin}
                     onChange={handleTextChange}
-                    className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500 text-white"
+                    className="w-full px-4 py-3 bg-[#2a0000] border border-amber-500/10 rounded-xl focus:ring-2 focus:ring-amber-400 text-white"
                     placeholder="https://linkedin.com/in/username"
                   />
                 </div>
@@ -564,7 +643,7 @@ export default function YenegeUnityApply() {
                   rows={3}
                   value={formData.businessDescription}
                   onChange={handleTextChange}
-                  className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500 text-white"
+                  className="w-full px-4 py-3 bg-[#2a0000] border border-amber-500/10 rounded-xl focus:ring-2 focus:ring-amber-400 text-white"
                   placeholder="Briefly describe what your company does..."
                 />
               </div>
@@ -585,7 +664,7 @@ export default function YenegeUnityApply() {
                     name="whyAttend"
                     value={formData.whyAttend}
                     onChange={handleTextChange}
-                    className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500 text-white"
+                    className="w-full px-4 py-3 bg-[#2a0000] border border-amber-500/10 rounded-xl focus:ring-2 focus:ring-amber-400 text-white"
                   >
                     <option value="">Select your main reason...</option>
                     <option value="Find business partners">Find business partners</option>
@@ -605,7 +684,7 @@ export default function YenegeUnityApply() {
                     name="opportunitiesSought"
                     value={formData.opportunitiesSought}
                     onChange={handleTextChange}
-                    className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500 text-white"
+                    className="w-full px-4 py-3 bg-[#2a0000] border border-amber-500/10 rounded-xl focus:ring-2 focus:ring-amber-400 text-white"
                   >
                     <option value="">Select primary opportunity...</option>
                     <option value="Investors / Funding">Investors / Funding</option>
@@ -622,7 +701,7 @@ export default function YenegeUnityApply() {
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-300 mb-3">Your networking goals * <span className="text-gray-500 font-normal">(pick all that apply)</span></label>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                     {goalsOptions.map(goal => {
                       const selected = formData.selectedGoals.includes(goal);
                       return (
@@ -660,7 +739,7 @@ export default function YenegeUnityApply() {
                     name="valueOffer"
                     value={formData.valueOffer}
                     onChange={handleTextChange}
-                    className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500 text-white"
+                    className="w-full px-4 py-3 bg-[#2a0000] border border-amber-500/10 rounded-xl focus:ring-2 focus:ring-amber-400 text-white"
                   >
                     <option value="">Select your primary offering...</option>
                     {valueOptions.map(val => (
@@ -676,14 +755,14 @@ export default function YenegeUnityApply() {
                     name="biggestChallenge"
                     value={formData.biggestChallenge}
                     onChange={handleTextChange}
-                    className="w-full px-4 py-3 bg-black border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500 text-white"
+                    className="w-full px-4 py-3 bg-[#2a0000] border border-amber-500/10 rounded-xl focus:ring-2 focus:ring-amber-400 text-white"
                     placeholder="e.g. Finding suppliers, scaling distribution..."
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-300 mb-3">Which sectors do you want to connect with? * <span className="text-gray-500 font-normal">(pick all that apply)</span></label>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-52 overflow-y-auto p-2 bg-black border border-white/10 rounded-xl">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-52 overflow-y-auto p-2 bg-[#2a0000] border border-amber-500/10 rounded-xl">
                     {industries.map(ind => {
                       const selected = formData.targetNetworkingSectors.includes(ind);
                       return (
@@ -714,7 +793,7 @@ export default function YenegeUnityApply() {
                 <FaCheckCircle className="text-amber-500" /> Review Your Application
               </h3>
 
-              <div className="bg-black/40 border border-white/5 p-6 rounded-2xl space-y-6">
+              <div className="bg-[#2a0000]/60 border border-amber-500/5 p-6 rounded-2xl space-y-6">
                 <div className="flex flex-col sm:flex-row gap-6 items-center border-b border-white/5 pb-6">
                   <div className="w-20 h-20 rounded-2xl bg-neutral-900 border border-amber-500/20 overflow-hidden flex items-center justify-center text-gray-500 flex-shrink-0">
                     {formData.profilePhoto ? (
@@ -727,6 +806,11 @@ export default function YenegeUnityApply() {
                     <h4 className="text-xl font-bold text-white">{formData.fullName || 'Unnamed'}</h4>
                     <p className="text-sm text-amber-400 font-medium">{formData.jobTitle} at {formData.companyName}</p>
                     <p className="text-xs text-gray-500">{formData.city}, {formData.country} · {formData.phone}</p>
+                    {formData.participantType && (
+                      <span className="inline-block px-2 py-0.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold uppercase tracking-widest rounded-full">
+                        {formData.participantType}
+                      </span>
+                    )}
                   </div>
                 </div>
 

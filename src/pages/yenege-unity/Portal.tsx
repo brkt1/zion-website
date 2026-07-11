@@ -98,38 +98,41 @@ export default function YenegeUnityPortal() {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#fdfbf7] via-white to-[#fdfbf7] flex items-center justify-center p-4 font-sans relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-[#d4af37]/8 rounded-full blur-[80px] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#4a0e17]/8 rounded-full blur-[80px] pointer-events-none" />
+      <div className="min-h-screen bg-black flex items-center justify-center p-4 font-sans relative overflow-hidden">
+        {/* Decorative Glow Elements */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-red-900/20 rounded-full blur-[100px] pointer-events-none" />
 
         <div className="w-full max-w-sm relative z-10">
           {/* Logo */}
           <div className="text-center mb-8">
-            <div className="w-14 h-14 rounded-2xl bg-[#4a0e17] flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <span className="text-white font-black text-lg">YU</span>
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#2a0000] to-[#150000] border border-amber-500/30 flex items-center justify-center mx-auto mb-4 shadow-[0_0_30px_rgba(217,119,6,0.15)]">
+              <span className="text-amber-500 font-serif font-black text-2xl tracking-widest">YU</span>
             </div>
-            <h1 className="text-2xl font-black text-gray-900">Yenege Unity</h1>
-            <p className="text-sm text-gray-500 mt-1">Sign in to your attendee portal</p>
+            <h1 className="text-2xl font-black text-white font-serif tracking-widest uppercase">Yenege Unity</h1>
+            <p className="text-xs text-amber-500/70 mt-1 tracking-widest uppercase">Executive Portal Access</p>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-2xl p-7 shadow-sm">
+          <div className="bg-[#150000] border border-amber-500/20 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600" />
+            
             {error && (
-              <div className="bg-red-50 border border-red-100 text-red-600 text-sm p-3 rounded-xl text-center font-medium mb-5">
+              <div className="bg-red-900/30 border border-red-500/30 text-red-400 text-xs p-3 rounded-xl text-center font-bold mb-5">
                 {error}
               </div>
             )}
 
-            <form onSubmit={handleLogin} className="space-y-5">
+            <form onSubmit={handleLogin} className="space-y-6">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email Address</label>
+                <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-2">Registered Email</label>
                 <div className="relative">
-                  <FaEnvelope className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                  <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-500/50" size={14} />
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#4a0e17]/20 focus:border-[#4a0e17] text-gray-900 outline-none transition-all text-sm"
+                    className="w-full pl-11 pr-4 py-3.5 bg-black border border-amber-500/20 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-white outline-none transition-all text-sm font-medium placeholder-gray-600"
                     placeholder="name@company.com"
                   />
                 </div>
@@ -138,15 +141,15 @@ export default function YenegeUnityPortal() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3 bg-[#4a0e17] hover:bg-[#6b1422] text-white font-bold rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 disabled:opacity-60"
+                className="w-full py-3.5 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 text-black font-black rounded-xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 hover:scale-[1.02] active:scale-95 shadow-[0_0_20px_rgba(217,119,6,0.2)]"
               >
-                {isLoading ? <FaSpinner className="animate-spin" size={14} /> : 'Access My Portal'}
+                {isLoading ? <FaSpinner className="animate-spin" size={14} /> : 'Unlock Portal'}
               </button>
             </form>
           </div>
 
           <div className="text-center mt-5">
-            <Link to="/yenege-unity" className="text-sm text-gray-400 hover:text-[#4a0e17] transition-colors">
+            <Link to="/yenege-unity" className="text-sm text-gray-500 hover:text-amber-500 transition-colors">
               ← Back to website
             </Link>
           </div>
@@ -156,51 +159,58 @@ export default function YenegeUnityPortal() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans pb-20">
+    <div className="min-h-screen bg-black text-white font-sans pb-20">
       {/* Sticky Header */}
-      <nav className="bg-white border-b border-gray-100 sticky top-0 z-50 h-14">
+      <nav className="bg-[#150000]/80 backdrop-blur-md border-b border-amber-500/10 sticky top-0 z-50 h-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-[#4a0e17] flex items-center justify-center text-white font-black text-[10px]">YU</div>
-            <span className="text-sm font-bold text-[#4a0e17] hidden sm:block">Yenege Unity</span>
-          </div>
           <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#2a0000] to-[#150000] border border-amber-500/30 flex items-center justify-center text-amber-500 font-serif font-black text-xs tracking-widest shadow-[0_0_15px_rgba(217,119,6,0.15)]">YU</div>
+            <span className="text-sm font-bold text-white tracking-widest uppercase hidden sm:block">Yenege Unity</span>
+          </div>
+          <div className="flex items-center gap-4">
             <div className="text-right">
-              <p className="text-sm font-semibold text-gray-900 leading-tight">{attendee?.fullName}</p>
-              <p className="text-[10px] text-gray-400">{attendee?.companyName}</p>
+              <p className="text-sm font-bold text-amber-400 leading-tight tracking-wide">{attendee?.fullName}</p>
+              <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">{attendee?.companyName}</p>
             </div>
-            <button onClick={handleLogout} className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-red-500 transition-colors" title="Logout">
+            <button onClick={handleLogout} className="p-2 rounded-lg hover:bg-red-900/40 text-gray-400 hover:text-red-400 transition-colors border border-transparent hover:border-red-900/50" title="Logout">
               <FaSignOutAlt size={14} />
             </button>
           </div>
         </div>
       </nav>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 pt-6 space-y-5">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 pt-8 space-y-6">
 
-        {/* Welcome Banner */}
-        <div className="bg-[#4a0e17] rounded-2xl p-6 relative overflow-hidden text-white">
-          <div className="absolute top-0 right-0 w-48 h-48 bg-[#d4af37]/15 rounded-full blur-[50px]" />
+        {/* Premium Welcome Banner */}
+        <div className="bg-gradient-to-br from-[#2a0000] to-[#150000] border border-amber-500/20 rounded-3xl p-8 relative overflow-hidden shadow-2xl">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-[60px]" />
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10 mix-blend-overlay"></div>
+          
           <div className="relative z-10">
-            <p className="text-[#d4af37] text-xs font-bold uppercase tracking-widest mb-1">{event?.title || 'Yenege Unity Summit'}</p>
-            <h1 className="text-xl sm:text-2xl font-black leading-tight">Hello, {attendee?.fullName?.split(' ')[0]} 👋</h1>
-            <p className="text-white/70 text-sm mt-2">
-              You have <span className="text-[#d4af37] font-black text-base">{eventMatches.length}</span> curated connections waiting for you today.
+            <div className="inline-block px-3 py-1 bg-amber-500/10 border border-amber-500/30 rounded-full mb-3">
+              <p className="text-amber-400 text-[10px] font-black uppercase tracking-widest">{event?.title || 'Executive Summit'}</p>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black leading-tight text-white font-serif tracking-wide">
+              Welcome, <span className="text-amber-500">{attendee?.fullName?.split(' ')[0]}</span>
+            </h1>
+            <p className="text-gray-300 text-sm mt-3 font-medium max-w-lg leading-relaxed">
+              You have <span className="text-amber-400 font-black text-lg bg-amber-500/10 px-2 py-0.5 rounded">{eventMatches.length}</span> curated connections unlocked for today's private session.
             </p>
-            <div className="flex flex-wrap gap-2 mt-4">
-              <div className="flex items-center gap-1.5 bg-white/10 border border-white/15 px-3 py-1.5 rounded-lg">
-                <FaCalendarAlt size={11} className="text-[#d4af37]" />
-                <span className="text-xs font-medium">{event ? new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'TBD'}</span>
+            
+            <div className="flex flex-wrap gap-3 mt-6">
+              <div className="flex items-center gap-2 bg-black/40 border border-amber-500/10 px-4 py-2 rounded-xl">
+                <FaCalendarAlt size={12} className="text-amber-500" />
+                <span className="text-xs font-bold text-gray-200">{event ? new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'TBD'}</span>
               </div>
-              <div className="flex items-center gap-1.5 bg-white/10 border border-white/15 px-3 py-1.5 rounded-lg">
-                <FaMapMarkerAlt size={11} className="text-[#d4af37]" />
-                <span className="text-xs font-medium">{event?.location || 'Venue TBD'}</span>
+              <div className="flex items-center gap-2 bg-black/40 border border-amber-500/10 px-4 py-2 rounded-xl">
+                <FaMapMarkerAlt size={12} className="text-amber-500" />
+                <span className="text-xs font-bold text-gray-200">{event?.location || 'Venue TBD'}</span>
               </div>
-              <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium ${
-                isEventDay ? 'bg-emerald-500/20 border-emerald-400/30 text-emerald-300' : 'bg-white/10 border-white/15 text-white/70'
+              <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-xs font-bold transition-all ${
+                isEventDay ? 'bg-amber-500/20 border-amber-500/40 text-amber-400 shadow-[0_0_15px_rgba(217,119,6,0.15)]' : 'bg-black/40 border-gray-800 text-gray-400'
               }`}>
-                {isEventDay ? <FaUnlock size={10} /> : <FaLock size={10} />}
-                {isEventDay ? 'Contacts unlocked' : 'Contacts unlock on event day'}
+                {isEventDay ? <FaUnlock size={12} /> : <FaLock size={12} />}
+                {isEventDay ? 'Dossiers Unlocked' : 'Dossiers Unlock on Event Day'}
               </div>
             </div>
           </div>
@@ -208,149 +218,157 @@ export default function YenegeUnityPortal() {
 
         {/* General Matching Summary */}
         {generalMatchesCount > eventMatches.length && (
-          <div className="bg-[#4a0e17]/5 border border-[#4a0e17]/10 rounded-3xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-[#4a0e17]/5 rounded-full blur-[40px] translate-x-1/3 -translate-y-1/3" />
+          <div className="bg-[#150000] border border-amber-500/10 rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-[40px] translate-x-1/3 -translate-y-1/3" />
             <div className="relative z-10">
-              <h3 className="font-black text-[#4a0e17] text-sm uppercase tracking-widest mb-1 flex items-center gap-2">
-                <FaUsers className="text-[#d4af37]" /> Broader Network Potential
+              <h3 className="font-black text-amber-500 text-[11px] uppercase tracking-widest mb-1.5 flex items-center gap-2">
+                <FaUsers className="text-amber-500" /> Broad Network Potential
               </h3>
-              <p className="text-sm text-gray-700 font-medium">Our algorithm has identified <strong className="text-[#4a0e17] bg-[#4a0e17]/10 px-2 py-0.5 rounded text-lg">{generalMatchesCount}</strong> total highly-compatible connections across the entire Yenege Unity ecosystem.</p>
-              <p className="text-xs text-gray-500 mt-1 font-medium">You will meet your remaining {generalMatchesCount - eventMatches.length} matches at future summits.</p>
+              <p className="text-sm text-gray-300 font-medium">Our algorithm has mapped <strong className="text-amber-400 font-black">{generalMatchesCount}</strong> total highly-compatible connections across the ecosystem.</p>
+              <p className="text-xs text-gray-500 mt-1">You will be introduced to your remaining {generalMatchesCount - eventMatches.length} matches at future summits.</p>
             </div>
           </div>
         )}
 
         {/* Networking Tips - compact grid */}
-        <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
-          <div className="flex items-center gap-2 mb-3">
-            <FaLightbulb className="text-[#d4af37]" size={13} />
-            <p className="text-xs font-bold text-gray-700 uppercase tracking-wider">Quick Tips for Today</p>
+        <div className="bg-[#150000] border border-amber-500/10 rounded-2xl p-5 shadow-lg">
+          <div className="flex items-center gap-2 mb-4">
+            <FaLightbulb className="text-amber-500" size={14} />
+            <p className="text-xs font-black text-amber-500/80 uppercase tracking-widest">Executive Protocol</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {[
-              { e: '', t: 'Be specific about what value you can offer.' },
-              { e: '', t: 'Exchange contacts right after a good conversation.' },
-              { e: '', t: 'Add a quick note below each match while it\'s fresh.' },
-              { e: '', t: 'Give before you take — lead with how you can help.' },
+              { e: '🎯', t: 'Be specific about what value you can offer.' },
+              { e: '🤝', t: 'Exchange contacts right after a good conversation.' },
+              { e: '✍️', t: 'Add a private note to dossiers while it\'s fresh.' },
+              { e: '💡', t: 'Give before you take — lead with how you can help.' },
             ].map(({ e, t }) => (
-              <div key={t} className="flex items-start gap-2 text-xs text-gray-600">
-                <span>{e}</span><span>{t}</span>
+              <div key={t} className="flex items-start gap-2 text-xs text-gray-400 font-medium bg-[#2a0000]/40 p-2.5 rounded-xl border border-amber-500/5">
+                <span className="opacity-80">{e}</span><span className="leading-relaxed">{t}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* Matches Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <FaHandshake className="text-[#4a0e17]" size={16} />
-            <h2 className="text-lg font-black text-gray-900">Your {eventMatches.length} Matches</h2>
+        <div className="flex items-center justify-between pt-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">
+              <FaHandshake className="text-amber-500" size={14} />
+            </div>
+            <h2 className="text-xl font-serif font-black text-white tracking-wide">Your {eventMatches.length} Curated Connections</h2>
           </div>
         </div>
 
         {eventMatches.length === 0 ? (
-          <div className="text-center py-12 bg-white border border-gray-100 rounded-2xl">
-            <FaHandshake className="text-gray-200 mx-auto mb-3" size={28} />
-            <p className="text-gray-500 font-medium text-sm">Your matches are being processed.</p>
-            <p className="text-xs text-gray-400 mt-1">Please check back soon.</p>
+          <div className="text-center py-16 bg-[#150000] border border-amber-500/10 rounded-3xl shadow-xl">
+            <FaHandshake className="text-amber-500/20 mx-auto mb-4" size={32} />
+            <p className="text-gray-300 font-bold text-sm tracking-wide">Your executive dossiers are being processed.</p>
+            <p className="text-xs text-amber-500/60 mt-1 uppercase tracking-widest">Please check back shortly</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {eventMatches.map((match, index) => {
               const profile = match.matchedAttendee;
               if (!profile) return null;
               const isExpanded = expandedMatchId === match.id;
 
               return (
-                <div key={match.id} className="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:border-[#d4af37]/40 hover:shadow-md transition-all duration-200">
+                <div key={match.id} className="bg-[#150000] border border-amber-500/20 rounded-3xl overflow-hidden hover:border-amber-500/50 hover:shadow-[0_0_25px_rgba(217,119,6,0.1)] transition-all duration-300 group">
                   {/* Card Top */}
-                  <div className="p-5">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#4a0e17] to-[#791a29] flex items-center justify-center text-white font-black text-lg flex-shrink-0 overflow-hidden">
+                  <div className="p-6 relative">
+                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                      <FaUserTie size={60} />
+                    </div>
+                    <div className="flex items-start gap-4 relative z-10">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#2a0000] to-[#150000] border border-amber-500/30 flex items-center justify-center text-amber-500 font-serif font-black text-xl flex-shrink-0 shadow-inner">
                         {profile.profilePhoto
-                          ? <img src={profile.profilePhoto} alt={profile.fullName} className="w-full h-full object-cover" />
+                          ? <img src={profile.profilePhoto} alt={profile.fullName} className="w-full h-full object-cover rounded-2xl" />
                           : profile.fullName.charAt(0)}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
-                          <h3 className="font-bold text-gray-900 text-base leading-tight">{profile.fullName}</h3>
-                          <span className="text-[9px] font-black text-[#4a0e17] bg-[#4a0e17]/8 px-2 py-0.5 rounded-full flex-shrink-0">#{index + 1}</span>
+                          <h3 className="font-bold text-white text-lg leading-tight tracking-wide">{profile.fullName}</h3>
+                          <span className="text-[10px] font-black text-amber-900 bg-amber-500 px-2 py-0.5 rounded-full flex-shrink-0 shadow-sm">#{index + 1}</span>
                         </div>
-                        <p className="text-xs text-[#4a0e17] font-semibold mt-0.5">{profile.jobTitle}</p>
-                        <p className="text-xs text-gray-400">{profile.companyName}</p>
+                        <p className="text-xs text-amber-500 font-bold mt-1 tracking-wider uppercase">{profile.jobTitle}</p>
+                        <p className="text-xs text-gray-400 font-medium mt-0.5 truncate">{profile.companyName}</p>
                       </div>
                     </div>
 
                     {/* Contact buttons */}
-                    <div className="mt-4 flex gap-2">
+                    <div className="mt-5 flex gap-3">
                       {isEventDay ? (
                         <>
-                          <a href={`tel:${profile.phone}`} className="flex-1 bg-gray-50 hover:bg-[#4a0e17] hover:text-white border border-gray-200 hover:border-[#4a0e17] text-gray-700 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors duration-200">
+                          <a href={`tel:${profile.phone}`} className="flex-1 bg-[#2a0000] hover:bg-amber-500 hover:text-black border border-amber-500/20 text-gray-300 py-2.5 rounded-xl text-xs font-black tracking-wide flex items-center justify-center gap-2 transition-all duration-300 shadow-sm hover:scale-105 active:scale-95">
                             <FaPhoneAlt size={10} /> {profile.phone}
                           </a>
-                          <a href={`mailto:${profile.email}`} className="flex-1 bg-gray-50 hover:bg-[#4a0e17] hover:text-white border border-gray-200 hover:border-[#4a0e17] text-gray-700 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors duration-200">
+                          <a href={`mailto:${profile.email}`} className="flex-1 bg-[#2a0000] hover:bg-amber-500 hover:text-black border border-amber-500/20 text-gray-300 py-2.5 rounded-xl text-xs font-black tracking-wide flex items-center justify-center gap-2 transition-all duration-300 shadow-sm hover:scale-105 active:scale-95">
                             <FaEnvelope size={10} /> Email
                           </a>
                         </>
                       ) : (
-                        <div className="flex-1 bg-gray-50 border border-dashed border-gray-200 py-2.5 rounded-xl flex items-center justify-center gap-2 text-gray-400 text-xs font-medium">
-                          <FaLock size={9} /> Contacts available on event day
+                        <div className="flex-1 bg-[#2a0000]/50 border border-dashed border-amber-500/20 py-3 rounded-xl flex items-center justify-center gap-2 text-gray-500 text-xs font-bold tracking-wide">
+                          <FaLock size={10} className="text-amber-500/50" /> Contacts unlock on event day
                         </div>
                       )}
                     </div>
                   </div>
 
                   {/* Expandable Details */}
-                  <div className="border-t border-gray-50">
+                  <div className="border-t border-amber-500/10 bg-black/40">
                     <button
                       onClick={() => setExpandedMatchId(isExpanded ? null : match.id)}
-                      className="w-full flex items-center justify-between px-5 py-3 text-xs font-semibold text-gray-500 hover:text-gray-800 hover:bg-gray-50 transition-colors"
+                      className="w-full flex items-center justify-between px-6 py-4 text-xs font-black tracking-widest uppercase text-amber-500/70 hover:text-amber-500 hover:bg-[#2a0000]/30 transition-colors"
                     >
-                      <span>{isExpanded ? 'Hide details' : 'View details & notes'}</span>
-                      <FaChevronDown className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} size={10} />
+                      <span>{isExpanded ? 'Hide Dossier' : 'View Full Dossier'}</span>
+                      <FaChevronDown className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} size={10} />
                     </button>
 
                     {isExpanded && (
-                      <div className="px-5 pb-5 space-y-4">
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Industry</p>
-                            <p className="text-sm font-semibold text-gray-800">{profile.industry}</p>
+                      <div className="px-6 pb-6 space-y-5 animate-in slide-in-from-top-2 duration-200">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="bg-[#150000] p-3 rounded-xl border border-amber-500/10">
+                            <p className="text-[9px] text-amber-500/50 uppercase font-black tracking-widest mb-1.5">Industry Sector</p>
+                            <p className="text-sm font-bold text-gray-200">{profile.industry} {profile.participantType && <span className="text-amber-500 text-xs tracking-wider">· {profile.participantType}</span>}</p>
                           </div>
-                          <div>
-                            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Looking for</p>
-                            <p className="text-xs text-gray-600 leading-relaxed">{profile.opportunitiesSought || 'General networking'}</p>
+                          <div className="bg-[#150000] p-3 rounded-xl border border-amber-500/10">
+                            <p className="text-[9px] text-amber-500/50 uppercase font-black tracking-widest mb-1.5">Primary Objective</p>
+                            <p className="text-xs text-gray-300 font-medium leading-relaxed">{profile.opportunitiesSought || 'Executive Networking'}</p>
                           </div>
                         </div>
 
-                        <textarea
-                          value={localNotes[match.id] || ''}
-                          onChange={(e) => setLocalNotes({ ...localNotes, [match.id]: e.target.value })}
-                          onBlur={() => handleNoteBlur(match.id)}
-                          placeholder="Add a private note..."
-                          className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm text-gray-800 focus:ring-2 focus:ring-[#4a0e17]/20 focus:border-[#4a0e17] resize-none h-16 outline-none placeholder-gray-400"
-                        />
+                        <div className="space-y-1.5">
+                          <p className="text-[9px] text-amber-500/50 uppercase font-black tracking-widest ml-1">Private Notes</p>
+                          <textarea
+                            value={localNotes[match.id] || ''}
+                            onChange={(e) => setLocalNotes({ ...localNotes, [match.id]: e.target.value })}
+                            onBlur={() => handleNoteBlur(match.id)}
+                            placeholder="Add confidential notes from your meeting..."
+                            className="w-full bg-[#150000] border border-amber-500/20 rounded-xl p-3.5 text-sm text-gray-200 focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 resize-none h-20 outline-none placeholder-gray-600 transition-all"
+                          />
+                        </div>
 
-                        <div className="flex gap-2">
+                        <div className="flex gap-3">
                           <button
                             onClick={() => updateMatchStatus(match.id, 'met')}
-                            className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition-colors duration-200 flex items-center justify-center gap-1.5 ${
+                            className={`flex-1 py-3 text-xs font-black tracking-wide uppercase rounded-xl transition-all duration-300 flex items-center justify-center gap-2 ${
                               match.status === 'met' || match.status === 'closed'
-                                ? 'bg-emerald-500 text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-emerald-50 hover:text-emerald-700'
+                                ? 'bg-amber-500 text-black shadow-[0_0_15px_rgba(217,119,6,0.3)] scale-105'
+                                : 'bg-[#2a0000] text-amber-500/70 border border-amber-500/20 hover:border-amber-500 hover:text-amber-500'
                             }`}
                           >
-                            <FaCheckCircle size={12} /> Met Them
+                            <FaCheckCircle size={12} /> {match.status === 'met' || match.status === 'closed' ? 'Met & Confirmed' : 'Mark as Met'}
                           </button>
                           <button
                             onClick={() => updateMatchStatus(match.id, 'follow_up')}
-                            className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition-colors duration-200 flex items-center justify-center gap-1.5 ${
+                            className={`flex-1 py-3 text-xs font-black tracking-wide uppercase rounded-xl transition-all duration-300 flex items-center justify-center gap-2 ${
                               match.status === 'follow_up'
-                                ? 'bg-[#d4af37] text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-amber-50 hover:text-amber-700'
+                                ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.2)] scale-105'
+                                : 'bg-[#2a0000] text-gray-400 border border-gray-600 hover:border-white hover:text-white'
                             }`}
                           >
-                            <FaStar size={12} /> Follow Up
+                            <FaStar size={12} /> Priority Follow-Up
                           </button>
                         </div>
                       </div>

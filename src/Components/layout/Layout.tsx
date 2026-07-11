@@ -12,12 +12,13 @@ const Layout = () => {
   const location = useLocation();
   const isHomePage = location.pathname === "/";
   const isRegistrationPage = location.pathname === "/expo-registration" || location.pathname === "/masterclass-registration";
+  const isYenegeUnityPage = location.pathname.startsWith("/yenege-unity");
   const isAdminPage = location.pathname.startsWith("/admin");
 
   return (
     <div className="min-h-screen flex flex-col">
       <SkipToContent />
-      {!isRegistrationPage && <Header />}
+      {!isRegistrationPage && !isYenegeUnityPage && <Header />}
       <main 
         id="main-content" 
         className="flex-grow" 
@@ -26,14 +27,14 @@ const Layout = () => {
       >
         <Outlet />
       </main>
-      {!isAdminPage && <ConversionNudge />}
-      {!isHomePage && !isRegistrationPage && (
+      {!isAdminPage && !isYenegeUnityPage && <ConversionNudge />}
+      {!isHomePage && !isRegistrationPage && !isYenegeUnityPage && (
         <Suspense fallback={<div className="h-24" />}>
           <Footer />
         </Suspense>
       )}
-      {/* Mobile Bottom Navigation - hidden on registration pages */}
-      {!isRegistrationPage && <MobileBottomNav />}
+      {/* Mobile Bottom Navigation - hidden on registration pages and Yenege Unity */}
+      {!isRegistrationPage && !isYenegeUnityPage && <MobileBottomNav />}
     </div>
   );
 };

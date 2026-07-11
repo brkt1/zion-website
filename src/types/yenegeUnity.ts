@@ -2,6 +2,7 @@ export interface YenegeUnityAttendee {
   id: string;
   fullName: string;
   profilePhoto?: string;
+  participantType: 'Investor' | 'Company' | 'Individual' | '';
   gender: string;
   ageRange: string;
   phone: string;

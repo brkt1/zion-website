@@ -58,6 +58,7 @@ export const yenegeUnityApi = {
     }
 
     const dbRow = {
+      participant_type: attendee.participantType,
       full_name: attendee.fullName,
       profile_photo: attendee.profilePhoto || null,
       gender: attendee.gender,
@@ -532,6 +533,7 @@ export const yenegeUnityApi = {
 function mapDbToAttendee(row: Record<string, unknown>): YenegeUnityAttendee {
   return {
     id: row.id as string,
+    participantType: (row.participant_type as 'Investor' | 'Company' | 'Individual' | '') ?? '',
     fullName: row.full_name as string,
     profilePhoto: row.profile_photo as string | undefined,
     gender: row.gender as string,
@@ -585,6 +587,7 @@ function mapDbToAttendee(row: Record<string, unknown>): YenegeUnityAttendee {
 
 function mapPartialAttendeeToDb(att: Partial<YenegeUnityAttendee>): Record<string, unknown> {
   const db: Record<string, unknown> = {};
+  if (att.participantType !== undefined)        db.participant_type = att.participantType;
   if (att.fullName !== undefined)               db.full_name = att.fullName;
   if (att.profilePhoto !== undefined)           db.profile_photo = att.profilePhoto;
   if (att.gender !== undefined)                 db.gender = att.gender;
