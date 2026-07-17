@@ -746,6 +746,27 @@ const EventDetail = () => {
                     const isCommunity = event.category === 'community';
                     const hasSocialLink = event.social_media_link && event.social_media_link.trim() !== '';
                     
+                    if (event.is_registration_open === false) {
+                      return (
+                        <div className="flex flex-col gap-3">
+                          <div className="w-full py-5 flex flex-col items-center justify-center gap-2 bg-gray-100 border-2 border-gray-200 rounded-full text-center">
+                            <span className="text-gray-600 font-black text-sm uppercase tracking-widest">🔒 Registration Closed</span>
+                            <span className="text-gray-500 text-xs font-medium">This event is currently not accepting registrations.</span>
+                          </div>
+                          {hasSocialLink && (
+                            <a
+                              href={event.social_media_link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="w-full bg-white border-2 border-[#0F172A] text-[#0F172A] py-4 rounded-full text-xs font-black uppercase tracking-widest text-center hover:bg-[#0F172A] hover:text-white transition-all flex items-center justify-center gap-2"
+                            >
+                              Join Discussion <FaExternalLinkAlt size={12} />
+                            </a>
+                          )}
+                        </div>
+                      );
+                    }
+
                     if (isFree || isCommunity) {
                       const isFull = !!(event.maxAttendees && (event.attendees || 0) >= event.maxAttendees);
 

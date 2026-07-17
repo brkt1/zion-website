@@ -20,6 +20,7 @@ export interface Event {
   allowed_commission_seller_ids?: string[]; // Array of commission seller IDs allowed to sell tickets for this event
   social_media_link?: string; // Social media link for community/free events
   telegram_link?: string; // Telegram group link for free events
+  is_registration_open?: boolean; // Whether registration is allowed
 }
 
 export interface Category {
@@ -196,6 +197,7 @@ export const api = {
       allowed_commission_seller_ids: event.allowed_commission_seller_ids ?? undefined,
       social_media_link: event.social_media_link ?? undefined,
       telegram_link: event.telegram_link ?? undefined,
+      is_registration_open: event.is_registration_open !== false, // default to true if undefined
     }));
   },
 
@@ -233,6 +235,7 @@ export const api = {
       gallery: data.gallery || [],
       featured: data.featured,
       allowed_commission_seller_ids: data.allowed_commission_seller_ids ?? undefined,
+      is_registration_open: data.is_registration_open !== false, // default to true if undefined
     };
   },
 

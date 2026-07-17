@@ -32,6 +32,7 @@ const Events = () => {
     allowed_commission_seller_ids: [] as string[],
     social_media_link: '',
     telegram_link: '',
+    is_registration_open: true,
   });
 
   // ── Ticket tiers ─────────────────────────────────────────────────────────
@@ -182,6 +183,7 @@ const Events = () => {
       allowed_commission_seller_ids: event.allowed_commission_seller_ids || [],
       social_media_link: event.social_media_link || '',
       telegram_link: event.telegram_link || '',
+      is_registration_open: event.is_registration_open !== false,
     });
     setTicketTiers(parseTiers(event.price));
     setNewGalleryImage('');
@@ -220,6 +222,7 @@ const Events = () => {
       allowed_commission_seller_ids: [],
       social_media_link: '',
       telegram_link: '',
+      is_registration_open: true,
     });
     setTicketTiers([{ name: '', price: '' }]);
     setNewGalleryImage('');
@@ -853,6 +856,26 @@ const Events = () => {
                         <div>
                           <span className="text-sm font-bold text-gray-900 group-hover:text-orange-600 transition-colors">Featured Event</span>
                           <p className="text-[10px] text-gray-500">Display this event prominently on the homepage.</p>
+                        </div>
+                      </label>
+                    </div>
+
+                    <div className="pt-2 border-t border-gray-50 mt-4">
+                      <label className="flex items-center gap-3 cursor-pointer group w-fit">
+                        <div className="relative flex items-center justify-center">
+                          <input
+                            type="checkbox"
+                            checked={formData.is_registration_open !== false}
+                            onChange={(e) => setFormData({ ...formData, is_registration_open: e.target.checked })}
+                            className="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all checked:bg-orange-500 checked:border-orange-500"
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity">
+                            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-sm font-bold text-gray-900 group-hover:text-orange-600 transition-colors">Registration Open</span>
+                          <p className="text-[10px] text-gray-500">Allow users to register/buy tickets for this event.</p>
                         </div>
                       </label>
                     </div>

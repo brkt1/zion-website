@@ -87,6 +87,8 @@ const Admins = () => {
         return 'bg-indigo-100 text-indigo-800 border-indigo-200';
       case 'sponsorship_manager':
         return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      case 'accountant':
+        return 'bg-green-100 text-green-800 border-green-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -235,6 +237,7 @@ const Admins = () => {
                 >
                   <option value="masterclass_manager">Masterclass Manager (Leads & Sales)</option>
                   <option value="sponsorship_manager">Sponsorship Manager (Partners)</option>
+                  <option value="accountant">Accountant (Financial Dashboard)</option>
                   <option value="admin">Super Admin (Full Access)</option>
                 </select>
               </div>
