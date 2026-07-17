@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { FaArrowLeft, FaDownload, FaEnvelope, FaPhone, FaSearch, FaTicketAlt, FaUser, FaCalendarAlt, FaMapMarkerAlt, FaTag, FaCheckCircle, FaTimesCircle, FaQrcode, FaShieldAlt, FaSyncAlt, FaExclamationTriangle, FaBan, FaSortAmountDown } from 'react-icons/fa';
+import { FaArrowLeft, FaDownload, FaEnvelope, FaPhone, FaSearch, FaTicketAlt, FaTrash, FaUser, FaCalendarAlt, FaMapMarkerAlt, FaTag, FaCheckCircle, FaTimesCircle, FaQrcode, FaShieldAlt, FaSyncAlt, FaExclamationTriangle, FaBan, FaSortAmountDown } from 'react-icons/fa';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { adminApi } from '../../services/adminApi';
 import { api, Event } from '../../services/api';
@@ -254,6 +254,46 @@ const EventDetails = () => {
       return { ...t, _fits: fits, _seatEnd: fits ? seatsUsed : seatsUsed + qty };
     });
   }, [tickets, event?.maxAttendees]);
+  // ────────────────────────────────────────────────────────────────────────
+
+  // ── Delete a ticket ──────────────────────────────────────────
+  const handleDeleteTicket = async (ticket: Ticket) => {
+    const confirmed = window.confirm(
+      `Delete ticket for ${ticket.customer_name || ticket.customer_email}?\n\n` +
+      `This will permanently remove the ticket and reduce the event attendee count by ${Number(ticket.quantity) || 1}.`
+    );
+    if (!confirmed) return;
+
+    try {
+      // 1. Delete the ticket row
+      const { error: delError } = await supabase
+        .from('tickets')
+        .delete()
+        .eq('id', ticket.id);
+      if (delError) throw delError;
+
+      // 2. Decrement event attendees count (only if ticket was active)
+      if ((ticket.status === 'success' || ticket.status === 'pending') && id) {
+        const qty = Number(ticket.quantity) || 1;
+        const { data: evData } = await supabase
+          .from('events')
+          .select('attendees')
+          .eq('id', id)
+          .single();
+        if (evData) {
+          await supabase
+            .from('events')
+            .update({ attendees: Math.max(0, (evData.attendees || 0) - qty), updated_at: new Date().toISOString() })
+            .eq('id', id);
+        }
+      }
+
+      // 3. Remove from local state
+      setTickets(prev => prev.filter(t => t.id !== ticket.id));
+    } catch (err: any) {
+      alert('Failed to delete ticket: ' + err.message);
+    }
+  };
   // ────────────────────────────────────────────────────────────────────────
 
   if (loading) {
@@ -746,16 +786,25 @@ const EventDetails = () => {
                         </div>
                       )}
 
-                      {/* Date footer */}
-                      <div className="mt-2 flex items-center justify-between">
+                      {/* Date footer + delete button */}
+                      <div className="mt-2 flex items-center justify-between gap-2">
                         <span className="text-white/40 text-[10px]">
                           {new Date(ticket.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </span>
-                        {ticket.qr_code_data && (
-                          <span className="text-white/40 text-[10px] flex items-center gap-1">
-                            <FaQrcode size={9} /> QR ready
-                          </span>
-                        )}
+                        <div className="flex items-center gap-2">
+                          {ticket.qr_code_data && (
+                            <span className="text-white/40 text-[10px] flex items-center gap-1">
+                              <FaQrcode size={9} /> QR ready
+                            </span>
+                          )}
+                          <button
+                            onClick={() => handleDeleteTicket(ticket)}
+                            title="Delete this ticket"
+                            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-red-500/80 hover:bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider transition-all backdrop-blur-sm"
+                          >
+                            <FaTrash size={8} /> Delete
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>

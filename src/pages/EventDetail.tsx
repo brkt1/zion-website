@@ -450,13 +450,14 @@ const EventDetail = () => {
         return;
       }
 
+      // Free events: always 1 seat per person — quantity is locked to 1
       await registerForFreeEvent(
         id,
         event.title,
         customerName,
         paymentForm.email,
         paymentForm.phone_number,
-        paymentForm.quantity || 1
+        1
       );
 
       // Refresh event data to update attendee count
@@ -470,7 +471,7 @@ const EventDetail = () => {
       successParams.set('tx_ref', `free_reg_${freeTxRef}`);
       successParams.set('event_id', id);
       successParams.set('event_title', event.title);
-      successParams.set('quantity', (paymentForm.quantity || 1).toString());
+      successParams.set('quantity', '1'); // Free events are always 1 seat per person
       successParams.set('first_name', paymentForm.first_name);
       successParams.set('last_name', paymentForm.last_name);
       successParams.set('email', paymentForm.email);
@@ -1070,22 +1071,11 @@ const EventDetail = () => {
                     value={paymentForm.phone_number} onChange={handleInputChange}
                     className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:outline-none focus:ring-2 focus:ring-[#FFD447]/50 transition-all font-bold text-sm font-sans"
                   />
-                                   <div className="flex items-center gap-4 pt-2 font-sans">
-                    <span className="text-[10px] font-black text-black/40 uppercase tracking-widest min-w-[80px]">Tickets</span>
-                    <div className="flex-1 flex items-center bg-slate-50 rounded-2xl border border-slate-100 p-1 h-14 overflow-hidden">
-                      <button
-                        type="button" onClick={() => paymentForm.quantity > 1 && setPaymentForm({...paymentForm, quantity: paymentForm.quantity - 1})}
-                        className="w-12 h-full flex-shrink-0 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all"
-                      > <FaChevronLeft size={16} /> </button>
-                      <input
-                        type="text" value={paymentForm.quantity} readOnly
-                        className="w-10 min-w-0 flex-1 bg-transparent border-none text-center font-black text-slate-900 focus:ring-0 text-lg px-0"
-                      />
-                      <button
-                        type="button" onClick={() => setPaymentForm({...paymentForm, quantity: paymentForm.quantity + 1})}
-                        className="w-12 h-full flex-shrink-0 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all"
-                      > <FaChevronRight size={16} /> </button>
-                    </div>
+                  {/* Free events: 1 ticket per person only */}
+                  <div className="flex items-center gap-3 pt-1 px-1 font-sans">
+                    <span className="text-[10px] font-black text-black/40 uppercase tracking-widest">Tickets</span>
+                    <span className="px-4 py-2 bg-slate-100 rounded-xl text-sm font-black text-slate-700">1 per person</span>
+                    <span className="text-[10px] text-slate-400 font-medium">Free events allow 1 registration per person only.</span>
                   </div>
 
                   <div className="pt-4 flex gap-3 font-sans">
