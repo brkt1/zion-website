@@ -1,10 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { FaArrowLeft, FaDownload, FaEnvelope, FaPhone, FaSearch, FaTicketAlt, FaUser, FaCalendarAlt, FaMapMarkerAlt, FaTag, FaCheckCircle, FaTimesCircle, FaQrcode, FaShieldAlt, FaSyncAlt, FaExclamationTriangle } from 'react-icons/fa';
+import { FaArrowLeft, FaDownload, FaEnvelope, FaPhone, FaSearch, FaTicketAlt, FaUser, FaCalendarAlt, FaMapMarkerAlt, FaTag, FaCheckCircle, FaTimesCircle, FaQrcode, FaShieldAlt, FaSyncAlt, FaExclamationTriangle, FaBan, FaSortAmountDown } from 'react-icons/fa';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { adminApi } from '../../services/adminApi';
 import { api, Event } from '../../services/api';
-import { handleSupabaseError } from '../../services/supabase';
+import { supabase, handleSupabaseError } from '../../services/supabase';
 import { fetchChapaTransactions } from '../../services/payment';
 import { Ticket } from '../../types';
 import { NetworkErrorBanner } from '../../Components/ui/NetworkStatus';
@@ -20,6 +20,11 @@ const EventDetails = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'success' | 'pending' | 'failed'>('all');
   const [error, setError] = useState<string | null>(null);
   const [dataSource, setDataSource] = useState<'chapa' | 'database' | 'merged'>('database');
+
+  // ── Capacity enforcement state ──────────────────────────────────────────
+  const [isEnforcing, setIsEnforcing] = useState(false);
+  const [enforcementResult, setEnforcementResult] = useState<{ cancelled: number; kept: number } | null>(null);
+  // ────────────────────────────────────────────────────────────────────────
 
 
   useEffect(() => {
@@ -168,6 +173,88 @@ const EventDetails = () => {
     link.click();
     document.body.removeChild(link);
   };
+
+  // ── Capacity enforcement: cancel tickets beyond max, keep first-comers ──
+  const handleEnforceCapacity = async () => {
+    if (!event || !id || !event.maxAttendees) return;
+    const max = event.maxAttendees;
+
+    // Only operate on active (success/pending) tickets, sorted oldest→newest
+    const activeTickets = tickets
+      .filter(t => t.status === 'success' || t.status === 'pending')
+      .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+
+    // Tally seats: first-comers keep spots until max is reached
+    let seatsUsed = 0;
+    const toCancel: string[] = [];
+    for (const t of activeTickets) {
+      const qty = Number(t.quantity) || 1;
+      if (seatsUsed + qty <= max) {
+        seatsUsed += qty;
+      } else {
+        toCancel.push(t.tx_ref);
+      }
+    }
+
+    if (toCancel.length === 0) {
+      alert('✅ No enforcement needed — all registrations fit within the capacity limit.');
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `⚠️ Capacity Enforcement\n\n` +
+      `This will CANCEL ${toCancel.length} ticket(s) that registered after the limit was reached.\n` +
+      `The first ${max} seat(s) (by registration time) will be kept.\n\n` +
+      `This action cannot be undone. Continue?`
+    );
+    if (!confirmed) return;
+
+    setIsEnforcing(true);
+    setEnforcementResult(null);
+    try {
+      // 1. Cancel excess tickets
+      const { error: cancelError } = await supabase
+        .from('tickets')
+        .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+        .in('tx_ref', toCancel);
+
+      if (cancelError) throw cancelError;
+
+      // 2. Reset the event attendees count to the actual kept seats
+      const { error: updateError } = await supabase
+        .from('events')
+        .update({ attendees: seatsUsed, updated_at: new Date().toISOString() })
+        .eq('id', id);
+
+      if (updateError) throw updateError;
+
+      setEnforcementResult({ cancelled: toCancel.length, kept: seatsUsed });
+      // Reload data to reflect changes
+      loadData(id, true);
+    } catch (err: any) {
+      alert('Error enforcing capacity: ' + err.message);
+    } finally {
+      setIsEnforcing(false);
+    }
+  };
+
+  // Helper: rank active tickets by registration order for the enforcement preview
+  const getRankedActiveTickets = useCallback(() => {
+    if (!event?.maxAttendees) return [];
+    const max = event.maxAttendees;
+    const active = tickets
+      .filter(t => t.status === 'success' || t.status === 'pending')
+      .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+
+    let seatsUsed = 0;
+    return active.map(t => {
+      const qty = Number(t.quantity) || 1;
+      const fits = seatsUsed + qty <= max;
+      if (fits) seatsUsed += qty;
+      return { ...t, _fits: fits, _seatEnd: fits ? seatsUsed : seatsUsed + qty };
+    });
+  }, [tickets, event?.maxAttendees]);
+  // ────────────────────────────────────────────────────────────────────────
 
   if (loading) {
     return (
@@ -382,6 +469,120 @@ const EventDetails = () => {
             </div>
           </div>
         </div>
+
+        {/* ── Capacity Enforcement Panel ── */}
+        {event.maxAttendees && stats.successfulQuantity + stats.pendingTickets > 0 && (() => {
+          const rankedTickets = getRankedActiveTickets();
+          const overLimit = rankedTickets.filter(t => !t._fits);
+          const isOverCapacity = overLimit.length > 0;
+          const currentCount = tickets.filter(t => t.status === 'success' || t.status === 'pending')
+            .reduce((acc, t) => acc + (Number(t.quantity) || 1), 0);
+
+          return (
+            <div className={`rounded-3xl shadow-xl border overflow-hidden mb-8 ${isOverCapacity ? 'border-red-200 bg-red-50' : 'border-emerald-200 bg-emerald-50'}`}>
+              {/* Header */}
+              <div className={`p-6 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${isOverCapacity ? 'border-red-200 bg-red-100/60' : 'border-emerald-200 bg-emerald-100/60'}`}>
+                <div className="flex items-center gap-3">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-md ${isOverCapacity ? 'bg-red-500' : 'bg-emerald-500'}`}>
+                    {isOverCapacity ? <FaExclamationTriangle size={18} /> : <FaCheckCircle size={18} />}
+                  </div>
+                  <div>
+                    <h3 className={`text-lg font-black tracking-tight ${isOverCapacity ? 'text-red-900' : 'text-emerald-900'}`}>
+                      {isOverCapacity ? '⚠️ Capacity Exceeded' : '✅ Within Capacity'}
+                    </h3>
+                    <p className={`text-xs font-semibold mt-0.5 ${isOverCapacity ? 'text-red-600' : 'text-emerald-600'}`}>
+                      {currentCount} active seat{currentCount !== 1 ? 's' : ''} registered &nbsp;·&nbsp; limit is {event.maxAttendees}
+                      {isOverCapacity && ` · ${overLimit.length} ticket${overLimit.length !== 1 ? 's' : ''} over the limit`}
+                    </p>
+                  </div>
+                </div>
+
+                {isOverCapacity && (
+                  <div className="flex items-center gap-3 flex-wrap">
+                    {enforcementResult && (
+                      <span className="px-4 py-2 bg-emerald-500 text-white text-xs font-black rounded-xl shadow">
+                        ✅ Done — kept {enforcementResult.kept}, cancelled {enforcementResult.cancelled}
+                      </span>
+                    )}
+                    <button
+                      onClick={handleEnforceCapacity}
+                      disabled={isEnforcing}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 text-white text-sm font-black rounded-xl hover:bg-red-700 transition-all shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {isEnforcing ? (
+                        <><FaSyncAlt className="animate-spin" size={14} /> Enforcing…</>
+                      ) : (
+                        <><FaBan size={14} /> Enforce Capacity (Keep First {event.maxAttendees})</>
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Ranked list */}
+              {isOverCapacity && (
+                <div className="p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <FaSortAmountDown className="text-gray-400" size={13} />
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+                      Registration Order — First-Comers Get a Spot
+                    </p>
+                  </div>
+                  <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+                    {rankedTickets.map((t, idx) => (
+                      <div
+                        key={t.tx_ref}
+                        className={`flex items-center gap-3 p-3 rounded-2xl border text-sm transition-all ${
+                          t._fits
+                            ? 'bg-white border-emerald-200'
+                            : 'bg-red-50 border-red-200'
+                        }`}
+                      >
+                        {/* Rank badge */}
+                        <span className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-black flex-shrink-0 ${
+                          t._fits ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'
+                        }`}>
+                          {idx + 1}
+                        </span>
+
+                        {/* Status icon */}
+                        {t._fits
+                          ? <FaCheckCircle className="text-emerald-500 flex-shrink-0" size={14} />
+                          : <FaBan className="text-red-500 flex-shrink-0" size={14} />
+                        }
+
+                        {/* Name + email */}
+                        <div className="flex-1 min-w-0">
+                          <p className={`font-bold truncate ${t._fits ? 'text-gray-900' : 'text-red-700 line-through'}`}>
+                            {t.customer_name || 'Unknown'}
+                          </p>
+                          <p className="text-[10px] text-gray-400 truncate">{t.customer_email}</p>
+                        </div>
+
+                        {/* Quantity + time */}
+                        <div className="text-right flex-shrink-0">
+                          <p className={`text-xs font-bold ${t._fits ? 'text-emerald-600' : 'text-red-500'}`}>
+                            {Number(t.quantity) || 1} seat{(Number(t.quantity) || 1) !== 1 ? 's' : ''}
+                          </p>
+                          <p className="text-[10px] text-gray-400">
+                            {new Date(t.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })} {new Date(t.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
+
+                        {/* Keep / Cancel label */}
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider flex-shrink-0 ${
+                          t._fits ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
+                        }`}>
+                          {t._fits ? 'Keep' : 'Cancel'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Attendees List Card */}
         <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden mb-8">
