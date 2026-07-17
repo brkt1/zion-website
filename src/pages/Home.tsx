@@ -529,7 +529,7 @@ const Home = () => {
               gap: "32px",
             }}
           >
-            {(recentEvents || []).map((event) => {
+            {(recentEvents || []).filter(e => e.is_registration_open !== false).map((event) => {
               if (event.image && !imgOrientations[event.id]) {
                 detectOrientation(event.id, event.image);
               }

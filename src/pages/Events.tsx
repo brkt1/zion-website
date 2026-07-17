@@ -99,7 +99,9 @@ const Events = () => {
       // Apply category filter
       const matchesCategory = !selectedCategory || event.category === selectedCategory;
 
-      return matchesSearch && matchesCategory;
+      const isRegistrationOpen = event.is_registration_open !== false;
+
+      return matchesSearch && matchesCategory && isRegistrationOpen;
     });
   }, [events, searchQuery, selectedCategory]);
 
