@@ -73,6 +73,7 @@ const RepresentativeDashboard = lazy(() => import("./pages/admin/RepresentativeD
 const AdminFeasibilityBriefs = lazy(() => import("./pages/admin/FeasibilityBriefs"));
 const Admins = lazy(() => import("./pages/admin/Admins"));
 const AdminEventDetails = lazy(() => import("./pages/admin/EventDetails"));
+const AccountingDashboard = lazy(() => import("./pages/admin/AccountingDashboard"));
 
 // Yenege Unity platform pages
 const YenegeUnityLanding = lazy(() => import("./pages/yenege-unity/Landing"));
@@ -298,6 +299,14 @@ function App() {
             element={
               <Suspense fallback={<LoadingState />}>
                 <CommissionSellers />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="/admin/accounting" 
+            element={
+              <Suspense fallback={<LoadingState message="Loading financial data..." />}>
+                <AccountingDashboard />
               </Suspense>
             } 
           />

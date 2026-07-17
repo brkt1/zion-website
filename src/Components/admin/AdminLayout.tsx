@@ -7,7 +7,7 @@ import {
     FaSearch, FaSignOutAlt, FaTicketAlt, FaTimes, FaUser, FaUserShield, FaUsers
 } from 'react-icons/fa';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { isAdmin, isCommissionSeller, isMasterclassManager, isMasterclassSales, isSponsorshipManager } from '../../services/auth';
+import { isAdmin, isCommissionSeller, isMasterclassManager, isMasterclassSales, isSponsorshipManager, isAccountant } from '../../services/auth';
 import { supabase } from '../../services/supabase';
 
 interface AdminLayoutProps {
@@ -38,6 +38,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
   const [isManager, setIsManager] = useState(false);
   const [isMasterclass, setIsMasterclass] = useState(false);
   const [isSales, setIsSales] = useState(false);
+  const [isAccountantUser, setIsAccountantUser] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -57,11 +58,13 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
     const seller = await isCommissionSeller();
     const masterclass = await isMasterclassManager();
     const sales = await isMasterclassSales();
+    const accountant = await isAccountant();
     setIsAdminUser(admin);
     setIsManager(manager);
     setIsMasterclass(masterclass);
     setIsSales(sales);
-    if (!admin && !seller && !manager && !masterclass && !sales) {
+    setIsAccountantUser(accountant);
+    if (!admin && !seller && !manager && !masterclass && !sales && !accountant) {
       await supabase.auth.signOut();
       navigate('/admin/login?error=unauthorized');
       return;
@@ -116,6 +119,13 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
       ],
     },
     {
+      label: 'Finance',
+      emoji: '💰',
+      items: [
+        { icon: FaChartLine, label: 'Accounting', path: '/admin/accounting', color: 'from-green-500 to-emerald-600' },
+      ],
+    },
+    {
       label: 'Masterclass',
       emoji: '🎓',
       items: [
@@ -151,6 +161,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
     .map(section => ({
       ...section,
       items: section.items.filter(item => {
+        if (isAccountantUser && !isAdminUser) return item.path === '/admin/accounting';
         if (isSales && !isAdminUser) return item.path === '/admin/masterclass-reservations';
         if (isMasterclass && !isAdminUser) return item.path.includes('masterclass') && item.path !== '/admin/masterclass-dashboard';
         if (item.adminOnly) return isAdminUser;
@@ -211,7 +222,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
     );
   }
 
-  const roleLabel = isAdminUser ? 'Super Admin' : isManager ? 'Partnership Dept' : isMasterclass ? 'MC Manager' : isSales ? 'MC Sales' : 'Staff';
+  const roleLabel = isAdminUser ? 'Super Admin' : isManager ? 'Partnership Dept' : isMasterclass ? 'MC Manager' : isSales ? 'MC Sales' : isAccountantUser ? 'Accountant' : 'Staff';
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] flex font-sans selection:bg-[#FFD447] selection:text-[#1C2951]">
@@ -245,8 +256,8 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-3 px-2.5 scrollbar-hide space-y-0.5">
-          {/* Dashboard - Hidden for Masterclass and Sales who are not Super Admins */}
-          {((!isMasterclass && !isSales) || isAdminUser) && (
+          {/* Dashboard - Hidden for non-admins if they have limited views */}
+          {((!isMasterclass && !isSales && !isAccountantUser) || isAdminUser) && (
             <div className="mb-3">
               <Link
                 to="/admin/dashboard"
@@ -403,8 +414,8 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
 
           {/* Nav */}
           <div className="flex-1 overflow-y-auto p-3 scrollbar-hide">
-            {/* Dashboard - Hidden for Masterclass and Sales who are not Super Admins */}
-            {((!isMasterclass && !isSales) || isAdminUser) && (
+            {/* Dashboard - Hidden for limited roles unless Super Admin */}
+            {((!isMasterclass && !isSales && !isAccountantUser) || isAdminUser) && (
               <div className="mb-3">
                 <Link to="/admin/dashboard" onClick={() => setMobileMenuOpen(false)} className={`flex items-center gap-3 px-4 py-3 rounded-xl ${isActive('/admin/dashboard') ? 'bg-gradient-to-r from-[#1C2951] to-[#2d3d6b] text-white shadow-lg' : 'text-gray-500 hover:bg-gray-50'}`}>
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isActive('/admin/dashboard') ? 'bg-white/15' : 'bg-gray-100'}`}>
