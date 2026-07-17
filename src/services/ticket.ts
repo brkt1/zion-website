@@ -310,6 +310,36 @@ export const registerForFreeEvent = async (
   quantity: number
 ): Promise<Ticket> => {
   try {
+    // ── 1. Duplicate check: prevent same email registering twice ──
+    const { data: existingTickets, error: dupError } = await supabase
+      .from('tickets')
+      .select('id')
+      .eq('event_id', eventId)
+      .ilike('customer_email', customerEmail.trim())
+      .in('status', ['success', 'pending']);
+
+    if (!dupError && existingTickets && existingTickets.length > 0) {
+      throw new Error(
+        'You are already registered for this event. Please check your email for your ticket. Each person can only register once.'
+      );
+    }
+
+    // ── 2. Capacity check: prevent over-booking ──
+    const { data: eventCapData, error: capError } = await supabase
+      .from('events')
+      .select('attendees, max_attendees')
+      .eq('id', eventId)
+      .single();
+
+    if (!capError && eventCapData && eventCapData.max_attendees) {
+      const spotsLeft = eventCapData.max_attendees - (eventCapData.attendees || 0);
+      if (spotsLeft <= 0) {
+        throw new Error(
+          'EVENT_FULL: This event is now full. Please look for our next event — we would love to see you there!'
+        );
+      }
+    }
+
     // Generate a unique transaction reference for free registration
     const txRef = `FREE-${eventId}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     

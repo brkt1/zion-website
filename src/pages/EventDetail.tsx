@@ -486,7 +486,12 @@ const EventDetail = () => {
       setIsProcessing(false);
     } catch (error: any) {
       console.error('Registration error:', error);
-      alert(error.message || 'Failed to register. Please try again.');
+      const msg: string = error.message || 'Failed to register. Please try again.';
+      if (msg.startsWith('EVENT_FULL:')) {
+        alert('🚫 ' + msg.replace('EVENT_FULL:', '').trim());
+      } else {
+        alert(msg);
+      }
       setIsProcessing(false);
     }
   };
@@ -672,12 +677,23 @@ const EventDetail = () => {
                 </div>
                 <div>
                   <div className="text-[10px] font-bold text-black/40 uppercase tracking-widest mb-0.5">Availability</div>
-                  <div className="ed-font-sans font-bold text-slate-900">
+                  <div className={`ed-font-sans font-bold ${
+                    event.maxAttendees && (event.attendees || 0) >= event.maxAttendees
+                      ? 'text-red-600'
+                      : 'text-slate-900'
+                  }`}>
                     {event.attendees || 0} {event.maxAttendees ? `of ${event.maxAttendees}` : 'joined'}
                   </div>
                   {event.maxAttendees && (
-                    <div className="text-xs text-emerald-600 font-medium">
-                      {Math.max(0, event.maxAttendees - (event.attendees || 0))} spots left
+                    <div className={`text-xs font-medium ${
+                      (event.attendees || 0) >= event.maxAttendees
+                        ? 'text-red-500 font-bold'
+                        : 'text-emerald-600'
+                    }`}>
+                      {(event.attendees || 0) >= event.maxAttendees
+                        ? '🚫 Event is full'
+                        : `${Math.max(0, event.maxAttendees - (event.attendees || 0))} spots left`
+                      }
                     </div>
                   )}
                 </div>
@@ -730,6 +746,29 @@ const EventDetail = () => {
                     const hasSocialLink = event.social_media_link && event.social_media_link.trim() !== '';
                     
                     if (isFree || isCommunity) {
+                      const isFull = !!(event.maxAttendees && (event.attendees || 0) >= event.maxAttendees);
+
+                      if (isFull) {
+                        return (
+                          <div className="flex flex-col gap-3">
+                            <div className="w-full py-5 flex flex-col items-center justify-center gap-2 bg-red-50 border-2 border-red-200 rounded-full text-center">
+                              <span className="text-red-600 font-black text-sm uppercase tracking-widest">🚫 This Event Is Full</span>
+                              <span className="text-red-400 text-xs font-medium">Please look for our next event!</span>
+                            </div>
+                            {hasSocialLink && (
+                              <a
+                                href={event.social_media_link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full bg-white border-2 border-[#0F172A] text-[#0F172A] py-4 rounded-full text-xs font-black uppercase tracking-widest text-center hover:bg-[#0F172A] hover:text-white transition-all flex items-center justify-center gap-2"
+                              >
+                                Join Discussion <FaExternalLinkAlt size={12} />
+                              </a>
+                            )}
+                          </div>
+                        );
+                      }
+
                       return (
                         <div className="flex flex-col gap-3">
                           <button 
