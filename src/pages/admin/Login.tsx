@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { isAdmin, isCommissionSeller, isMasterclassManager, isSponsorshipManager, isTicketScanner } from '../../services/auth';
+import { isAdmin, isCommissionSeller, isMasterclassManager, isSponsorshipManager, isTicketScanner, isAccountant } from '../../services/auth';
 import { supabase } from '../../services/supabase';
 
 const Login = () => {
@@ -26,13 +26,15 @@ const Login = () => {
         const seller = await isCommissionSeller();
         const scanner = await isTicketScanner();
         const masterclass = await isMasterclassManager();
-        if (!admin && !seller && !scanner && !manager && !masterclass) {
+        const accountant = await isAccountant();
+        if (!admin && !seller && !scanner && !manager && !masterclass && !accountant) {
           await supabase.auth.signOut();
           setError('You do not have access. Please contact an administrator.');
           setLoading(false); setGoogleLoading(false);
           return;
         }
         if (admin) navigate('/admin/dashboard');
+        else if (accountant) navigate('/admin/accounting');
         else if (masterclass) navigate('/admin/masterclass-dashboard');
         else if (manager) navigate('/admin/sponsorship-department');
         else if (seller) navigate('/admin/seller-dashboard');
@@ -48,13 +50,15 @@ const Login = () => {
     const seller = await isCommissionSeller();
     const scanner = await isTicketScanner();
     const masterclass = await isMasterclassManager();
-    if (!admin && !seller && !scanner && !manager && !masterclass) {
+    const accountant = await isAccountant();
+    if (!admin && !seller && !scanner && !manager && !masterclass && !accountant) {
       await supabase.auth.signOut();
       setError('You do not have access. Please contact an administrator.');
       setLoading(false); setGoogleLoading(false);
       return;
     }
     if (admin) navigate('/admin/dashboard');
+    else if (accountant) navigate('/admin/accounting');
     else if (masterclass) navigate('/admin/masterclass-dashboard');
     else if (manager) navigate('/admin/sponsorship-department');
     else if (seller) navigate('/admin/seller-dashboard');

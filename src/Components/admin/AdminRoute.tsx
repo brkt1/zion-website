@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { FaExclamationTriangle, FaHome, FaSignOutAlt } from 'react-icons/fa';
 import { Navigate, Outlet, useNavigate } from 'react-router-dom';
-import { isAdmin, isCommissionSeller, isMasterclassManager, isMasterclassSales, isSponsorshipManager, isSponsorshipRepresentative } from '../../services/auth';
+import { isAdmin, isCommissionSeller, isMasterclassManager, isMasterclassSales, isSponsorshipManager, isSponsorshipRepresentative, isAccountant } from '../../services/auth';
 import { supabase } from '../../services/supabase';
 
 /**
@@ -34,13 +34,14 @@ const AdminRoute = () => {
         const masterclassSales = await isMasterclassSales();
         const seller = await isCommissionSeller();
         const rep = await isSponsorshipRepresentative();
+        const accountant = await isAccountant();
         
-        setIsSeller(seller && !admin && !manager && !masterclass && !masterclassSales);
-        setIsRep(rep && !admin && !manager && !masterclass && !masterclassSales);
+        setIsSeller(seller && !admin && !manager && !masterclass && !masterclassSales && !accountant);
+        setIsRep(rep && !admin && !manager && !masterclass && !masterclassSales && !accountant);
         
         // Block commission sellers and reps from accessing general admin routes 
-        // unless they are a manager or masterclass manager or sales
-        if (!admin && !manager && !masterclass && !masterclassSales) {
+        // unless they are a manager or masterclass manager or sales or accountant
+        if (!admin && !manager && !masterclass && !masterclassSales && !accountant) {
           if (seller || rep) {
             setIsAuthorized(false);
             setLoading(false);
