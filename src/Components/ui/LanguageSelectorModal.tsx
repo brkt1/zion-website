@@ -165,7 +165,7 @@ const LanguageSelectorModal: React.FC = () => {
 
           <div style={{ marginTop: '40px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <div style={{ fontSize: '11px', color: BRAND.gray400, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.15em' }}>
-              Bringing Happiness to Life
+              Precision in Experience Architecture
             </div>
             
             <button

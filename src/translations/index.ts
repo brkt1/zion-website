@@ -128,14 +128,14 @@ export const translations: Record<Language, Translations> = {
       contact: "ያግኙን",
     },
     hero: {
-      tagline: "ደስታን በተግባር!",
+      tagline: "ስትራቴጂካዊ አፈፃፀም። ቴክኒካዊ ልህቀት።",
       specialEvents: "ልዩ ኢቨንቶች",
-      description: "ሰዎችን የሚያቀራርቡ ኢቨንቶችን እናዘጋጃለን — ከደመቁ ሰርጎች እና ከግል ዝግጅቶች ጀምሮ እስከ ማህበረሰባዊ የጨዋታ ምሽቶች። በማንኛውም ሃሳብ ውስጥ ጥበብን እና ፈጠራን በመጨመር ወደ እውነት እንቀይረዋለን። ትልቅ ፕሮግራም ቢኖርዎትም ሆነ አዳዲስ ነገሮችን ለመሞከር ቢፈልጉ፣ የማይረሱ ትዝታዎች የሚጀምሩት \"የነገ\" ጋር ነው።",
-      exploreEvents: "ኢቨንቶችን ይመልከቱ",
-      contactWa: "በዋትስአፕ ያውሩን",
+      description: "ስትራቴጂካዊ አፈፃፀም እና ቴክኒካዊ ልህቀትን የሚያረጋግጡ የልምድ አርክቴክቸር ስርዓቶችን እንገነባለን — ከከፍተኛ የድርጅት ፕሮግራሞች ጀምሮ እስከ ተመረጡ የንግድ መድረኮች። ጥብቅ እቅድን ከፈጠራ አርክቴክቸር ጋር በማጣመር ውስብስብ ራዕዮችን ወደ እውን እንለውጣለን።",
+      exploreEvents: "ስትራቴጂካዊ የምክክር ጥያቄ",
+      contactWa: "የድርጅት ማግበር ጥያቄ",
     },
     stats: {
-      happyMembers: "ደስተኛ አባላት",
+      happyMembers: "የተመሰከረላቸው አርክቴክቶች",
       avgRating: "አማካይ ደረጃ",
       destinations: "መዳረሻዎች",
     },
@@ -143,9 +143,9 @@ export const translations: Record<Language, Translations> = {
       title: "የስራዎቻችን ማህደር",
       subtitle: "የተመረጡ መዳረሻዎች፣ ልዩ ጊዜያት",
       eventsTitle: "Events",
-      eventsDesc: "በቦርድ ጨዋታዎች፣ በጥያቄና መልስ እና በተለያዩ ውድድሮች የተሞሉ ምሽቶች። አዳዲስ ሰዎችን ለመተዋወቅ ምርጥ አጋጣሚ!",
+      eventsDesc: "ስትራቴጂካዊ የኔትወርክ አክቲቬሽኖች፣ ሙያዊ ውድድሮች እና የንግድ መድረኮች።",
       communityTitle: "Community",
-      communityDesc: "የደስተኛ ሰዎችን ቤተሰብ ይቀላቀሉ። ታሪኮችን ይጋሩ፣ ይገናኙ እና ዘላቂ ጓደኝነትን ይገንቡ።",
+      communityDesc: "የዘርፉን ስትራቴጂካዊ መሪዎች ይቀላቀሉ። ልምዶችን ያካፍሉ፣ ይገናኙ እና ዘላቂ ሙያዊ ግንኙነቶችን ይገንቡ።",
       discover: "ይመልከቱ",
     },
     experiences: {
@@ -184,7 +184,7 @@ export const translations: Record<Language, Translations> = {
       corporateDesc: "ሙያዊ ብቃት የተላበሱ",
     },
     footer: {
-      description: "ደስታን በተግባር! በኢቨንቶች፣ በጀብዱዎች እና በማህበረሰባዊ ግንኙነቶች አማካኝነት ሕይወትን እናደምቃለን።",
+      description: "ስትራቴጂካዊ አፈፃፀም እና ቴክኒካዊ ልህቀት በልምድ አርክቴክቸር ስርአቶች አማካኝነት።",
       quickLinks: "ፈጣን ሊንኮች",
       contact: "ያግኙን",
       stayUpdated: "ሁሌም ይከታተሉን",
@@ -197,8 +197,8 @@ export const translations: Record<Language, Translations> = {
     },
     cta: {
       readyBegin: "ለመጀመር ዝግጁ ነዎት?",
-      readyJoin: "ደስታውን ለመቀላቀል ዝግጁ ነዎት?",
-      bePartOf: "የህይወትን ደስታ የሚያከብር፣ ትዝታዎችን የሚፈጥር እና በማንኛውም ጊዜ ደስታን የሚያመጣ ቤተሰብ አባል ይሁኑ።",
+      readyJoin: "አርክቴክቸር ቡድኑን ለመቀላቀል ዝግጁ ነዎት?",
+      bePartOf: "ስትራቴጂካዊ ክንዋኔዎችን እና የልምድ አርክቴክቸር ስርዓቶችን የሚቆጣጠሩ የተመሰከረላቸው ባለሙያዎች ማህበረሰብ አባል ይሁኑ።",
     },
     about: {
       label: "ስለ አርክቴክቸር",
@@ -243,14 +243,14 @@ export const translations: Record<Language, Translations> = {
       contact: "Contact",
     },
     hero: {
-      tagline: "Bringing Happiness to Life",
+      tagline: "Precision in Experience Architecture",
       specialEvents: "Special Events",
-      description: "We design events that bring people together — from elegant weddings and private celebrations to community game nights. By adding art and creativity to every idea, we turn it into reality. Whether you have a large program or want to try new things, unforgettable memories begin with Yenege.",
-      exploreEvents: "Explore Events",
-      contactWa: "Contact via WhatsApp",
+      description: "We design curated business environments and strategic navigation systems — from elite corporate programs to custom travel systems. By pairing rigorous planning with precision experience architecture, we turn complex visions into measurable strategic assets.",
+      exploreEvents: "Request a Strategic Consultation",
+      contactWa: "Inquire for Corporate Activation",
     },
     stats: {
-      happyMembers: "Happy Members",
+      happyMembers: "Certified Architects",
       avgRating: "Average Rating",
       destinations: "Destinations",
     },
@@ -258,9 +258,9 @@ export const translations: Record<Language, Translations> = {
       title: "The Portfolio",
       subtitle: "Selected Destinations, Exclusive Moments",
       eventsTitle: "Events",
-      eventsDesc: "Fun-filled evenings with board games, trivia, and interactive challenges. Perfect for making new friends!",
+      eventsDesc: "Strategic networking activations, executive challenges, and professional exchange environments.",
       communityTitle: "Community",
-      communityDesc: "Join a vibrant community of happy people. Share stories, connect, and build lasting friendships.",
+      communityDesc: "Join Ethiopia's elite circle of certified event architects. Share insights, collaborate, and build strategic networks.",
       discover: "Discover",
     },
     experiences: {
@@ -299,7 +299,7 @@ export const translations: Record<Language, Translations> = {
       corporateDesc: "Professional, polished, and impactful.",
     },
     footer: {
-      description: "Bringing happiness to life through events, adventures, and community connections.",
+      description: "Designing impactful experience systems through events, travel adventures, and community connections.",
       quickLinks: "Quick Links",
       contact: "Contact",
       stayUpdated: "Stay Updated",
@@ -312,8 +312,8 @@ export const translations: Record<Language, Translations> = {
     },
     cta: {
       readyBegin: "Ready to Begin?",
-      readyJoin: "Ready to Join the Fun?",
-      bePartOf: "Be part of a community that celebrates life, creates memories, and brings happiness to every moment.",
+      readyJoin: "Ready to Join the Elite Circle?",
+      bePartOf: "Be part of an elite circle that masters strategic execution, coordinates complex systems, and designs impactful experience environments.",
     },
     about: {
       label: "Architecture of Experiences",

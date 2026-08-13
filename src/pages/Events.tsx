@@ -346,7 +346,7 @@ const Events = () => {
             <span style={{ fontStyle: "italic", background: GRADIENT.brand, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Curation</span>
           </h1>
           <p className="yg-font-sans" style={{ fontSize: "18px", color: 'rgba(255,255,255,0.5)', maxWidth: "540px", lineHeight: 1.6 }}>
-            Discover our portfolio of exclusive experiences, from bespoke travels to high-impact community gatherings.
+            Discover our portfolio of exclusive experiences, from bespoke travels to curated business environments and strategic navigation systems.
           </p>
         </div>
       </section>

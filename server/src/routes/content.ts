@@ -11,13 +11,13 @@ router.get('/events', async (req: Request, res: Response) => {
     let events = [
       {
         id: "1",
-        title: "Friday Game Night",
+        title: "YENEGE Unity Executive Summit",
         date: "2024-02-15",
         time: "6:00 PM",
         location: "Addis Ababa",
-        category: "game",
+        category: "corporate",
         image: "https://images.unsplash.com/photo-1606166188517-c613235819d4?w=800",
-        description: "Join us for an evening of board games, trivia, and fun!",
+        description: "A curated business environment designed strictly for strategic partnerships, executive matchmaking, and brand visibility among decision makers.",
         attendees: 25,
         maxAttendees: 50,
         price: "500",
@@ -49,13 +49,13 @@ router.get('/events', async (req: Request, res: Response) => {
       },
       {
         id: "3",
-        title: "Community Meetup",
+        title: "Ethiopia’s Premier Future-Mapping Exhibition",
         date: "2024-02-25",
         time: "4:00 PM",
         location: "Addis Ababa",
         category: "community",
         image: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=800",
-        description: "Connect with fellow community members and share stories.",
+        description: "Academic & Career Path Navigator — Ethiopia’s premier future-mapping exhibition. Driven by architectural precision to seamlessly manage a 2,000-person capacity and enable confident career & academic choices.",
         attendees: 40,
         maxAttendees: 100,
         price: "Free",
@@ -97,22 +97,19 @@ router.get('/events/:id', async (req: Request, res: Response) => {
     const events: any = {
       "1": {
         id: "1",
-        title: "Friday Game Night",
+        title: "YENEGE Unity Executive Summit",
         date: "2024-02-15",
         time: "6:00 PM",
         location: "Addis Ababa, Ethiopia",
-        category: "game",
+        category: "corporate",
         image: "https://images.unsplash.com/photo-1606166188517-c613235819d4?w=800",
-        description: `Join us for an unforgettable evening of fun, games, and laughter! Our Friday Game Night is the perfect way to unwind after a long week and meet amazing people in the community.
+        description: `YENEGE Unity is a premier curated business environment designed strictly for strategic partnerships, executive matchmaking, and brand visibility.
 
 What to expect:
-• Board games for all skill levels
-• Trivia challenges with prizes
-• Interactive group activities
-• Delicious snacks and refreshments
-• Great music and atmosphere
-
-Whether you're a game enthusiast or just looking to have a good time, everyone is welcome!`,
+• 1-on-1 direct executive matchmaking
+• Strategic networking activations
+• Curated corporate showcases
+• Brand exposure to key investors and partners`,
         attendees: 25,
         maxAttendees: 50,
         price: "500",
@@ -141,10 +138,10 @@ Whether you're a game enthusiast or just looking to have a good time, everyone i
 router.get('/categories', async (req: Request, res: Response) => {
   try {
     const categories = [
-      { id: "game", name: "Game Nights", description: "Fun-filled game events", slug: "game" },
+      { id: "game", name: "Strategic Networking Activations", description: "High-impact networking activations and curated business environments", slug: "game" },
       { id: "travel", name: "Travel", description: "Adventure and travel experiences", slug: "travel" },
       { id: "corporate", name: "Corporate", description: "Corporate events and team building", slug: "corporate" },
-      { id: "community", name: "Community", description: "Community meetups and gatherings", slug: "community" },
+      { id: "community", name: "Community", description: "Curated business environments and strategic navigation systems", slug: "community" },
     ];
 
     res.json(categories);
@@ -301,19 +298,19 @@ router.get('/content/about', async (req: Request, res: Response) => {
     const aboutContent = {
       story: {
         title: "The Yenege Dream",
-        content: `Yenege was born from a simple yet powerful vision: to bring happiness to life through meaningful connections and unforgettable experiences.
+        content: `Yenege was born from a simple yet powerful vision: to design impactful experience systems through strategic management and architectural precision.
 
-We believe that life's greatest moments happen when people come together—whether it's over a board game, on a weekend adventure, or simply sharing stories in a welcoming community space.
+We believe that life's greatest moments happen when organizations build systems that are professional, seamless, and designed with intention.
 
-What started as a dream to create a space where people could escape the daily grind and truly connect has grown into a vibrant community of individuals who value joy, friendship, and living life to the fullest.
+What started as a dream to introduce world-class event architectures to Addis Ababa has grown into a premier education and logistics platform for experience architecture.
 
-Every event we organize, every trip we plan, and every gathering we host is designed with one goal in mind: to bring a little more happiness into your life.`,
+Every event we organize, every trip we plan, and every system we host is designed with one goal in mind: to bring professional precision to the experience industry.`,
       },
       values: [
         {
           number: "01",
-          title: "Happiness First",
-          description: "Everything we do is centered around bringing joy and positivity into people's lives.",
+          title: "Precision First",
+          description: "Everything we do is centered around technical mastery, strategic management, and architectural precision.",
         },
         {
           number: "02",
@@ -333,11 +330,11 @@ Every event we organize, every trip we plan, and every gathering we host is desi
       ],
       mission: {
         title: "Our Mission",
-        content: "To create a vibrant community platform that brings people together through engaging events, exciting adventures, and meaningful connections, making happiness accessible to everyone.",
+        content: "To empower tomorrow through strategic management and architectural precision, building a world-class network of event professionals, custom travel systems, and curated business environments.",
       },
       vision: {
         title: "Our Vision",
-        content: "To become the leading lifestyle and events platform in Ethiopia, known for creating unforgettable experiences and building a community where every member feels valued and happy.",
+        content: "To become the leading architect of culture and events in the region, setting global standards for execution, and building a community where members master strategic experience systems.",
       },
       milestones: [
         { year: "2024", title: "Launch", description: "Yenege officially launched with our first community events" },
@@ -401,7 +398,7 @@ router.get('/config', async (req: Request, res: Response) => {
         { path: "/contact", label: "Contact" },
       ],
       footer: {
-        description: "Bringing happiness to life through events, adventures, and community connections.",
+        description: "Designing impactful experience systems through events, travel adventures, and community connections.",
         quickLinks: [
           { path: "/", label: "Home" },
           { path: "/events", label: "Events" },
@@ -425,8 +422,8 @@ router.get('/content/home', async (req: Request, res: Response) => {
   try {
     const homeContent = {
       hero: {
-        slogan: "Bringing Happiness to Life",
-        intro: "Yenege is a vibrant community dedicated to creating unforgettable experiences. We bring people together through exciting game nights, amazing travel adventures, and meaningful connections that celebrate life's beautiful moments.",
+        slogan: "Precision in Experience Architecture",
+        intro: "Yenege is a premier experience platform operating at the intersection of professional execution, education, and community. We build certified event architects, curated business environments, and strategic experience systems.",
         categories: [
           { label: "Game Nights", path: "/events?category=game" },
           { label: "Travel", path: "/travel" },
@@ -457,8 +454,8 @@ router.get('/content/home', async (req: Request, res: Response) => {
         },
       ],
       cta: {
-        title: "Ready to Join the Fun?",
-        description: "Be part of a community that celebrates life, creates memories, and brings happiness to every moment.",
+        title: "Ready to Join the Elite Circle?",
+        description: "Be part of an elite circle that masters strategic execution, coordinates complex systems, and designs impactful experience environments.",
         buttons: [
           { text: "Explore Events", link: "/events", type: "primary" },
           { text: "Contact via WhatsApp", link: "https://wa.me/251978639887", type: "secondary" },

@@ -97,11 +97,11 @@ const About = () => {
     ],
     mission: {
       title: "Our Mission",
-      content: "To professionalize the experience industry in East Africa through design, logistics, and structured education.",
+      content: "Empowering Tomorrow through Strategic Management and Architectural Precision",
     },
     vision: {
       title: "Our Vision",
-      content: "To be the leading architect of culture and events in the region, setting global standards for execution.",
+      content: "Becoming East Africa’s premier 'Experience Economy' architect, shaping a generation of opportunity-ready leaders.",
     },
     milestones: [
       { year: "2019", title: "Founding", description: "YENEGE was established in Addis Ababa." },
@@ -423,7 +423,7 @@ const About = () => {
                   "People attend events. <br />Few understand how to build them."
                 </p>
                 <p style={{ marginBottom: "24px" }}>
-                  Yenege was born from a simple yet powerful vision: to bring happiness to life through meaningful connections and unforgettable experiences.
+                  Yenege was born from a simple yet powerful vision: to design impactful experience systems through strategic management and architectural precision.
                 </p>
                 <p>
                   Every event we organize, every trip we plan, and every gathering we host is designed with one goal in mind: to bring professional precision to the art of gathering.
@@ -563,7 +563,7 @@ const About = () => {
             className="yg-grid-mobile"
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
+              gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
               gap: "32px",
             }}
           >
@@ -584,6 +584,12 @@ const About = () => {
                 num: "03",
                 title: "Community Hub",
                 desc: "A growing network of creatives, planners, and vendors building together.",
+                icon: <FaUsers />,
+              },
+              {
+                num: "04",
+                title: "Hybrid Delivery Model",
+                desc: "We host one event and reach two audiences. Through platforms like Zoho Backstage, we seamlessly connect our local Addis Ababa community with the global Ethiopian diaspora.",
                 icon: <FaNetworkWired />,
               },
             ].map((pillar, i) => (
@@ -641,7 +647,7 @@ const About = () => {
             <div style={{ padding: "60px", background: 'rgba(255,255,255,0.03)', borderRadius: "40px", border: '1px solid rgba(255,255,255,0.08)' }}>
               <SectionLabel>Our Mission</SectionLabel>
               <h3 className="yg-font-serif" style={{ fontSize: "32px", fontWeight: 800, color: BRAND.white, marginBottom: "24px" }}>
-                Creating Accessible <br /><span style={{ color: BRAND.gold }}>Happiness.</span>
+                Empowering Tomorrow <br /><span style={{ color: BRAND.gold }}>through Strategic Management & Architectural Precision.</span>
               </h3>
               <p className="yg-font-sans" style={{ fontSize: "18px", color: 'rgba(255,255,255,0.5)', lineHeight: 1.8 }}>
                 {finalContent?.mission?.content}
@@ -651,7 +657,7 @@ const About = () => {
             <div style={{ padding: "60px", background: 'rgba(255,212,71,0.03)', border: `1px solid ${BRAND.gold}22`, borderRadius: "40px", color: BRAND.white }}>
               <SectionLabel><span style={{ color: BRAND.gold }}>Our Vision</span></SectionLabel>
               <h3 className="yg-font-serif" style={{ fontSize: "32px", fontWeight: 800, marginBottom: "24px" }}>
-                The Hub of <br /><span style={{ color: BRAND.gold }}>Experiences.</span>
+                Becoming East Africa's <br /><span style={{ color: BRAND.gold }}>Premier 'Experience Economy' Architect.</span>
               </h3>
               <p className="yg-font-sans" style={{ fontSize: "18px", color: "rgba(255,255,255,0.5)", lineHeight: 1.8 }}>
                 {finalContent?.vision?.content}
@@ -688,8 +694,8 @@ const About = () => {
               Learn the Art of<br />
               <span style={{ fontStyle: "italic", background: GRADIENT.brand, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Event Architecture.</span>
             </h2>
-            <p className="yg-font-sans" style={{ fontSize: "18px", color: "rgba(255,255,255,0.45)", maxWidth: "600px", margin: "0 auto", lineHeight: 1.8 }}>
-              East Africa's most comprehensive event training program. We build certified, industry-ready event architects through structured education and real-world experience.
+            <p className="yg-font-sans" style={{ fontSize: "18px", color: "rgba(255,255,255,0.45)", maxWidth: "700px", margin: "0 auto", lineHeight: 1.8 }}>
+              Join Ethiopia’s Elite Circle of Certified Event Architects. Limiting enrollment to a Founding 50 allows for high-touch mentorship and 100% mastery in experience mapping and ROI modeling.
             </p>
           </div>
 
@@ -738,7 +744,7 @@ const About = () => {
                 <h3 className="yg-font-serif" style={{ fontSize: "28px", fontWeight: 900, color: BRAND.white, margin: 0 }}>Ready to Start Learning?</h3>
               </div>
               <p className="yg-font-sans" style={{ fontSize: "15px", color: "rgba(255,255,255,0.45)", margin: 0, maxWidth: "480px" }}>
-                Join 1,000+ students who have transformed their careers through our professional event education program.
+                Join Ethiopia’s Elite Circle of Certified Event Architects. Limiting enrollment to a Founding 50 allows for high-touch mentorship and 100% mastery in experience mapping and ROI modeling.
               </p>
             </div>
             <div style={{ display: "flex", gap: "14px", flexWrap: "wrap" }}>

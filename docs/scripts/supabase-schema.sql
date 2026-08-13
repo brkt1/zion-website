@@ -269,23 +269,23 @@ CREATE POLICY "Allow public read access on tickets" ON tickets FOR SELECT USING 
 -- Insert sample data
 -- Categories
 INSERT INTO categories (name, description, slug) VALUES
-  ('Game Nights', 'Fun-filled game events', 'game'),
+  ('Strategic Networking Activations', 'High-impact networking activations and curated business environments', 'game'),
   ('Travel', 'Adventure and travel experiences', 'travel'),
   ('Corporate', 'Corporate events and team building', 'corporate'),
-  ('Community', 'Community meetups and gatherings', 'community')
+  ('Community', 'Curated business environments and strategic navigation systems', 'community')
 ON CONFLICT (slug) DO NOTHING;
 
 -- Sample Events
 INSERT INTO events (title, date, time, location, category, image, description, attendees, max_attendees, price, currency, featured, gallery)
 SELECT * FROM (VALUES
   (
-    'Friday Game Night'::TEXT,
+    'YENEGE Unity Executive Summit'::TEXT,
     '2024-02-15'::DATE,
     '6:00 PM'::TEXT,
     'Addis Ababa'::TEXT,
-    'game'::TEXT,
+    'corporate'::TEXT,
     'https://images.unsplash.com/photo-1606166188517-c613235819d4?w=800'::TEXT,
-    'Join us for an evening of board games, trivia, and fun!'::TEXT,
+    'A curated business environment designed strictly for strategic partnerships, executive matchmaking, and brand visibility among decision makers.'::TEXT,
     25::INTEGER,
     50::INTEGER,
     '500'::TEXT,
@@ -309,13 +309,13 @@ SELECT * FROM (VALUES
     ARRAY['https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400', 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=400']::TEXT[]
   ),
   (
-    'Community Meetup'::TEXT,
+    'Ethiopia’s Premier Future-Mapping Exhibition'::TEXT,
     '2024-02-25'::DATE,
     '4:00 PM'::TEXT,
     'Addis Ababa'::TEXT,
     'community'::TEXT,
     'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=800'::TEXT,
-    'Connect with fellow community members and share stories.'::TEXT,
+    'Academic & Career Path Navigator — Ethiopia’s premier future-mapping exhibition. Driven by architectural precision to seamlessly manage a 2,000-person capacity and enable confident career & academic choices.'::TEXT,
     40::INTEGER,
     100::INTEGER,
     'Free'::TEXT,
@@ -343,7 +343,7 @@ WHERE NOT EXISTS (SELECT 1 FROM social_links WHERE social_links.platform = v.pla
 
 -- Site Config
 INSERT INTO site_config (site_name, logo, footer_description)
-SELECT 'YENEGE', '/logo.png', 'Bringing happiness to life through events, adventures, and community connections.'
+SELECT 'YENEGE', '/logo.png', 'Designing impactful experience systems through events, travel adventures, and community connections.'
 WHERE NOT EXISTS (SELECT 1 FROM site_config LIMIT 1);
 
 -- Navigation Links
@@ -360,23 +360,23 @@ WHERE NOT EXISTS (SELECT 1 FROM navigation_links WHERE navigation_links.path = v
 INSERT INTO about_content (story_title, story_content, mission_title, mission_content, vision_title, vision_content)
 SELECT 
   'The Yenege Dream',
-  'Yenege was born from a simple yet powerful vision: to bring happiness to life through meaningful connections and unforgettable experiences.
+  'Yenege was born from a simple yet powerful vision: to design impactful experience systems through strategic management and architectural precision.
 
-We believe that life''s greatest moments happen when people come together—whether it''s over a board game, on a weekend adventure, or simply sharing stories in a welcoming community space.
+We believe that life''s greatest moments happen when organizations build systems that are professional, seamless, and designed with intention.
 
-What started as a dream to create a space where people could escape the daily grind and truly connect has grown into a vibrant community of individuals who value joy, friendship, and living life to the fullest.
+What started as a dream to introduce world-class event architectures to Addis Ababa has grown into a premier education and logistics platform for experience architecture.
 
-Every event we organize, every trip we plan, and every gathering we host is designed with one goal in mind: to bring a little more happiness into your life.',
+Every event we organize, every trip we plan, and every system we host is designed with one goal in mind: to bring professional precision to the experience industry.',
   'Our Mission',
-  'To create a vibrant community platform that brings people together through engaging events, exciting adventures, and meaningful connections, making happiness accessible to everyone.',
+  'To empower tomorrow through strategic management and architectural precision, building a world-class network of event professionals, custom travel systems, and curated business environments.',
   'Our Vision',
-  'To become the leading lifestyle and events platform in Ethiopia, known for creating unforgettable experiences and building a community where every member feels valued and happy.'
+  'To become the leading architect of culture and events in the region, setting global standards for execution, and building a community where members master strategic experience systems.'
 WHERE NOT EXISTS (SELECT 1 FROM about_content LIMIT 1);
 
 -- About Values
 INSERT INTO about_values (number, title, description, display_order)
 SELECT * FROM (VALUES
-  ('01'::TEXT, 'Happiness First'::TEXT, 'Everything we do is centered around bringing joy and positivity into people''s lives.'::TEXT, 1::INTEGER),
+  ('01'::TEXT, 'Precision First'::TEXT, 'Everything we do is centered around technical mastery, strategic management, and architectural precision.'::TEXT, 1::INTEGER),
   ('02'::TEXT, 'Community'::TEXT, 'We believe in the power of connection and building lasting friendships.'::TEXT, 2::INTEGER),
   ('03'::TEXT, 'Adventure'::TEXT, 'Life is meant to be explored. We encourage stepping out of comfort zones.'::TEXT, 3::INTEGER),
   ('04'::TEXT, 'Inclusivity'::TEXT, 'Everyone is welcome. We celebrate diversity and create safe spaces for all.'::TEXT, 4::INTEGER)
@@ -395,10 +395,10 @@ WHERE NOT EXISTS (SELECT 1 FROM about_milestones WHERE about_milestones.year = v
 -- Home Content
 INSERT INTO home_content (hero_slogan, hero_intro, cta_title, cta_description)
 SELECT 
-  'Bringing Happiness to Life',
-  'Yenege is a vibrant community dedicated to creating unforgettable experiences. We bring people together through exciting game nights, amazing travel adventures, and meaningful connections that celebrate life''s beautiful moments.',
-  'Ready to Join the Fun?',
-  'Be part of a community that celebrates life, creates memories, and brings happiness to every moment.'
+  'Precision in Experience Architecture',
+  'Yenege is a premier experience platform operating at the intersection of professional execution, education, and community. We build certified event architects, curated business environments, and strategic experience systems.',
+  'Ready to Join the Elite Circle?',
+  'Be part of an elite circle that masters strategic execution, coordinates complex systems, and designs impactful experience environments.'
 WHERE NOT EXISTS (SELECT 1 FROM home_content LIMIT 1);
 
 -- Hero Categories
@@ -415,7 +415,7 @@ INSERT INTO home_categories (title, description, link, number, display_order)
 SELECT * FROM (VALUES
   ('Events'::TEXT, 'Fun-filled evenings with board games, trivia, and interactive challenges. Perfect for making new friends!'::TEXT, '/events?category=game'::TEXT, '01'::TEXT, 1::INTEGER),
   ('Travel & Adventures'::TEXT, 'Weekend getaways, day trips, and exciting adventures. Explore new places with amazing people.'::TEXT, '/events?category=travel'::TEXT, '02'::TEXT, 2::INTEGER),
-  ('Community'::TEXT, 'Join a vibrant community of happy people. Share stories, connect, and build lasting friendships.'::TEXT, '/community'::TEXT, '03'::TEXT, 3::INTEGER)
+  ('Community'::TEXT, 'Join Ethiopia''s elite circle of certified event architects. Share insights, collaborate, and build strategic networks.'::TEXT, '/community'::TEXT, '03'::TEXT, 3::INTEGER)
 ) AS v(title, description, link, number, display_order)
 WHERE NOT EXISTS (SELECT 1 FROM home_categories WHERE home_categories.title = v.title);
 

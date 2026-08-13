@@ -4,6 +4,7 @@ import {
     FaCalendarAlt,
     FaCheckCircle,
     FaGraduationCap,
+    FaNetworkWired,
     FaRocket,
     FaStar,
     FaUsers,
@@ -497,13 +498,13 @@ const Home = () => {
                 <div style={{ position: "absolute", top: 0, right: 0, width: "120px", height: "120px", background: "radial-gradient(circle at top right, rgba(255,212,71,0.15) 0%, transparent 65%)", borderRadius: "0 28px 0 0" }} />
                 <div style={{ color: "#FFD447", marginBottom: "16px" }}><FaGraduationCap size={28} /></div>
                 <h3 className="yg-font-serif" style={{ fontSize: "22px", fontWeight: 800, color: "#fff", marginBottom: "10px" }}>
-                  Learn Event<br /><span style={{ color: "#FFD447", fontStyle: "italic" }}>Like a Pro.</span>
+                  Join the<br /><span style={{ color: "#FFD447", fontStyle: "italic" }}>Elite Circle.</span>
                 </h3>
                 <p className="yg-font-sans" style={{ fontSize: "14px", color: "rgba(255,255,255,0.45)", lineHeight: 1.7, marginBottom: "20px" }}>
-                  Our structured curriculum covers event design, vendor coordination, financial strategy, and live execution — from day one.
+                  Limiting enrollment to a Founding 50 allows for high-touch mentorship and 100% mastery in experience mapping and ROI modeling.
                 </p>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <span className="yg-font-sans" style={{ fontSize: "12px", color: "rgba(255,255,255,0.45)", fontWeight: 600 }}>Join 1,000+ students learning events</span>
+                  <span className="yg-font-sans" style={{ fontSize: "12px", color: "#FFD447", fontWeight: 700 }}>Join Ethiopia’s Elite Circle of Certified Event Architects</span>
                 </div>
               </div>
             </div>
@@ -719,12 +720,21 @@ const Home = () => {
               },
               {
                 id: "03",
+                title: "Hybrid Delivery Model",
+                desc: "We host one event and reach two audiences. Through platforms like Zoho Backstage, we seamlessly connect our local Addis Ababa community with the global Ethiopian diaspora.",
+                icon: <FaNetworkWired />,
+                align: "center",
+                offset: "-250px",
+                color: BRAND.gold
+              },
+              {
+                id: "04",
                 title: "Verified Footprint",
                 desc: "With thousands of successful events and a community that spans the globe, our track record is our strongest seal of quality.",
                 icon: <FaCheckCircle />,
                 align: "center",
-                offset: "-250px",
-                color: BRAND.gold
+                offset: "250px",
+                color: BRAND.coral
               }
             ].map((step, i) => (
               <div 
@@ -839,7 +849,7 @@ const Home = () => {
               <span style={{ color: BRAND.gold, fontStyle: "italic" }}>Premium Connections.</span>
             </h2>
             <p className="yg-font-sans" style={{ fontSize: "18px", color: "rgba(255,255,255,0.6)", maxWidth: "600px", marginBottom: "48px", lineHeight: 1.6 }}>
-              Join an exclusive ecosystem of event professionals, corporate partners, and service providers. Elevate your brand and forge strategic partnerships.
+              A Curated Business Environment designed strictly for Strategic Partnerships and Brand Visibility. Elevate your enterprise and connect directly with key decision-makers.
             </p>
             <Link to="/yenege-unity" className="yg-btn-primary yg-shine" style={{ gap: "10px", padding: "18px 40px", fontSize: "14px" }}>
               Explore Yenege Unity <FaArrowRight size={14} />

@@ -1,7 +1,7 @@
 {
   "short_name": "Yenege",
   "name": "Yenege",
-  "description": "Yenege - Building a community where happiness, connection, and unforgettable experiences come together. Join us for exciting events, travel adventures, and meaningful connections in Ethiopia.",
+  "description": "Yenege - Empowering tomorrow through strategic management and architectural precision. Discover Ethiopia's elite circle of certified event architects, curated business environments, and strategic navigation systems.",
   "icons": [
     {
       "src": "icon-192x192.png",
@@ -22,7 +22,7 @@
   "theme_color": "#FFFFFF",
   "background_color": "#F7F7F9",
   "orientation": "any",
-  "categories": ["travel", "entertainment", "lifestyle", "social"],
+  "categories": ["business", "education", "productivity"],
   "lang": "en",
   "dir": "ltr",
   "scope": "/",
