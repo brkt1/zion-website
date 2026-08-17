@@ -39,6 +39,7 @@ const MasterclassReferralAdmin = lazy(() => import("./pages/admin/MasterclassRef
 const EventFeasibilityForm = lazy(() => import("./pages/EventFeasibilityForm"));
 const About = lazy(() => import("./pages/About"));
 const Contact = lazy(() => import("./pages/Contact"));
+const TreasureHuntProposal = lazy(() => import("./pages/TreasureHuntProposal"));
 
 
 // Game pages - hidden routes (no navigation links)
@@ -224,6 +225,18 @@ function App() {
           
           <Route path="*" element={<NotFound />} />
         </Route>
+
+        {/* Standalone Proposal Pages */}
+        <Route path="/treasure-hunt-proposal" element={
+          <Suspense fallback={<LoadingState />}>
+            <TreasureHuntProposal />
+          </Suspense>
+        } />
+        <Route path="/proposal" element={
+          <Suspense fallback={<LoadingState />}>
+            <TreasureHuntProposal />
+          </Suspense>
+        } />
         
 
         
