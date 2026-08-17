@@ -1,29 +1,35 @@
 import React, { useEffect, useState, useRef } from "react";
 import {
-  FaCompass,
-  FaMapMarkerAlt,
-  FaPaperPlane,
   FaPhoneAlt,
   FaPrint,
   FaQuoteLeft,
-  FaShareAlt,
   FaTimes,
-  FaTrophy,
-  FaTv,
-  FaUsers,
-  FaEnvelope,
   FaCheckCircle,
-  FaVideo,
-  FaTshirt,
-  FaBolt,
-  FaEdit,
-  FaChartBar,
-  FaCrosshairs,
   FaChevronDown,
   FaChevronUp,
-  FaLocationArrow
+  FaSpinner
 } from "react-icons/fa";
+import {
+  GiTreasureMap,
+  GiOpenTreasureChest,
+  GiScrollUnfurled,
+  GiCompass,
+  GiLockedChest,
+  GiCrownCoin,
+  GiCrown,
+  GiPirateFlag,
+  GiSpyglass,
+  GiWaxSeal,
+  GiGoldStack,
+  GiCrosshair,
+  GiRoundShield,
+  GiPirateSkull,
+  GiGems,
+  GiScrollQuill,
+  GiDiamondTrophy
+} from "react-icons/gi";
 import { useLanguage } from "../contexts/LanguageContext";
+import { supabase } from "../services/supabase";
 
 interface SquadMember {
   company: string;
@@ -165,10 +171,33 @@ const TreasureHuntProposal: React.FC = () => {
     window.print();
   };
 
-  const handleRegistrationSubmit = (e: React.FormEvent) => {
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const handleRegistrationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (companyName && participant1 && participant2 && phone) {
+    if (!companyName || !participant1 || !participant2 || !phone) return;
+
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const { error } = await supabase
+        .from('treasure_hunt_registrations')
+        .insert([{
+          company_name: companyName,
+          participant_1: participant1,
+          participant_2: participant2,
+          phone: phone,
+          broadcast_package: selectedTv,
+          status: 'pending'
+        }]);
+
+      if (error) throw error;
       setIsSubmitted(true);
+    } catch (err: any) {
+      setSubmitError(err?.message || 'Registration failed. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -197,9 +226,12 @@ const TreasureHuntProposal: React.FC = () => {
         .wood-bg-table {
           background-color: var(--wood-dark);
           background-image: 
-            radial-gradient(circle at 50% 50%, rgba(68, 38, 20, 0.4) 0%, rgba(10, 5, 2, 0.9) 100%),
-            linear-gradient(to right, rgba(0,0,0,0.15) 1px, transparent 1px);
-          background-size: 100% 100%, 30px 100%;
+            radial-gradient(circle at 50% 50%, rgba(46, 23, 12, 0.3) 0%, rgba(10, 5, 2, 0.95) 100%),
+            url('/images/treasure-hunt/hunters-bg.png');
+          background-size: cover;
+          background-position: center;
+          background-attachment: fixed;
+          background-blend-mode: multiply;
         }
 
         /* Snap Scroll Container */
@@ -515,16 +547,16 @@ const TreasureHuntProposal: React.FC = () => {
           </span>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <FaCompass style={{ color: "#c9933b", fontSize: "1.4rem", transform: `rotate(${compassAngle}deg)`, transition: "transform 0.6s ease" }} />
-          <button onClick={toggleLanguage} style={{ background: "rgba(243, 229, 200, 0.1)", border: "1px solid #5a351a", color: "#f3e5c8", padding: "6px 14px", borderRadius: "6px", cursor: "pointer", fontWeight: 700, fontSize: "0.85rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+          <GiCompass style={{ color: "#c9933b", fontSize: "1.6rem", transform: `rotate(${compassAngle}deg)`, transition: "transform 0.6s ease", flexShrink: 0 }} />
+          <button onClick={toggleLanguage} style={{ background: "rgba(243, 229, 200, 0.1)", border: "1px solid #5a351a", color: "#f3e5c8", padding: "6px 12px", borderRadius: "6px", cursor: "pointer", fontWeight: 700, fontSize: "0.82rem", flexShrink: 0 }}>
             {isAmharic ? "English" : "አማርኛ"}
           </button>
-          <button onClick={handlePrint} style={{ background: "rgba(243, 229, 200, 0.1)", border: "1px solid #5a351a", color: "#f3e5c8", padding: "6px 14px", borderRadius: "6px", cursor: "pointer", fontWeight: 700, fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "6px" }}>
-            <FaPrint /> {isAmharic ? "አትም / PDF" : "Print PDF"}
+          <button onClick={handlePrint} style={{ background: "rgba(243, 229, 200, 0.1)", border: "1px solid #5a351a", color: "#f3e5c8", padding: "6px 12px", borderRadius: "6px", cursor: "pointer", fontWeight: 700, fontSize: "0.82rem", display: "flex", alignItems: "center", gap: "5px", flexShrink: 0 }}>
+            <FaPrint /> {isAmharic ? "አትም" : "Print"}
           </button>
-          <button onClick={() => setIsModalOpen(true)} style={{ background: "linear-gradient(135deg, #800000 0%, #4a0000 100%)", border: "1px solid #d4af37", color: "#f3e5c8", padding: "6px 16px", borderRadius: "6px", cursor: "pointer", fontWeight: 800, fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "6px" }}>
-            <FaCheckCircle /> {isAmharic ? "ተሳትፎን ያረጋግጡ" : "Confirm Attendance"}
+          <button onClick={() => setIsModalOpen(true)} style={{ background: "linear-gradient(135deg, #800000 0%, #4a0000 100%)", border: "1px solid #d4af37", color: "#f3e5c8", padding: "6px 12px", borderRadius: "6px", cursor: "pointer", fontWeight: 800, fontSize: "0.82rem", display: "flex", alignItems: "center", gap: "5px", flexShrink: 0 }}>
+            <FaCheckCircle /> {isAmharic ? "ተሳትፎን ያረጋግጡ" : "Register"}
           </button>
         </div>
       </header>
@@ -536,7 +568,7 @@ const TreasureHuntProposal: React.FC = () => {
             <span style={{ fontFamily: "'Cinzel', serif", fontWeight: 900, fontSize: "0.95rem", color: "#800000", letterSpacing: "1px" }}>
               {isAmharic ? "የጉዞ ማስታወሻ (QUEST LOG)" : "EXPEDITION JOURNAL"}
             </span>
-            <FaCompass style={{ color: "#800000" }} />
+            <GiCompass style={{ color: "#800000" }} />
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
@@ -547,7 +579,7 @@ const TreasureHuntProposal: React.FC = () => {
                 onClick={() => scrollToSlide(idx)}
               >
                 <span>{ch}</span>
-                {currentSlide === idx && <FaLocationArrow style={{ fontSize: "0.75rem", color: "#800000" }} />}
+                {currentSlide === idx && <GiTreasureMap style={{ fontSize: "0.8rem", color: "#800000" }} />}
               </div>
             ))}
           </div>
@@ -577,7 +609,7 @@ const TreasureHuntProposal: React.FC = () => {
                   <div style={{ fontSize: "0.8rem", color: "#c9933b", fontWeight: 800, letterSpacing: "2px", marginTop: "4px" }}>YENEGE PLC</div>
                 </div>
                 <div className="wax-seal-badge">
-                  <FaTrophy />
+                  <GiDiamondTrophy />
                 </div>
               </div>
 
@@ -695,25 +727,25 @@ const TreasureHuntProposal: React.FC = () => {
 
               <div className="grid-4" style={{ marginTop: "18px" }}>
                 <div className="benefit-box">
-                  <FaTv style={{ color: "#c9933b", fontSize: "1.4rem", marginBottom: "8px" }} />
+                  <GiSpyglass style={{ color: "#c9933b", fontSize: "1.6rem", marginBottom: "8px" }} />
                   <div style={{ fontWeight: 800, fontSize: "0.95rem", color: "#f3e5c8" }}>{isAmharic ? "የብሔራዊ TV ስርጭት" : "National TV Broadcast"}</div>
                   <div style={{ fontSize: "0.8rem", color: "#bfa382", marginTop: "4px" }}>{isAmharic ? "በአባይ ቴሌቪዥን ወይም ናሁ ቴሌቪዥን ሙሉ የዝግጅቱ ሽፋን ይተላለፋል።" : "Coverage broadcasted in high definition on Abbay TV or Nahoo TV."}</div>
                 </div>
 
                 <div className="benefit-box">
-                  <FaShareAlt style={{ color: "#c9933b", fontSize: "1.4rem", marginBottom: "8px" }} />
+                  <GiPirateFlag style={{ color: "#c9933b", fontSize: "1.6rem", marginBottom: "8px" }} />
                   <div style={{ fontWeight: 800, fontSize: "0.95rem", color: "#f3e5c8" }}>{isAmharic ? "የሶሻል ሚዲያ Boost" : "Social Media Boosts"}</div>
                   <div style={{ fontSize: "0.8rem", color: "#bfa382", marginTop: "4px" }}>{isAmharic ? "የድርጅትዎ አርማ በየነገ PLC ማህበራዊ ሚዲያዎች በክፍያ ይተዋወቃል።" : "Targeted digital campaigns across Yenege PLC social channels."}</div>
                 </div>
 
                 <div className="benefit-box">
-                  <FaVideo style={{ color: "#c9933b", fontSize: "1.4rem", marginBottom: "8px" }} />
+                  <GiScrollUnfurled style={{ color: "#c9933b", fontSize: "1.6rem", marginBottom: "8px" }} />
                   <div style={{ fontWeight: 800, fontSize: "0.95rem", color: "#f3e5c8" }}>{isAmharic ? "Co-Branded ቪዲዮዎች" : "Co-Branded Video Reels"}</div>
                   <div style={{ fontSize: "0.8rem", color: "#bfa382", marginTop: "4px" }}>{isAmharic ? "ለሰራተኞችና ለደንበኞች የሚያጋራው ሙያዊ ቪዲዮና HD ፎቶዎች ይሰጠዋል።" : "High-resolution video reels and photo packages provided."}</div>
                 </div>
 
                 <div className="benefit-box">
-                  <FaTshirt style={{ color: "#c9933b", fontSize: "1.4rem", marginBottom: "8px" }} />
+                  <GiRoundShield style={{ color: "#c9933b", fontSize: "1.6rem", marginBottom: "8px" }} />
                   <div style={{ fontWeight: 800, fontSize: "0.95rem", color: "#f3e5c8" }}>{isAmharic ? "የማልያ & ባነር አርማ" : "Jersey & Stage Logos"}</div>
                   <div style={{ fontSize: "0.8rem", color: "#bfa382", marginTop: "4px" }}>{isAmharic ? "የድርጅትዎ አርማ በስፖርት ማልያዎችና በፈተና ማዕከላት ባነሮች ይደምቃል።" : "Prominent brand placement on player jerseys and banners."}</div>
                 </div>
@@ -842,16 +874,35 @@ const TreasureHuntProposal: React.FC = () => {
                     border: selectedTv === 'abbay' ? '2px solid #800000' : '1px solid rgba(74, 38, 16, 0.3)', 
                     borderRadius: "12px", 
                     padding: "18px", 
-                    cursor: "pointer" 
+                    cursor: "pointer",
+                    position: "relative",
+                    overflow: "hidden"
                   }} 
                   onClick={() => setSelectedTv('abbay')}
                 >
-                  <div style={{ fontSize: "0.7rem", fontWeight: 800, color: "#800000", letterSpacing: "1px" }}>OPTION A</div>
-                  <div style={{ fontSize: "1.3rem", fontWeight: 800, color: "#2e170c", margin: "2px 0" }}>
-                    {isAmharic ? "አባይ ቴሌቪዥን (Abbay TV)" : "Abbay TV Broadcast"}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <div>
+                      <div style={{ fontSize: "0.7rem", fontWeight: 800, color: "#800000", letterSpacing: "1px" }}>OPTION A</div>
+                      <div style={{ fontSize: "1.2rem", fontWeight: 800, color: "#2e170c", margin: "2px 0" }}>
+                        {isAmharic ? "አባይ ቴሌቪዥን (Abbay TV)" : "Abbay TV Broadcast"}
+                      </div>
+                      <div style={{ fontSize: "1.8rem", fontWeight: 900, color: "#800000", fontFamily: "'Cinzel', serif" }}>ETB 25,000</div>
+                    </div>
+                    <img 
+                      src="/images/treasure-hunt/abbay.png" 
+                      alt="Abbay TV Logo" 
+                      style={{ 
+                        width: "56px", 
+                        height: "56px", 
+                        borderRadius: "50%", 
+                        border: "2px solid #800000", 
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                        objectFit: "cover",
+                        background: "white"
+                      }} 
+                    />
                   </div>
-                  <div style={{ fontSize: "1.8rem", fontWeight: 900, color: "#800000", fontFamily: "'Cinzel', serif" }}>ETB 25,000</div>
-                  <ul style={{ listStyle: "none", fontSize: "0.82rem", color: "#4a2d18", lineHeight: "1.6", marginTop: "8px" }}>
+                  <ul style={{ listStyle: "none", fontSize: "0.82rem", color: "#4a2d18", lineHeight: "1.6", marginTop: "8px", padding: 0 }}>
                     <li>✓ {isAmharic ? "በአባይ ቴሌቪዥን የስርጭት ሽፋን" : "Abbay TV Coverage"}</li>
                     <li>✓ {isAmharic ? "የሶሻል ሚዲያ Boosted Posts" : "Social Media Boosted Campaigns"}</li>
                     <li>✓ {isAmharic ? "ኦፊሴላዊ የቡድን ማልያ እና መለያ" : "Official Custom Jerseys & Badges"}</li>
@@ -864,16 +915,35 @@ const TreasureHuntProposal: React.FC = () => {
                     border: selectedTv === 'nahoo' ? '2px solid #800000' : '1px solid rgba(74, 38, 16, 0.3)', 
                     borderRadius: "12px", 
                     padding: "18px", 
-                    cursor: "pointer" 
+                    cursor: "pointer",
+                    position: "relative",
+                    overflow: "hidden"
                   }} 
                   onClick={() => setSelectedTv('nahoo')}
                 >
-                  <div style={{ fontSize: "0.7rem", fontWeight: 800, color: "#800000", letterSpacing: "1px" }}>OPTION B</div>
-                  <div style={{ fontSize: "1.3rem", fontWeight: 800, color: "#2e170c", margin: "2px 0" }}>
-                    {isAmharic ? "ናሁ ቴሌቪዥን (Nahoo TV)" : "Nahoo TV Broadcast"}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <div>
+                      <div style={{ fontSize: "0.7rem", fontWeight: 800, color: "#800000", letterSpacing: "1px" }}>OPTION B</div>
+                      <div style={{ fontSize: "1.2rem", fontWeight: 800, color: "#2e170c", margin: "2px 0" }}>
+                        {isAmharic ? "ናሁ ቴሌቪዥን (Nahoo TV)" : "Nahoo TV Broadcast"}
+                      </div>
+                      <div style={{ fontSize: "1.8rem", fontWeight: 900, color: "#800000", fontFamily: "'Cinzel', serif" }}>ETB 20,000</div>
+                    </div>
+                    <img 
+                      src="/images/treasure-hunt/nahoo.png" 
+                      alt="Nahoo TV Logo" 
+                      style={{ 
+                        width: "56px", 
+                        height: "56px", 
+                        borderRadius: "50%", 
+                        border: "2px solid #800000", 
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                        objectFit: "cover",
+                        background: "white"
+                      }} 
+                    />
                   </div>
-                  <div style={{ fontSize: "1.8rem", fontWeight: 900, color: "#800000", fontFamily: "'Cinzel', serif" }}>ETB 20,000</div>
-                  <ul style={{ listStyle: "none", fontSize: "0.82rem", color: "#4a2d18", lineHeight: "1.6", marginTop: "8px" }}>
+                  <ul style={{ listStyle: "none", fontSize: "0.82rem", color: "#4a2d18", lineHeight: "1.6", marginTop: "8px", padding: 0 }}>
                     <li>✓ {isAmharic ? "በናሁ ቴሌቪዥን የስርጭት ሽፋን" : "Nahoo TV Coverage"}</li>
                     <li>✓ {isAmharic ? "የሶሻል ሚዲያ Boosted Posts" : "Social Media Boosted Campaigns"}</li>
                     <li>✓ {isAmharic ? "ኦፊሴላዊ የቡድን ማልያ እና መለያ" : "Official Custom Jerseys & Badges"}</li>
@@ -926,7 +996,7 @@ const TreasureHuntProposal: React.FC = () => {
                   <img src="https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?q=80&w=1200&auto=format&fit=crop" alt="Trophy Victory" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "linear-gradient(to top, rgba(34,20,12,0.95), transparent)", padding: "12px" }}>
                     <div style={{ fontWeight: 800, fontSize: "0.95rem", color: "#f3e5c8", display: "flex", alignItems: "center", gap: "6px" }}>
-                      <FaTrophy style={{ color: "#c9933b" }} /> {isAmharic ? "የሻምፒዮና ዋንጫና ሽልማት" : "Championship Trophy"}
+                      <GiDiamondTrophy style={{ color: "#c9933b" }} /> {isAmharic ? "የሻምፒዮና ዋንጫና ሽልማት" : "Championship Trophy"}
                     </div>
                   </div>
                 </div>
@@ -950,7 +1020,7 @@ const TreasureHuntProposal: React.FC = () => {
 
             <div style={{ margin: "auto 0" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "10px", color: "#c9933b", fontWeight: 800, fontSize: "0.85rem", letterSpacing: "2px" }}>
-                <FaCrosshairs /> WAYPOINT 09 · TREASURE VAULT
+                <GiCrosshair /> WAYPOINT 09 · TREASURE VAULT
               </div>
               <h2 className="editorial-h1" style={{ fontSize: "3rem" }}>
                 {isAmharic ? "ተሳትፎዎን አሁኑኑ ያረጋግጡ" : "Secure Your Corporate Spot"}
@@ -963,7 +1033,7 @@ const TreasureHuntProposal: React.FC = () => {
 
               <div style={{ display: "flex", gap: "14px", flexWrap: "wrap" }}>
                 <button onClick={() => setIsModalOpen(true)} style={{ background: "linear-gradient(135deg, #800000 0%, #4a0000 100%)", border: "1px solid #c9933b", color: "#f3e5c8", padding: "12px 28px", borderRadius: "8px", fontWeight: 800, fontSize: "0.95rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" }}>
-                  <FaEdit /> {isAmharic ? "ምዝገባውን ያጠናቅቁ" : "Complete Registration"}
+                  <GiScrollQuill /> {isAmharic ? "ምዝገባውን ያጠናቅቁ" : "Complete Registration"}
                 </button>
                 <a href="tel:0978639887" style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.2)", color: "#f3e5c8", padding: "12px 28px", borderRadius: "8px", fontWeight: 700, fontSize: "0.95rem", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "8px" }}>
                   <FaPhoneAlt /> {isAmharic ? "0978639887 ይደውሉ" : "Call +251 978 639 887"}
@@ -1071,9 +1141,14 @@ const TreasureHuntProposal: React.FC = () => {
                     required 
                   />
                 </div>
+                {submitError && (
+                  <div style={{ background: "rgba(128,0,0,0.1)", border: "1px solid rgba(128,0,0,0.3)", borderRadius: "8px", padding: "10px", color: "#800000", fontSize: "0.82rem", marginTop: "6px" }}>
+                    ⚠️ {submitError}
+                  </div>
+                )}
 
-                <button type="submit" style={{ width: "100%", background: "linear-gradient(135deg, #800000 0%, #4a0000 100%)", border: "1px solid #d4af37", color: "#f3e5c8", padding: "12px", borderRadius: "8px", fontWeight: 800, fontSize: "0.95rem", cursor: "pointer", display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", marginTop: "10px" }}>
-                  <FaPaperPlane /> {isAmharic ? "ምዝገባውን አረጋግጥ & Pass ውሰድ" : "Confirm Registration & Get Pass"}
+                <button type="submit" disabled={submitting} style={{ width: "100%", background: submitting ? "#5a351a" : "linear-gradient(135deg, #800000 0%, #4a0000 100%)", border: "1px solid #d4af37", color: "#f3e5c8", padding: "12px", borderRadius: "8px", fontWeight: 800, fontSize: "0.95rem", cursor: submitting ? "wait" : "pointer", display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", marginTop: "10px", opacity: submitting ? 0.7 : 1 }}>
+                  {submitting ? <FaSpinner style={{ animation: "spin 1s linear infinite" }} /> : <GiWaxSeal />} {submitting ? (isAmharic ? "እየላከ ነው..." : "Submitting...") : (isAmharic ? "ምዝገባውን አረጋግጥ & Pass ውሰድ" : "Confirm Registration & Get Pass")}
                 </button>
               </form>
             </>

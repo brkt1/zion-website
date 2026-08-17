@@ -75,6 +75,7 @@ const AdminFeasibilityBriefs = lazy(() => import("./pages/admin/FeasibilityBrief
 const Admins = lazy(() => import("./pages/admin/Admins"));
 const AdminEventDetails = lazy(() => import("./pages/admin/EventDetails"));
 const AccountingDashboard = lazy(() => import("./pages/admin/AccountingDashboard"));
+const TreasureHuntRegistrations = lazy(() => import("./pages/admin/TreasureHuntRegistrations"));
 
 // Yenege Unity platform pages
 const YenegeUnityLanding = lazy(() => import("./pages/yenege-unity/Landing"));
@@ -488,6 +489,14 @@ function App() {
             element={
               <Suspense fallback={<LoadingState message="Loading CRM dashboard..." />}>
                 <YenegeUnityDashboard />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="/admin/treasure-hunt" 
+            element={
+              <Suspense fallback={<LoadingState message="Loading registrations..." />}>
+                <TreasureHuntRegistrations />
               </Suspense>
             } 
           />
