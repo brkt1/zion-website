@@ -1294,6 +1294,15 @@ export const adminApi = {
       status_updated_by: data.status_updated_by,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
+      // Event Academy Questions
+      describe_you: data.describe_you,
+      event_types: data.event_types,
+      preferred_schedule: data.preferred_schedule,
+      learning_mode: data.learning_mode,
+      opportunity_interest: data.opportunity_interest,
+      marketing_source: data.marketing_source,
+      learning_goals: data.learning_goals,
+      contact_consent: data.contact_consent,
     }),
 
     getAll: async () => {
@@ -1307,6 +1316,16 @@ export const adminApi = {
     },
 
     create: async (resData: CreateMasterclassReservationData) => {
+      // Automatically calculate total amount based on learning mode selection
+      let fee = 0;
+      if (resData.learning_mode?.includes('In-person')) {
+        fee = 15000;
+      } else if (resData.learning_mode?.includes('Online')) {
+        fee = 5000;
+      } else if (resData.learning_mode?.includes('Hybrid')) {
+        fee = 10000;
+      }
+
       const { data, error } = await supabase
         .from('masterclass_reservations')
         .insert([{
@@ -1317,6 +1336,17 @@ export const adminApi = {
           sex: resData.sex,
           place: resData.place,
           referral_code: resData.referral_code || null,
+          describe_you: resData.describe_you || null,
+          event_types: resData.event_types || null,
+          preferred_schedule: resData.preferred_schedule || null,
+          learning_mode: resData.learning_mode || null,
+          opportunity_interest: resData.opportunity_interest || null,
+          marketing_source: resData.marketing_source || null,
+          learning_goals: resData.learning_goals || null,
+          contact_consent: resData.contact_consent || null,
+          total_amount: fee,
+          remaining_amount: fee,
+          payment_status: 'unpaid',
         }]);
 
       if (error) throw error;

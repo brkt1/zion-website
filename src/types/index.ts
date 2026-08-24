@@ -310,6 +310,15 @@ export interface MasterclassReservation {
   status_updated_by?: string;
   createdAt: string;
   updatedAt: string;
+  // Event Academy Questions
+  describe_you?: string;
+  event_types?: string;
+  preferred_schedule?: string;
+  learning_mode?: string;
+  opportunity_interest?: string;
+  marketing_source?: string;
+  learning_goals?: string;
+  contact_consent?: string;
 }
 
 export interface CreateMasterclassReservationData {
@@ -320,6 +329,14 @@ export interface CreateMasterclassReservationData {
   sex: 'male' | 'female';
   place: string;
   referral_code?: string;
+  describe_you?: string;
+  event_types?: string;
+  preferred_schedule?: string;
+  learning_mode?: string;
+  opportunity_interest?: string;
+  marketing_source?: string;
+  learning_goals?: string;
+  contact_consent?: string;
 }
 
 

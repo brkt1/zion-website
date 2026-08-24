@@ -925,7 +925,7 @@ const MasterclassReservations = () => {
                     </div>
                   </section>
 
-                  <section className="bg-indigo-50/50 p-6 rounded-3xl border border-indigo-100">
+                   <section className="bg-indigo-50/50 p-6 rounded-3xl border border-indigo-100">
                     <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-600/50 mb-6 border-b border-indigo-200/50 pb-2">Location & Notes</h3>
                     <div className="space-y-4">
                       <div className="flex items-center gap-4">
@@ -943,8 +943,76 @@ const MasterclassReservations = () => {
                       )}
                     </div>
                   </section>
+
+                  {/* Event Academy Questions Section */}
+                  <section className="bg-slate-50 p-6 rounded-3xl border border-slate-100 md:col-span-2">
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-6 border-b border-slate-200 pb-2">Academy Registration Details</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                      {selectedReservation.describe_you && (
+                        <div>
+                          <p className="text-[10px] uppercase font-bold text-gray-400">What best describes you?</p>
+                          <p className="font-bold text-gray-900 mt-1">{selectedReservation.describe_you}</p>
+                        </div>
+                      )}
+                      {selectedReservation.learning_mode && (
+                        <div>
+                          <p className="text-[10px] uppercase font-bold text-gray-400">Preferred Learning Delivery</p>
+                          <p className="font-bold text-indigo-600 mt-1">{selectedReservation.learning_mode}</p>
+                        </div>
+                      )}
+                      {selectedReservation.preferred_schedule && (
+                        <div className="md:col-span-2">
+                          <p className="text-[10px] uppercase font-bold text-gray-400">Preferred Program Schedule</p>
+                          <p className="font-bold text-gray-900 mt-1">{selectedReservation.preferred_schedule}</p>
+                        </div>
+                      )}
+                      {selectedReservation.event_types && (
+                        <div className="md:col-span-2">
+                          <p className="text-[10px] uppercase font-bold text-gray-400">Types of Events of Interest</p>
+                          <div className="flex flex-wrap gap-2 mt-1.5">
+                            {selectedReservation.event_types.split(', ').map((type) => (
+                              <span key={type} className="px-3 py-1 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700">
+                                {type}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {selectedReservation.opportunity_interest && (
+                        <div className="md:col-span-2">
+                          <p className="text-[10px] uppercase font-bold text-gray-400">Opportunity Desired</p>
+                          <div className="flex flex-wrap gap-2 mt-1.5">
+                            {selectedReservation.opportunity_interest.split(', ').map((opp) => (
+                              <span key={opp} className="px-3 py-1 bg-amber-50 border border-amber-100 rounded-xl text-xs font-bold text-amber-800">
+                                {opp}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {selectedReservation.marketing_source && (
+                        <div>
+                          <p className="text-[10px] uppercase font-bold text-gray-400">How they heard about Yenege</p>
+                          <p className="font-bold text-gray-900 mt-1">{selectedReservation.marketing_source}</p>
+                        </div>
+                      )}
+                      {selectedReservation.contact_consent && (
+                        <div>
+                          <p className="text-[10px] uppercase font-bold text-gray-400">Contact Permission</p>
+                          <p className="font-bold text-gray-900 mt-1">{selectedReservation.contact_consent}</p>
+                        </div>
+                      )}
+                      {selectedReservation.learning_goals && (
+                        <div className="md:col-span-2 bg-white p-4 rounded-2xl border border-slate-200/60 mt-2">
+                          <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">Learning & Career Goals</p>
+                          <p className="text-xs text-gray-700 leading-relaxed font-medium whitespace-pre-wrap">{selectedReservation.learning_goals}</p>
+                        </div>
+                      )}
+                    </div>
+                  </section>
+
                   {selectedReservation.status_updated_by && (
-                    <div className="mt-4 p-4 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-between">
+                    <div className="md:col-span-2 p-4 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-between">
                       <div>
                         <p className="text-[10px] uppercase font-bold text-indigo-400">Last Updated By</p>
                         <p className="text-sm font-bold text-indigo-900">{selectedReservation.status_updated_by}</p>
