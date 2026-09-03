@@ -92,10 +92,8 @@ const Header = () => {
         isScrolled
           ? "bg-[#0F172A]/95 backdrop-blur-xl shadow-lg"
           : isHomePage
-          ? "bg-transparent"
-          : "bg-[#0F172A]/95 backdrop-blur-xl"
-      } ${
-        !isHomePage ? "md:block hidden" : ""
+          ? "bg-[#0F172A]/80 backdrop-blur-md md:bg-transparent"
+          : "bg-[#0F172A]/95 backdrop-blur-xl border-b border-white/10"
       } ${
         isHomePage && isScrolledDown ? "md:translate-y-0 -translate-y-full" : "translate-y-0"
       }`}
@@ -156,9 +154,7 @@ const Header = () => {
 
       {/* ── Main Navbar ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className={`flex items-center h-20 md:h-24 ${
-          isHomePage ? "justify-center md:justify-between" : "justify-between"
-        }`}>
+        <div className="flex items-center justify-between h-16 md:h-24">
           {/* Logo */}
           <Link
             to="/"
@@ -173,9 +169,9 @@ const Header = () => {
               quality={55}
               priority="high"
               responsive={true}
-              sizes="(max-width: 768px) 48px, 56px"
+              sizes="(max-width: 768px) 44px, 56px"
               fallback="/logo.png"
-              className={`h-12 md:h-14 w-auto transition-all duration-500 brightness-0 invert`}
+              className="h-10 md:h-14 w-auto transition-all duration-500 brightness-0 invert"
             />
           </Link>
 
@@ -183,9 +179,7 @@ const Header = () => {
           <nav 
             role="navigation"
             aria-label="Main navigation"
-            className={`hidden lg:flex items-center gap-8 ${
-              isHomePage ? "md:flex" : ""
-            }`}
+            className="hidden md:flex items-center gap-8"
           >
             {navLinks.map((link) => (
               <Link
@@ -204,20 +198,32 @@ const Header = () => {
                 <span className="relative z-10">{link.label}</span>
                 {isActive(link.path) && (
                   <span
-                    className={`absolute -bottom-1 left-0 right-0 h-0.5 rounded-full transition-all duration-300 bg-[#FFD447]`}
+                    className="absolute -bottom-1 left-0 right-0 h-0.5 rounded-full transition-all duration-300 bg-[#FFD447]"
                   />
                 )}
                 {!isActive(link.path) && (
                   <span
-                    className={`absolute -bottom-1 left-0 right-0 h-0.5 scale-x-0 rounded-full transition-transform duration-300 origin-left bg-[#FFD447]`}
+                    className="absolute -bottom-1 left-0 right-0 h-0.5 scale-x-0 rounded-full transition-transform duration-300 origin-left bg-[#FFD447]"
                   />
                 )}
               </Link>
             ))}
           </nav>
-          
-          {/* Mobile spacing adjustment block when nav is centered */}
-          {isHomePage && <div className="md:hidden w-12" />} 
+
+          {/* Mobile Embedded Language Switcher */}
+          <div className="flex md:hidden items-center gap-2">
+            <button 
+              onClick={toggleLanguage}
+              title="Switch Language (አማርኛ / English / Afaan Oromoo)"
+              className="px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 text-white active:scale-95 transition-all"
+            >
+              <span className={language === 'am' ? 'text-[#FFD447] font-black' : 'text-white/60'}>አማ</span>
+              <div className="w-px h-2.5 bg-white/30"></div>
+              <span className={language === 'en' ? 'text-[#FFD447] font-black' : 'text-white/60'}>EN</span>
+              <div className="w-px h-2.5 bg-white/30"></div>
+              <span className={language === 'om' ? 'text-[#FFD447] font-black' : 'text-white/60'}>OM</span>
+            </button>
+          </div>
         </div>
       </div>
     </header>

@@ -7,7 +7,7 @@ import { getActiveMasterclassSchedules, MasterclassScheduleOption } from '../ser
 import { toEthiopianDate } from '../utils/ethiopianCalendar';
 
 const MasterclassRegistration: React.FC = () => {
-  const { t, language } = useLanguage();
+  const { t, language, toggleLanguage } = useLanguage();
   const [searchParams] = useSearchParams();
   const referralCode = searchParams.get('ref') || undefined;
 
@@ -197,9 +197,9 @@ const MasterclassRegistration: React.FC = () => {
   const coralOrange = "#FF6F5E";
   const indigoDeep = "#1C2951";
 
-  const inputClasses = "w-full bg-[#1E293B]/80 border border-white/10 rounded-2xl px-12 py-4 text-white focus:border-[#FFD447] focus:bg-[#1E293B] focus:ring-[6px] focus:ring-[#FFD447]/10 outline-none transition-all placeholder:text-slate-400 font-sans shadow-inner hover:border-white/20 duration-300";
-  const selectClasses = "w-full bg-[#1E293B]/80 border border-white/10 rounded-2xl px-12 py-4 text-white focus:border-[#FFD447] focus:bg-[#1E293B] focus:ring-[6px] focus:ring-[#FFD447]/10 outline-none transition-all font-sans shadow-inner hover:border-white/20 duration-300 appearance-none";
-  const labelClasses = "block text-[10px] uppercase tracking-[0.4em] font-black text-[#FFD447] mb-2 ml-1 font-sans";
+  const inputClasses = "w-full bg-[#1E293B]/80 border border-white/10 rounded-2xl pl-11 pr-4 py-3.5 text-white focus:border-[#FFD447] focus:bg-[#1E293B] focus:ring-[4px] focus:ring-[#FFD447]/10 outline-none transition-all placeholder:text-slate-400 font-sans shadow-inner hover:border-white/20 duration-300 text-sm";
+  const selectClasses = "w-full bg-[#1E293B]/80 border border-white/10 rounded-2xl pl-11 pr-10 py-3.5 text-white focus:border-[#FFD447] focus:bg-[#1E293B] focus:ring-[4px] focus:ring-[#FFD447]/10 outline-none transition-all font-sans shadow-inner hover:border-white/20 duration-300 appearance-none text-sm";
+  const labelClasses = "block text-[10px] uppercase tracking-[0.3em] font-black text-[#FFD447] mb-1.5 ml-1 font-sans";
 
   const stepLabels = language === 'am' 
     ? ["ግል መረጃ", "የስልጠና ሁኔታ", "ፍላጎቶች", "ስምምነት", "ማረጋገጫ"]
@@ -321,27 +321,40 @@ const MasterclassRegistration: React.FC = () => {
       <style>{sharedStyles}</style>
 
       {/* Navigation Header */}
-      <nav className="fixed top-0 left-0 right-0 z-[100] bg-[#0F172A]/85 backdrop-blur-xl border-b border-white/10 px-6 py-4 flex items-center gap-4">
-        <Link to="/masterclass" className="w-10 h-10 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 text-white transition-all border border-white/10">
-          <FiArrowLeft className="text-white" />
-        </Link>
-        <span className="font-bold tracking-tight text-white">YENEGE ACADEMY</span>
+      <nav className="fixed top-0 left-0 right-0 z-[100] bg-[#0F172A]/90 backdrop-blur-xl border-b border-white/10 px-4 sm:px-6 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Link to="/masterclass" className="w-9 h-9 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 text-white transition-all border border-white/10" title="Back to Masterclass">
+            <FiArrowLeft className="text-white" />
+          </Link>
+          <span className="font-bold tracking-tight text-white text-sm sm:text-base">YENEGE ACADEMY</span>
+        </div>
+        <button 
+          onClick={toggleLanguage}
+          className="px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 text-white transition-all active:scale-95"
+          title="Change Language"
+        >
+          <span className={language === 'am' ? 'text-[#FFD447] font-black' : 'text-white/60'}>አማ</span>
+          <div className="w-px h-2 bg-white/30" />
+          <span className={language === 'en' ? 'text-[#FFD447] font-black' : 'text-white/60'}>EN</span>
+          <div className="w-px h-2 bg-white/30" />
+          <span className={language === 'om' ? 'text-[#FFD447] font-black' : 'text-white/60'}>OM</span>
+        </button>
       </nav>
 
       {/* Header section */}
-      <div className="pt-32 pb-6 px-6 text-center max-w-3xl mx-auto">
-        <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl mb-4 tracking-tighter text-white leading-tight">
+      <div className="pt-24 sm:pt-28 pb-4 px-4 sm:px-6 text-center max-w-3xl mx-auto">
+        <h1 className="font-serif text-2xl sm:text-4xl md:text-5xl mb-3 tracking-tighter text-white leading-tight">
           {language === 'am' ? 'የኢቨንት ዘርፍ መመዝገቢያ' : language === 'om' ? 'Uunka Galmee Qophii' : 'Event Industry Interest &'} <span className="italic text-gold-gradient">{language === 'am' ? 'ቅጽ' : language === 'om' ? 'Leenjii' : 'Registration'}</span>
         </h1>
-        <p className="text-[#FFD447]/80 text-[10px] font-black uppercase tracking-[0.3em]">
+        <p className="text-[#FFD447]/80 text-[10px] font-black uppercase tracking-[0.25em]">
           {language === 'am' ? 'የተረጋገጠ የኢቨንት አርክቴክቸር ባለሙያ ይሁኑ' : language === 'om' ? 'Ogeessa Ijaarsa Qophii Beekamtii Qabu Ta\'aa' : 'Become a Certified Experience Architect'}
         </p>
       </div>
 
-      <div className="max-w-3xl mx-auto px-6">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6">
         
         {/* Step Progress Line */}
-        <div className="mb-12 max-w-xl mx-auto px-4">
+        <div className="mb-8 max-w-xl mx-auto px-2">
           <div className="flex items-center justify-between relative">
             <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-white/10 -translate-y-1/2 z-0" />
             <div 
@@ -369,7 +382,7 @@ const MasterclassRegistration: React.FC = () => {
                         if (ok) setCurrentStep(step);
                       }
                     }}
-                    className={`w-9 h-9 rounded-full flex items-center justify-center font-extrabold text-xs transition-all duration-300 ${
+                    className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-extrabold text-xs transition-all duration-300 ${
                       isCompleted 
                         ? 'bg-[#FFD447] text-[#1C2951] shadow-lg shadow-[#FFD447]/20' 
                         : isActive 
@@ -379,12 +392,19 @@ const MasterclassRegistration: React.FC = () => {
                   >
                     {isCompleted ? <FiCheck className="stroke-[3px]" /> : step}
                   </button>
-                  <span className={`absolute top-11 text-[8px] uppercase tracking-widest font-black whitespace-nowrap hidden sm:block ${isActive ? 'text-[#FFD447] font-extrabold' : 'text-slate-400 font-semibold'}`}>
+                  <span className={`absolute top-10 text-[8px] uppercase tracking-widest font-black whitespace-nowrap hidden sm:block ${isActive ? 'text-[#FFD447] font-extrabold' : 'text-slate-400 font-semibold'}`}>
                     {stepLabels[step - 1]}
                   </span>
                 </div>
               );
             })}
+          </div>
+
+          {/* Mobile Active Step Label Badge */}
+          <div className="sm:hidden text-center mt-3">
+            <span className="px-3.5 py-1 rounded-full bg-[#FFD447]/10 text-[#FFD447] border border-[#FFD447]/30 text-[10px] font-black uppercase tracking-widest inline-block">
+              Step {currentStep} of 5 — {stepLabels[currentStep - 1]}
+            </span>
           </div>
         </div>
 
@@ -409,56 +429,62 @@ const MasterclassRegistration: React.FC = () => {
                 </p>
               </div>
 
-              <div className="relative">
+              <div className="space-y-1.5">
                 <label className={labelClasses}>{language === 'am' ? 'ሙሉ ስም' : language === 'om' ? 'Maqaa Guutuu' : 'Full Name'}</label>
-                <input 
-                  required 
-                  name="name" 
-                  value={formData.name} 
-                  onChange={handleChange} 
-                  className={inputClasses} 
-                  placeholder={language === 'am' ? 'ስምዎን እዚህ ያስገቡ' : language === 'om' ? 'Maqaa keessan guutuu galchaa' : 'Enter your full name'} 
-                />
-                <FiUser className="absolute left-5 top-[2.75rem] text-slate-400" />
-                {stepErrors.name && <p className="text-[10px] text-red-500 font-bold mt-1.5 ml-1">{stepErrors.name}</p>}
+                <div className="relative flex items-center">
+                  <FiUser className="absolute left-4 text-slate-400 pointer-events-none" />
+                  <input 
+                    required 
+                    name="name" 
+                    value={formData.name} 
+                    onChange={handleChange} 
+                    className={inputClasses} 
+                    placeholder={language === 'am' ? 'ስምዎን እዚህ ያስገቡ' : language === 'om' ? 'Maqaa keessan guutuu galchaa' : 'Enter your full name'} 
+                  />
+                </div>
+                {stepErrors.name && <p className="text-[10px] text-red-500 font-bold mt-1 ml-1">{stepErrors.name}</p>}
               </div>
 
-              <div className="relative">
+              <div className="space-y-1.5">
                 <label className={labelClasses}>{language === 'am' ? 'ኢሜይል አድራሻ' : language === 'om' ? 'Teessoo Imeelii' : 'Email Address (Required for Verification & Receipt)'}</label>
-                <input 
-                  type="email" 
-                  name="email" 
-                  value={formData.email} 
-                  onChange={handleChange} 
-                  className={inputClasses} 
-                  placeholder="your@email.com" 
-                />
-                <FiSend className="absolute left-5 top-[2.75rem] text-slate-400" />
-                {stepErrors.email && <p className="text-[10px] text-red-500 font-bold mt-1.5 ml-1">{stepErrors.email}</p>}
+                <div className="relative flex items-center">
+                  <FiSend className="absolute left-4 text-slate-400 pointer-events-none" />
+                  <input 
+                    type="email" 
+                    name="email" 
+                    value={formData.email} 
+                    onChange={handleChange} 
+                    className={inputClasses} 
+                    placeholder="your@email.com" 
+                  />
+                </div>
+                {stepErrors.email && <p className="text-[10px] text-red-500 font-bold mt-1 ml-1">{stepErrors.email}</p>}
                 {formData.email && !stepErrors.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && (
-                  <p className="text-[10px] text-emerald-400 font-bold mt-1.5 ml-1 flex items-center gap-1">
+                  <p className="text-[10px] text-emerald-400 font-bold mt-1 ml-1 flex items-center gap-1">
                     ✓ {language === 'am' ? 'ኢሜይል አድራሻው ተረጋግጧል' : language === 'om' ? 'Teessoon imeelii mirkanaa\'eera' : 'Email verified for instant registration confirmation receipt'}
                   </p>
                 )}
               </div>
 
-              <div className="relative">
+              <div className="space-y-1.5">
                 <label className={labelClasses}>{language === 'am' ? 'ስልክ ቁጥር' : language === 'om' ? 'Lakk. Bilbilaa' : 'Phone Number'}</label>
-                <input 
-                  required 
-                  type="tel" 
-                  name="phone" 
-                  value={formData.phone} 
-                  onChange={handleChange} 
-                  className={inputClasses} 
-                  placeholder="09..." 
-                />
-                <FiPhone className="absolute left-5 top-[2.75rem] text-slate-400" />
-                {stepErrors.phone && <p className="text-[10px] text-red-500 font-bold mt-1.5 ml-1">{stepErrors.phone}</p>}
+                <div className="relative flex items-center">
+                  <FiPhone className="absolute left-4 text-slate-400 pointer-events-none" />
+                  <input 
+                    required 
+                    type="tel" 
+                    name="phone" 
+                    value={formData.phone} 
+                    onChange={handleChange} 
+                    className={inputClasses} 
+                    placeholder="09..." 
+                  />
+                </div>
+                {stepErrors.phone && <p className="text-[10px] text-red-500 font-bold mt-1 ml-1">{stepErrors.phone}</p>}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
                   <label className={labelClasses}>{language === 'am' ? 'ዕድሜ' : language === 'om' ? 'Umurii' : 'Age'}</label>
                   <input 
                     required 
@@ -466,14 +492,14 @@ const MasterclassRegistration: React.FC = () => {
                     name="age" 
                     value={formData.age} 
                     onChange={handleChange} 
-                    className="w-full bg-[#1E293B]/80 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-[#FFD447] focus:bg-[#1E293B] focus:ring-[6px] focus:ring-[#FFD447]/10 outline-none transition-all placeholder:text-slate-400 font-sans shadow-inner hover:border-white/20 duration-300"
+                    className="w-full bg-[#1E293B]/80 border border-white/10 rounded-2xl px-5 py-3.5 text-white focus:border-[#FFD447] focus:bg-[#1E293B] focus:ring-[4px] focus:ring-[#FFD447]/10 outline-none transition-all placeholder:text-slate-400 font-sans shadow-inner hover:border-white/20 duration-300 text-sm"
                     placeholder="e.g. 21" 
                   />
-                  {stepErrors.age && <p className="text-[10px] text-red-500 font-bold mt-1.5 ml-1">{stepErrors.age}</p>}
+                  {stepErrors.age && <p className="text-[10px] text-red-500 font-bold mt-1 ml-1">{stepErrors.age}</p>}
                 </div>
-                <div>
+                <div className="space-y-1.5">
                   <label className={labelClasses}>{language === 'am' ? 'ጾታ' : language === 'om' ? 'Kornyaa' : 'Sex'}</label>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-2.5">
                     {['male', 'female'].map((s) => {
                       const isSelected = formData.sex === s;
                       const sexLabel = s === 'male' 
@@ -493,9 +519,9 @@ const MasterclassRegistration: React.FC = () => {
                               });
                             }
                           }}
-                          className={`py-4 rounded-2xl border text-center font-bold text-xs uppercase tracking-widest transition-all ${
+                          className={`py-3.5 rounded-2xl border text-center font-bold text-xs uppercase tracking-wider transition-all ${
                             isSelected
-                              ? 'border-[#FFD447] bg-[#FFD447]/10 text-white ring-[4px] ring-[#FFD447]/10 font-black'
+                              ? 'border-[#FFD447] bg-[#FFD447]/10 text-white ring-[3px] ring-[#FFD447]/10 font-black'
                               : 'border-white/10 bg-[#1E293B]/60 hover:bg-[#1E293B] text-slate-300'
                           }`}
                         >
@@ -504,38 +530,40 @@ const MasterclassRegistration: React.FC = () => {
                       );
                     })}
                   </div>
-                  {stepErrors.sex && <p className="text-[10px] text-red-500 font-bold mt-1.5 ml-1">{stepErrors.sex}</p>}
+                  {stepErrors.sex && <p className="text-[10px] text-red-500 font-bold mt-1 ml-1">{stepErrors.sex}</p>}
                 </div>
               </div>
 
-              <div className="relative">
+              <div className="space-y-1.5">
                 <label className={labelClasses}>{language === 'am' ? 'የሚኖሩበት ክልል/ከተማ' : language === 'om' ? 'Naannoo/Magaalaa' : 'Place in Ethiopia (Region/Area)'}</label>
-                <select 
-                  required 
-                  name="place" 
-                  value={formData.place} 
-                  onChange={handleChange} 
-                  className={selectClasses}
-                >
-                  <option value="">{language === 'am' ? 'ክልል ይምረጡ' : language === 'om' ? 'Naannoo Filadhaa' : 'Select Region'}</option>
-                  <option value="Addis Ababa">Addis Ababa / አዲስ አበባ</option>
-                  <option value="Afar">Afar / ዓፋር</option>
-                  <option value="Amhara">Amhara / አማራ</option>
-                  <option value="Benishangul-Gumuz">Benishangul-Gumuz / ቤኒሻንጉል ጉሙዝ</option>
-                  <option value="Central Ethiopia">Central Ethiopia / ማዕከላዊ ኢትዮጵያ</option>
-                  <option value="Dire Dawa">Dire Dawa / ድሬዳዋ</option>
-                  <option value="Gambela">Gambela / ጋምቤላ</option>
-                  <option value="Harari">Harari / ሐረሪ</option>
-                  <option value="Oromia">Oromia / ኦሮሚያ</option>
-                  <option value="Sidama">Sidama / ሲዳማ</option>
-                  <option value="Somali">Somali / ሶማሌ</option>
-                  <option value="South Ethiopia">South Ethiopia / ደቡብ ኢትዮጵያ</option>
-                  <option value="South West Ethiopia">South West Ethiopia / ደቡብ ምዕራብ ኢትዮጵያ</option>
-                  <option value="Tigray">Tigray / ትግራይ</option>
-                </select>
-                <FiChevronDown className="absolute right-5 top-[2.75rem] text-slate-400 pointer-events-none" />
-                <FiMapPin className="absolute left-5 top-[2.75rem] text-slate-400" />
-                {stepErrors.place && <p className="text-[10px] text-red-500 font-bold mt-1.5 ml-1">{stepErrors.place}</p>}
+                <div className="relative flex items-center">
+                  <FiMapPin className="absolute left-4 text-slate-400 pointer-events-none z-10" />
+                  <select 
+                    required 
+                    name="place" 
+                    value={formData.place} 
+                    onChange={handleChange} 
+                    className={selectClasses}
+                  >
+                    <option value="">{language === 'am' ? 'ክልል ይምረጡ' : language === 'om' ? 'Naannoo Filadhaa' : 'Select Region'}</option>
+                    <option value="Addis Ababa">Addis Ababa / አዲስ አበባ</option>
+                    <option value="Afar">Afar / ዓፋር</option>
+                    <option value="Amhara">Amhara / አማራ</option>
+                    <option value="Benishangul-Gumuz">Benishangul-Gumuz / ቤኒሻንጉል ጉሙዝ</option>
+                    <option value="Central Ethiopia">Central Ethiopia / ማዕከላዊ ኢትዮጵያ</option>
+                    <option value="Dire Dawa">Dire Dawa / ድሬዳዋ</option>
+                    <option value="Gambela">Gambela / ጋምቤላ</option>
+                    <option value="Harari">Harari / ሐረሪ</option>
+                    <option value="Oromia">Oromia / ኦሮሚያ</option>
+                    <option value="Sidama">Sidama / ሲዳማ</option>
+                    <option value="Somali">Somali / ሶማሌ</option>
+                    <option value="South Ethiopia">South Ethiopia / ደቡብ ኢትዮጵያ</option>
+                    <option value="South West Ethiopia">South West Ethiopia / ደቡብ ምዕራብ ኢትዮጵያ</option>
+                    <option value="Tigray">Tigray / ትግራይ</option>
+                  </select>
+                  <FiChevronDown className="absolute right-4 text-slate-400 pointer-events-none z-10" />
+                </div>
+                {stepErrors.place && <p className="text-[10px] text-red-500 font-bold mt-1 ml-1">{stepErrors.place}</p>}
               </div>
             </div>
           )}
@@ -678,9 +706,9 @@ const MasterclassRegistration: React.FC = () => {
                             });
                           }
                         }}
-                        className={`p-5 rounded-2xl border text-left transition-all duration-300 flex flex-col justify-between h-32 md:h-36 ${
+                        className={`p-4 sm:p-5 rounded-2xl border text-left transition-all duration-300 flex flex-col justify-between min-h-[96px] ${
                           isSelected 
-                            ? 'border-[#FFD447] bg-[#FFD447]/10 ring-[5px] ring-[#FFD447]/10 shadow-md' 
+                            ? 'border-[#FFD447] bg-[#FFD447]/10 ring-[4px] ring-[#FFD447]/10 shadow-md' 
                             : 'border-white/10 bg-[#1E293B]/60 hover:bg-[#1E293B]'
                         }`}
                       >
@@ -720,7 +748,7 @@ const MasterclassRegistration: React.FC = () => {
                 <label className={labelClasses}>
                   8. {language === 'am' ? 'በየትኞቹ የኢቨንት አይነቶች መስራት ይመርጣሉ?' : language === 'om' ? 'Qophiiwwan kam irratti hojjechuu barbaadu?' : 'What types of events would you most like to work on?'}
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
                   {[
                     { label: 'Corporate', am: 'የድርጅት', om: 'Daldalaa', icon: '💼' },
                     { label: 'Social', am: 'ማህበራዊ', om: 'Hawaasaa', icon: '🎉' },
@@ -735,14 +763,14 @@ const MasterclassRegistration: React.FC = () => {
                         key={label}
                         type="button"
                         onClick={() => toggleEventType(label)}
-                        className={`p-4 rounded-2xl border text-center transition-all duration-300 flex flex-col items-center justify-center gap-2 ${
+                        className={`p-3.5 sm:p-4 rounded-2xl border text-center transition-all duration-300 flex flex-col items-center justify-center gap-1.5 ${
                           isSelected
-                            ? 'border-[#FFD447] bg-[#FFD447]/10 text-white ring-[4px] ring-[#FFD447]/10 font-extrabold shadow-md'
+                            ? 'border-[#FFD447] bg-[#FFD447]/10 text-white ring-[3px] ring-[#FFD447]/10 font-extrabold shadow-md'
                             : 'border-white/10 bg-[#1E293B]/60 hover:bg-[#1E293B] text-slate-300 font-medium'
                         }`}
                       >
-                        <span className="text-2xl">{icon}</span>
-                        <span className="text-[11px] font-bold tracking-tight">{displayLabel}</span>
+                        <span className="text-xl sm:text-2xl">{icon}</span>
+                        <span className="text-[10px] sm:text-[11px] font-bold tracking-tight">{displayLabel}</span>
                       </button>
                     );
                   })}

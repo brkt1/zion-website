@@ -55,19 +55,7 @@ const MobileBottomNav = () => {
 
   return (
     <>
-      {/* Mobile Top-Left Language Selector */}
-      <button
-        onClick={toggleLanguage}
-        className="md:hidden fixed top-4 left-4 z-[60] px-3.5 py-1.5 rounded-full bg-[#0F172A]/90 text-white backdrop-blur-xl border border-white/20 shadow-2xl flex items-center gap-1.5 text-[10px] font-black tracking-widest uppercase transition-all duration-300 active:scale-95 hover:border-[#FFD447]/60"
-        title="Change Language (አማ / EN / OM)"
-      >
-        <span className="text-xs">🌐</span>
-        <span className={language === 'am' ? 'text-[#FFD447] font-black' : 'text-white/60'}>AM</span>
-        <span className="opacity-30">|</span>
-        <span className={language === 'en' ? 'text-[#FFD447] font-black' : 'text-white/60'}>EN</span>
-        <span className="opacity-30">|</span>
-        <span className={language === 'om' ? 'text-[#FFD447] font-black' : 'text-white/60'}>OM</span>
-      </button>
+     
 
       {/* Scroll to Top Button - Floating Design */}
       {showScrollTop && (
