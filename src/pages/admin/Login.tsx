@@ -35,7 +35,7 @@ const Login = () => {
         }
         if (admin) navigate('/admin/dashboard');
         else if (accountant) navigate('/admin/accounting');
-        else if (masterclass) navigate('/admin/masterclass-dashboard');
+        else if (masterclass) navigate('/admin/masterclass-reservations');
         else if (manager) navigate('/admin/sponsorship-department');
         else if (seller) navigate('/admin/seller-dashboard');
         else if (scanner) navigate('/admin/scanner-dashboard');
@@ -59,7 +59,7 @@ const Login = () => {
     }
     if (admin) navigate('/admin/dashboard');
     else if (accountant) navigate('/admin/accounting');
-    else if (masterclass) navigate('/admin/masterclass-dashboard');
+    else if (masterclass) navigate('/admin/masterclass-reservations');
     else if (manager) navigate('/admin/sponsorship-department');
     else if (seller) navigate('/admin/seller-dashboard');
     else if (scanner) navigate('/admin/scanner-dashboard');

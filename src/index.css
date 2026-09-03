@@ -186,3 +186,22 @@
 .reveal-delay-300 { transition-delay: 300ms; }
 .reveal-delay-400 { transition-delay: 400ms; }
 .reveal-delay-500 { transition-delay: 500ms; }
+
+/* ── Select & Option Dropdown Legibility Styles ── */
+select {
+  color-scheme: dark;
+}
+
+select option {
+  background-color: #0F172A !important;
+  color: #F8FAFC !important;
+  padding: 10px 14px;
+}
+
+select option:hover,
+select option:focus,
+select option:checked {
+  background-color: #1E293B !important;
+  color: #FFD447 !important;
+}
+

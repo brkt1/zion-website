@@ -163,7 +163,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
       items: section.items.filter(item => {
         if (isAccountantUser && !isAdminUser) return item.path === '/admin/accounting';
         if (isSales && !isAdminUser) return item.path === '/admin/masterclass-reservations';
-        if (isMasterclass && !isAdminUser) return item.path.includes('masterclass');
+        if (isMasterclass && !isAdminUser) return item.path.includes('masterclass') && item.path !== '/admin/masterclass-dashboard';
         if (item.adminOnly) return isAdminUser;
         return true;
       }),

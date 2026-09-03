@@ -74,10 +74,28 @@ CREATE POLICY "Admins and Managers can delete reservations" ON masterclass_reser
     )
   );
 
--- 4. Helper function to make a user a Masterclass Manager
--- Replace 'USER_EMAIL' with the actual email in your Supabase dashboard
--- INSERT INTO user_roles (user_id, role)
--- SELECT id, 'masterclass_manager'
--- FROM auth.users
--- WHERE email = 'USER_EMAIL'
--- ON CONFLICT (user_id) DO UPDATE SET role = 'masterclass_manager';
+-- 4. Create masterclass_schedules table
+CREATE TABLE IF NOT EXISTS masterclass_schedules (
+  id TEXT PRIMARY KEY DEFAULT ('opt-' || floor(extract(epoch from now()))::text),
+  label TEXT NOT NULL,
+  session_time TEXT NOT NULL,
+  session_date DATE,
+  is_active BOOLEAN DEFAULT true,
+  max_students INTEGER,
+  available_modes JSONB,
+  val TEXT,
+  display_order INTEGER DEFAULT 1,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable RLS for masterclass_schedules
+ALTER TABLE masterclass_schedules ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Anyone can read masterclass_schedules" ON masterclass_schedules;
+CREATE POLICY "Anyone can read masterclass_schedules" ON masterclass_schedules
+  FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Anyone can insert/update/delete masterclass_schedules" ON masterclass_schedules;
+CREATE POLICY "Anyone can insert/update/delete masterclass_schedules" ON masterclass_schedules
+  FOR ALL USING (true) WITH CHECK (true);
+

@@ -91,9 +91,12 @@ export default function MasterclassDashboard() {
     const checkAuth = async () => {
       const admin = await isAdmin();
       const mc = await isMasterclassManager();
-      const ok = admin || mc;
-      setAuthorized(ok);
-      if (!ok) return;
+      if (mc && !admin) {
+        navigate('/admin/masterclass-reservations', { replace: true });
+        return;
+      }
+      setAuthorized(admin);
+      if (!admin) return;
       loadSchedules();
       load();
     };

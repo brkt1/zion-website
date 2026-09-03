@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FaCalendarAlt, FaCheck, FaEnvelope, FaEye, FaHistory, FaLink, FaMapPin, FaPaperPlane, FaPhoneAlt, FaSearch, FaSpinner, FaTrash, FaUser, FaVenusMars, FaCopy, FaExternalLinkAlt, FaChevronDown, FaToggleOn, FaToggleOff, FaCalendarCheck, FaRegCalendarAlt, FaLayerGroup, FaPlus, FaFilter, FaTimes } from 'react-icons/fa';
+import { FaCalendarAlt, FaCheck, FaEnvelope, FaEye, FaHistory, FaLink, FaMapPin, FaPaperPlane, FaPhoneAlt, FaSearch, FaSpinner, FaTrash, FaUser, FaVenusMars, FaCopy, FaExternalLinkAlt, FaChevronDown, FaToggleOn, FaToggleOff, FaCalendarCheck, FaRegCalendarAlt, FaLayerGroup, FaPlus, FaFilter, FaTimes, FaGraduationCap } from 'react-icons/fa';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { adminApi } from '../../services/adminApi';
 import { handleSupabaseError, supabase } from '../../services/supabase';
@@ -331,13 +331,13 @@ const MasterclassReservations = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'accepted':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
       case 'rejected':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'bg-rose-500/20 text-rose-300 border-rose-500/30';
       case 'reviewed':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+        return 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30';
       default:
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return 'bg-amber-500/20 text-amber-300 border-amber-500/30';
     }
   };
 
@@ -442,10 +442,10 @@ const MasterclassReservations = () => {
   if (loading) {
     return (
       <AdminLayout>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <FaSpinner className="animate-spin text-4xl text-amber-600 mx-auto mb-4" />
-            <p className="text-gray-600">Loading masterclass reservations...</p>
+        <div className="flex items-center justify-center min-h-[70vh] bg-[#0B0F19] text-white">
+          <div className="text-center p-8 rounded-3xl bg-[#1C2951]/80 border border-amber-500/20 backdrop-blur-xl shadow-2xl">
+            <FaSpinner className="animate-spin text-4xl text-[#FFD447] mx-auto mb-4" />
+            <p className="text-sm font-bold text-slate-300 uppercase tracking-widest">Loading Masterclass Reservations...</p>
           </div>
         </div>
       </AdminLayout>
@@ -454,57 +454,66 @@ const MasterclassReservations = () => {
 
   return (
     <AdminLayout>
-      <div className="p-4 sm:p-6">
-        <div className="mb-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Masterclass Reservations</h1>
-            <p className="text-sm text-gray-600">Manage e-learning program registrations</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-            {!isSales && (
-              <button 
-                onClick={() => {
-                  setEmailRecipientType('all');
-                  setEmailSubject(`Update for ${statusFilter === 'all' ? 'All' : statusFilter} Students - Yenege Masterclass`);
-                  setShowEmailModal(true);
-                }}
-                className="flex items-center justify-center gap-2 bg-[#4a0e17] text-white px-4 py-2.5 sm:px-6 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-[#6b1422] transition-all duration-300 hover:-translate-y-0.5 shadow-lg shadow-[#4a0e17]/30 w-full sm:w-auto"
-              >
-                <FaEnvelope /> Email {statusFilter === 'all' ? 'All Students' : `All ${statusFilter}s`}
-              </button>
-            )}
-            <div className="flex items-center justify-center gap-2 bg-amber-50 px-4 py-2.5 rounded-2xl border border-amber-100 w-full sm:w-auto">
-              <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-              <span className="text-amber-800 text-xs sm:text-sm font-bold">{reservations.length} Total Registered</span>
+      <div className="p-3 sm:p-6 space-y-6 max-w-[1600px] mx-auto">
+        {/* ── Brand Header Banner ── */}
+        <div className="bg-gradient-to-r from-[#0B0F19] via-[#1C2951] to-[#0B0F19] border border-amber-500/20 rounded-3xl p-5 sm:p-8 text-white shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-[#FFD447]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-[#FFD447] text-[10px] font-black uppercase tracking-wider mb-2">
+                <FaGraduationCap /> Yenege Experience Architecture
+              </div>
+              <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-white">
+                Masterclass <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FFD447] to-amber-300">Reservations</span>
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-300 font-medium mt-1">Tablet-Optimized Executive Student Lead &amp; Registration Intelligence Portal</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+              {!isSales && (
+                <button 
+                  onClick={() => {
+                    setEmailRecipientType('all');
+                    setEmailSubject(`Update for ${statusFilter === 'all' ? 'All' : statusFilter} Students - Yenege Masterclass`);
+                    setShowEmailModal(true);
+                  }}
+                  className="flex items-center justify-center gap-2 bg-gradient-to-r from-[#4a0e17] to-[#791a29] hover:from-[#6b1422] hover:to-[#912033] text-white px-5 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all duration-300 shadow-xl shadow-[#4a0e17]/30 border border-red-500/30 w-full sm:w-auto active:scale-95 min-h-[44px]"
+                >
+                  <FaEnvelope /> Email {statusFilter === 'all' ? 'All Students' : `All ${statusFilter}s`}
+                </button>
+              )}
+              <div className="flex items-center justify-center gap-2 bg-amber-500/10 px-5 py-3.5 rounded-2xl border border-amber-500/30 w-full sm:w-auto min-h-[44px]">
+                <div className="w-2.5 h-2.5 rounded-full bg-[#FFD447] animate-pulse" />
+                <span className="text-[#FFD447] text-xs sm:text-sm font-black">{reservations.length} Registered Students</span>
+              </div>
             </div>
           </div>
         </div>
 
         {filteredReservations.length > 0 && (
-          <div className="mb-4 px-4 py-2 bg-indigo-50 border border-indigo-100 rounded-xl inline-flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
-            <span className="text-[10px] font-bold text-indigo-700 uppercase tracking-widest">
-              {studentsWithEmail} / {filteredReservations.length} students in this view have email addresses
+          <div className="px-4 py-2.5 bg-[#1C2951]/70 border border-amber-500/20 rounded-2xl inline-flex items-center gap-2 text-slate-300">
+            <div className="w-2 h-2 rounded-full bg-[#FFD447]" />
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-200">
+              {studentsWithEmail} / {filteredReservations.length} candidates in view have email addresses
             </span>
           </div>
         )}
 
         {/* ── MASTERCLASS MANAGER CONTROL: ACTIVE START DATE & TIME OPTIONS ── */}
         {!isSales && (
-          <section className="mb-8 bg-gradient-to-br from-slate-900 via-[#1C2951] to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-2xl relative overflow-hidden border border-slate-800">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+          <section className="bg-gradient-to-br from-slate-950 via-[#1C2951] to-slate-900 rounded-3xl p-5 sm:p-8 text-white shadow-2xl relative overflow-hidden border border-amber-500/20">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-[#FFD447]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
             
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-6 mb-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-5 mb-5">
               <div className="space-y-1">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[10px] font-black uppercase tracking-wider">
-                  <FaCalendarAlt /> Masterclass Manager Control
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-[#FFD447] text-[10px] font-black uppercase tracking-wider">
+                  <FaCalendarAlt /> Masterclass Schedule Controller
                 </div>
-                <h3 className="text-xl sm:text-2xl font-black tracking-tight text-white">Active Start Date &amp; Time Options</h3>
-                <p className="text-xs text-slate-300 font-medium">Control which dates and session times appear in Question 6 on the registration form.</p>
+                <h3 className="text-xl sm:text-2xl font-black tracking-tight text-white">Active Session Options</h3>
+                <p className="text-xs text-slate-300 font-medium">Manage program dates and session times for Question 6 on the registration form.</p>
               </div>
               <button
                 onClick={() => setShowScheduleModal(true)}
-                className="px-5 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition-all shadow-lg flex items-center gap-2 self-start md:self-auto"
+                className="px-5 py-3.5 rounded-2xl bg-gradient-to-r from-[#FFD447] to-amber-500 hover:from-amber-400 hover:to-[#FFD447] text-slate-950 font-black text-xs uppercase tracking-wider transition-all shadow-lg shadow-amber-500/20 flex items-center gap-2 self-start md:self-auto min-h-[44px]"
               >
                 <FaPlus /> Create New Session Option
               </button>
@@ -519,10 +528,10 @@ const MasterclassReservations = () => {
                     key={sched.id} 
                     className={`p-5 rounded-2xl border transition-all duration-300 flex flex-col justify-between gap-4 ${
                       isFilterActive
-                        ? 'bg-amber-500/15 border-amber-500 ring-2 ring-amber-500/30'
+                        ? 'bg-amber-500/20 border-[#FFD447] ring-2 ring-amber-500/40 shadow-xl'
                         : sched.is_active 
-                        ? 'bg-white/10 border-white/15 hover:border-amber-500/50' 
-                        : 'bg-white/5 border-white/5 opacity-60'
+                        ? 'bg-slate-900/60 border-white/10 hover:border-amber-500/50' 
+                        : 'bg-white/5 border-white/5 opacity-50'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -531,42 +540,17 @@ const MasterclassReservations = () => {
                           <span className={`w-2.5 h-2.5 rounded-full ${sched.is_active ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`} />
                           <h4 className="text-sm font-extrabold text-white">{sched.label}</h4>
                         </div>
-                        <p className="text-xs text-amber-300/90 font-semibold">{sched.time}</p>
+                        <p className="text-xs text-[#FFD447] font-semibold">{sched.time}</p>
                         {sched.date && (
                           <div className="flex flex-wrap items-center gap-2 mt-1">
                             <span className="text-[10px] text-slate-400 font-mono">GC: {sched.date}</span>
                             {toEthiopianDate(sched.date) && (
                               <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold text-[10px] border border-amber-500/30">
-                                🇪🇹 {toEthiopianDate(sched.date)?.formattedAmharic} ({toEthiopianDate(sched.date)?.formattedEnglish})
+                                🇪🇹 {toEthiopianDate(sched.date)?.formattedAmharic}
                               </span>
                             )}
                           </div>
                         )}
-
-                        {/* Configured Packages Badge */}
-                        <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                          {(sched.available_modes || DEFAULT_LEARNING_MODES).map(m => (
-                            <button
-                              key={m.mode}
-                              type="button"
-                              onClick={async () => {
-                                const currentModes = (sched.available_modes || DEFAULT_LEARNING_MODES).map(item => 
-                                  item.mode === m.mode ? { ...item, enabled: !item.enabled } : item
-                                );
-                                const updated = await updateMasterclassSchedule(sched.id, { available_modes: currentModes });
-                                setSchedules(updated);
-                              }}
-                              className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-all ${
-                                m.enabled !== false
-                                  ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
-                                  : 'bg-rose-500/10 border-rose-500/20 text-rose-400 line-through opacity-60'
-                              }`}
-                              title="Click to enable/disable for this session"
-                            >
-                              {m.mode}: {m.price}
-                            </button>
-                          ))}
-                        </div>
                       </div>
 
                       <div className="flex items-center gap-2">
@@ -574,7 +558,7 @@ const MasterclassReservations = () => {
                           type="button"
                           onClick={() => handleToggleSchedule(sched.id)}
                           title={sched.is_active ? 'Disable Schedule' : 'Enable Schedule'}
-                          className={`p-2 rounded-xl text-lg transition-all ${
+                          className={`p-2.5 rounded-xl text-lg transition-all min-w-[44px] min-h-[44px] flex items-center justify-center ${
                             sched.is_active 
                               ? 'text-emerald-400 bg-emerald-500/20 hover:bg-emerald-500/30' 
                               : 'text-slate-400 bg-white/5 hover:bg-white/10'
@@ -586,26 +570,25 @@ const MasterclassReservations = () => {
                           type="button"
                           onClick={() => handleDeleteSchedule(sched.id)}
                           title="Remove Option"
-                          className="p-2 rounded-xl text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 transition-all text-xs"
+                          className="p-2.5 rounded-xl text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 transition-all text-xs min-w-[44px] min-h-[44px] flex items-center justify-center"
                         >
-                          <FaTrash />
+                          <FaTrash size={14} />
                         </button>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-3 border-t border-white/10 text-[11px] text-slate-300">
-                      <span className="font-semibold">Enrolled Students:</span>
+                    <div className="flex items-center justify-between pt-3 border-t border-white/10 text-xs text-slate-300">
                       <button
-                        type="button"
                         onClick={() => setScheduleFilter(isFilterActive ? 'all' : sched.val)}
-                        className={`px-2.5 py-0.5 rounded-full font-black border transition-all ${
-                          isFilterActive
-                            ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md'
-                            : 'bg-amber-500/20 text-amber-300 border-amber-500/30 hover:bg-amber-500/40'
+                        className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
+                          isFilterActive ? 'bg-amber-500 text-slate-950' : 'bg-white/10 text-amber-300 hover:bg-white/20'
                         }`}
                       >
-                        {countForSched} Student{countForSched !== 1 ? 's' : ''} {isFilterActive ? '✓ (Filtered)' : '→ Filter'}
+                        {isFilterActive ? 'Filtered view' : 'Filter by this session'}
                       </button>
+                      <span className="px-3 py-1 rounded-full bg-amber-500/20 text-[#FFD447] font-black border border-amber-500/30 text-xs">
+                        {countForSched} Student{countForSched !== 1 ? 's' : ''}
+                      </span>
                     </div>
                   </div>
                 );
@@ -614,228 +597,58 @@ const MasterclassReservations = () => {
           </section>
         )}
 
-        {/* ── SECTION: STUDENTS BREAKDOWN BY YEAR, MONTH & CHOICE SCHEDULE ── */}
-        <section className="mb-8 space-y-6">
-          <div className="border-b border-slate-200 pb-3">
-            <h2 className="text-xs font-black uppercase tracking-widest text-slate-400">Student Enrollment Analytics</h2>
-            <h3 className="text-xl font-black text-slate-900">Student Breakdown by Year, Month &amp; Choice Schedule</h3>
+        {/* ── REFERRAL PANEL & FILTERS SECTION ── */}
+        <div className="bg-[#1C2951]/90 backdrop-blur-xl rounded-3xl p-5 sm:p-7 shadow-2xl border border-amber-500/20 text-white space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+            <div>
+              <h2 className="text-xs font-black uppercase tracking-widest text-[#FFD447]">Control &amp; Filters</h2>
+              <p className="text-lg font-black text-white">Student Lead Navigation &amp; Referral Generator</p>
+            </div>
+            {!isSales && (
+              <button
+                onClick={() => setShowReferralPanel(!showReferralPanel)}
+                className="px-5 py-3 rounded-2xl bg-[#4a0e17] hover:bg-[#6b1422] text-white font-black text-xs uppercase tracking-wider transition-all border border-red-500/30 flex items-center justify-center gap-2 self-start sm:self-auto min-h-[44px]"
+              >
+                <FaLink /> {showReferralPanel ? 'Hide Referral Generator' : 'Generate Marketer Link'}
+              </button>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* 1. Students Per Year */}
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-xl p-6 space-y-6">
-              <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-                <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
-                  <FaCalendarCheck size={18} />
-                </div>
-                <div>
-                  <h4 className="font-black text-slate-800 text-sm">Students Per Year</h4>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Annual Enrolment Volume</p>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                {yearBreakdown.map((yr) => {
-                  const pct = Math.round((yr.total / (reservations.length || 1)) * 100);
-                  return (
-                    <div key={yr.label} className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
-                      <div className="flex items-center justify-between text-xs font-black text-slate-800">
-                        <span className="text-base font-black text-indigo-950">Year {yr.label}</span>
-                        <span className="px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs font-black">
-                          {yr.total} Students
-                        </span>
-                      </div>
-                      <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
-                        <div className="h-full bg-gradient-to-r from-amber-500 to-indigo-600 rounded-full" style={{ width: `${pct}%` }} />
-                      </div>
-                      <div className="flex justify-between text-[10px] text-slate-400 font-bold">
-                        <span>Accepted: {yr.accepted}</span>
-                        <span>{pct}% of Total</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* 2. Students Per Month */}
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-xl p-6 space-y-6">
-              <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
-                  <FaRegCalendarAlt size={18} />
-                </div>
-                <div>
-                  <h4 className="font-black text-slate-800 text-sm">Students Per Month</h4>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Monthly Registration Flow</p>
-                </div>
-              </div>
-
-              <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1">
-                {monthBreakdown.map((m) => {
-                  const pct = Math.round((m.total / (reservations.length || 1)) * 100);
-                  return (
-                    <div key={m.label} className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-slate-100 hover:border-slate-200 transition-all">
-                      <div>
-                        <p className="text-xs font-black text-slate-800">{m.label}</p>
-                        <p className="text-[10px] text-slate-400 font-medium">{m.accepted} Accepted</p>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-sm font-black text-slate-900">{m.total} Students</span>
-                        <p className="text-[9px] font-extrabold text-emerald-600 uppercase tracking-wider">{pct}% Share</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* 3. Students Per Schedule Choice */}
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-xl p-6 space-y-6">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
-                    <FaLayerGroup size={18} />
-                  </div>
-                  <div>
-                    <h4 className="font-black text-slate-800 text-sm">Students Per Schedule Choice</h4>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Click to filter table below</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1">
-                {scheduleBreakdown.map((item, idx) => {
-                  const isSelected = scheduleFilter === item.optionText;
-                  return (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setScheduleFilter(isSelected ? 'all' : item.optionText)}
-                      className={`w-full text-left p-3.5 rounded-2xl border transition-all ${
-                        isSelected 
-                          ? 'bg-purple-50 border-purple-300 ring-2 ring-purple-500/20' 
-                          : 'bg-slate-50 border-slate-100 hover:bg-purple-50/50 hover:border-purple-200'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-2 mb-1.5">
-                        <p className="text-xs font-bold text-slate-800 leading-snug">{item.optionText}</p>
-                        <span className={`px-2 py-0.5 rounded-full text-[11px] font-black flex-shrink-0 ${
-                          isSelected ? 'bg-purple-600 text-white' : 'bg-purple-100 text-purple-700'
-                        }`}>
-                          {item.total} Students
-                        </span>
-                      </div>
-                      <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                        <div className="h-full bg-purple-600 rounded-full" style={{ width: `${item.percentage}%` }} />
-                      </div>
-                      <div className="flex justify-between text-[9px] font-bold text-slate-400 mt-1.5">
-                        <span>{item.accepted} Accepted</span>
-                        <span className="text-purple-600 font-extrabold">{isSelected ? 'Active Filter ✓' : 'Filter →'}</span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Referral Link Generator Panel ──────────────────────────────── */}
-        {!isSales && (
-        <div className="mb-6 bg-white rounded-3xl shadow-md shadow-slate-200/50 border border-slate-100 overflow-hidden">
-          <button
-            onClick={() => setShowReferralPanel(p => !p)}
-            className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-slate-50 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-violet-100 flex items-center justify-center text-violet-600">
-                <FaLink size={13} />
-              </div>
-              <div>
-                <p className="font-black text-slate-800 text-sm">Referral Link Generator</p>
-                <p className="text-[10px] text-slate-400 font-medium">Create tracking links for TikTokers &amp; marketing agencies</p>
-              </div>
-            </div>
-            <FaChevronDown className={`text-slate-400 transition-transform duration-300 ${showReferralPanel ? 'rotate-180' : ''}`} />
-          </button>
-
+          {/* Referral Panel */}
           {showReferralPanel && (
-            <div className="px-6 pb-6 border-t border-slate-100">
-              <div className="pt-5 space-y-4">
-                <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">
-                    Marketer / Agency Code
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g.  tiktoker_abel   or   agency_xyz"
-                    value={referralInput}
-                    onChange={e => setReferralInput(e.target.value)}
-                    className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-sm font-bold focus:ring-2 focus:ring-violet-500 outline-none"
-                  />
-                  <p className="text-[10px] text-slate-400 mt-1.5">
-                    Spaces → underscores. Letters are lowercased automatically.
-                  </p>
-                </div>
-
+            <div className="p-5 rounded-2xl bg-slate-900/80 border border-amber-500/30 space-y-4">
+              <h3 className="text-sm font-black text-[#FFD447] uppercase tracking-wider">Create Tracked Referral Code</h3>
+              <div className="flex flex-col md:flex-row gap-3">
+                <input
+                  type="text"
+                  placeholder="Enter marketer name or code (e.g. abeba_m)..."
+                  value={referralInput}
+                  onChange={(e) => setReferralInput(e.target.value)}
+                  className="flex-1 px-4 py-3.5 rounded-2xl bg-slate-950 border border-slate-700 text-white text-sm font-bold placeholder-slate-500 outline-none focus:ring-2 focus:ring-[#FFD447]"
+                />
                 {generatedRefLink && (
-                  <div className="space-y-3">
-                    {/* Registration link */}
-                    <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                        📎 Registration Link — share this with the marketer
-                      </p>
-                      <p className="text-xs font-mono text-slate-700 break-all">{generatedRefLink}</p>
-                      <button
-                        onClick={handleCopyRef}
-                        className={`flex items-center gap-1.5 px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${
-                          copiedRef
-                            ? 'bg-green-600 text-white'
-                            : 'bg-violet-600 hover:bg-violet-700 text-white'
-                        }`}
-                      >
-                        <FaCopy size={10} />
-                        {copiedRef ? 'Copied!' : 'Copy Registration Link'}
-                      </button>
-                    </div>
-
-                    {/* Dashboard link */}
-                    <div className="bg-violet-50 border border-violet-100 rounded-2xl p-4 space-y-2">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-violet-500">
-                        📊 Marketer Dashboard — they track their referrals here
-                      </p>
-                      <p className="text-xs font-mono text-violet-700 break-all">{generatedDashLink}</p>
-                      <a
-                        href={generatedDashLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-black text-[10px] uppercase tracking-widest transition-all"
-                      >
-                        <FaExternalLinkAlt size={10} /> Preview Dashboard
-                      </a>
-                    </div>
-                  </div>
+                  <button
+                    onClick={handleCopyRef}
+                    className="px-6 py-3.5 bg-gradient-to-r from-[#FFD447] to-amber-500 text-slate-950 font-black text-xs uppercase tracking-widest rounded-2xl hover:opacity-95 transition-all shadow-lg min-h-[44px]"
+                  >
+                    {copiedRef ? '✓ Link Copied!' : 'Copy Link'}
+                  </button>
                 )}
               </div>
+              {generatedRefLink && (
+                <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 space-y-1">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">Registration Link:</p>
+                  <p className="text-xs font-mono text-amber-300 break-all">{generatedRefLink}</p>
+                </div>
+              )}
             </div>
           )}
-        </div>
-        )}
 
-        {error && (
-          <NetworkErrorBanner 
-            message={error} 
-            onRetry={loadReservations} 
-          />
-        )}
-
-
-        {/* Filters */}
-        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 p-5 sm:p-8 mb-8 border border-slate-100">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
+          {/* Filters Grid: Tablet-Optimized (2-col sm, 3-col md, 4-col lg, 5-col xl) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {/* Search */}
-            <div className="lg:col-span-2">
-              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Search Student</label>
+            <div className="sm:col-span-2 md:col-span-2">
+              <label className="block text-[10px] font-black uppercase tracking-widest text-[#FFD447] mb-1.5">Search Student</label>
               <div className="relative">
                 <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
@@ -843,17 +656,17 @@ const MasterclassReservations = () => {
                   placeholder="Search by name or phone..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-[#4a0e17] outline-none transition-all"
+                  className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-slate-900/90 border border-slate-700 text-white text-sm font-bold placeholder-slate-400 focus:ring-2 focus:ring-[#FFD447] outline-none transition-all min-h-[44px]"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Follow-up Status</label>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-[#FFD447] mb-1.5">Follow-up Status</label>
               <select
                 value={followUpFilter}
                 onChange={(e) => setFollowUpFilter(e.target.value as any)}
-                className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-[#4a0e17] outline-none"
+                className="w-full px-4 py-3.5 rounded-2xl bg-slate-900/90 border border-slate-700 text-white text-sm font-bold focus:ring-2 focus:ring-[#FFD447] outline-none min-h-[44px]"
               >
                 <option value="all">All Leads</option>
                 <option value="today">Call Today 📞</option>
@@ -863,11 +676,11 @@ const MasterclassReservations = () => {
             </div>
 
             <div>
-              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Registration Status</label>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-[#FFD447] mb-1.5">Registration Status</label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as any)}
-                className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-[#4a0e17] outline-none"
+                className="w-full px-4 py-3.5 rounded-2xl bg-slate-900/90 border border-slate-700 text-white text-sm font-bold focus:ring-2 focus:ring-[#FFD447] outline-none min-h-[44px]"
               >
                 <option value="all">All Statuses</option>
                 <option value="pending">Pending</option>
@@ -878,11 +691,11 @@ const MasterclassReservations = () => {
             </div>
 
             <div>
-              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Region</label>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-[#FFD447] mb-1.5">Region</label>
               <select
                 value={regionFilter}
                 onChange={(e) => setRegionFilter(e.target.value)}
-                className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-[#4a0e17] outline-none"
+                className="w-full px-4 py-3.5 rounded-2xl bg-slate-900/90 border border-slate-700 text-white text-sm font-bold focus:ring-2 focus:ring-[#FFD447] outline-none min-h-[44px]"
               >
                 <option value="all">All Regions</option>
                 <option value="Addis Ababa">Addis Ababa</option>
@@ -903,11 +716,11 @@ const MasterclassReservations = () => {
             </div>
 
             <div>
-              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Package Choice</label>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-[#FFD447] mb-1.5">Package Choice</label>
               <select
                 value={packageFilter}
                 onChange={(e) => setPackageFilter(e.target.value)}
-                className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-[#4a0e17] outline-none"
+                className="w-full px-4 py-3.5 rounded-2xl bg-slate-900/90 border border-slate-700 text-white text-sm font-bold focus:ring-2 focus:ring-[#FFD447] outline-none min-h-[44px]"
               >
                 <option value="all">All Packages</option>
                 <option value="Basic">Basic Package</option>
@@ -917,11 +730,11 @@ const MasterclassReservations = () => {
             </div>
 
             <div>
-              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Updated By</label>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-[#FFD447] mb-1.5">Updated By</label>
               <select
                 value={updatedByFilter}
                 onChange={(e) => setUpdatedByFilter(e.target.value)}
-                className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-[#4a0e17] outline-none"
+                className="w-full px-4 py-3.5 rounded-2xl bg-slate-900/90 border border-slate-700 text-white text-sm font-bold focus:ring-2 focus:ring-[#FFD447] outline-none min-h-[44px]"
               >
                 <option value="all">Everyone</option>
                 {uniqueUpdatedBy.map(email => (
@@ -930,12 +743,12 @@ const MasterclassReservations = () => {
               </select>
             </div>
 
-            <div>
-              <label className="block text-[10px] font-black uppercase tracking-widest font-mono text-purple-600 mb-2">Schedule Choice (Q6)</label>
+            <div className="sm:col-span-2 md:col-span-1">
+              <label className="block text-[10px] font-black uppercase tracking-widest text-[#FFD447] mb-1.5">Schedule Choice (Q6)</label>
               <select
                 value={scheduleFilter}
                 onChange={(e) => setScheduleFilter(e.target.value)}
-                className="w-full px-4 py-3 rounded-2xl bg-purple-50/50 border border-purple-200 text-sm font-bold text-purple-950 focus:ring-2 focus:ring-purple-600 outline-none"
+                className="w-full px-4 py-3.5 rounded-2xl bg-slate-900/90 border border-amber-500/40 text-amber-300 text-sm font-bold focus:ring-2 focus:ring-[#FFD447] outline-none min-h-[44px]"
               >
                 <option value="all">All Schedule Choices</option>
                 <option value="unassigned">Unassigned / Not Specified</option>
@@ -951,130 +764,139 @@ const MasterclassReservations = () => {
 
         {/* Active Schedule Filter Banner */}
         {scheduleFilter !== 'all' && (
-          <div className="mb-6 p-4 bg-purple-50 border-2 border-purple-200 rounded-2xl flex items-center justify-between flex-wrap gap-3 shadow-md">
+          <div className="p-4 bg-amber-500/15 border-2 border-amber-500/40 rounded-2xl flex items-center justify-between flex-wrap gap-3 text-white shadow-lg">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center font-bold text-xs">
+              <div className="w-9 h-9 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-bold text-sm">
                 <FaFilter />
               </div>
               <div>
-                <p className="text-xs font-black text-purple-950">Filtered by Schedule Choice (Question 6)</p>
-                <p className="text-xs text-purple-700 font-bold">{scheduleFilter}</p>
+                <p className="text-xs font-black text-[#FFD447]">Filtered by Session Choice (Question 6)</p>
+                <p className="text-xs text-slate-200 font-bold">{scheduleFilter}</p>
               </div>
             </div>
             <button
               onClick={() => setScheduleFilter('all')}
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-black rounded-xl transition-all shadow-sm flex items-center gap-1.5"
+              className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black rounded-xl transition-all shadow-sm flex items-center gap-1.5 min-h-[44px]"
             >
-              <FaTimes size={12} /> Clear Schedule Filter ({filteredReservations.length} Students)
+              <FaTimes size={12} /> Clear Filter ({filteredReservations.length} Candidates)
             </button>
           </div>
         )}
 
-        {/* Reservations List */}
-        <div className="bg-white rounded-2xl sm:rounded-lg shadow-md overflow-hidden">
+        {error && (
+          <NetworkErrorBanner 
+            message={error} 
+            onRetry={loadReservations} 
+          />
+        )}
+
+        {/* ── Student Reservations View: Responsive Table on Tablets (md:) + Card View for Mobile ── */}
+        <div className="bg-[#1C2951]/90 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl overflow-hidden text-white">
           {filteredReservations.length === 0 ? (
-            <div className="p-12 text-center">
-              <FaCalendarAlt className="text-6xl text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-600 text-lg">No reservations found</p>
+            <div className="p-16 text-center">
+              <FaCalendarAlt className="text-6xl text-slate-600 mx-auto mb-4" />
+              <p className="text-slate-300 text-lg font-bold">No candidate reservations match these filters</p>
             </div>
           ) : (
             <>
-              {/* Desktop Table View */}
-              <div className="hidden lg:block overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-100">
+              {/* TABLET & DESKTOP TABLE VIEW (Visible on tablet screens md: and up) */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-slate-950/80 border-b border-white/10 text-[#FFD447]">
                     <tr>
-                      <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Student</th>
-                      <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Age / Sex</th>
-                      <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Follow-up</th>
-                      <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Location (Region)</th>
-                      <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Status</th>
-                      <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Payment</th>
-                      <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Date</th>
-                      <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Actions</th>
+                      <th className="px-6 py-4 text-xs font-black uppercase tracking-widest">Student Candidate</th>
+                      <th className="px-6 py-4 text-xs font-black uppercase tracking-widest">Age / Sex</th>
+                      <th className="px-6 py-4 text-xs font-black uppercase tracking-widest">Follow-up</th>
+                      <th className="px-6 py-4 text-xs font-black uppercase tracking-widest">Region</th>
+                      <th className="px-6 py-4 text-xs font-black uppercase tracking-widest">Status</th>
+                      <th className="px-6 py-4 text-xs font-black uppercase tracking-widest">Payment</th>
+                      <th className="px-6 py-4 text-xs font-black uppercase tracking-widest">Date</th>
+                      <th className="px-6 py-4 text-center text-xs font-black uppercase tracking-widest">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-100">
+                  <tbody className="divide-y divide-white/5 bg-slate-900/40">
                     {filteredReservations.map((res) => (
-                      <tr key={res.id} className="hover:bg-amber-50/30 transition-colors">
+                      <tr key={res.id} className="hover:bg-amber-500/10 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="flex-shrink-0 h-10 w-10 rounded-xl bg-gradient-to-br from-[#4a0e17] to-[#791a29] flex items-center justify-center text-white font-black shadow-lg shadow-[#4a0e17]/20">
+                          <div className="flex items-center gap-3">
+                            <div className="flex-shrink-0 h-11 w-11 rounded-2xl bg-gradient-to-br from-[#4a0e17] to-[#791a29] border border-red-500/30 flex items-center justify-center text-white font-black text-base shadow-lg shadow-[#4a0e17]/40">
                               {res.name.charAt(0).toUpperCase()}
                             </div>
-                            <div className="ml-4">
-                              <div className="text-sm font-bold text-gray-900">{res.name}</div>
-                              <div className="text-xs text-gray-500">{res.phone}</div>
-                              {res.email && <div className="text-[10px] text-indigo-500 font-medium">{res.email}</div>}
+                            <div className="min-w-0">
+                              <div className="text-sm font-bold text-white tracking-tight">{res.name}</div>
+                              <a href={`tel:${res.phone}`} className="text-xs text-amber-300 font-semibold hover:underline block">
+                                {res.phone}
+                              </a>
+                              {res.email && <div className="text-[10px] text-slate-300">{res.email}</div>}
                               {res.referral_code && (
-                                <div className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-100 border border-violet-200 text-[9px] font-black uppercase tracking-wider text-violet-600">
-                                  <FaLink size={7} /> {res.referral_code}
+                                <div className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-500/20 border border-violet-500/30 text-[9px] font-black uppercase tracking-wider text-violet-300">
+                                  <FaLink size={8} /> {res.referral_code}
                                 </div>
                               )}
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{res.age} yrs</div>
-                          <div className="text-xs text-gray-500 uppercase font-black tracking-tighter">{res.sex}</div>
+                          <div className="text-sm font-bold text-white">{res.age} yrs</div>
+                          <div className="text-xs text-slate-400 uppercase font-black">{res.sex}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {res.follow_up_date ? (
                             <div>
                               <div className={`text-[10px] font-black uppercase tracking-widest mb-1 ${
-                                new Date(res.follow_up_date).setHours(0,0,0,0) < new Date().setHours(0,0,0,0) ? 'text-red-500' : 
-                                new Date(res.follow_up_date).setHours(0,0,0,0) === new Date().setHours(0,0,0,0) ? 'text-amber-500' : 'text-indigo-500'
+                                new Date(res.follow_up_date).setHours(0,0,0,0) < new Date().setHours(0,0,0,0) ? 'text-rose-400' : 
+                                new Date(res.follow_up_date).setHours(0,0,0,0) === new Date().setHours(0,0,0,0) ? 'text-amber-400' : 'text-indigo-400'
                               }`}>
                                 {new Date(res.follow_up_date).setHours(0,0,0,0) < new Date().setHours(0,0,0,0) ? '⚠️ Overdue' : 
                                  new Date(res.follow_up_date).setHours(0,0,0,0) === new Date().setHours(0,0,0,0) ? '📞 Call Today' : '📅 Planned'}
                               </div>
-                              <div className="text-xs font-bold text-gray-900">{new Date(res.follow_up_date).toLocaleDateString()}</div>
+                              <div className="text-xs font-bold text-slate-200">{new Date(res.follow_up_date).toLocaleDateString()}</div>
                             </div>
                           ) : (
-                            <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">None set</span>
+                            <span className="text-[10px] font-bold text-slate-500 uppercase">None set</span>
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{res.place}</div>
+                          <div className="text-sm font-semibold text-slate-200">{res.place}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full border ${getStatusColor(res.status)}`}>
+                          <span className={`px-3 py-1 inline-flex text-xs leading-5 font-black rounded-full border ${getStatusColor(res.status)}`}>
                             {res.status.charAt(0).toUpperCase() + res.status.slice(1)}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {res.payment_status ? (
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${
-                              res.payment_status === 'full' ? 'bg-green-100 text-green-800 border-green-200' :
-                              res.payment_status === 'partial' ? 'bg-blue-100 text-blue-800 border-blue-200' :
-                              'bg-gray-100 text-gray-800 border-gray-200'
+                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border ${
+                              res.payment_status === 'full' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' :
+                              res.payment_status === 'partial' ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30' :
+                              'bg-slate-700/50 text-slate-300 border-slate-600'
                             }`}>
                               {res.payment_status}
                             </span>
                           ) : (
-                            <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Not Set</span>
+                            <span className="text-[10px] font-bold text-slate-500 uppercase">Unpaid</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {formatDate(res.createdAt)}
+                        <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-400 font-medium">
+                          {formatDate(res.createdAt).split(',')[0]}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <div className="flex items-center space-x-3">
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={() => handleViewDetails(res)}
-                              className="text-amber-600 hover:text-amber-900 transition-colors"
-                              title="View full details"
+                              className="p-2.5 rounded-xl bg-amber-500/10 text-[#FFD447] hover:bg-amber-500/20 border border-amber-500/30 transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center"
+                              title="View & Edit Lead Details"
                             >
-                              <FaEye className="text-lg" />
+                              <FaEye className="text-base" />
                             </button>
                             {res.status !== 'accepted' && (
                               <button
                                 onClick={() => handleStatusUpdate(res.id, 'accepted')}
                                 disabled={updatingIds.has(res.id)}
-                                className="text-green-600 hover:text-green-900 disabled:opacity-50"
-                                title="Accept"
+                                className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/30 transition-colors disabled:opacity-50 min-w-[40px] min-h-[40px] flex items-center justify-center"
+                                title="Accept Registration"
                               >
-                                {updatingIds.has(res.id) ? <FaSpinner className="animate-spin" /> : <FaCheck />}
+                                {updatingIds.has(res.id) ? <FaSpinner className="animate-spin" /> : <FaCheck className="text-base" />}
                               </button>
                             )}
                             <button
@@ -1084,18 +906,18 @@ const MasterclassReservations = () => {
                                 setEmailSubject(`Update for ${res.name} - Yenege Masterclass`);
                                 setShowEmailModal(true);
                               }}
-                              className="text-[#4a0e17] hover:text-[#6b1422] transition-colors"
-                              title="Send individual email"
+                              className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-300 hover:bg-indigo-500/20 border border-indigo-500/30 transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center"
+                              title="Send direct email"
                             >
-                              <FaEnvelope />
+                              <FaEnvelope className="text-base" />
                             </button>
                             {!isSales && (
                               <button
                                 onClick={() => handleDelete(res.id)}
-                                className="text-red-600 hover:text-red-900 transition-colors"
-                                title="Delete"
+                                className="p-2.5 rounded-xl bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 border border-rose-500/30 transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center"
+                                title="Delete Lead"
                               >
-                                <FaTrash />
+                                <FaTrash className="text-base" />
                               </button>
                             )}
                           </div>
@@ -1106,8 +928,8 @@ const MasterclassReservations = () => {
                 </table>
               </div>
 
-              {/* Mobile Card View */}
-              <div className="block lg:hidden divide-y divide-gray-100 bg-white">
+              {/* Mobile Card View (Visible on screens < md) */}
+              <div className="block md:hidden divide-y divide-slate-800 bg-[#0B0F19]">
                 {filteredReservations.map((res) => (
                   <div key={res.id} className="p-4 hover:bg-amber-50/20 transition-colors space-y-3">
                     <div className="flex items-start justify-between gap-2">
@@ -1154,17 +976,17 @@ const MasterclassReservations = () => {
                     </div>
 
                     {res.follow_up_date && (
-                      <div className="bg-slate-50 p-2.5 rounded-xl flex items-center justify-between border border-slate-100">
+                      <div className="bg-slate-900/90 p-3 rounded-xl flex items-center justify-between border border-slate-700/80">
                         <div className="flex items-center gap-2">
-                          <FaCalendarAlt className="text-gray-400 text-xs" />
+                          <FaCalendarAlt className="text-[#FFD447] text-xs" />
                           <div>
-                            <span className="text-gray-400 block text-[8px] uppercase tracking-wider leading-none mb-0.5">Follow-up</span>
-                            <span className="text-xs font-bold text-gray-700">{new Date(res.follow_up_date).toLocaleDateString()}</span>
+                            <span className="text-slate-400 block text-[8px] uppercase tracking-wider leading-none mb-0.5">Follow-up</span>
+                            <span className="text-xs font-bold text-slate-200">{new Date(res.follow_up_date).toLocaleDateString()}</span>
                           </div>
                         </div>
                         <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
-                          new Date(res.follow_up_date).setHours(0,0,0,0) < new Date().setHours(0,0,0,0) ? 'bg-red-50 text-red-600 border border-red-100' : 
-                          new Date(res.follow_up_date).setHours(0,0,0,0) === new Date().setHours(0,0,0,0) ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-indigo-50 text-indigo-600 border border-indigo-100'
+                          new Date(res.follow_up_date).setHours(0,0,0,0) < new Date().setHours(0,0,0,0) ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' : 
+                          new Date(res.follow_up_date).setHours(0,0,0,0) === new Date().setHours(0,0,0,0) ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
                         }`}>
                           {new Date(res.follow_up_date).setHours(0,0,0,0) < new Date().setHours(0,0,0,0) ? '⚠️ Overdue' : 
                            new Date(res.follow_up_date).setHours(0,0,0,0) === new Date().setHours(0,0,0,0) ? '📞 Call Today' : '📅 Planned'}
@@ -1172,30 +994,30 @@ const MasterclassReservations = () => {
                       </div>
                     )}
 
-                    <div className="flex items-center justify-between pt-1 gap-2">
+                    <div className="flex items-center justify-between pt-2 gap-2">
                       <a
                         href={`tel:${res.phone}`}
-                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-green-50 text-green-700 text-xs font-bold hover:bg-green-100 border border-green-100 transition-colors shadow-sm"
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500/20 text-emerald-300 text-xs font-black hover:bg-emerald-500/30 border border-emerald-500/30 transition-colors shadow-sm min-h-[44px]"
                       >
-                        <FaPhoneAlt className="text-[10px]" /> Call Student
+                        <FaPhoneAlt className="text-xs" /> Call Student
                       </a>
 
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleViewDetails(res)}
-                          className="p-2 rounded-xl bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-100 transition-colors"
+                          className="p-2.5 rounded-xl bg-amber-500/20 text-[#FFD447] hover:bg-amber-500/30 border border-amber-500/30 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
                           title="View/Edit full details"
                         >
-                          <FaEye size={14} />
+                          <FaEye size={16} />
                         </button>
                         {res.status !== 'accepted' && (
                           <button
                             onClick={() => handleStatusUpdate(res.id, 'accepted')}
                             disabled={updatingIds.has(res.id)}
-                            className="p-2 rounded-xl bg-green-50 text-green-600 hover:bg-green-100 border border-green-100 transition-colors disabled:opacity-50"
+                            className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/30 transition-colors disabled:opacity-50 min-w-[44px] min-h-[44px] flex items-center justify-center"
                             title="Accept"
                           >
-                            {updatingIds.has(res.id) ? <FaSpinner className="animate-spin" /> : <FaCheck size={14} />}
+                            {updatingIds.has(res.id) ? <FaSpinner className="animate-spin" /> : <FaCheck size={16} />}
                           </button>
                         )}
                         <button
@@ -1205,18 +1027,18 @@ const MasterclassReservations = () => {
                             setEmailSubject(`Update for ${res.name} - Yenege Masterclass`);
                             setShowEmailModal(true);
                           }}
-                          className="p-2 rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border border-indigo-100 transition-colors"
+                          className="p-2.5 rounded-xl bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30 border border-indigo-500/30 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
                           title="Send individual email"
                         >
-                          <FaEnvelope size={14} />
+                          <FaEnvelope size={16} />
                         </button>
                         {!isSales && (
                           <button
                             onClick={() => handleDelete(res.id)}
-                            className="p-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 transition-colors"
+                            className="p-2.5 rounded-xl bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 border border-rose-500/30 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
                             title="Delete"
                           >
-                            <FaTrash size={14} />
+                            <FaTrash size={16} />
                           </button>
                         )}
                       </div>
@@ -1228,233 +1050,154 @@ const MasterclassReservations = () => {
           )}
         </div>
 
-        {/* Details Modal */}
+        {/* ── Candidate Details Modal: Luxury Dark Tablet Layout ── */}
         {showModal && selectedReservation && (
-          <div className="fixed inset-0 bg-[#4a0e17]/40 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in">
-            <div className="bg-[#fdfbf7]/95 backdrop-blur-xl rounded-[2rem] max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl shadow-[#4a0e17]/20 relative border border-white/50">
-              <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-[#d4af37] via-[#ffd447] to-[#d4af37]" />
-              <div className="sticky top-0 bg-[#fdfbf7]/90 backdrop-blur border-b border-gray-100 p-6 flex items-center justify-between z-10">
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-6 animate-fade-in">
+            <div className="bg-[#0B0F19] text-white rounded-[2rem] max-w-3xl w-full max-h-[92vh] overflow-y-auto shadow-2xl shadow-black/80 relative border border-amber-500/30">
+              <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-amber-500 via-[#FFD447] to-amber-500" />
+              <div className="sticky top-0 bg-[#0B0F19]/95 backdrop-blur-xl border-b border-white/10 p-5 sm:p-6 flex items-center justify-between z-10">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-[#4a0e17] flex items-center justify-center text-white text-xl font-black shadow-md shadow-[#4a0e17]/30">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#4a0e17] to-[#791a29] border border-red-500/30 flex items-center justify-center text-white text-xl font-black shadow-lg">
                     {selectedReservation.name.charAt(0)}
                   </div>
                   <div>
-                    <h2 className="text-2xl font-black text-gray-900 tracking-tight">{selectedReservation.name}</h2>
-                    <p className="text-xs font-bold text-[#d4af37] uppercase tracking-widest">Masterclass Candidate</p>
+                    <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">{selectedReservation.name}</h2>
+                    <p className="text-xs font-bold text-[#FFD447] uppercase tracking-widest">Masterclass Candidate Intelligence</p>
                   </div>
                 </div>
                 <button
                   onClick={() => { setShowModal(false); setSelectedReservation(null); }}
-                  className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400"
+                  className="w-10 h-10 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors"
                 >
                   ✕
                 </button>
               </div>
 
               <div className="p-5 sm:p-8 space-y-6 sm:space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-                  <section className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-6 border-b border-slate-200 pb-2">Profile</h3>
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-4">
-                        <FaUser className="text-indigo-500" />
-                        <div>
-                          <p className="text-[10px] uppercase font-bold text-gray-400">FullName & Phone</p>
-                          <p className="text-sm font-bold text-gray-900 uppercase">{selectedReservation.name}</p>
-                          <p className="text-xs font-medium text-indigo-600">{selectedReservation.phone}</p>
-                        </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <section className="bg-[#1C2951]/80 p-6 rounded-3xl border border-white/10 space-y-4">
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FFD447] border-b border-white/10 pb-2">Profile Overview</h3>
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-[10px] uppercase font-bold text-slate-400">FullName &amp; Phone</p>
+                        <p className="text-sm font-bold text-white uppercase">{selectedReservation.name}</p>
+                        <a href={`tel:${selectedReservation.phone}`} className="text-xs font-bold text-amber-300 hover:underline">{selectedReservation.phone}</a>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <FaUser className="text-indigo-500" />
-                        <div>
-                          <p className="text-[10px] uppercase font-bold text-gray-400">Age & Sex</p>
-                          <p className="text-sm font-bold text-gray-900">{selectedReservation.age} years, {selectedReservation.sex}</p>
-                        </div>
+                      <div>
+                        <p className="text-[10px] uppercase font-bold text-slate-400">Age &amp; Gender</p>
+                        <p className="text-sm font-bold text-white">{selectedReservation.age} years, {selectedReservation.sex}</p>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <FaVenusMars className="text-indigo-500" />
-                        <div>
-                          <p className="text-[10px] uppercase font-bold text-gray-400">Status</p>
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${getStatusColor(selectedReservation.status)}`}>
-                            {selectedReservation.status}
-                          </span>
-                        </div>
+                      <div>
+                        <p className="text-[10px] uppercase font-bold text-slate-400">Current Status</p>
+                        <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider border inline-block mt-1 ${getStatusColor(selectedReservation.status)}`}>
+                          {selectedReservation.status}
+                        </span>
                       </div>
                       {selectedReservation.selected_package && (
-                        <div className="flex items-center gap-4">
-                          <FaCheck className="text-green-500" />
-                          <div>
-                            <p className="text-[10px] uppercase font-bold text-gray-400">Package</p>
-                            <p className="text-sm font-bold text-gray-900">{selectedReservation.selected_package}</p>
-                          </div>
-                        </div>
-                      )}
-                      {selectedReservation.communication_method && (
-                        <div className="flex items-center gap-4">
-                          <FaHistory className="text-indigo-500" />
-                          <div>
-                            <p className="text-[10px] uppercase font-bold text-gray-400">Method</p>
-                            <p className="text-sm font-bold text-gray-900">{selectedReservation.communication_method}</p>
-                          </div>
+                        <div>
+                          <p className="text-[10px] uppercase font-bold text-slate-400">Package</p>
+                          <p className="text-sm font-bold text-white">{selectedReservation.selected_package}</p>
                         </div>
                       )}
                       {selectedReservation.follow_up_date && (
-                        <div className="flex items-center gap-4">
-                          <FaPhoneAlt className="text-amber-500" />
-                          <div>
-                            <p className="text-[10px] uppercase font-bold text-gray-400">Follow-up Date</p>
-                            <p className="text-sm font-bold text-gray-900">{new Date(selectedReservation.follow_up_date).toLocaleDateString()}</p>
-                          </div>
+                        <div>
+                          <p className="text-[10px] uppercase font-bold text-slate-400">Follow-up Date</p>
+                          <p className="text-sm font-bold text-amber-300">{new Date(selectedReservation.follow_up_date).toLocaleDateString()}</p>
                         </div>
                       )}
                       {selectedReservation.payment_status && (
-                        <div className="flex items-center gap-4 mt-2 p-3 bg-white rounded-2xl border border-indigo-100">
-                          <div className={`w-2 h-2 rounded-full ${
-                            selectedReservation.payment_status === 'full' ? 'bg-green-500' :
-                            selectedReservation.payment_status === 'partial' ? 'bg-blue-500' : 'bg-gray-400'
-                          }`} />
-                          <div>
-                            <p className="text-[10px] uppercase font-bold text-gray-400">Financial Status</p>
-                            <p className="text-sm font-bold text-gray-900 capitalize">{selectedReservation.payment_status}</p>
-                            {selectedReservation.total_amount && (
-                              <p className="text-[10px] text-gray-500">
-                                Paid: {selectedReservation.paid_amount?.toLocaleString()} / Total: {selectedReservation.total_amount?.toLocaleString()} ETB
-                              </p>
-                            )}
-                            {selectedReservation.payment_completion_date && (
-                              <p className="text-[10px] text-amber-600 font-bold">
-                                Completion: {new Date(selectedReservation.payment_completion_date).toLocaleDateString()}
-                              </p>
-                            )}
-                          </div>
+                        <div className="p-3 bg-slate-900/90 rounded-2xl border border-slate-700/80 mt-2">
+                          <p className="text-[10px] uppercase font-bold text-slate-400">Financial Status</p>
+                          <p className="text-sm font-bold text-[#FFD447] capitalize">{selectedReservation.payment_status}</p>
+                          {selectedReservation.total_amount && (
+                            <p className="text-xs text-slate-300 mt-0.5">
+                              Paid: {selectedReservation.paid_amount?.toLocaleString()} / Total: {selectedReservation.total_amount?.toLocaleString()} ETB
+                            </p>
+                          )}
                         </div>
                       )}
                       {selectedReservation.referral_code && (
-                        <div className="flex items-center gap-4 mt-2 p-3 bg-violet-50 rounded-2xl border border-violet-100">
-                          <FaLink className="text-violet-500 flex-shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[10px] uppercase font-bold text-gray-400">Referred Via</p>
-                            <p className="text-sm font-black text-violet-700 truncate">{selectedReservation.referral_code}</p>
+                        <div className="p-3 bg-violet-950/40 rounded-2xl border border-violet-500/30 flex items-center justify-between gap-2 mt-2">
+                          <div>
+                            <p className="text-[10px] uppercase font-bold text-violet-300">Referred Via</p>
+                            <p className="text-xs font-black text-violet-200">{selectedReservation.referral_code}</p>
                           </div>
-                          <a
-                            href={`/masterclass/ref/${encodeURIComponent(selectedReservation.referral_code)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-[9px] font-black uppercase tracking-widest transition-all"
-                          >
-                            <FaExternalLinkAlt size={8} /> Dashboard
-                          </a>
                         </div>
                       )}
                     </div>
                   </section>
 
-                   <section className="bg-indigo-50/50 p-6 rounded-3xl border border-indigo-100">
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-600/50 mb-6 border-b border-indigo-200/50 pb-2">Location & Notes</h3>
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-4">
-                        <FaMapPin className="text-indigo-500" />
-                        <div>
-                          <p className="text-[10px] uppercase font-bold text-gray-400">Region/Place</p>
-                          <p className="text-sm font-bold text-gray-900">{selectedReservation.place}</p>
-                        </div>
+                  <section className="bg-[#1C2951]/80 p-6 rounded-3xl border border-white/10 space-y-4">
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FFD447] border-b border-white/10 pb-2">Location &amp; Notes</h3>
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-[10px] uppercase font-bold text-slate-400">Region/Place</p>
+                        <p className="text-sm font-bold text-white">{selectedReservation.place}</p>
                       </div>
                       {selectedReservation.notes && (
-                        <div className="mt-4 p-3 bg-white rounded-xl border border-indigo-100">
-                          <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">Admin Notes</p>
-                          <p className="text-xs text-gray-600 italic">"{selectedReservation.notes}"</p>
+                        <div className="p-3 bg-slate-900/90 rounded-2xl border border-slate-700">
+                          <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Admin Notes</p>
+                          <p className="text-xs text-slate-300 italic">"{selectedReservation.notes}"</p>
                         </div>
                       )}
                     </div>
                   </section>
 
-                  {/* Event Academy Questions Section */}
-                  <section className="bg-slate-50 p-6 rounded-3xl border border-slate-100 md:col-span-2">
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-6 border-b border-slate-200 pb-2">Academy Registration Details</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                  {/* Program Preferences */}
+                  <section className="bg-[#1C2951]/80 p-6 rounded-3xl border border-white/10 md:col-span-2 space-y-4">
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FFD447] border-b border-white/10 pb-2">Registration Intelligence</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                       {selectedReservation.describe_you && (
                         <div>
-                          <p className="text-[10px] uppercase font-bold text-gray-400">What best describes you?</p>
-                          <p className="font-bold text-gray-900 mt-1">{selectedReservation.describe_you}</p>
+                          <p className="text-[10px] uppercase font-bold text-slate-400">Identity / Role</p>
+                          <p className="font-bold text-white mt-0.5">{selectedReservation.describe_you}</p>
                         </div>
                       )}
                       {selectedReservation.learning_mode && (
                         <div>
-                          <p className="text-[10px] uppercase font-bold text-gray-400">Preferred Learning Delivery</p>
-                          <p className="font-bold text-indigo-600 mt-1">{selectedReservation.learning_mode}</p>
+                          <p className="text-[10px] uppercase font-bold text-slate-400">Learning Delivery Preference</p>
+                          <p className="font-bold text-[#FFD447] mt-0.5">{selectedReservation.learning_mode}</p>
                         </div>
                       )}
                       {selectedReservation.preferred_schedule && (
                         <div className="md:col-span-2">
-                          <p className="text-[10px] uppercase font-bold text-gray-400">Preferred Program Schedule</p>
-                          <p className="font-bold text-gray-900 mt-1">{selectedReservation.preferred_schedule}</p>
+                          <p className="text-[10px] uppercase font-bold text-slate-400">Session Schedule Choice (Q6)</p>
+                          <p className="font-bold text-amber-300 mt-0.5">{selectedReservation.preferred_schedule}</p>
                         </div>
                       )}
                       {selectedReservation.event_types && (
                         <div className="md:col-span-2">
-                          <p className="text-[10px] uppercase font-bold text-gray-400">Types of Events of Interest</p>
+                          <p className="text-[10px] uppercase font-bold text-slate-400">Event Interests</p>
                           <div className="flex flex-wrap gap-2 mt-1.5">
                             {selectedReservation.event_types.split(', ').map((type) => (
-                              <span key={type} className="px-3 py-1 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700">
+                              <span key={type} className="px-3 py-1 bg-slate-900 border border-slate-700 rounded-xl text-xs font-bold text-slate-200">
                                 {type}
                               </span>
                             ))}
                           </div>
                         </div>
                       )}
-                      {selectedReservation.opportunity_interest && (
-                        <div className="md:col-span-2">
-                          <p className="text-[10px] uppercase font-bold text-gray-400">Opportunity Desired</p>
-                          <div className="flex flex-wrap gap-2 mt-1.5">
-                            {selectedReservation.opportunity_interest.split(', ').map((opp) => (
-                              <span key={opp} className="px-3 py-1 bg-amber-50 border border-amber-100 rounded-xl text-xs font-bold text-amber-800">
-                                {opp}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      {selectedReservation.marketing_source && (
-                        <div>
-                          <p className="text-[10px] uppercase font-bold text-gray-400">How they heard about Yenege</p>
-                          <p className="font-bold text-gray-900 mt-1">{selectedReservation.marketing_source}</p>
-                        </div>
-                      )}
-                      {selectedReservation.contact_consent && (
-                        <div>
-                          <p className="text-[10px] uppercase font-bold text-gray-400">Contact Permission</p>
-                          <p className="font-bold text-gray-900 mt-1">{selectedReservation.contact_consent}</p>
-                        </div>
-                      )}
                       {selectedReservation.learning_goals && (
-                        <div className="md:col-span-2 bg-white p-4 rounded-2xl border border-slate-200/60 mt-2">
-                          <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">Learning & Career Goals</p>
-                          <p className="text-xs text-gray-700 leading-relaxed font-medium whitespace-pre-wrap">{selectedReservation.learning_goals}</p>
+                        <div className="md:col-span-2 bg-slate-900/90 p-4 rounded-2xl border border-slate-700/80 mt-1">
+                          <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Learning &amp; Career Goals</p>
+                          <p className="text-xs text-slate-200 leading-relaxed font-medium whitespace-pre-wrap">{selectedReservation.learning_goals}</p>
                         </div>
                       )}
                     </div>
                   </section>
-
-                  {selectedReservation.status_updated_by && (
-                    <div className="md:col-span-2 p-4 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-between">
-                      <div>
-                        <p className="text-[10px] uppercase font-bold text-indigo-400">Last Updated By</p>
-                        <p className="text-sm font-bold text-indigo-900">{selectedReservation.status_updated_by}</p>
-                      </div>
-                    </div>
-                  )}
                 </div>
 
-                <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
-                  <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-6 border-b border-slate-200 pb-2">Actions — Update Lead Intelligence</h3>
+                {/* Form Actions for Manager */}
+                <div className="bg-slate-900/90 p-6 rounded-3xl border border-slate-700 space-y-6">
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FFD447] border-b border-slate-800 pb-2">Update Candidate Record</h3>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Package Choice</label>
                       <select 
                         value={selectedPackage}
                         onChange={(e) => setSelectedPackage(e.target.value)}
-                        className="w-full px-4 py-3 rounded-2xl bg-white border border-slate-200 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                        className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-700 text-white text-sm font-bold focus:ring-2 focus:ring-[#FFD447] outline-none"
                       >
                         <option value="">Select Package...</option>
                         <option value="Basic Package (5,000 ETB)">Basic Package (5,000 ETB)</option>
@@ -1469,34 +1212,20 @@ const MasterclassReservations = () => {
                         type="date"
                         value={followUpDate}
                         onChange={(e) => setFollowUpDate(e.target.value)}
-                        className="w-full px-4 py-3 rounded-2xl bg-white border border-slate-200 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                        className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-700 text-white text-sm font-bold focus:ring-2 focus:ring-[#FFD447] outline-none"
                       />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Way of Communication</label>
-                      <select 
-                        value={communicationMethod}
-                        onChange={(e) => setCommunicationMethod(e.target.value)}
-                        className="w-full px-4 py-3 rounded-2xl bg-white border border-slate-200 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
-                      >
-                        <option value="">Select Method...</option>
-                        <option value="Phone Call">Phone Call</option>
-                        <option value="Telegram">Telegram</option>
-                        <option value="WhatsApp">WhatsApp</option>
-                        <option value="Direct Meeting">Direct Meeting</option>
-                      </select>
                     </div>
                   </div>
 
-                  <div className="bg-white p-6 rounded-2xl border border-slate-200 mb-6">
-                    <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-600 mb-4">Financial & Payment Status</h4>
+                  <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-4">
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-amber-400">Payment Status</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Payment Status</label>
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Status</label>
                         <select 
                           value={paymentStatus}
                           onChange={(e) => setPaymentStatus(e.target.value as any)}
-                          className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                          className="w-full px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 text-white text-sm font-bold focus:ring-2 focus:ring-[#FFD447] outline-none"
                         >
                           <option value="unpaid">Unpaid</option>
                           <option value="partial">Partial Payment</option>
@@ -1510,7 +1239,7 @@ const MasterclassReservations = () => {
                           value={totalAmount}
                           onChange={(e) => setTotalAmount(e.target.value)}
                           placeholder="e.g. 10000"
-                          className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                          className="w-full px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 text-white text-sm font-bold focus:ring-2 focus:ring-[#FFD447] outline-none"
                         />
                       </div>
                       <div>
@@ -1520,30 +1249,19 @@ const MasterclassReservations = () => {
                           value={paidAmount}
                           onChange={(e) => setPaidAmount(e.target.value)}
                           placeholder="e.g. 5000"
-                          className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                          className="w-full px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 text-white text-sm font-bold focus:ring-2 focus:ring-[#FFD447] outline-none"
                         />
                       </div>
-                      {paymentStatus === 'partial' && (
-                        <div>
-                          <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Payment Completion Date</label>
-                          <input 
-                            type="date"
-                            value={paymentCompletionDate}
-                            onChange={(e) => setPaymentCompletionDate(e.target.value)}
-                            className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
-                          />
-                        </div>
-                      )}
                     </div>
                   </div>
 
-                  <div className="mb-6">
-                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Call/Interaction Notes</label>
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Interaction Notes</label>
                     <textarea 
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       placeholder="Add details about the conversation..."
-                      className="w-full px-4 py-3 rounded-2xl bg-white border border-slate-200 text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none min-h-[100px]"
+                      className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-700 text-white text-sm font-medium focus:ring-2 focus:ring-[#FFD447] outline-none min-h-[100px]"
                     />
                   </div>
 
@@ -1553,10 +1271,10 @@ const MasterclassReservations = () => {
                         key={s}
                         onClick={() => handleStatusUpdate(selectedReservation.id, s)}
                         disabled={updatingIds.has(selectedReservation.id) || (selectedReservation.status === s && !notes && !selectedPackage)}
-                        className={`px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border shadow-sm ${
+                        className={`px-8 py-3.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all border shadow-md min-h-[44px] ${
                           selectedReservation.status === s
                             ? getStatusColor(s) + ' opacity-50 cursor-default'
-                            : 'border-slate-200 bg-white text-slate-600 hover:border-indigo-500 hover:text-indigo-600 hover:shadow-md'
+                            : 'border-slate-700 bg-slate-900 text-slate-200 hover:border-[#FFD447] hover:text-[#FFD447]'
                         }`}
                       >
                        {updatingIds.has(selectedReservation.id) ? <FaSpinner className="animate-spin" /> : s}
@@ -1569,91 +1287,65 @@ const MasterclassReservations = () => {
           </div>
         )}
 
-        {/* Email Modal */}
+        {/* ── EMAIL MODAL (Luxury Dark) ── */}
         {showEmailModal && (
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
-            <div className="bg-white rounded-[2rem] max-w-lg w-full shadow-2xl relative overflow-hidden">
-              <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-indigo-50/30">
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center z-[60] p-4">
+            <div className="bg-[#0B0F19] text-white rounded-[2rem] max-w-lg w-full shadow-2xl relative overflow-hidden border border-amber-500/30">
+              <div className="p-6 border-b border-white/10 flex items-center justify-between bg-slate-900/60">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-[#4a0e17] to-[#791a29] flex items-center justify-center text-white">
                     <FaEnvelope />
                   </div>
                   <div>
-                    <h2 className="text-xl font-black text-gray-900">Send Email</h2>
-                    <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest">
-                      {emailRecipientType === 'all' ? 'To All Students' : `To ${selectedReservation?.name}`}
+                    <h2 className="text-xl font-black text-white">Send Direct Email</h2>
+                    <p className="text-[10px] font-bold text-[#FFD447] uppercase tracking-widest">
+                      {emailRecipientType === 'all' ? 'To All Candidates' : `To ${selectedReservation?.name}`}
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={() => setShowEmailModal(false)}
-                  className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-gray-400 shadow-sm"
+                  className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-slate-400 hover:text-white"
                 >
                   ✕
                 </button>
               </div>
 
-              <div className="p-8 space-y-6">
+              <div className="p-6 sm:p-8 space-y-6">
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Subject</label>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#FFD447] mb-2">Subject</label>
                   <input
                     type="text"
                     value={emailSubject}
                     onChange={(e) => setEmailSubject(e.target.value)}
                     placeholder="Enter email subject..."
-                    className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="w-full px-4 py-3.5 rounded-2xl bg-slate-900 border border-slate-700 text-white text-sm font-bold focus:ring-2 focus:ring-[#FFD447] outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Message Body</label>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#FFD447] mb-2">Message Body</label>
                   <textarea
                     value={emailBody}
                     onChange={(e) => setEmailBody(e.target.value)}
-                    placeholder="Write your message here... You can use HTML tags for formatting."
-                    className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none min-h-[200px]"
+                    placeholder="Write message content..."
+                    className="w-full px-4 py-3.5 rounded-2xl bg-slate-900 border border-slate-700 text-white text-sm font-medium focus:ring-2 focus:ring-[#FFD447] outline-none min-h-[180px]"
                   />
                 </div>
 
-                <div className="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100">
-                  <label className="flex items-center gap-3 cursor-pointer mb-3">
-                    <input 
-                      type="checkbox" 
-                      checked={shouldUpdateStatus}
-                      onChange={(e) => setShouldUpdateStatus(e.target.checked)}
-                      className="w-4 h-4 accent-indigo-600 rounded"
-                    />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-indigo-900">Update Student Status?</span>
-                  </label>
-                  
-                  {shouldUpdateStatus && (
-                    <select
-                      value={targetStatus}
-                      onChange={(e) => setTargetStatus(e.target.value)}
-                      className="w-full px-4 py-2 rounded-xl bg-white border border-indigo-200 text-xs font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
-                    >
-                      <option value="">Select New Status...</option>
-                      <option value="pending">Pending</option>
-                      <option value="reviewed">Reviewed</option>
-                      <option value="accepted">Accepted</option>
-                      <option value="rejected">Rejected</option>
-                    </select>
-                  )}
-                </div>
-
-                <div className="flex gap-3 pt-4">
+                <div className="flex gap-3 pt-2">
                   <button
                     onClick={() => setShowEmailModal(false)}
-                    className="flex-1 py-4 rounded-2xl text-xs font-black uppercase tracking-widest text-slate-400 hover:bg-slate-50 transition-all"
+                    className="flex-1 py-4 rounded-2xl text-xs font-black uppercase tracking-widest text-slate-400 hover:bg-slate-900 transition-all min-h-[44px]"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleSendEmail}
                     disabled={sendingEmail}
-                    className="flex-3 px-10 py-4 rounded-2xl bg-indigo-600 text-white text-xs font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 flex items-center justify-center gap-2"
+                    className="flex-1 px-8 py-4 rounded-2xl bg-gradient-to-r from-[#FFD447] to-amber-500 text-slate-950 text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-lg flex items-center justify-center gap-2 min-h-[44px]"
                   >
-                    {sendingEmail ? <FaSpinner className="animate-spin" /> : <><FaPaperPlane /> Send Now</>}
+                    {sendingEmail ? <FaSpinner className="animate-spin" /> : <><FaPaperPlane /> Send Email</>}
                   </button>
                 </div>
               </div>
@@ -1661,18 +1353,18 @@ const MasterclassReservations = () => {
           </div>
         )}
 
-        {/* ── CREATE NEW SESSION OPTION MODAL ── */}
+        {/* ── CREATE NEW SESSION OPTION MODAL (Dark Luxury) ── */}
         {showScheduleModal && (
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-[2rem] max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-100">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
+            <div className="bg-[#0B0F19] text-white rounded-[2rem] max-w-md w-full p-6 sm:p-8 shadow-2xl border border-amber-500/30">
+              <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
                 <div>
-                  <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Question 6 Manager</span>
-                  <h3 className="text-xl font-black text-slate-900">Create New Session Option</h3>
+                  <span className="text-[10px] font-black text-[#FFD447] uppercase tracking-widest">Question 6 Manager</span>
+                  <h3 className="text-xl font-black text-white">Create New Session Option</h3>
                 </div>
                 <button 
                   onClick={() => setShowScheduleModal(false)}
-                  className="p-2 rounded-xl text-slate-400 hover:bg-slate-100 transition-colors"
+                  className="p-2 rounded-xl text-slate-400 hover:bg-slate-900 transition-colors"
                 >
                   <FaTimes />
                 </button>
@@ -1689,7 +1381,7 @@ const MasterclassReservations = () => {
                     placeholder="e.g. Option 5: Oct 12, 2026"
                     value={newLabel}
                     onChange={(e) => setNewLabel(e.target.value)}
-                    className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-sm font-bold focus:ring-2 focus:ring-amber-500 outline-none"
+                    className="w-full px-4 py-3.5 rounded-2xl bg-slate-900 border border-slate-700 text-white text-sm font-bold focus:ring-2 focus:ring-[#FFD447] outline-none"
                   />
                 </div>
 
@@ -1703,7 +1395,7 @@ const MasterclassReservations = () => {
                     placeholder="e.g. Morning Session (9:00 AM - 12:00 PM)"
                     value={newTime}
                     onChange={(e) => setNewTime(e.target.value)}
-                    className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-sm font-bold focus:ring-2 focus:ring-amber-500 outline-none"
+                    className="w-full px-4 py-3.5 rounded-2xl bg-slate-900 border border-slate-700 text-white text-sm font-bold focus:ring-2 focus:ring-[#FFD447] outline-none"
                   />
                 </div>
 
@@ -1717,59 +1409,19 @@ const MasterclassReservations = () => {
                   />
                 </div>
 
-                {/* Available Packages & Pricing config */}
-                <div className="space-y-2 pt-2 border-t border-slate-100">
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">
-                    Available Learning Preferences &amp; Pricing
-                  </label>
-                  <div className="space-y-2">
-                    {modesConfig.map((m, idx) => (
-                      <div key={m.mode} className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-200">
-                        <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-800">
-                          <input 
-                            type="checkbox"
-                            checked={m.enabled}
-                            onChange={(e) => {
-                              const next = [...modesConfig];
-                              next[idx].enabled = e.target.checked;
-                              setModesConfig(next);
-                            }}
-                            className="w-4 h-4 rounded text-amber-500 focus:ring-amber-500"
-                          />
-                          <span>{m.mode}</span>
-                        </label>
-                        <input 
-                          type="text"
-                          value={m.price}
-                          disabled={!m.enabled}
-                          onChange={(e) => {
-                            const next = [...modesConfig];
-                            next[idx].price = e.target.value;
-                            setModesConfig(next);
-                          }}
-                          className={`w-36 px-3 py-1.5 rounded-xl text-xs font-bold border outline-none ${
-                            m.enabled ? 'bg-white border-slate-300 focus:border-amber-500 text-slate-900' : 'bg-slate-100 border-slate-200 text-slate-400'
-                          }`}
-                          placeholder="e.g. 15,000 ETB"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex gap-3 pt-2">
+                <div className="flex gap-3 pt-4">
                   <button
                     type="button"
                     onClick={() => setShowScheduleModal(false)}
-                    className="flex-1 py-3.5 rounded-2xl text-xs font-black uppercase tracking-widest text-slate-400 hover:bg-slate-50 transition-all"
+                    className="flex-1 py-3.5 rounded-2xl text-xs font-black uppercase tracking-widest text-slate-400 hover:bg-slate-900 transition-all min-h-[44px]"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-amber-500/20"
+                    className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-[#FFD447] to-amber-500 text-slate-950 text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-lg min-h-[44px]"
                   >
-                    Save Session Option
+                    Save Option
                   </button>
                 </div>
               </form>
