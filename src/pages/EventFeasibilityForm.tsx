@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "../services/api";
 import { BRAND, GRADIENT } from "../styles/theme";
+import { EthiopianDatePicker } from "../Components/ui/EthiopianDatePicker";
 
 /* ─────────────────────────────────────────────────────────────
    Types
@@ -773,15 +774,11 @@ const EventFeasibilityForm = () => {
 
             {/* Q2 Proposed Date */}
             <Field>
-              <FieldLabel number={2}>Proposed Event Date</FieldLabel>
-              <input
-                ref={dateRef}
-                type="date"
+              <EthiopianDatePicker
                 value={form.proposedDate}
-                onChange={(e) => set("proposedDate", e.target.value)}
-                className="efs-input"
-                style={fieldStyle}
-                min={new Date().toISOString().split("T")[0]}
+                onChange={(iso) => set("proposedDate", iso)}
+                label="2. Proposed Event Date / የታቀደበት ቀን"
+                required
               />
               {errorMsg("proposedDate")}
             </Field>

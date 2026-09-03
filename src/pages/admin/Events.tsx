@@ -8,6 +8,7 @@ import { useCommissionSellers } from '../../hooks/useApi';
 import { adminApi } from '../../services/adminApi';
 import { api, Event } from '../../services/api';
 import { uploadImage } from '../../services/upload';
+import { EthiopianDatePicker } from '../../Components/ui/EthiopianDatePicker';
 
 const Events = () => {
   const { loading: authLoading, isAdminUser } = useAdminAuth();
@@ -475,13 +476,11 @@ const Events = () => {
                       </div>
                       
                       <div>
-                        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Date *</label>
-                        <input
-                          type="date"
-                          required
+                        <EthiopianDatePicker
                           value={formData.date}
-                          onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                          className="block w-full border border-gray-200 bg-gray-50/50 rounded-xl px-4 py-3 text-sm focus:bg-white focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all outline-none"
+                          onChange={(iso) => setFormData({ ...formData, date: iso })}
+                          label="Event Date / የታቀደበት ቀን"
+                          required
                         />
                       </div>
                       

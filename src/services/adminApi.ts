@@ -2,6 +2,14 @@ import { Application, CommissionSeller, CreateApplicationData, CreateCommissionS
 import { AboutContent, Category, ContactInfo, Destination, Event, GalleryItem, HomeContent, SiteConfig } from './api';
 import { supabase } from './supabase';
 
+export interface ExistingAccount {
+  id?: string;
+  email: string;
+  name?: string;
+  role?: string;
+  source: string;
+}
+
 // Admin API functions for CRUD operations
 export const adminApi = {
   // Events CRUD
@@ -1620,16 +1628,133 @@ export const adminApi = {
       if (error) throw error;
       return { success: true };
     },
+    getExistingAccounts: async (): Promise<ExistingAccount[]> => {
+      const accountsMap = new Map<string, ExistingAccount>();
+
+      // 1. Fetch profiles table if exists
+      try {
+        const { data: profiles } = await supabase.from('profiles').select('*');
+        if (profiles && profiles.length > 0) {
+          profiles.forEach((p: any) => {
+            if (p.email) {
+              accountsMap.set(p.email.toLowerCase(), {
+                id: p.id,
+                email: p.email,
+                name: p.full_name || p.name || p.username,
+                role: p.role,
+                source: 'User Profile',
+              });
+            }
+          });
+        }
+      } catch (e) {}
+
+      // 2. Fetch user_roles
+      try {
+        const { data: userRoles } = await supabase.from('user_roles').select('*');
+        if (userRoles) {
+          userRoles.forEach((r: any) => {
+            const email = (r.email || r.user_id || '').toLowerCase();
+            if (email && email.includes('@')) {
+              const existing = accountsMap.get(email);
+              accountsMap.set(email, {
+                id: r.user_id || existing?.id,
+                email: r.email || email,
+                name: existing?.name,
+                role: r.role,
+                source: existing ? `${existing.source} • System Admin` : 'System Admin',
+              });
+            }
+          });
+        }
+      } catch (e) {}
+
+      // 3. Fetch commission_sellers
+      try {
+        const { data: sellers } = await supabase.from('commission_sellers').select('*');
+        if (sellers) {
+          sellers.forEach((s: any) => {
+            if (s.email) {
+              const key = s.email.toLowerCase();
+              const existing = accountsMap.get(key);
+              accountsMap.set(key, {
+                id: s.id || existing?.id,
+                email: s.email,
+                name: s.name || existing?.name,
+                role: existing?.role,
+                source: existing ? `${existing.source} • Seller` : 'Commission Seller',
+              });
+            }
+          });
+        }
+      } catch (e) {}
+
+      // 4. Fetch sponsorship_representatives
+      try {
+        const { data: reps } = await supabase.from('sponsorship_representatives').select('*');
+        if (reps) {
+          reps.forEach((rep: any) => {
+            if (rep.email) {
+              const key = rep.email.toLowerCase();
+              const existing = accountsMap.get(key);
+              accountsMap.set(key, {
+                id: rep.id || existing?.id,
+                email: rep.email,
+                name: rep.name || existing?.name,
+                role: existing?.role,
+                source: existing ? `${existing.source} • Rep` : 'Sponsorship Representative',
+              });
+            }
+          });
+        }
+      } catch (e) {}
+
+      // 5. Fetch event_collaborators
+      try {
+        const { data: collabs } = await supabase.from('event_collaborators').select('*');
+        if (collabs) {
+          collabs.forEach((c: any) => {
+            if (c.email) {
+              const key = c.email.toLowerCase();
+              const existing = accountsMap.get(key);
+              accountsMap.set(key, {
+                id: c.id || existing?.id,
+                email: c.email,
+                name: c.name || existing?.name,
+                role: existing?.role,
+                source: existing ? `${existing.source} • Collaborator` : 'Event Collaborator',
+              });
+            }
+          });
+        }
+      } catch (e) {}
+
+      // 6. Fetch masterclass_reservations
+      try {
+        const { data: students } = await supabase.from('masterclass_reservations').select('name, email');
+        if (students) {
+          students.forEach((st: any) => {
+            if (st.email) {
+              const key = st.email.toLowerCase();
+              if (!accountsMap.has(key)) {
+                accountsMap.set(key, {
+                  email: st.email,
+                  name: st.name,
+                  source: 'Masterclass Applicant',
+                });
+              }
+            }
+          });
+        }
+      } catch (e) {}
+
+      return Array.from(accountsMap.values());
+    },
     searchUsers: async (query: string) => {
-      // Note: This requires a special view or function in Supabase to search auth.users
-      // For now, we'll assume we can search by email if we have a profiles table
-      // or just use the user_roles table if users are already there.
       const { data, error } = await supabase
         .from('user_roles')
         .select('*')
-        .ilike('email', `%${query}%`); // This assumes email is in user_roles, which it might not be.
-      
-      // Better approach: use a RPC function to search users if available
+        .ilike('email', `%${query}%`);
       if (error) throw error;
       return data;
     }

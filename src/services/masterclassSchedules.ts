@@ -1,12 +1,21 @@
+import { toEthiopianDate } from '../utils/ethiopianCalendar';
+
 export interface MasterclassScheduleOption {
   id: string;
   val: string;
   label: string;
   time: string;
   date?: string;
+  ethiopianDate?: string;
   is_active: boolean;
   max_students?: number;
 }
+
+export const formatScheduleEthTag = (dateStr?: string): string => {
+  if (!dateStr) return '';
+  const eth = toEthiopianDate(dateStr);
+  return eth ? `${eth.formattedAmharic} (${eth.monthNameEnglish} ${eth.day < 10 ? '0' + eth.day : eth.day}, ${eth.year} E.C.)` : '';
+};
 
 export const DEFAULT_SCHEDULE_OPTIONS: MasterclassScheduleOption[] = [
   {

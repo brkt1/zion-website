@@ -13,6 +13,7 @@ import { EventsSkeleton } from "../Components/ui/EventsSkeleton";
 import OptimizedImage from "../Components/ui/OptimizedImage";
 import { useCategories, useEvents } from "../hooks/useApi";
 import { useScrollReveal } from "../hooks/useScrollReveal";
+import { toEthiopianDate } from "../utils/ethiopianCalendar";
 
 const formatDateShort = (dateString: string) => {
   if (!dateString) return "TBD";
@@ -205,9 +206,14 @@ const Events = () => {
                       </div>
 
                       {/* Date Badge */}
-                      <div className="absolute bottom-4 left-4 flex items-center gap-2 bg-[#0F172A]/90 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-white/10 text-xs font-bold text-slate-200">
+                      <div className="absolute bottom-4 left-4 flex flex-wrap items-center gap-2 bg-[#0F172A]/90 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-white/10 text-xs font-bold text-slate-200">
                         <FaCalendarAlt className="text-[#FFD447]" />
                         <span>{formatDateShort(event.date)}</span>
+                        {toEthiopianDate(event.date) && (
+                          <span className="text-[#FFD447] text-[10px] font-black pl-1.5 border-l border-white/15">
+                            🇪🇹 {toEthiopianDate(event.date)?.formattedAmharic}
+                          </span>
+                        )}
                       </div>
                     </div>
 

@@ -1,11 +1,20 @@
 import { useEffect, useState } from 'react';
-import { FaCalendarAlt, FaCheck, FaEnvelope, FaEye, FaHistory, FaLink, FaMapPin, FaPaperPlane, FaPhoneAlt, FaSearch, FaSpinner, FaTrash, FaUser, FaVenusMars, FaCopy, FaExternalLinkAlt, FaChevronDown } from 'react-icons/fa';
+import { FaCalendarAlt, FaCheck, FaEnvelope, FaEye, FaHistory, FaLink, FaMapPin, FaPaperPlane, FaPhoneAlt, FaSearch, FaSpinner, FaTrash, FaUser, FaVenusMars, FaCopy, FaExternalLinkAlt, FaChevronDown, FaToggleOn, FaToggleOff, FaCalendarCheck, FaRegCalendarAlt, FaLayerGroup, FaPlus, FaFilter, FaTimes } from 'react-icons/fa';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { adminApi } from '../../services/adminApi';
 import { handleSupabaseError, supabase } from '../../services/supabase';
 import { MasterclassReservation } from '../../types';
 import { isMasterclassSales } from '../../services/auth';
 import { NetworkErrorBanner } from '../../Components/ui/NetworkStatus';
+import { 
+  getMasterclassSchedules, 
+  addMasterclassSchedule, 
+  toggleMasterclassScheduleActive, 
+  deleteMasterclassSchedule, 
+  MasterclassScheduleOption 
+} from '../../services/masterclassSchedules';
+import { EthiopianDatePicker } from '../../Components/ui/EthiopianDatePicker';
+import { toEthiopianDate } from '../../utils/ethiopianCalendar';
 
 const REFERRAL_PRICE = 10000;
 const MasterclassReservations = () => {
@@ -56,14 +65,58 @@ const MasterclassReservations = () => {
   const [shouldUpdateStatus, setShouldUpdateStatus] = useState(false);
   const [isSales, setIsSales] = useState(false);
 
+  // Schedule Management & Breakdown State
+  const [schedules, setSchedules] = useState<MasterclassScheduleOption[]>([]);
+  const [scheduleFilter, setScheduleFilter] = useState<string>('all');
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [newLabel, setNewLabel] = useState('');
+  const [newTime, setNewTime] = useState('');
+  const [newDate, setNewDate] = useState('');
+
   useEffect(() => {
     const checkRole = async () => {
       const sales = await isMasterclassSales();
       setIsSales(sales);
     };
     checkRole();
+    loadSchedules();
     loadReservations();
   }, []);
+
+  const loadSchedules = () => {
+    setSchedules(getMasterclassSchedules());
+  };
+
+  const handleToggleSchedule = (id: string) => {
+    toggleMasterclassScheduleActive(id);
+    loadSchedules();
+  };
+
+  const handleDeleteSchedule = (id: string) => {
+    if (window.confirm('Are you sure you want to remove this schedule option?')) {
+      deleteMasterclassSchedule(id);
+      loadSchedules();
+    }
+  };
+
+  const handleAddSchedule = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newLabel.trim() || !newTime.trim()) {
+      alert('Please enter a schedule option name and session time.');
+      return;
+    }
+    addMasterclassSchedule({
+      label: newLabel.trim(),
+      time: newTime.trim(),
+      date: newDate || undefined,
+      is_active: true
+    });
+    setNewLabel('');
+    setNewTime('');
+    setNewDate('');
+    setShowScheduleModal(false);
+    loadSchedules();
+  };
 
   const loadReservations = async () => {
     try {
@@ -268,11 +321,73 @@ const MasterclassReservations = () => {
     }
   };
 
+  // ── YEAR BREAKDOWN ──
+  const yearMap: Record<string, { total: number; accepted: number }> = {};
+  reservations.forEach(r => {
+    let yr = '2026';
+    if (r.createdAt) {
+      const dt = new Date(r.createdAt);
+      if (!isNaN(dt.getFullYear())) yr = String(dt.getFullYear());
+    } else if (r.preferred_schedule) {
+      const match = r.preferred_schedule.match(/20\d\d/);
+      if (match) yr = match[0];
+    }
+    if (!yearMap[yr]) yearMap[yr] = { total: 0, accepted: 0 };
+    yearMap[yr].total++;
+    if (r.status === 'accepted') yearMap[yr].accepted++;
+  });
+  const yearBreakdown = Object.entries(yearMap)
+    .map(([label, s]) => ({ label, total: s.total, accepted: s.accepted }))
+    .sort((a, b) => a.label.localeCompare(b.label));
+
+  // ── MONTH BREAKDOWN ──
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
+  const monthMap: Record<string, { total: number; accepted: number; sortOrder: number }> = {};
+  reservations.forEach(r => {
+    let label = 'Sept 2026';
+    let sortOrder = 202609;
+    if (r.createdAt) {
+      const dt = new Date(r.createdAt);
+      if (!isNaN(dt.getTime())) {
+        const m = monthNames[dt.getMonth()];
+        const y = dt.getFullYear();
+        label = `${m} ${y}`;
+        sortOrder = y * 100 + (dt.getMonth() + 1);
+      }
+    }
+    if (!monthMap[label]) monthMap[label] = { total: 0, accepted: 0, sortOrder };
+    monthMap[label].total++;
+    if (r.status === 'accepted') monthMap[label].accepted++;
+  });
+  const monthBreakdown = Object.entries(monthMap)
+    .sort((a, b) => a[1].sortOrder - b[1].sortOrder)
+    .map(([label, s]) => ({ label, total: s.total, accepted: s.accepted }));
+
+  // ── SCHEDULE OPTION BREAKDOWN ──
+  const schedMap: Record<string, { total: number; accepted: number }> = {};
+  reservations.forEach(r => {
+    const sched = (r.preferred_schedule || 'Unassigned / Not Specified').trim();
+    if (!schedMap[sched]) schedMap[sched] = { total: 0, accepted: 0 };
+    schedMap[sched].total++;
+    if (r.status === 'accepted') schedMap[sched].accepted++;
+  });
+  const totalResCount = reservations.length || 1;
+  const scheduleBreakdown = Object.entries(schedMap)
+    .map(([optionText, s]) => ({
+      optionText,
+      total: s.total,
+      accepted: s.accepted,
+      percentage: Math.round((s.total / totalResCount) * 100)
+    }))
+    .sort((a, b) => b.total - a.total);
+
   const filteredReservations = reservations.filter(res => {
     const matchesStatus = statusFilter === 'all' || res.status === statusFilter;
     const matchesRegion = regionFilter === 'all' || res.place === regionFilter;
     const matchesPackage = packageFilter === 'all' || res.selected_package?.includes(packageFilter);
     const matchesUpdatedBy = updatedByFilter === 'all' || res.status_updated_by === updatedByFilter;
+    const matchesSchedule = scheduleFilter === 'all' || 
+      (scheduleFilter === 'unassigned' ? (!res.preferred_schedule || res.preferred_schedule.trim() === '') : res.preferred_schedule === scheduleFilter);
     const matchesSearch = searchQuery === '' || 
       res.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       res.phone.includes(searchQuery);
@@ -297,7 +412,7 @@ const MasterclassReservations = () => {
       }
     }
 
-    return matchesStatus && matchesRegion && matchesPackage && matchesUpdatedBy && matchesSearch && matchesFollowUp;
+    return matchesStatus && matchesRegion && matchesPackage && matchesUpdatedBy && matchesSchedule && matchesSearch && matchesFollowUp;
   });
 
   const uniqueUpdatedBy = Array.from(new Set(reservations.map(r => r.status_updated_by).filter(Boolean))) as string[];
@@ -353,6 +468,232 @@ const MasterclassReservations = () => {
             </span>
           </div>
         )}
+
+        {/* ── MASTERCLASS MANAGER CONTROL: ACTIVE START DATE & TIME OPTIONS ── */}
+        {!isSales && (
+          <section className="mb-8 bg-gradient-to-br from-slate-900 via-[#1C2951] to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-2xl relative overflow-hidden border border-slate-800">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+            
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-6 mb-6">
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[10px] font-black uppercase tracking-wider">
+                  <FaCalendarAlt /> Masterclass Manager Control
+                </div>
+                <h3 className="text-xl sm:text-2xl font-black tracking-tight text-white">Active Start Date &amp; Time Options</h3>
+                <p className="text-xs text-slate-300 font-medium">Control which dates and session times appear in Question 6 on the registration form.</p>
+              </div>
+              <button
+                onClick={() => setShowScheduleModal(true)}
+                className="px-5 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition-all shadow-lg flex items-center gap-2 self-start md:self-auto"
+              >
+                <FaPlus /> Create New Session Option
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {schedules.map((sched) => {
+                const countForSched = scheduleBreakdown.find(s => s.optionText === sched.val)?.total || 0;
+                const isFilterActive = scheduleFilter === sched.val;
+                return (
+                  <div 
+                    key={sched.id} 
+                    className={`p-5 rounded-2xl border transition-all duration-300 flex flex-col justify-between gap-4 ${
+                      isFilterActive
+                        ? 'bg-amber-500/15 border-amber-500 ring-2 ring-amber-500/30'
+                        : sched.is_active 
+                        ? 'bg-white/10 border-white/15 hover:border-amber-500/50' 
+                        : 'bg-white/5 border-white/5 opacity-60'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className={`w-2.5 h-2.5 rounded-full ${sched.is_active ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`} />
+                          <h4 className="text-sm font-extrabold text-white">{sched.label}</h4>
+                        </div>
+                        <p className="text-xs text-amber-300/90 font-semibold">{sched.time}</p>
+                        {sched.date && (
+                          <div className="flex flex-wrap items-center gap-2 mt-1">
+                            <span className="text-[10px] text-slate-400 font-mono">GC: {sched.date}</span>
+                            {toEthiopianDate(sched.date) && (
+                              <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold text-[10px] border border-amber-500/30">
+                                🇪🇹 {toEthiopianDate(sched.date)?.formattedAmharic} ({toEthiopianDate(sched.date)?.formattedEnglish})
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleSchedule(sched.id)}
+                          title={sched.is_active ? 'Disable Schedule' : 'Enable Schedule'}
+                          className={`p-2 rounded-xl text-lg transition-all ${
+                            sched.is_active 
+                              ? 'text-emerald-400 bg-emerald-500/20 hover:bg-emerald-500/30' 
+                              : 'text-slate-400 bg-white/5 hover:bg-white/10'
+                          }`}
+                        >
+                          {sched.is_active ? <FaToggleOn size={22} /> : <FaToggleOff size={22} />}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteSchedule(sched.id)}
+                          title="Remove Option"
+                          className="p-2 rounded-xl text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 transition-all text-xs"
+                        >
+                          <FaTrash />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-3 border-t border-white/10 text-[11px] text-slate-300">
+                      <span className="font-semibold">Enrolled Students:</span>
+                      <button
+                        type="button"
+                        onClick={() => setScheduleFilter(isFilterActive ? 'all' : sched.val)}
+                        className={`px-2.5 py-0.5 rounded-full font-black border transition-all ${
+                          isFilterActive
+                            ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md'
+                            : 'bg-amber-500/20 text-amber-300 border-amber-500/30 hover:bg-amber-500/40'
+                        }`}
+                      >
+                        {countForSched} Student{countForSched !== 1 ? 's' : ''} {isFilterActive ? '✓ (Filtered)' : '→ Filter'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* ── SECTION: STUDENTS BREAKDOWN BY YEAR, MONTH & CHOICE SCHEDULE ── */}
+        <section className="mb-8 space-y-6">
+          <div className="border-b border-slate-200 pb-3">
+            <h2 className="text-xs font-black uppercase tracking-widest text-slate-400">Student Enrollment Analytics</h2>
+            <h3 className="text-xl font-black text-slate-900">Student Breakdown by Year, Month &amp; Choice Schedule</h3>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* 1. Students Per Year */}
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-xl p-6 space-y-6">
+              <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
+                  <FaCalendarCheck size={18} />
+                </div>
+                <div>
+                  <h4 className="font-black text-slate-800 text-sm">Students Per Year</h4>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Annual Enrolment Volume</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {yearBreakdown.map((yr) => {
+                  const pct = Math.round((yr.total / (reservations.length || 1)) * 100);
+                  return (
+                    <div key={yr.label} className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
+                      <div className="flex items-center justify-between text-xs font-black text-slate-800">
+                        <span className="text-base font-black text-indigo-950">Year {yr.label}</span>
+                        <span className="px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs font-black">
+                          {yr.total} Students
+                        </span>
+                      </div>
+                      <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-amber-500 to-indigo-600 rounded-full" style={{ width: `${pct}%` }} />
+                      </div>
+                      <div className="flex justify-between text-[10px] text-slate-400 font-bold">
+                        <span>Accepted: {yr.accepted}</span>
+                        <span>{pct}% of Total</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 2. Students Per Month */}
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-xl p-6 space-y-6">
+              <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                  <FaRegCalendarAlt size={18} />
+                </div>
+                <div>
+                  <h4 className="font-black text-slate-800 text-sm">Students Per Month</h4>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Monthly Registration Flow</p>
+                </div>
+              </div>
+
+              <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1">
+                {monthBreakdown.map((m) => {
+                  const pct = Math.round((m.total / (reservations.length || 1)) * 100);
+                  return (
+                    <div key={m.label} className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-slate-100 hover:border-slate-200 transition-all">
+                      <div>
+                        <p className="text-xs font-black text-slate-800">{m.label}</p>
+                        <p className="text-[10px] text-slate-400 font-medium">{m.accepted} Accepted</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-sm font-black text-slate-900">{m.total} Students</span>
+                        <p className="text-[9px] font-extrabold text-emerald-600 uppercase tracking-wider">{pct}% Share</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 3. Students Per Schedule Choice */}
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-xl p-6 space-y-6">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
+                    <FaLayerGroup size={18} />
+                  </div>
+                  <div>
+                    <h4 className="font-black text-slate-800 text-sm">Students Per Schedule Choice</h4>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Click to filter table below</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1">
+                {scheduleBreakdown.map((item, idx) => {
+                  const isSelected = scheduleFilter === item.optionText;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setScheduleFilter(isSelected ? 'all' : item.optionText)}
+                      className={`w-full text-left p-3.5 rounded-2xl border transition-all ${
+                        isSelected 
+                          ? 'bg-purple-50 border-purple-300 ring-2 ring-purple-500/20' 
+                          : 'bg-slate-50 border-slate-100 hover:bg-purple-50/50 hover:border-purple-200'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2 mb-1.5">
+                        <p className="text-xs font-bold text-slate-800 leading-snug">{item.optionText}</p>
+                        <span className={`px-2 py-0.5 rounded-full text-[11px] font-black flex-shrink-0 ${
+                          isSelected ? 'bg-purple-600 text-white' : 'bg-purple-100 text-purple-700'
+                        }`}>
+                          {item.total} Students
+                        </span>
+                      </div>
+                      <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                        <div className="h-full bg-purple-600 rounded-full" style={{ width: `${item.percentage}%` }} />
+                      </div>
+                      <div className="flex justify-between text-[9px] font-bold text-slate-400 mt-1.5">
+                        <span>{item.accepted} Accepted</span>
+                        <span className="text-purple-600 font-extrabold">{isSelected ? 'Active Filter ✓' : 'Filter →'}</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* ── Referral Link Generator Panel ──────────────────────────────── */}
         {!isSales && (
@@ -543,8 +884,46 @@ const MasterclassReservations = () => {
                 ))}
               </select>
             </div>
+
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-widest font-mono text-purple-600 mb-2">Schedule Choice (Q6)</label>
+              <select
+                value={scheduleFilter}
+                onChange={(e) => setScheduleFilter(e.target.value)}
+                className="w-full px-4 py-3 rounded-2xl bg-purple-50/50 border border-purple-200 text-sm font-bold text-purple-950 focus:ring-2 focus:ring-purple-600 outline-none"
+              >
+                <option value="all">All Schedule Choices</option>
+                <option value="unassigned">Unassigned / Not Specified</option>
+                {scheduleBreakdown.map(s => (
+                  <option key={s.optionText} value={s.optionText}>
+                    {s.optionText} ({s.total} Students)
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
+
+        {/* Active Schedule Filter Banner */}
+        {scheduleFilter !== 'all' && (
+          <div className="mb-6 p-4 bg-purple-50 border-2 border-purple-200 rounded-2xl flex items-center justify-between flex-wrap gap-3 shadow-md">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center font-bold text-xs">
+                <FaFilter />
+              </div>
+              <div>
+                <p className="text-xs font-black text-purple-950">Filtered by Schedule Choice (Question 6)</p>
+                <p className="text-xs text-purple-700 font-bold">{scheduleFilter}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setScheduleFilter('all')}
+              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-black rounded-xl transition-all shadow-sm flex items-center gap-1.5"
+            >
+              <FaTimes size={12} /> Clear Schedule Filter ({filteredReservations.length} Students)
+            </button>
+          </div>
+        )}
 
         {/* Reservations List */}
         <div className="bg-white rounded-2xl sm:rounded-lg shadow-md overflow-hidden">
@@ -1233,6 +1612,82 @@ const MasterclassReservations = () => {
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── CREATE NEW SESSION OPTION MODAL ── */}
+        {showScheduleModal && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-[2rem] max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-100">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+                <div>
+                  <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Question 6 Manager</span>
+                  <h3 className="text-xl font-black text-slate-900">Create New Session Option</h3>
+                </div>
+                <button 
+                  onClick={() => setShowScheduleModal(false)}
+                  className="p-2 rounded-xl text-slate-400 hover:bg-slate-100 transition-colors"
+                >
+                  <FaTimes />
+                </button>
+              </div>
+
+              <form onSubmit={handleAddSchedule} className="space-y-5">
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">
+                    Session Option Name / Option #
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Option 5: Oct 12, 2026"
+                    value={newLabel}
+                    onChange={(e) => setNewLabel(e.target.value)}
+                    className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-sm font-bold focus:ring-2 focus:ring-amber-500 outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">
+                    Session Time / Days
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Morning Session (9:00 AM - 12:00 PM)"
+                    value={newTime}
+                    onChange={(e) => setNewTime(e.target.value)}
+                    className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-sm font-bold focus:ring-2 focus:ring-amber-500 outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">
+                    Start Date (Ethiopian / Gregorian Calendar)
+                  </label>
+                  <EthiopianDatePicker
+                    value={newDate}
+                    onChange={(gcDate) => setNewDate(gcDate)}
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowScheduleModal(false)}
+                    className="flex-1 py-3.5 rounded-2xl text-xs font-black uppercase tracking-widest text-slate-400 hover:bg-slate-50 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-amber-500/20"
+                  >
+                    Save Session Option
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}

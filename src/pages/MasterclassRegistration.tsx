@@ -3,6 +3,7 @@ import { FiArrowLeft, FiCheckCircle, FiChevronDown, FiLoader, FiMapPin, FiPhone,
 import { Link, useSearchParams } from 'react-router-dom';
 import { adminApi } from '../services/adminApi';
 import { getActiveMasterclassSchedules, MasterclassScheduleOption } from '../services/masterclassSchedules';
+import { toEthiopianDate } from '../utils/ethiopianCalendar';
 
 const MasterclassRegistration: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -579,8 +580,9 @@ const MasterclassRegistration: React.FC = () => {
               <div className="space-y-3">
                 <label className={labelClasses}>6. Which date and time would you prefer to start?</label>
                 <div className="space-y-3">
-                  {scheduleOptions.map(({ id, val, label, time }) => {
+                  {scheduleOptions.map(({ id, val, label, time, date }) => {
                     const isSelected = formData.preferred_schedule === val;
+                    const eth = date ? toEthiopianDate(date) : null;
                     return (
                       <button
                         key={id || val}
@@ -601,9 +603,16 @@ const MasterclassRegistration: React.FC = () => {
                             : 'border-slate-100 bg-white hover:border-slate-200'
                         }`}
                       >
-                        <div>
-                          <p className="text-xs font-extrabold text-slate-800">{label}</p>
-                          <p className="text-[10px] text-slate-400 font-medium mt-0.5">{time}</p>
+                        <div className="space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="text-xs font-extrabold text-slate-800">{label}</p>
+                            {eth && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-800 font-black text-[10px] border border-amber-500/20">
+                                🇪🇹 {eth.formattedAmharic} ({eth.formattedEnglish})
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-slate-400 font-medium">{time}</p>
                         </div>
                         <div className={`w-5 h-5 rounded-full flex items-center justify-center border transition-all ${
                           isSelected ? 'bg-amber-500 border-amber-500 text-[#1C2951]' : 'border-slate-200'

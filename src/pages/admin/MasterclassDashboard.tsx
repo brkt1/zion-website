@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { adminApi } from '../../services/adminApi';
 import { handleSupabaseError } from '../../services/supabase';
-import { isAdmin } from '../../services/auth';
+import { isAdmin, isMasterclassManager } from '../../services/auth';
 import { MasterclassReservation } from '../../types';
 import { NetworkErrorBanner } from '../../Components/ui/NetworkStatus';
 import { 
@@ -15,6 +15,8 @@ import {
   deleteMasterclassSchedule, 
   MasterclassScheduleOption 
 } from '../../services/masterclassSchedules';
+import { EthiopianDatePicker } from '../../Components/ui/EthiopianDatePicker';
+import { toEthiopianDate } from '../../utils/ethiopianCalendar';
 
 const REFERRAL_PRICE = 10000;
 
@@ -83,12 +85,16 @@ export default function MasterclassDashboard() {
   const [newDate, setNewDate] = useState('');
 
   useEffect(() => {
-    isAdmin().then(ok => {
+    const checkAuth = async () => {
+      const admin = await isAdmin();
+      const mc = await isMasterclassManager();
+      const ok = admin || mc;
       setAuthorized(ok);
       if (!ok) return;
       loadSchedules();
       load();
-    });
+    };
+    checkAuth();
   }, []);
 
   const loadSchedules = () => {
@@ -485,7 +491,16 @@ export default function MasterclassDashboard() {
                         <h4 className="text-sm font-extrabold text-white">{sched.label}</h4>
                       </div>
                       <p className="text-xs text-amber-300/90 font-semibold">{sched.time}</p>
-                      {sched.date && <p className="text-[10px] text-slate-400 font-mono">Date tag: {sched.date}</p>}
+                      {sched.date && (
+                        <div className="flex flex-wrap items-center gap-2 mt-1">
+                          <span className="text-[10px] text-slate-400 font-mono">GC: {sched.date}</span>
+                          {toEthiopianDate(sched.date) && (
+                            <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold text-[10px] border border-amber-500/30">
+                              🇪🇹 {toEthiopianDate(sched.date)?.formattedAmharic} ({toEthiopianDate(sched.date)?.formattedEnglish})
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -910,15 +925,11 @@ export default function MasterclassDashboard() {
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-black text-slate-700 mb-1 uppercase tracking-wider">Date Tag (Optional YYYY-MM-DD)</label>
-                <input 
-                  type="date"
-                  value={newDate}
-                  onChange={(e) => setNewDate(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-sm font-semibold text-slate-800 outline-none"
-                />
-              </div>
+              <EthiopianDatePicker
+                value={newDate}
+                onChange={setNewDate}
+                label="Class Start Date (GC & Ethiopian Calendar / የትምህርት መጀመሪያ ቀን)"
+              />
 
               <div className="pt-4 flex items-center justify-end gap-3">
                 <button
