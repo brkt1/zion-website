@@ -121,10 +121,8 @@
   inset: 0;
   background-size: max(110vw, 110vh) max(110vw, 110vh);
   background-position: 50%;
-  transition: opacity 1.5s ease-in-out, transform 1.5s ease-in-out;
-  will-change: opacity, transform;
-  backface-visibility: hidden;
-  transform: translateZ(0);
+  transition: opacity 0.6s ease-in-out;
+  will-change: opacity;
 }
 
 .hero-container .background::before {
@@ -157,21 +155,16 @@
 
 .body--animated .hero-container .background::before,
 .body--animated .hero-container .background::after {
-  animation: heroFadeZoom ease-in-out 1.2s forwards;
-  animation-delay: 0.3s;
-  transition-delay: 0.3s;
-  will-change: opacity, transform;
+  transition-delay: 0.1s;
 }
 
 .body--animated .hero-container .background--2::before,
 .body--animated .hero-container .background--2::after {
-  animation-delay: 0.15s;
-  transition-delay: 0.15s;
+  transition-delay: 0.05s;
 }
 
 .body--animated .hero-container .background--3::before,
 .body--animated .hero-container .background--3::after {
-  animation-delay: 0s;
   transition-delay: 0s;
 }
 
@@ -183,11 +176,8 @@
 .body--animated .hero-container h2::before,
 .body--animated .hero-container h1::after,
 .body--animated .hero-container h2::after {
-  transition-delay: 0.5s;
-  transition-duration: 0.5s;
-  will-change: transform;
-  backface-visibility: hidden;
-  transform: translateZ(0);
+  transition-delay: 0.2s;
+  transition-duration: 0.3s;
 }
 
 .body--animated .hero-container h1:before {
@@ -707,20 +697,6 @@
   text-decoration: none;
 }
 
-/* Animation — smooth Ken Burns zoom-fade, no spinning */
-@keyframes heroFadeZoom {
-  0% {
-    background-size: max(110vw, 110vh) max(110vw, 110vh);
-    transform: translateZ(0) scale(1);
-  }
-  50% {
-    background-size: max(118vw, 118vh) max(118vw, 118vh);
-    transform: translateZ(0) scale(1.04);
-  }
-  100% {
-    background-size: max(110vw, 110vh) max(110vw, 110vh);
-    transform: translateZ(0) scale(1);
-  }
-}
+/* No keyframe animation — pure opacity cross-fade only */
 
 
