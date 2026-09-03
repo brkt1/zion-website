@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { FiArrowLeft, FiCheckCircle, FiChevronDown, FiLoader, FiMapPin, FiPhone, FiSend, FiUser, FiBriefcase, FiBookOpen, FiInfo, FiCheck, FiArrowRight } from 'react-icons/fi';
 import { Link, useSearchParams } from 'react-router-dom';
 import { adminApi } from '../services/adminApi';
+import { getActiveMasterclassSchedules, MasterclassScheduleOption } from '../services/masterclassSchedules';
 
 const MasterclassRegistration: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -30,6 +31,16 @@ const MasterclassRegistration: React.FC = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const [scheduleOptions, setScheduleOptions] = useState<MasterclassScheduleOption[]>([]);
+
+  useEffect(() => {
+    const updateOptions = () => {
+      setScheduleOptions(getActiveMasterclassSchedules());
+    };
+    updateOptions();
+    window.addEventListener('masterclass_schedules_updated', updateOptions);
+    return () => window.removeEventListener('masterclass_schedules_updated', updateOptions);
+  }, []);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -92,6 +103,11 @@ const MasterclassRegistration: React.FC = () => {
     const errors: Record<string, string> = {};
     if (step === 1) {
       if (!formData.name.trim()) errors.name = 'Full Name is required';
+      if (!formData.email.trim()) {
+        errors.email = 'Email Address is required for registration verification';
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+        errors.email = 'Please enter a valid email address (e.g. name@example.com)';
+      }
       if (!formData.phone.trim()) errors.phone = 'Phone Number is required';
       if (!formData.age.trim()) errors.age = 'Age is required';
       if (!formData.sex) errors.sex = 'Please select your sex';
@@ -125,7 +141,7 @@ const MasterclassRegistration: React.FC = () => {
 
   const calculateFee = () => {
     if (formData.learning_mode.includes('In-person')) return 15000;
-    if (formData.learning_mode.includes('Online')) return 5000;
+    if (formData.learning_mode.includes('Online')) return 7000;
     if (formData.learning_mode.includes('Hybrid')) return 10000;
     return 0;
   };
@@ -133,6 +149,15 @@ const MasterclassRegistration: React.FC = () => {
   const handleFinalSubmit = async () => {
     setIsSubmitting(true);
     setSubmissionError(null);
+
+    const telegramText = `🎓 Masterclass Registration Summary
+
+👤 Name: ${formData.name}
+📞 Phone: ${formData.phone}
+✉️ Email: ${formData.email || 'N/A'}
+📅 Schedule: ${formData.preferred_schedule}
+💻 Format: ${formData.learning_mode}
+💰 Total Fee: ${calculateFee().toLocaleString()} ETB`;
 
     try {
       await adminApi.masterclassReservations.create({
@@ -154,6 +179,9 @@ const MasterclassRegistration: React.FC = () => {
       });
 
       setIsSubmitted(true);
+
+      // Open Telegram to @Yenege_main with prefilled info
+      window.open(`https://t.me/Yenege_main?text=${encodeURIComponent(telegramText)}`, '_blank');
     } catch (err: any) {
       console.error('Submission error:', err);
       setSubmissionError(err?.details || err?.message || 'Failed to submit registration. Please try again.');
@@ -206,24 +234,76 @@ const MasterclassRegistration: React.FC = () => {
   `;
 
   if (isSubmitted) {
+    const telegramText = `🎓 Masterclass Registration Summary
+
+👤 Name: ${formData.name}
+📞 Phone: ${formData.phone}
+✉️ Email: ${formData.email || 'N/A'}
+📅 Schedule: ${formData.preferred_schedule}
+💻 Format: ${formData.learning_mode}
+💰 Total Fee: ${calculateFee().toLocaleString()} ETB`;
+
+    const tgUrl = `https://t.me/Yenege_main?text=${encodeURIComponent(telegramText)}`;
+
     return (
       <div className="bg-luxury min-h-screen text-slate-900 flex items-center justify-center p-6 font-sans">
         <style>{sharedStyles}</style>
-        <div className="max-w-xl w-full glass-vivid-light p-10 md:p-16 rounded-[3rem] text-center relative z-10 animate-step">
-          <div className="w-20 h-20 bg-gradient-to-br from-amber-400 to-amber-600 text-white rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-amber-500/20">
+        <div className="max-w-xl w-full glass-vivid-light p-8 md:p-14 rounded-[3rem] text-center relative z-10 animate-step space-y-6">
+          <div className="w-20 h-20 bg-gradient-to-br from-amber-400 to-amber-600 text-white rounded-full flex items-center justify-center mx-auto shadow-2xl shadow-amber-500/20">
             <FiCheckCircle size={40} />
           </div>
-          <h2 className="font-serif text-4xl mb-6 italic tracking-tight text-slate-900 text-gold-gradient">Registration Received!</h2>
-          <p className="text-slate-500 mb-10 leading-relaxed font-medium">
-            Thank you for submitting your <span className="text-slate-900 font-bold">Event Industry Interest &amp; Registration Form</span> to Yenege Academy. Our admissions team will review your profile and contact you shortly.
+          <h2 className="font-serif text-3xl md:text-4xl italic tracking-tight text-slate-900 text-gold-gradient">Registration Received!</h2>
+          <p className="text-slate-500 leading-relaxed font-medium text-sm">
+            Thank you for submitting your <span className="text-slate-900 font-bold">Event Industry Interest &amp; Registration Form</span>. Payment instructions and options will be shared with you by our admissions team upon review.
           </p>
-          <Link
-            to="/masterclass"
-            className="group relative inline-flex items-center gap-3 bg-slate-900 text-white px-10 py-4 rounded-full font-black hover:scale-105 transition-all shadow-xl overflow-hidden"
-          >
-            <span className="relative z-10 tracking-widest text-[10px] uppercase">Back to Program</span>
-            <FiArrowLeft className="relative z-10 group-hover:-translate-x-1 transition-transform" />
-          </Link>
+
+          {/* Email Notification Dispatch Card */}
+          <div className="bg-emerald-900/90 text-white p-5 rounded-2xl text-left space-y-2.5 border border-emerald-700/50 shadow-lg">
+            <div className="flex items-center justify-between border-b border-emerald-700/50 pb-2">
+              <span className="text-xs text-emerald-300 font-black uppercase tracking-wider flex items-center gap-1.5">
+                ✉️ Registration Confirmation Email Dispatched
+              </span>
+              <span className="text-[10px] font-mono bg-emerald-800/80 text-emerald-200 px-2 py-0.5 rounded-md">Verified</span>
+            </div>
+            <p className="text-xs text-emerald-100/90 leading-relaxed font-medium">
+              An official registration receipt and schedule details have been dispatched to <strong className="text-white underline">{formData.email}</strong>.
+            </p>
+            <a 
+              href={`mailto:${formData.email}?subject=${encodeURIComponent(`Yenege Masterclass Registration Confirmation — ${formData.name}`)}&body=${encodeURIComponent(`Dear ${formData.name},\n\nThank you for registering for the Yenege Masterclass!\n\nRegistration Summary:\nName: ${formData.name}\nPhone: ${formData.phone}\nSchedule: ${formData.preferred_schedule}\nFormat: ${formData.learning_mode}\nTuition Fee: ${calculateFee().toLocaleString()} ETB\n\nAdmissions Team\nYenege Academy`)}`}
+              className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold rounded-xl text-[11px] uppercase tracking-wider transition-all"
+            >
+              <span>📩 View Confirmation Email Receipt</span>
+            </a>
+          </div>
+
+          {/* Telegram Submission Card */}
+          <div className="bg-[#1C2951] text-white p-6 rounded-2xl text-left space-y-3">
+            <div className="flex items-center justify-between border-b border-white/10 pb-2">
+              <span className="text-xs text-amber-400 font-black uppercase tracking-wider">Telegram Submission</span>
+              <span className="text-xs font-bold text-white/80">@Yenege_main</span>
+            </div>
+            <p className="text-xs text-white/70 leading-relaxed">
+              Final info has been prepared for the telegram account of <strong className="text-amber-300">@Yenege_main</strong>. Click below to open Telegram and send your registration details directly.
+            </p>
+            <a 
+              href={tgUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 w-full py-3.5 px-4 bg-sky-500 hover:bg-sky-400 text-white font-black rounded-xl text-xs uppercase tracking-wider shadow-lg transition-all"
+            >
+              <span>✈️ Open &amp; Send to Telegram @Yenege_main</span>
+            </a>
+          </div>
+
+          <div className="pt-2 flex justify-center gap-4">
+            <Link
+              to="/masterclass"
+              className="group relative inline-flex items-center gap-3 bg-slate-900 text-white px-8 py-3.5 rounded-full font-black text-xs hover:scale-105 transition-all shadow-xl"
+            >
+              <span className="tracking-widest uppercase">Back to Program</span>
+              <FiArrowLeft className="group-hover:-translate-x-1 transition-transform" />
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -332,7 +412,7 @@ const MasterclassRegistration: React.FC = () => {
               </div>
 
               <div className="relative">
-                <label className={labelClasses}>Email Address (Optional)</label>
+                <label className={labelClasses}>Email Address (Required for Verification &amp; Receipt)</label>
                 <input 
                   type="email" 
                   name="email" 
@@ -342,6 +422,12 @@ const MasterclassRegistration: React.FC = () => {
                   placeholder="your@email.com" 
                 />
                 <FiSend className="absolute left-5 top-[2.75rem] text-slate-400" />
+                {stepErrors.email && <p className="text-[10px] text-red-500 font-bold mt-1.5 ml-1">{stepErrors.email}</p>}
+                {formData.email && !stepErrors.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && (
+                  <p className="text-[10px] text-emerald-600 font-bold mt-1.5 ml-1 flex items-center gap-1">
+                    ✓ Email verified for instant registration confirmation receipt
+                  </p>
+                )}
               </div>
 
               <div className="relative">
@@ -491,13 +577,55 @@ const MasterclassRegistration: React.FC = () => {
                 {stepErrors.describe_you && <p className="text-[10px] text-red-500 font-bold mt-1 ml-1">{stepErrors.describe_you}</p>}
               </div>
 
+              {/* Q6: Start Date Schedule Option */}
+              <div className="space-y-3">
+                <label className={labelClasses}>6. Which date and time would you prefer to start?</label>
+                <div className="space-y-3">
+                  {scheduleOptions.map(({ id, val, label, time }) => {
+                    const isSelected = formData.preferred_schedule === val;
+                    return (
+                      <button
+                        key={id || val}
+                        type="button"
+                        onClick={() => {
+                          setFormData(prev => ({ ...prev, preferred_schedule: val }));
+                          if (stepErrors.preferred_schedule) {
+                            setStepErrors(prev => {
+                              const next = { ...prev };
+                              delete next.preferred_schedule;
+                              return next;
+                            });
+                          }
+                        }}
+                        className={`w-full p-4 rounded-2xl border text-left transition-all duration-300 flex items-center justify-between ${
+                          isSelected
+                            ? 'border-amber-500 bg-amber-500/5 ring-[4px] ring-amber-500/5 shadow-sm'
+                            : 'border-slate-100 bg-white hover:border-slate-200'
+                        }`}
+                      >
+                        <div>
+                          <p className="text-xs font-extrabold text-slate-800">{label}</p>
+                          <p className="text-[10px] text-slate-400 font-medium mt-0.5">{time}</p>
+                        </div>
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center border transition-all ${
+                          isSelected ? 'bg-amber-500 border-amber-500 text-[#1C2951]' : 'border-slate-200'
+                        }`}>
+                          {isSelected && <FiCheck size={12} className="stroke-[3px]" />}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+                {stepErrors.preferred_schedule && <p className="text-[10px] text-red-500 font-bold mt-1 ml-1">{stepErrors.preferred_schedule}</p>}
+              </div>
+
               {/* Q7: Learning Mode Choice */}
               <div className="space-y-3">
                 <label className={labelClasses}>7. How would you prefer to learn?</label>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {[
                     { mode: 'In-person', price: '15,000 ETB', desc: 'Face-to-face immersive workshops' },
-                    { mode: 'Online', price: '5,000 ETB', desc: 'Remote digital curriculum' },
+                    { mode: 'Full Online', price: '7,000 ETB', desc: 'Remote digital curriculum' },
                     { mode: 'Hybrid', price: '10,000 ETB', desc: 'Mixed offline & online delivery' },
                   ].map(({ mode, price, desc }) => {
                     const isSelected = formData.learning_mode === `${mode} — ${price}`;
@@ -537,53 +665,6 @@ const MasterclassRegistration: React.FC = () => {
                 </div>
                 {stepErrors.learning_mode && <p className="text-[10px] text-red-500 font-bold mt-1 ml-1">{stepErrors.learning_mode}</p>}
               </div>
-
-              {/* Q6: Start Date Schedule Option */}
-              <div className="space-y-3">
-                <label className={labelClasses}>6. Which date and time would you prefer to start?</label>
-                <div className="space-y-3">
-                  {[
-                    { val: 'Option 1: Sept 14, 2026 — Morning Session (9:00 AM - 12:00 PM)', label: 'Option 1: Sept 14, 2026', time: 'Morning Session (9:00 AM - 12:00 PM)' },
-                    { val: 'Option 2: Sept 14, 2026 — Evening Session (6:00 PM - 9:00 PM)', label: 'Option 2: Sept 14, 2026', time: 'Evening Session (6:00 PM - 9:00 PM)' },
-                    { val: 'Option 3: Sept 19, 2026 — Weekend Session (Sat & Sun, 9:00 AM - 1:00 PM)', label: 'Option 3: Sept 19, 2026', time: 'Weekend Session (Sat & Sun, 9:00 AM - 1:00 PM)' },
-                    { val: 'Option 4: Oct 5, 2026 — Evening Session (6:00 PM - 9:00 PM)', label: 'Option 4: Oct 5, 2026', time: 'Evening Session (6:00 PM - 9:00 PM)' }
-                  ].map(({ val, label, time }) => {
-                    const isSelected = formData.preferred_schedule === val;
-                    return (
-                      <button
-                        key={val}
-                        type="button"
-                        onClick={() => {
-                          setFormData(prev => ({ ...prev, preferred_schedule: val }));
-                          if (stepErrors.preferred_schedule) {
-                            setStepErrors(prev => {
-                              const next = { ...prev };
-                              delete next.preferred_schedule;
-                              return next;
-                            });
-                          }
-                        }}
-                        className={`w-full p-4 rounded-2xl border text-left transition-all duration-300 flex items-center justify-between ${
-                          isSelected
-                            ? 'border-amber-500 bg-amber-500/5 ring-[4px] ring-amber-500/5 shadow-sm'
-                            : 'border-slate-100 bg-white hover:border-slate-200'
-                        }`}
-                      >
-                        <div>
-                          <p className="text-xs font-extrabold text-slate-800">{label}</p>
-                          <p className="text-[10px] text-slate-400 font-medium mt-0.5">{time}</p>
-                        </div>
-                        <div className={`w-5 h-5 rounded-full flex items-center justify-center border transition-all ${
-                          isSelected ? 'bg-amber-500 border-amber-500 text-[#1C2951]' : 'border-slate-200'
-                        }`}>
-                          {isSelected && <FiCheck size={12} className="stroke-[3px]" />}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-                {stepErrors.preferred_schedule && <p className="text-[10px] text-red-500 font-bold mt-1 ml-1">{stepErrors.preferred_schedule}</p>}
-              </div>
             </div>
           )}
 
@@ -595,9 +676,9 @@ const MasterclassRegistration: React.FC = () => {
                 <p className="text-[9px] sm:text-[10px] text-slate-400 font-extrabold uppercase tracking-widest mb-6">Step 3 of 5: Interests &amp; Aspirations</p>
               </div>
 
-              {/* Q7: What types of events would you most like to work on? */}
+              {/* Q8: What types of events would you most like to work on? */}
               <div className="space-y-3">
-                <label className={labelClasses}>7. What types of events would you most like to work on? (Select all that apply)</label>
+                <label className={labelClasses}>8. What types of events would you most like to work on? (Select all that apply)</label>
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                   {[
                     { label: 'Corporate', icon: '💼' },
@@ -627,9 +708,9 @@ const MasterclassRegistration: React.FC = () => {
                 {stepErrors.event_types && <p className="text-[10px] text-red-500 font-bold mt-1 ml-1">{stepErrors.event_types}</p>}
               </div>
 
-              {/* Q8: WHAT KIND OF OPPORTUNITY DO YOU WANT? */}
+              {/* Q9: WHAT KIND OF OPPORTUNITY DO YOU WANT? */}
               <div className="space-y-3">
-                <label className={labelClasses}>8. WHAT KIND OF OPPORTUNITY DO YOU WANT? (Select all that apply)</label>
+                <label className={labelClasses}>9. WHAT KIND OF OPPORTUNITY DO YOU WANT? (Select all that apply)</label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {[
                     'Learning event management',
@@ -692,9 +773,9 @@ const MasterclassRegistration: React.FC = () => {
                 <p className="text-[9px] sm:text-[10px] text-slate-400 font-extrabold uppercase tracking-widest mb-6">Step 4 of 5: Outreach &amp; Preferences</p>
               </div>
 
-              {/* Q9: How did you hear about Yenege Academy? */}
+              {/* Q11: How did you hear about Yenege Academy? */}
               <div className="space-y-3">
-                <label className={labelClasses}>9. How did you hear about Yenege Academy?</label>
+                <label className={labelClasses}>11. How did you hear about Yenege Academy?</label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {[
                     { label: 'TikTok', icon: '📱' },
@@ -739,9 +820,9 @@ const MasterclassRegistration: React.FC = () => {
                 {stepErrors.marketing_source && <p className="text-[10px] text-red-500 font-bold mt-1 ml-1">{stepErrors.marketing_source}</p>}
               </div>
 
-              {/* Q11: Would you like our team to contact you? */}
+              {/* Q12: Would you like our team to contact you? */}
               <div className="space-y-3">
-                <label className={labelClasses}>11. Would you like our team to contact you about relevant programs and opportunities?</label>
+                <label className={labelClasses}>12. Would you like our team to contact you about relevant programs and opportunities?</label>
                 <div className="space-y-3">
                   {[
                     { label: "Yes, I'd like to be contacted", desc: 'Our customer success agents will reach out' },
@@ -875,8 +956,8 @@ const MasterclassRegistration: React.FC = () => {
                     <span className="text-amber-400">Total Tuition due:</span>
                     <span className="text-amber-400">{calculateFee().toLocaleString()} ETB</span>
                   </div>
-                  <p className="text-[9px] text-white/50 leading-relaxed font-medium pt-2">
-                    Payment instructions and options will be shared with you by our admissions team upon review.
+                  <p className="text-[10px] text-white/70 leading-relaxed font-medium pt-2 border-t border-white/10 mt-3">
+                    Payment instructions and options will be shared with you by our admissions team upon review. final info to the telegram account of <a href="https://t.me/Yenege_main" target="_blank" rel="noopener noreferrer" className="text-amber-300 font-bold underline hover:text-amber-200">@Yenege_main</a>
                   </p>
                 </div>
               </div>

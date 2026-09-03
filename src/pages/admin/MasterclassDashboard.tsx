@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FaArrowRight, FaCheckCircle, FaClock, FaGraduationCap, FaLink, FaMoneyBillWave, FaTimesCircle, FaUsers, FaExclamationTriangle, FaLock, FaGlobe, FaChartPie, FaLightbulb } from 'react-icons/fa';
+import { FaArrowRight, FaCheckCircle, FaClock, FaGraduationCap, FaLink, FaMoneyBillWave, FaTimesCircle, FaUsers, FaExclamationTriangle, FaLock, FaGlobe, FaChartPie, FaLightbulb, FaCalendarAlt, FaPlus, FaToggleOn, FaToggleOff, FaTrash, FaCalendarCheck, FaRegCalendarAlt, FaLayerGroup } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import AdminLayout from '../../Components/admin/AdminLayout';
 import { adminApi } from '../../services/adminApi';
@@ -7,6 +7,14 @@ import { handleSupabaseError } from '../../services/supabase';
 import { isAdmin } from '../../services/auth';
 import { MasterclassReservation } from '../../types';
 import { NetworkErrorBanner } from '../../Components/ui/NetworkStatus';
+import { 
+  getMasterclassSchedules, 
+  saveMasterclassSchedules, 
+  addMasterclassSchedule, 
+  toggleMasterclassScheduleActive, 
+  deleteMasterclassSchedule, 
+  MasterclassScheduleOption 
+} from '../../services/masterclassSchedules';
 
 const REFERRAL_PRICE = 10000;
 
@@ -19,6 +27,19 @@ const getPackagePrice = (pkgName?: string): number => {
 };
 
 const fmt = (n: number) => `ETB ${n.toLocaleString('en-US', { minimumFractionDigits: 0 })}`;
+
+interface ScheduleStats {
+  optionText: string;
+  total: number;
+  accepted: number;
+  percentage: number;
+}
+
+interface DateBreakdownStats {
+  label: string;
+  total: number;
+  accepted: number;
+}
 
 interface Stats {
   total: number; accepted: number; pending: number; rejected: number; reviewed: number;
@@ -41,22 +62,69 @@ interface Stats {
   avgPaymentGapDays: number;
   weeklyTrend: Record<string, number>;
   insights: string[];
+  // Masterclass Schedule & Date/Time Analytics
+  yearBreakdown: DateBreakdownStats[];
+  monthBreakdown: DateBreakdownStats[];
+  scheduleBreakdown: ScheduleStats[];
 }
 
 export default function MasterclassDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
+  const [schedules, setSchedules] = useState<MasterclassScheduleOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [authorized, setAuthorized] = useState<boolean | null>(null);
   const navigate = useNavigate();
 
+  // Schedule Manager Modal / Form State
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [newLabel, setNewLabel] = useState('');
+  const [newTime, setNewTime] = useState('');
+  const [newDate, setNewDate] = useState('');
+
   useEffect(() => {
     isAdmin().then(ok => {
       setAuthorized(ok);
-      if (!ok) return; // don't load data for non-admins
+      if (!ok) return;
+      loadSchedules();
       load();
     });
   }, []);
+
+  const loadSchedules = () => {
+    setSchedules(getMasterclassSchedules());
+  };
+
+  const handleToggleSchedule = (id: string) => {
+    toggleMasterclassScheduleActive(id);
+    loadSchedules();
+  };
+
+  const handleDeleteSchedule = (id: string) => {
+    if (window.confirm('Are you sure you want to remove this schedule option?')) {
+      deleteMasterclassSchedule(id);
+      loadSchedules();
+    }
+  };
+
+  const handleAddSchedule = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newLabel.trim() || !newTime.trim()) {
+      alert('Please enter a schedule option name and session time.');
+      return;
+    }
+    addMasterclassSchedule({
+      label: newLabel.trim(),
+      time: newTime.trim(),
+      date: newDate || undefined,
+      is_active: true
+    });
+    setNewLabel('');
+    setNewTime('');
+    setNewDate('');
+    setShowScheduleModal(false);
+    loadSchedules();
+  };
 
   const load = async () => {
     try {
@@ -67,7 +135,7 @@ export default function MasterclassDashboard() {
       const accDirect = direct.filter(r => r.status === 'accepted');
       const accReferral = referral.filter(r => r.status === 'accepted');
 
-      // Process direct accepted students, deriving values if missing in DB
+      // Process direct accepted students
       const processedDirect = accDirect.map(r => {
         const pkgPrice = getPackagePrice(r.selected_package);
         const total = r.total_amount || pkgPrice || 0;
@@ -89,7 +157,7 @@ export default function MasterclassDashboard() {
         };
       });
 
-      // Process referral accepted students (auto-collected on accepted)
+      // Process referral accepted students
       const processedReferral = accReferral.map(r => {
         return {
           ...r,
@@ -117,18 +185,17 @@ export default function MasterclassDashboard() {
 
       const partialStudents = accAll
         .filter(r => r.payment_status === 'partial')
-        .map(r => {
-          return {
-            name: r.name,
-            phone: r.phone,
-            isReferral: !!r.referral_code,
-            total: r.derivedTotal,
-            paid: r.derivedPaid,
-            owed: r.derivedOwed,
-            pkg: r.selected_package
-          };
-        });
-      // 1. Age Demographics
+        .map(r => ({
+          name: r.name,
+          phone: r.phone,
+          isReferral: !!r.referral_code,
+          total: r.derivedTotal,
+          paid: r.derivedPaid,
+          owed: r.derivedOwed,
+          pkg: r.selected_package
+        }));
+
+      // Age Demographics
       const ages = data.map(r => r.age).filter(a => typeof a === 'number' && a > 0);
       const avgAge = ages.length > 0 ? Math.round(ages.reduce((s, a) => s + a, 0) / ages.length) : 0;
       
@@ -141,7 +208,7 @@ export default function MasterclassDashboard() {
         else ageGroups.senior++;
       });
 
-      // 2. Top Locations Breakdown
+      // Top Locations Breakdown
       const locMap: Record<string, { count: number; revenue: number }> = {};
       data.forEach(r => {
         let loc = (r.place || 'Unknown').trim();
@@ -161,7 +228,7 @@ export default function MasterclassDashboard() {
         .sort((a, b) => b.count - a.count)
         .slice(0, 5);
 
-      // 3. Payment Gap
+      // Payment Gap
       let totalGapMs = 0;
       let gapCount = 0;
       accAll.forEach(r => {
@@ -176,7 +243,7 @@ export default function MasterclassDashboard() {
       });
       const avgPaymentGapDays = gapCount > 0 ? parseFloat((totalGapMs / (1000 * 60 * 60 * 24) / gapCount).toFixed(1)) : 0;
 
-      // 4. Day of the Week Trend
+      // Day of Week Trend
       const weeklyTrend: Record<string, number> = {
         'Monday': 0, 'Tuesday': 0, 'Wednesday': 0, 'Thursday': 0, 'Friday': 0, 'Saturday': 0, 'Sunday': 0
       };
@@ -188,9 +255,68 @@ export default function MasterclassDashboard() {
         }
       });
 
-      // 5. Automated Data-driven Business Insights
+      // ── YEAR BREAKDOWN ──
+      const yearMap: Record<string, { total: number; accepted: number }> = {};
+      data.forEach(r => {
+        let yr = '2026';
+        if (r.createdAt) {
+          const dt = new Date(r.createdAt);
+          if (!isNaN(dt.getFullYear())) yr = String(dt.getFullYear());
+        } else if (r.preferred_schedule) {
+          const match = r.preferred_schedule.match(/20\d\d/);
+          if (match) yr = match[0];
+        }
+        if (!yearMap[yr]) yearMap[yr] = { total: 0, accepted: 0 };
+        yearMap[yr].total++;
+        if (r.status === 'accepted') yearMap[yr].accepted++;
+      });
+      const yearBreakdown: DateBreakdownStats[] = Object.entries(yearMap)
+        .map(([label, s]) => ({ label, total: s.total, accepted: s.accepted }))
+        .sort((a, b) => a.label.localeCompare(b.label));
+
+      // ── MONTH BREAKDOWN ──
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
+      const monthMap: Record<string, { total: number; accepted: number; sortOrder: number }> = {};
+      data.forEach(r => {
+        let label = 'Sept 2026';
+        let sortOrder = 202609;
+        if (r.createdAt) {
+          const dt = new Date(r.createdAt);
+          if (!isNaN(dt.getTime())) {
+            const m = monthNames[dt.getMonth()];
+            const y = dt.getFullYear();
+            label = `${m} ${y}`;
+            sortOrder = y * 100 + (dt.getMonth() + 1);
+          }
+        }
+        if (!monthMap[label]) monthMap[label] = { total: 0, accepted: 0, sortOrder };
+        monthMap[label].total++;
+        if (r.status === 'accepted') monthMap[label].accepted++;
+      });
+      const monthBreakdown: DateBreakdownStats[] = Object.entries(monthMap)
+        .sort((a, b) => a[1].sortOrder - b[1].sortOrder)
+        .map(([label, s]) => ({ label, total: s.total, accepted: s.accepted }));
+
+      // ── SCHEDULE OPTION / DATE & TIME BREAKDOWN ──
+      const schedMap: Record<string, { total: number; accepted: number }> = {};
+      data.forEach(r => {
+        const sched = (r.preferred_schedule || 'Unassigned / Not Specified').trim();
+        if (!schedMap[sched]) schedMap[sched] = { total: 0, accepted: 0 };
+        schedMap[sched].total++;
+        if (r.status === 'accepted') schedMap[sched].accepted++;
+      });
+      const totalStudents = data.length || 1;
+      const scheduleBreakdown: ScheduleStats[] = Object.entries(schedMap)
+        .map(([optionText, s]) => ({
+          optionText,
+          total: s.total,
+          accepted: s.accepted,
+          percentage: Math.round((s.total / totalStudents) * 100)
+        }))
+        .sort((a, b) => b.total - a.total);
+
+      // Automated Insights
       const insights: string[] = [];
-      
       let topPkg = '';
       let topPkgCount = 0;
       Object.entries(pkgs).forEach(([name, s]) => {
@@ -203,34 +329,24 @@ export default function MasterclassDashboard() {
         insights.push(`The <b>${topPkg}</b> is the most popular choice, representing ${Math.round((topPkgCount / (accDirect.length || 1)) * 100)}% of direct accepted reservations.`);
       }
 
+      if (scheduleBreakdown.length > 0) {
+        const topSched = scheduleBreakdown[0];
+        insights.push(`<b>${topSched.optionText}</b> is the most selected start schedule with <b>${topSched.total} students (${topSched.percentage}%)</b>.`);
+      }
+
       const totalAges = ageGroups.under18 + ageGroups.youngAdults + ageGroups.adults + ageGroups.senior;
       if (totalAges > 0) {
         const youthPct = Math.round(((ageGroups.youngAdults + ageGroups.under18) / totalAges) * 100);
         if (youthPct > 50) {
-          insights.push(`Younger demographics under 25 represent the majority (<b>${youthPct}%</b>) of the applicant pool, showing high interest from students & early professionals.`);
+          insights.push(`Younger demographics under 25 represent the majority (<b>${youthPct}%</b>) of the applicant pool.`);
         } else {
-          insights.push(`Mature professionals/adults (26+) represent the majority (<b>${100 - youthPct}%</b>) of candidates, indicating strong demand for professional upskilling.`);
+          insights.push(`Mature professionals/adults (26+) represent the majority (<b>${100 - youthPct}%</b>) of candidates.`);
         }
       }
 
       if (topLocations.length > 0) {
         const topLoc = topLocations[0];
         insights.push(`<b>${topLoc.name}</b> is the primary recruitment hub, contributing <b>${Math.round((topLoc.count / (data.length || 1)) * 100)}%</b> of all registrations.`);
-      }
-
-      if (avgPaymentGapDays > 0) {
-        if (avgPaymentGapDays <= 2) {
-          insights.push(`Payment collection is highly efficient, averaging <b>${avgPaymentGapDays} days</b> from registration to confirmed payment.`);
-        } else {
-          insights.push(`Registration-to-payment conversion takes an average of <b>${avgPaymentGapDays} days</b>, suggesting opportunity for follow-up reminders.`);
-        }
-      }
-
-      const males = data.filter(r => r.sex === 'male').length;
-      const females = data.filter(r => r.sex === 'female').length;
-      if (males + females > 0) {
-        const femalePct = Math.round((females / (males + females)) * 100);
-        insights.push(`Female participation stands at <b>${femalePct}%</b>, which can be monitored for diversity and targeted marketing campaigns.`);
       }
 
       setStats({
@@ -254,6 +370,9 @@ export default function MasterclassDashboard() {
         avgPaymentGapDays,
         weeklyTrend,
         insights,
+        yearBreakdown,
+        monthBreakdown,
+        scheduleBreakdown,
       });
     } catch (e: any) {
       setError(handleSupabaseError(e, 'load').message);
@@ -261,7 +380,7 @@ export default function MasterclassDashboard() {
   };
 
   if (authorized === null || (authorized && loading)) return (
-    <AdminLayout title="Masterclass Analytics">
+    <AdminLayout title="Masterclass Analytics & Schedule OS">
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
       </div>
@@ -288,13 +407,26 @@ export default function MasterclassDashboard() {
   const acceptRate = stats.total > 0 ? Math.round((stats.accepted / stats.total) * 100) : 0;
 
   return (
-    <AdminLayout title="Masterclass Analytics">
+    <AdminLayout title="Masterclass Analytics & Schedule Manager">
       <div className="space-y-8 pb-10">
-        {error && <NetworkErrorBanner message={error} onRetry={() => { setError(null); load(); }} />}
+        {error && <NetworkErrorBanner message={error} onRetry={() => { setError(null); load(); loadSchedules(); }} />}
 
         {/* ── Section 1: Registration Overview ── */}
         <section>
-          <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Registration Overview</h2>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+            <div>
+              <h2 className="text-xs font-black uppercase tracking-widest text-slate-400">Registration Intelligence</h2>
+              <p className="text-xl font-black text-slate-900">Enrollment &amp; Schedule Dashboard</p>
+            </div>
+            <button 
+              onClick={() => setShowScheduleModal(true)} 
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-900 px-5 py-3 rounded-2xl font-black text-xs shadow-lg shadow-amber-500/20 transition-all duration-300 transform hover:-translate-y-0.5"
+            >
+              <FaPlus size={12} />
+              <span>Add Schedule Option</span>
+            </button>
+          </div>
+
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               { icon: FaUsers, label: 'Total Registered', value: stats.total, sub: '100% of registrations', color: 'from-indigo-500 to-purple-600', glow: 'shadow-indigo-100' },
@@ -311,6 +443,194 @@ export default function MasterclassDashboard() {
                 <p className="text-[10px] font-medium text-slate-400 mt-1">{sub}</p>
               </div>
             ))}
+          </div>
+        </section>
+
+        {/* ── MANAGER CONTROL UI: MASTERCLASS SCHEDULE OPTIONS CONTROLLER ── */}
+        <section className="bg-gradient-to-br from-slate-900 via-[#1C2951] to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-2xl relative overflow-hidden border border-slate-800">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+          
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-6 mb-6">
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[10px] font-black uppercase tracking-wider">
+                <FaCalendarAlt /> Masterclass Manager Control
+              </div>
+              <h3 className="text-2xl font-black tracking-tight text-white">Active Start Date &amp; Time Options</h3>
+              <p className="text-xs text-slate-300 font-medium">Control which dates and session times appear in Question 6 on the registration form.</p>
+            </div>
+            <button
+              onClick={() => setShowScheduleModal(true)}
+              className="px-5 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition-all shadow-lg flex items-center gap-2 self-start md:self-auto"
+            >
+              <FaPlus /> Create New Session Option
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {schedules.map((sched) => {
+              const countForSched = stats.scheduleBreakdown.find(s => s.optionText === sched.val)?.total || 0;
+              return (
+                <div 
+                  key={sched.id} 
+                  className={`p-5 rounded-2xl border transition-all duration-300 flex flex-col justify-between gap-4 ${
+                    sched.is_active 
+                      ? 'bg-white/10 border-white/15 hover:border-amber-500/50' 
+                      : 'bg-white/5 border-white/5 opacity-60'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className={`w-2.5 h-2.5 rounded-full ${sched.is_active ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`} />
+                        <h4 className="text-sm font-extrabold text-white">{sched.label}</h4>
+                      </div>
+                      <p className="text-xs text-amber-300/90 font-semibold">{sched.time}</p>
+                      {sched.date && <p className="text-[10px] text-slate-400 font-mono">Date tag: {sched.date}</p>}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleSchedule(sched.id)}
+                        title={sched.is_active ? 'Disable Schedule' : 'Enable Schedule'}
+                        className={`p-2 rounded-xl text-lg transition-all ${
+                          sched.is_active 
+                            ? 'text-emerald-400 bg-emerald-500/20 hover:bg-emerald-500/30' 
+                            : 'text-slate-400 bg-white/5 hover:bg-white/10'
+                        }`}
+                      >
+                        {sched.is_active ? <FaToggleOn size={22} /> : <FaToggleOff size={22} />}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteSchedule(sched.id)}
+                        title="Remove Option"
+                        className="p-2 rounded-xl text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 transition-all text-xs"
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-3 border-t border-white/10 text-[11px] text-slate-300">
+                    <span className="font-semibold">Enrolled Students:</span>
+                    <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-black border border-amber-500/30">
+                      {countForSched} Student{countForSched !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* ── SECTION: STUDENTS NUMBER BREAKDOWN BY YEAR, MONTH, AND DATE/TIME ── */}
+        <section className="space-y-6">
+          <div className="border-b border-slate-200 pb-3">
+            <h2 className="text-xs font-black uppercase tracking-widest text-slate-400">Student Enrollment Analytics</h2>
+            <h3 className="text-xl font-black text-slate-900">Student Breakdown by Year, Month &amp; Choice Schedule</h3>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* 1. Students Count Per Year */}
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-xl p-6 space-y-6">
+              <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
+                  <FaCalendarCheck size={18} />
+                </div>
+                <div>
+                  <h4 className="font-black text-slate-800 text-sm">Students Per Year</h4>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Annual Enrolment Volume</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {stats.yearBreakdown.map((yr) => {
+                  const pct = Math.round((yr.total / (stats.total || 1)) * 100);
+                  return (
+                    <div key={yr.label} className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
+                      <div className="flex items-center justify-between text-xs font-black text-slate-800">
+                        <span className="text-base font-black text-indigo-950">Year {yr.label}</span>
+                        <span className="px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs font-black">
+                          {yr.total} Students
+                        </span>
+                      </div>
+                      <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-amber-500 to-indigo-600 rounded-full" style={{ width: `${pct}%` }} />
+                      </div>
+                      <div className="flex justify-between text-[10px] text-slate-400 font-bold">
+                        <span>Accepted: {yr.accepted}</span>
+                        <span>{pct}% of Total</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 2. Students Count Per Month */}
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-xl p-6 space-y-6">
+              <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                  <FaRegCalendarAlt size={18} />
+                </div>
+                <div>
+                  <h4 className="font-black text-slate-800 text-sm">Students Per Month</h4>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Monthly Registration Flow</p>
+                </div>
+              </div>
+
+              <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1">
+                {stats.monthBreakdown.map((m) => {
+                  const pct = Math.round((m.total / (stats.total || 1)) * 100);
+                  return (
+                    <div key={m.label} className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-slate-100 hover:border-slate-200 transition-all">
+                      <div>
+                        <p className="text-xs font-black text-slate-800">{m.label}</p>
+                        <p className="text-[10px] text-slate-400 font-medium">{m.accepted} Accepted</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-sm font-black text-slate-900">{m.total} Students</span>
+                        <p className="text-[9px] font-extrabold text-emerald-600 uppercase tracking-wider">{pct}% Share</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 3. Students Count Per Selected Date & Time Choice */}
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-xl p-6 space-y-6">
+              <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
+                <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
+                  <FaLayerGroup size={18} />
+                </div>
+                <div>
+                  <h4 className="font-black text-slate-800 text-sm">Students Per Schedule Choice</h4>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Date &amp; Time Preference</p>
+                </div>
+              </div>
+
+              <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1">
+                {stats.scheduleBreakdown.map((item, idx) => (
+                  <div key={idx} className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-xs font-bold text-slate-800 leading-snug">{item.optionText}</p>
+                      <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-[11px] font-black flex-shrink-0">
+                        {item.total}
+                      </span>
+                    </div>
+                    <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                      <div className="h-full bg-purple-600 rounded-full" style={{ width: `${item.percentage}%` }} />
+                    </div>
+                    <div className="flex justify-between text-[9px] font-bold text-slate-400">
+                      <span>{item.accepted} Accepted</span>
+                      <span>{item.percentage}% of Applicants</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
 
@@ -361,7 +681,7 @@ export default function MasterclassDashboard() {
           </div>
         </section>
 
-        {/* ── Section 3: Revenue by Package (Direct) ── */}
+        {/* ── Section 3: Revenue by Package ── */}
         {Object.keys(stats.packages).length > 0 && (
           <section>
             <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Price List — Direct Accepted Students</h2>
@@ -386,7 +706,6 @@ export default function MasterclassDashboard() {
                       <td className="px-6 py-4 text-sm font-black text-rose-500">{fmt(d.possible - d.collected)}</td>
                     </tr>
                   ))}
-                  {/* Referral row */}
                   <tr className="hover:bg-slate-50 transition-colors bg-violet-50/40">
                     <td className="px-6 py-4">
                       <span className="px-3 py-1 rounded-full bg-violet-100 border border-violet-200 text-violet-700 text-xs font-black">Referral (Fixed {fmt(REFERRAL_PRICE)}/student)</span>
@@ -430,76 +749,7 @@ export default function MasterclassDashboard() {
           </div>
         </section>
 
-        {/* ── Section 5: Payment Status Breakdown ── */}
-        <section>
-          <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Payment Status — Accepted Students</h2>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="bg-white rounded-2xl border border-emerald-100 shadow-xl p-5 text-center">
-              <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-3"><FaCheckCircle /></div>
-              <p className="text-2xl font-black text-emerald-700">{stats.fullPaid}</p>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Fully Paid</p>
-            </div>
-            <div className="bg-white rounded-2xl border border-amber-100 shadow-xl p-5 text-center">
-              <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-3"><FaMoneyBillWave /></div>
-              <p className="text-2xl font-black text-amber-700">{stats.partialPaid}</p>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Half Paid</p>
-            </div>
-            <div className="bg-white rounded-2xl border border-rose-100 shadow-xl p-5 text-center">
-              <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-3"><FaTimesCircle /></div>
-              <p className="text-2xl font-black text-rose-700">{stats.unpaid}</p>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Unpaid</p>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Section 6: Half-paid students detail ── */}
-        {stats.partialStudents.length > 0 && (
-          <section>
-            <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Students With Half Payment ({stats.partialStudents.length})</h2>
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-slate-50 border-b border-slate-100">
-                  <tr>
-                    {['Student', 'Type', 'Package', 'Total', 'Paid', 'Still Owed'].map(h => (
-                      <th key={h} className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                  {stats.partialStudents.map((s, i) => (
-                    <tr key={i} className="hover:bg-amber-50/20 transition-colors">
-                      <td className="px-6 py-4">
-                        <p className="text-sm font-bold text-slate-800">{s.name}</p>
-                        <p className="text-xs text-slate-400">{s.phone}</p>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase border ${s.isReferral ? 'bg-violet-50 text-violet-700 border-violet-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}>
-                          {s.isReferral ? 'Referral' : 'Direct'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-xs text-slate-500">{s.pkg || (s.isReferral ? 'Referral (Fixed)' : '—')}</td>
-                      <td className="px-6 py-4 text-sm font-black text-slate-700">{fmt(s.total)}</td>
-                      <td className="px-6 py-4 text-sm font-black text-emerald-600">{fmt(s.paid)}</td>
-                      <td className="px-6 py-4">
-                        <span className="px-3 py-1 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-black rounded-xl">{fmt(s.owed)}</span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot className="bg-slate-50 border-t-2 border-slate-200">
-                  <tr>
-                    <td colSpan={3} className="px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-widest">Totals</td>
-                    <td className="px-6 py-4 text-sm font-black text-slate-800">{fmt(stats.partialStudents.reduce((s, r) => s + r.total, 0))}</td>
-                    <td className="px-6 py-4 text-sm font-black text-emerald-600">{fmt(stats.partialStudents.reduce((s, r) => s + r.paid, 0))}</td>
-                    <td className="px-6 py-4 text-sm font-black text-rose-600">{fmt(stats.partialStudents.reduce((s, r) => s + r.owed, 0))}</td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          </section>
-        )}
-
-        {/* ── Section 7: Lead Intelligence & Demographics Analysis ── */}
+        {/* ── Section 5: Lead Intelligence & Demographics Analysis ── */}
         <section>
           <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Lead Intelligence & Analytics</h2>
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -571,13 +821,10 @@ export default function MasterclassDashboard() {
                     </div>
                   );
                 })}
-                {stats.topLocations.length === 0 && (
-                  <p className="text-xs text-slate-400 text-center py-4">No location data registered.</p>
-                )}
               </div>
             </div>
 
-            {/* Executive Observations */}
+            {/* Executive Insights */}
             <div className="bg-white rounded-3xl border border-slate-100 shadow-xl p-6 space-y-6">
               <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
                 <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600">
@@ -596,15 +843,12 @@ export default function MasterclassDashboard() {
                     <p dangerouslySetInnerHTML={{ __html: insight }} />
                   </div>
                 ))}
-                {stats.insights.length === 0 && (
-                  <p className="text-xs text-slate-400 text-center py-4">Sufficient metrics needed to generate insights.</p>
-                )}
               </div>
             </div>
           </div>
         </section>
 
-        {/* ── CTA ── */}
+        {/* ── CTA NAV ── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Link to="/admin/masterclass-reservations" className="group flex items-center justify-between bg-slate-900 hover:bg-slate-800 transition-all rounded-2xl p-5 text-white shadow-xl">
             <div>
@@ -623,6 +867,78 @@ export default function MasterclassDashboard() {
         </div>
 
       </div>
+
+      {/* ── MODAL FOR MASTERCLASS MANAGER TO ADD A NEW START DATE & TIME OPTION ── */}
+      {showScheduleModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-fadeIn">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-100 space-y-6">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div>
+                <h3 className="text-xl font-black text-slate-900">Add Masterclass Schedule Option</h3>
+                <p className="text-xs text-slate-400 font-medium">Create a new start date and time choice for registering students.</p>
+              </div>
+              <button 
+                onClick={() => setShowScheduleModal(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center font-black text-sm"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleAddSchedule} className="space-y-4">
+              <div>
+                <label className="block text-xs font-black text-slate-700 mb-1 uppercase tracking-wider">Option Label / Date Title</label>
+                <input 
+                  type="text"
+                  required
+                  placeholder="e.g. Option 5: Nov 10, 2026"
+                  value={newLabel}
+                  onChange={(e) => setNewLabel(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-sm font-semibold text-slate-800 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-black text-slate-700 mb-1 uppercase tracking-wider">Session Time Details</label>
+                <input 
+                  type="text"
+                  required
+                  placeholder="e.g. Evening Session (6:00 PM - 9:00 PM)"
+                  value={newTime}
+                  onChange={(e) => setNewTime(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-sm font-semibold text-slate-800 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-black text-slate-700 mb-1 uppercase tracking-wider">Date Tag (Optional YYYY-MM-DD)</label>
+                <input 
+                  type="date"
+                  value={newDate}
+                  onChange={(e) => setNewDate(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-sm font-semibold text-slate-800 outline-none"
+                />
+              </div>
+
+              <div className="pt-4 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowScheduleModal(false)}
+                  className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-extrabold text-xs hover:bg-slate-50 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md transition-all"
+                >
+                  Save &amp; Activate Schedule
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 }
