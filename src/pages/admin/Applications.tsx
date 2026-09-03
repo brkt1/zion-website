@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
-import { FaBriefcase, FaCalendarAlt, FaCheck, FaClock, FaEnvelope, FaEye, FaHandsHelping, FaInfoCircle, FaPhone, FaSpinner, FaTimes, FaTrash, FaUser, FaUserCircle } from 'react-icons/fa';
+import {
+  FaBriefcase, FaCalendarAlt, FaCheck, FaClock, FaEnvelope,
+  FaEye, FaHandsHelping, FaInfoCircle, FaPhone, FaSearch,
+  FaSpinner, FaTimes, FaTrash, FaUser, FaUserCircle
+} from 'react-icons/fa';
 import AdminLayout from '../../Components/admin/AdminLayout';
+import { NetworkErrorBanner } from '../../Components/ui/NetworkStatus';
 import { adminApi } from '../../services/adminApi';
 import { handleSupabaseError } from '../../services/supabase';
 import { Application } from '../../types';
-import { NetworkErrorBanner } from '../../Components/ui/NetworkStatus';
-
 
 const Applications = () => {
   const [applications, setApplications] = useState<Application[]>([]);
@@ -13,8 +16,9 @@ const Applications = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [filter, setFilter] = useState<'all' | 'internship' | 'volunteer'>('all');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'internship' | 'volunteer'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'reviewed' | 'accepted' | 'rejected'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [statusNotes, setStatusNotes] = useState('');
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
@@ -29,20 +33,16 @@ const Applications = () => {
       setError(null);
       const data = await adminApi.applications.getAll();
       setApplications(data || []);
-    } catch (error: any) {
-      const handled = handleSupabaseError(error, 'loadApplications');
+    } catch (err: any) {
+      const handled = handleSupabaseError(err, 'loadApplications');
       setError(handled.message);
     } finally {
-
       setLoading(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this application?')) {
-      return;
-    }
-
+    if (!window.confirm('Are you sure you want to delete this application?')) return;
     try {
       await adminApi.applications.delete(id);
       setApplications(applications.filter(app => app.id !== id));
@@ -50,33 +50,25 @@ const Applications = () => {
         setShowModal(false);
         setSelectedApplication(null);
       }
-    } catch (error) {
-      console.error('Error deleting application:', error);
+    } catch (err) {
+      console.error('Error deleting application:', err);
       alert('Failed to delete application. Please try again.');
     }
   };
 
   const handleStatusUpdate = async (newStatus: 'pending' | 'reviewed' | 'accepted' | 'rejected') => {
     if (!selectedApplication) return;
-
     setUpdatingStatus(true);
     try {
       const updated = await adminApi.applications.update(selectedApplication.id, {
         status: newStatus,
         notes: statusNotes || undefined,
       });
-      
-      // Update the application in the list
-      setApplications(applications.map(app => 
-        app.id === selectedApplication.id ? updated : app
-      ));
-      
-      // Update the selected application
+      setApplications(applications.map(app => app.id === selectedApplication.id ? updated : app));
       setSelectedApplication(updated);
-      
       alert(`Status updated to ${newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}`);
-    } catch (error) {
-      console.error('Error updating status:', error);
+    } catch (err) {
+      console.error('Error updating status:', err);
       alert('Failed to update status. Please try again.');
     } finally {
       setUpdatingStatus(false);
@@ -84,30 +76,15 @@ const Applications = () => {
   };
 
   const handleQuickStatusUpdate = async (id: string, newStatus: 'accepted' | 'rejected') => {
-    if (!window.confirm(`Are you sure you want to ${newStatus === 'accepted' ? 'accept' : 'reject'} this application?`)) {
-      return;
-    }
-
+    if (!window.confirm(`Are you sure you want to ${newStatus === 'accepted' ? 'accept' : 'reject'} this candidate?`)) return;
     setUpdatingIds(prev => new Set(prev).add(id));
     try {
-      const updated = await adminApi.applications.update(id, {
-        status: newStatus,
-      });
-      
-      // Update the application in the list
-      setApplications(applications.map(app => 
-        app.id === id ? updated : app
-      ));
-      
-      // Update selected application if it's the one being updated
-      if (selectedApplication?.id === id) {
-        setSelectedApplication(updated);
-      }
-      
-      alert(`Application ${newStatus === 'accepted' ? 'accepted' : 'rejected'} successfully!`);
-    } catch (error) {
-      console.error('Error updating status:', error);
-      alert('Failed to update status. Please try again.');
+      const updated = await adminApi.applications.update(id, { status: newStatus });
+      setApplications(applications.map(app => app.id === id ? updated : app));
+      if (selectedApplication?.id === id) setSelectedApplication(updated);
+    } catch (err) {
+      console.error('Error updating status:', err);
+      alert('Failed to update status.');
     } finally {
       setUpdatingIds(prev => {
         const next = new Set(prev);
@@ -123,41 +100,42 @@ const Applications = () => {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
       });
     } catch {
       return dateString;
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case 'accepted':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-emerald-500/15 text-emerald-700 border-emerald-300';
       case 'rejected':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'bg-rose-500/15 text-rose-700 border-rose-300';
       case 'reviewed':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+        return 'bg-blue-500/15 text-blue-700 border-blue-300';
       default:
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return 'bg-amber-500/15 text-amber-800 border-amber-300';
     }
   };
 
-
   const filteredApplications = applications.filter(app => {
-    const typeMatch = filter === 'all' || app.type === filter;
-    const statusMatch = statusFilter === 'all' || app.status === statusFilter;
-    return typeMatch && statusMatch;
+    const matchesType = typeFilter === 'all' || app.type === typeFilter;
+    const matchesStatus = statusFilter === 'all' || app.status === statusFilter;
+    const matchesSearch = searchQuery === '' ||
+      app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      app.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (app.position && app.position.toLowerCase().includes(searchQuery.toLowerCase()));
+    return matchesType && matchesStatus && matchesSearch;
   });
 
   if (loading) {
     return (
-      <AdminLayout>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <FaSpinner className="animate-spin text-4xl text-blue-600 mx-auto mb-4" />
-            <p className="text-gray-600">Loading applications...</p>
+      <AdminLayout title="Job & Volunteer Applications">
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center p-8 bg-white rounded-3xl shadow-xl border border-slate-100">
+            <FaSpinner className="animate-spin text-4xl text-[#1C2951] mx-auto mb-3" />
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Loading Applications...</p>
           </div>
         </div>
       </AdminLayout>
@@ -165,175 +143,178 @@ const Applications = () => {
   }
 
   return (
-    <AdminLayout>
-      <div className="p-6">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Applications</h1>
-          <p className="text-gray-600">Manage internship and volunteer applications</p>
+    <AdminLayout title="Applications Management">
+      <div className="space-y-6">
+
+        {/* Brand Banner */}
+        <div className="bg-gradient-to-r from-[#1C2951] via-[#2b3a67] to-[#1C2951] rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
+          <div className="absolute right-0 top-0 w-80 h-80 bg-[#FFD447]/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-[#FFD447] text-[10px] font-black uppercase tracking-wider mb-2">
+                <FaBriefcase /> Candidate Talent Management
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
+                Internship &amp; <span className="text-[#FFD447]">Volunteer</span> Submissions
+              </h2>
+              <p className="text-xs text-slate-300 font-medium mt-1">Review candidate qualifications, schedule interviews, and update team statuses.</p>
+            </div>
+            <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/15 self-start md:self-auto">
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-xs font-black text-white">{applications.length} Total Applicants</span>
+            </div>
+          </div>
         </div>
 
-        {error && (
-          <NetworkErrorBanner 
-            message={error} 
-            onRetry={loadApplications} 
-          />
-        )}
+        {error && <NetworkErrorBanner message={error} onRetry={loadApplications} />}
 
+        {/* Filter Controls Bar */}
+        <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
-        {!error && !loading && applications.length === 0 && (
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-blue-800">No applications found. Applications will appear here once submitted.</p>
-          </div>
-        )}
+            {/* Search */}
+            <div className="sm:col-span-2">
+              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5 ml-1">Search Candidate</label>
+              <div className="relative">
+                <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={13} />
+                <input
+                  type="text"
+                  placeholder="Search by name, email, position..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#FFD447]/50 focus:bg-white transition-all"
+                />
+              </div>
+            </div>
 
-        {/* Filters */}
-        <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Type */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5 ml-1">Type</label>
               <select
-                value={filter}
-                onChange={(e) => setFilter(e.target.value as 'all' | 'internship' | 'volunteer')}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value as any)}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#FFD447]/50 transition-all"
               >
                 <option value="all">All Types</option>
                 <option value="internship">Internship</option>
                 <option value="volunteer">Volunteer</option>
               </select>
             </div>
+
+            {/* Status */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5 ml-1">Status</label>
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as 'all' | 'pending' | 'reviewed' | 'accepted' | 'rejected')}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onChange={(e) => setStatusFilter(e.target.value as any)}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#FFD447]/50 transition-all"
               >
                 <option value="all">All Statuses</option>
-                <option value="pending">Pending</option>
+                <option value="pending">Pending Review</option>
                 <option value="reviewed">Reviewed</option>
                 <option value="accepted">Accepted</option>
                 <option value="rejected">Rejected</option>
               </select>
             </div>
+
           </div>
         </div>
 
-        {/* Applications List */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        {/* Applications List Grid / Table */}
+        <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
           {filteredApplications.length === 0 ? (
-            <div className="p-12 text-center">
-              <FaBriefcase className="text-6xl text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-600 text-lg">No applications found</p>
+            <div className="p-16 text-center">
+              <FaBriefcase className="text-5xl text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-600 font-bold text-sm">No applications matching current filters.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/80 border-b border-slate-100">
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Candidate</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Type / Track</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Contact Info</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Applied Date</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredApplications.map((application) => (
-                    <tr key={application.id} className="hover:bg-gray-50">
+                <tbody className="divide-y divide-slate-100">
+                  {filteredApplications.map((app) => (
+                    <tr key={app.id} className="hover:bg-slate-50/70 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold">
-                            {application.name.charAt(0).toUpperCase()}
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#1C2951] to-slate-800 text-white font-black text-sm flex items-center justify-center shadow-md flex-shrink-0">
+                            {app.name.charAt(0).toUpperCase()}
                           </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">{application.name}</div>
-                            {application.position && (
-                              <div className="text-sm text-gray-500">{application.position}</div>
-                            )}
+                          <div>
+                            <p className="text-sm font-black text-slate-900">{app.name}</p>
+                            {app.position && <p className="text-xs text-slate-500 font-medium">{app.position}</p>}
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          {application.type === 'internship' ? (
-                            <FaBriefcase className="text-blue-600 mr-2" />
-                          ) : (
-                            <FaHandsHelping className="text-green-600 mr-2" />
-                          )}
-                          <span className="text-sm text-gray-900 capitalize">{application.type}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center text-sm text-gray-900">
-                          <FaEnvelope className="mr-2 text-gray-400" />
-                          {application.email}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center text-sm text-gray-900">
-                          <FaPhone className="mr-2 text-gray-400" />
-                          {application.phone}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border ${getStatusColor(application.status)}`}>
-                          {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-extrabold capitalize ${
+                          app.type === 'internship' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                        }`}>
+                          {app.type === 'internship' ? <FaBriefcase size={11} /> : <FaHandsHelping size={11} />}
+                          {app.type}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <div className="flex items-center">
-                          <FaCalendarAlt className="mr-2 text-gray-400" />
-                          {formatDate(application.created_at)}
-                        </div>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <p className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                          <FaEnvelope className="text-slate-400" size={11} /> {app.email}
+                        </p>
+                        {app.phone && (
+                          <p className="text-xs text-slate-500 font-medium flex items-center gap-1.5 mt-0.5">
+                            <FaPhone className="text-slate-400" size={11} /> {app.phone}
+                          </p>
+                        )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex items-center space-x-2">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider border ${getStatusBadge(app.status)}`}>
+                          {app.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-xs font-medium text-slate-500">
+                        {formatDate(app.created_at)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <div className="flex items-center justify-end gap-2">
                           <button
-                            onClick={async () => {
-                              setSelectedApplication(application);
-                              setShowModal(true);
-                            }}
-                            className="text-blue-600 hover:text-blue-900"
-                            title="View full details"
+                            onClick={() => { setSelectedApplication(app); setShowModal(true); setStatusNotes(app.notes || ''); }}
+                            className="p-2 rounded-xl bg-slate-100 hover:bg-[#1C2951] text-slate-600 hover:text-white transition-all shadow-sm"
+                            title="View Full Details"
                           >
-                            <FaEye className="inline" />
+                            <FaEye size={13} />
                           </button>
-                          {application.status !== 'accepted' && (
+                          {app.status !== 'accepted' && (
                             <button
-                              onClick={() => handleQuickStatusUpdate(application.id, 'accepted')}
-                              disabled={updatingIds.has(application.id)}
-                              className="text-green-600 hover:text-green-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                              title="Accept application"
+                              onClick={() => handleQuickStatusUpdate(app.id, 'accepted')}
+                              disabled={updatingIds.has(app.id)}
+                              className="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white transition-all shadow-sm disabled:opacity-50"
+                              title="Accept Candidate"
                             >
-                              {updatingIds.has(application.id) ? (
-                                <FaSpinner className="animate-spin" />
-                              ) : (
-                                <FaCheck />
-                              )}
+                              {updatingIds.has(app.id) ? <FaSpinner className="animate-spin" size={13} /> : <FaCheck size={13} />}
                             </button>
                           )}
-                          {application.status !== 'rejected' && (
+                          {app.status !== 'rejected' && (
                             <button
-                              onClick={() => handleQuickStatusUpdate(application.id, 'rejected')}
-                              disabled={updatingIds.has(application.id)}
-                              className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                              title="Reject application"
+                              onClick={() => handleQuickStatusUpdate(app.id, 'rejected')}
+                              disabled={updatingIds.has(app.id)}
+                              className="p-2 rounded-xl bg-rose-50 hover:bg-rose-500 text-rose-600 hover:text-white transition-all shadow-sm disabled:opacity-50"
+                              title="Reject Candidate"
                             >
-                              {updatingIds.has(application.id) ? (
-                                <FaSpinner className="animate-spin" />
-                              ) : (
-                                <FaTimes />
-                              )}
+                              {updatingIds.has(app.id) ? <FaSpinner className="animate-spin" size={13} /> : <FaTimes size={13} />}
                             </button>
                           )}
                           <button
-                            onClick={() => handleDelete(application.id)}
-                            className="text-red-600 hover:text-red-900"
-                            title="Delete application"
+                            onClick={() => handleDelete(app.id)}
+                            className="p-2 rounded-xl bg-slate-100 hover:bg-rose-600 text-slate-400 hover:text-white transition-all shadow-sm"
+                            title="Delete"
                           >
-                            <FaTrash />
+                            <FaTrash size={13} />
                           </button>
                         </div>
                       </td>
@@ -345,216 +326,111 @@ const Applications = () => {
           )}
         </div>
 
-        {/* Application Details Modal */}
+        {/* Modern Details Modal */}
         {showModal && selectedApplication && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold text-gray-900">Application Details</h2>
-                  <button
-                    onClick={() => {
-                      setShowModal(false);
-                      setSelectedApplication(null);
-                      setStatusNotes('');
-                    }}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    ✕
-                  </button>
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-[2rem] max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative">
+              <div className="sticky top-0 bg-white/90 backdrop-blur-md border-b border-slate-100 p-6 flex items-center justify-between z-10">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#1C2951] to-slate-800 text-white font-black text-lg flex items-center justify-center shadow-lg">
+                    {selectedApplication.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black text-slate-900">{selectedApplication.name}</h3>
+                    <p className="text-xs font-extrabold text-amber-600 uppercase tracking-widest">
+                      {selectedApplication.type} Application
+                    </p>
+                  </div>
                 </div>
+                <button
+                  onClick={() => { setShowModal(false); setSelectedApplication(null); setStatusNotes(''); }}
+                  className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-all"
+                >
+                  ✕
+                </button>
               </div>
+
               <div className="p-6 space-y-6">
-                {/* Personal Information Section */}
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <FaUserCircle className="mr-2 text-blue-600" />
-                    Personal Information
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-white rounded-lg p-4 border border-gray-200">
-                      <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Full Name</label>
-                      <div className="flex items-center text-gray-900 font-medium">
-                        <FaUser className="mr-2 text-gray-400" />
-                        {selectedApplication.name}
-                      </div>
-                    </div>
-                    <div className="bg-white rounded-lg p-4 border border-gray-200">
-                      <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Application Type</label>
-                      <div className="flex items-center text-gray-900 font-medium">
-                        {selectedApplication.type === 'internship' ? (
-                          <>
-                            <FaBriefcase className="mr-2 text-blue-600" />
-                            <span className="capitalize">Internship</span>
-                          </>
-                        ) : (
-                          <>
-                            <FaHandsHelping className="mr-2 text-green-600" />
-                            <span className="capitalize">Volunteer</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    <div className="bg-white rounded-lg p-4 border border-gray-200">
-                      <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Email Address</label>
-                      <div className="flex items-center text-gray-900 font-medium break-all">
-                        <FaEnvelope className="mr-2 text-gray-400 flex-shrink-0" />
-                        <span className="break-all">{selectedApplication.email}</span>
-                      </div>
-                    </div>
-                    <div className="bg-white rounded-lg p-4 border border-gray-200">
-                      <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Phone Number</label>
-                      <div className="flex items-center text-gray-900 font-medium">
-                        <FaPhone className="mr-2 text-gray-400" />
-                        {selectedApplication.phone || 'N/A'}
-                      </div>
-                    </div>
-                    {selectedApplication.position && (
-                      <div className="bg-white rounded-lg p-4 border border-gray-200">
-                        <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Position/Interest</label>
-                        <p className="text-gray-900 font-medium">{selectedApplication.position}</p>
-                      </div>
-                    )}
-                    {selectedApplication.availability && (
-                      <div className="bg-white rounded-lg p-4 border border-gray-200">
-                        <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Availability</label>
-                        <p className="text-gray-900 font-medium">{selectedApplication.availability}</p>
-                      </div>
-                    )}
+
+                {/* Candidate Info Card */}
+                <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Email Address</p>
+                    <p className="text-sm font-black text-slate-800 break-all">{selectedApplication.email}</p>
                   </div>
-                </div>
-
-                {/* Application Status & Dates Section */}
-                <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <FaInfoCircle className="mr-2 text-gray-600" />
-                    Application Status & Timeline
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-white rounded-lg p-4 border border-gray-200">
-                      <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Current Status</label>
-                      <span className={`px-3 py-1 inline-flex text-sm font-semibold rounded-full border mt-1 ${getStatusColor(selectedApplication.status)}`}>
-                        {selectedApplication.status.charAt(0).toUpperCase() + selectedApplication.status.slice(1)}
-                      </span>
-                    </div>
-                    <div className="bg-white rounded-lg p-4 border border-gray-200">
-                      <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Date Applied</label>
-                      <div className="flex items-center text-gray-900 font-medium">
-                        <FaCalendarAlt className="mr-2 text-gray-400" />
-                        {formatDate(selectedApplication.created_at)}
-                      </div>
-                    </div>
-                    <div className="bg-white rounded-lg p-4 border border-gray-200">
-                      <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Last Updated</label>
-                      <div className="flex items-center text-gray-900 font-medium">
-                        <FaClock className="mr-2 text-gray-400" />
-                        {formatDate(selectedApplication.updated_at || selectedApplication.created_at)}
-                      </div>
-                    </div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Phone Contact</p>
+                    <p className="text-sm font-black text-slate-800">{selectedApplication.phone || 'N/A'}</p>
                   </div>
-                </div>
-
-
-                {/* Application Details Section */}
-                <div className="bg-indigo-50 rounded-lg p-6 border border-indigo-200">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <FaBriefcase className="mr-2 text-indigo-600" />
-                    Application Details
-                  </h3>
-                  <div className="space-y-4">
-                    {selectedApplication.experience && (
-                      <div className="bg-white rounded-lg p-4 border border-gray-200">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Experience & Background</label>
-                        <p className="text-gray-900 whitespace-pre-wrap leading-relaxed">{selectedApplication.experience}</p>
-                      </div>
-                    )}
-                    <div className="bg-white rounded-lg p-4 border border-gray-200">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Motivation & Interest</label>
-                      <p className="text-gray-900 whitespace-pre-wrap leading-relaxed">{selectedApplication.motivation}</p>
-                    </div>
-                    {selectedApplication.notes && (
-                      <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Admin Notes</label>
-                        <p className="text-gray-900 whitespace-pre-wrap leading-relaxed">{selectedApplication.notes}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                
-                {/* Status Update Section */}
-                <div className="border-t border-gray-200 pt-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Update Status</h3>
-                  <div className="space-y-4">
+                  {selectedApplication.position && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">New Status</label>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                        <button
-                          onClick={() => handleStatusUpdate('pending')}
-                          disabled={updatingStatus || selectedApplication.status === 'pending'}
-                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                            selectedApplication.status === 'pending'
-                              ? 'bg-yellow-100 text-yellow-800 border-2 border-yellow-300'
-                              : 'bg-yellow-50 text-yellow-700 border border-yellow-200 hover:bg-yellow-100'
-                          } disabled:opacity-50 disabled:cursor-not-allowed`}
-                        >
-                          Pending
-                        </button>
-                        <button
-                          onClick={() => handleStatusUpdate('reviewed')}
-                          disabled={updatingStatus || selectedApplication.status === 'reviewed'}
-                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                            selectedApplication.status === 'reviewed'
-                              ? 'bg-blue-100 text-blue-800 border-2 border-blue-300'
-                              : 'bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100'
-                          } disabled:opacity-50 disabled:cursor-not-allowed`}
-                        >
-                          Reviewed
-                        </button>
-                        <button
-                          onClick={() => handleStatusUpdate('accepted')}
-                          disabled={updatingStatus || selectedApplication.status === 'accepted'}
-                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                            selectedApplication.status === 'accepted'
-                              ? 'bg-green-100 text-green-800 border-2 border-green-300'
-                              : 'bg-green-50 text-green-700 border border-green-200 hover:bg-green-100'
-                          } disabled:opacity-50 disabled:cursor-not-allowed`}
-                        >
-                          Accept
-                        </button>
-                        <button
-                          onClick={() => handleStatusUpdate('rejected')}
-                          disabled={updatingStatus || selectedApplication.status === 'rejected'}
-                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                            selectedApplication.status === 'rejected'
-                              ? 'bg-red-100 text-red-800 border-2 border-red-300'
-                              : 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100'
-                          } disabled:opacity-50 disabled:cursor-not-allowed`}
-                        >
-                          Reject
-                        </button>
-                      </div>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Target Role / Interest</p>
+                      <p className="text-sm font-black text-slate-800">{selectedApplication.position}</p>
                     </div>
+                  )}
+                  {selectedApplication.availability && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Notes (Optional)</label>
-                      <textarea
-                        value={statusNotes}
-                        onChange={(e) => setStatusNotes(e.target.value)}
-                        placeholder="Add notes about this status change..."
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        rows={3}
-                      />
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Availability</p>
+                      <p className="text-sm font-black text-slate-800">{selectedApplication.availability}</p>
                     </div>
+                  )}
+                </div>
+
+                {/* Experience & Motivation */}
+                {selectedApplication.experience && (
+                  <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Experience & Background</p>
+                    <p className="text-xs font-medium text-slate-700 leading-relaxed whitespace-pre-wrap">{selectedApplication.experience}</p>
+                  </div>
+                )}
+
+                <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Motivation Statement</p>
+                  <p className="text-xs font-medium text-slate-700 leading-relaxed whitespace-pre-wrap">{selectedApplication.motivation}</p>
+                </div>
+
+                {/* Update Status & Notes */}
+                <div className="bg-slate-900 text-white p-6 rounded-3xl space-y-4">
+                  <p className="text-xs font-black uppercase tracking-widest text-[#FFD447]">Update Application Status</p>
+                  <div className="flex flex-wrap gap-2">
+                    {(['pending', 'reviewed', 'accepted', 'rejected'] as const).map((st) => (
+                      <button
+                        key={st}
+                        onClick={() => handleStatusUpdate(st)}
+                        disabled={updatingStatus || selectedApplication.status === st}
+                        className={`px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider transition-all disabled:opacity-50 border ${
+                          selectedApplication.status === st
+                            ? 'bg-[#FFD447] text-slate-950 border-[#FFD447]'
+                            : 'bg-white/10 text-white border-white/15 hover:bg-white/20'
+                        }`}
+                      >
+                        {st}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="space-y-2 pt-2">
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400">Internal Curator Notes</label>
+                    <textarea
+                      value={statusNotes}
+                      onChange={(e) => setStatusNotes(e.target.value)}
+                      placeholder="Add notes regarding candidate review..."
+                      className="w-full p-4 bg-slate-950 border border-slate-800 rounded-2xl text-xs font-medium text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#FFD447]"
+                      rows={3}
+                    />
                   </div>
                 </div>
+
               </div>
             </div>
           </div>
         )}
+
       </div>
     </AdminLayout>
   );
 };
 
 export default Applications;
+
 
