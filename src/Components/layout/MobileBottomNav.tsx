@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
-import { FaArrowUp, FaCalendarAlt, FaEnvelope, FaGraduationCap, FaHome, FaInfoCircle, FaUsers } from "react-icons/fa";
+import { FaArrowUp, FaCalendarAlt, FaEnvelope, FaGraduationCap, FaHome, FaInfoCircle } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
 
 import { handleLinkHover } from "../../utils/prefetch";
 import { BRAND, GRADIENT } from "../../styles/theme";
 
+import { useLanguage } from "../../contexts/LanguageContext";
+
 const MobileBottomNav = () => {
   const location = useLocation();
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const { t, language, toggleLanguage } = useLanguage();
 
   // Show scroll to top button when scrolled down
   useEffect(() => {
@@ -26,23 +29,19 @@ const MobileBottomNav = () => {
     });
   };
 
-
-
   const navItems = [
-    { path: "/", label: "Home" },
-    { path: "/events", label: "Events" },
-    { path: "/masterclass", label: "Masterclass" },
-    { path: "/about", label: "About" },
-    { path: "/contact", label: "Contact" },
+    { path: "/", label: t.header.home || "Home", rawKey: 'home' },
+    { path: "/events", label: t.header.events || "Events", rawKey: 'events' },
+    { path: "/masterclass", label: t.header.masterclass || "Masterclass", rawKey: 'masterclass' },
+    { path: "/about", label: t.header.about || "About", rawKey: 'about' },
+    { path: "/contact", label: t.header.contact || "Contact", rawKey: 'contact' },
   ].map(item => {
     let icon = FaHome;
-    const label = item.label.toLowerCase();
-    if (label.includes('home')) icon = FaHome;
-    else if (label.includes('event')) icon = FaCalendarAlt;
-    else if (label.includes('contact')) icon = FaEnvelope;
-    else if (label.includes('community')) icon = FaUsers;
-    else if (label.includes('masterclass')) icon = FaGraduationCap;
-    else if (label.includes('about')) icon = FaInfoCircle;
+    if (item.rawKey === 'home') icon = FaHome;
+    else if (item.rawKey === 'events') icon = FaCalendarAlt;
+    else if (item.rawKey === 'contact') icon = FaEnvelope;
+    else if (item.rawKey === 'masterclass') icon = FaGraduationCap;
+    else if (item.rawKey === 'about') icon = FaInfoCircle;
     
     return { ...item, icon };
   }).slice(0, 5);
@@ -56,11 +55,25 @@ const MobileBottomNav = () => {
 
   return (
     <>
+      {/* Mobile Top-Left Language Selector */}
+      <button
+        onClick={toggleLanguage}
+        className="md:hidden fixed top-4 left-4 z-[60] px-3.5 py-1.5 rounded-full bg-[#0F172A]/90 text-white backdrop-blur-xl border border-white/20 shadow-2xl flex items-center gap-1.5 text-[10px] font-black tracking-widest uppercase transition-all duration-300 active:scale-95 hover:border-[#FFD447]/60"
+        title="Change Language (አማ / EN / OM)"
+      >
+        <span className="text-xs">🌐</span>
+        <span className={language === 'am' ? 'text-[#FFD447] font-black' : 'text-white/60'}>AM</span>
+        <span className="opacity-30">|</span>
+        <span className={language === 'en' ? 'text-[#FFD447] font-black' : 'text-white/60'}>EN</span>
+        <span className="opacity-30">|</span>
+        <span className={language === 'om' ? 'text-[#FFD447] font-black' : 'text-white/60'}>OM</span>
+      </button>
+
       {/* Scroll to Top Button - Floating Design */}
       {showScrollTop && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-24 right-6 z-50 w-12 h-12 rounded-full shadow-2xl flex items-center justify-center transition-all duration-500 hover:scale-110 active:scale-90"
+          className="fixed bottom-20 right-5 z-50 w-11 h-11 rounded-full shadow-2xl flex items-center justify-center transition-all duration-500 hover:scale-110 active:scale-90"
           style={{
             background: GRADIENT.brand,
             boxShadow: `0 8px 24px rgba(255, 111, 94, 0.4)`,
@@ -68,22 +81,22 @@ const MobileBottomNav = () => {
           }}
           aria-label="Scroll to top"
         >
-          <FaArrowUp size={16} className="text-white" />
+          <FaArrowUp size={15} className="text-white" />
         </button>
       )}
 
-      {/* Floating Premium Navigation Dock */}
+      {/* Floating Icon-Only Navigation Dock */}
       <nav 
         role="navigation"
         aria-label="Mobile bottom navigation"
-        className="md:hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 w-[92%] max-w-md"
+        className="md:hidden fixed bottom-5 left-1/2 transform -translate-x-1/2 z-50 w-[88%] max-w-sm"
       >
         <div 
-          className="relative px-2 py-3 rounded-[32px] border border-white/10 shadow-2xl overflow-hidden"
+          className="relative px-3 py-2.5 rounded-full border border-white/15 shadow-2xl overflow-hidden"
           style={{
-            background: `${BRAND.navy}E6`, // 90% opacity navy
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
+            background: `${BRAND.navy}F0`, // 94% opacity navy
+            backdropFilter: "blur(24px)",
+            WebkitBackdropFilter: "blur(24px)",
           }}
         >
           {/* Subtle accent glow */}
@@ -106,49 +119,38 @@ const MobileBottomNav = () => {
                   key={item.path}
                   to={item.path}
                   onMouseEnter={() => handleLinkHover(item.path)}
-                  className="flex flex-col items-center justify-center relative py-1 px-3 min-w-[64px] transition-all duration-300"
+                  className="flex items-center justify-center relative p-2.5 rounded-full transition-all duration-300"
                   aria-current={active ? "page" : undefined}
                   aria-label={item.label}
+                  title={item.label}
                 >
                   {/* Active background pill */}
                   {active && (
                     <div 
-                      className="absolute inset-0 rounded-2xl opacity-10"
+                      className="absolute inset-0 rounded-full opacity-20"
                       style={{ background: GRADIENT.brand }}
                     />
                   )}
                   
-                  {/* Icon */}
+                  {/* Icon Only */}
                   <div 
-                    className={`relative mb-1.5 transition-all duration-300 ${
-                      active ? 'transform -translate-y-0.5 scale-110' : 'opacity-50'
+                    className={`relative transition-all duration-300 ${
+                      active ? 'transform scale-110' : 'opacity-50 hover:opacity-80'
                     }`}
                   >
                     <Icon 
-                      size={20} 
+                      size={22} 
                       style={{ 
                         color: active ? BRAND.gold : 'white',
-                        filter: active ? `drop-shadow(0 0 8px ${BRAND.gold}40)` : 'none'
+                        filter: active ? `drop-shadow(0 0 10px ${BRAND.gold}60)` : 'none'
                       }}
                     />
                   </div>
-                  
-                  {/* Label */}
-                  <span 
-                    className={`text-[10px] font-bold uppercase tracking-wider transition-all duration-300 ${
-                      active 
-                        ? 'text-white opacity-100' 
-                        : 'text-white/40 opacity-70'
-                    }`}
-                    style={{ fontSize: '9px' }}
-                  >
-                    {item.label}
-                  </span>
 
                   {/* Active Indicator Dot */}
                   {active && (
                     <div 
-                      className="absolute -bottom-1 w-1 h-1 rounded-full"
+                      className="absolute -bottom-0.5 w-1.5 h-1.5 rounded-full"
                       style={{ 
                         background: BRAND.gold,
                         boxShadow: `0 0 10px ${BRAND.gold}`
@@ -163,7 +165,7 @@ const MobileBottomNav = () => {
       </nav>
 
       {/* Spacer to prevent content from being hidden behind the floating nav */}
-      <div className="md:hidden h-28" />
+      <div className="md:hidden h-24" />
 
       {/* Custom Animations */}
       <style>{`
@@ -181,4 +183,3 @@ const MobileBottomNav = () => {
 };
 
 export default MobileBottomNav;
-

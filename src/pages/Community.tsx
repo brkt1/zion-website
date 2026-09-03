@@ -10,6 +10,7 @@ import {
     FaUsers,
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { useLanguage } from "../contexts/LanguageContext";
 import { useScrollReveal } from "../hooks/useScrollReveal";
 
 /* ─── Shared design tokens ─────────────────────────────────────────────────── */
@@ -31,8 +32,6 @@ const GRADIENT = {
   brand: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
   textDark: "linear-gradient(135deg, #111827 0%, #374151 100%)",
 };
-
-/* ─── Sub-components ────────────────────────────────────────────────────────── */
 
 const SectionLabel = ({ children }: { children: React.ReactNode }) => (
   <div
@@ -67,12 +66,41 @@ const SectionLabel = ({ children }: { children: React.ReactNode }) => (
 
 const Community = () => {
   useScrollReveal();
+  const { language } = useLanguage();
 
   useEffect(() => {
     document.title = "Community | YENEGE";
   }, []);
 
-  const telegramLink = "https://t.me/yenegeevents"; // Updated to the correct public link
+  const telegramLink = "https://t.me/yenegeevents";
+
+  const benefits = [
+    {
+      icon: <FaUsers />,
+      title: language === 'am' ? "ከድንቅ ሰዎች ጋር ይገናኙ" : language === 'om' ? "Namoota Gaarii Waliin Quunnamaa" : "Connect with Amazing People",
+      desc: language === 'am' ? "ተመሳሳይ ፍላጎት እና እሴት ካላቸው ሰዎች ጋር ይገናኙ። ዘላቂ ግንኙነቶችን ይገንቡ።" : language === 'om' ? "Namoota fedhii fi ilaalcha walfakkataa qaban waliin walquunnamaa." : "Meet individuals who share your passions and values. Build meaningful relationships that last.",
+    },
+    {
+      icon: <FaBullhorn />,
+      title: language === 'am' ? "ስራዎን ያስተዋውቁ" : language === 'om' ? "Hojii Keessan Beeksisaa" : "Promote Your Work",
+      desc: language === 'am' ? "የእርስዎን ኢቨንቶች ወይም የግል ስኬቶች ያሳይ። ማህበረሰባችን ታይነትን ያበረታታል።" : language === 'om' ? "Hojii fi qophii keessan hawaasa keenyaaf dhiheessaa." : "Showcase your events or personal achievements. Our community encourages visibility.",
+    },
+    {
+      icon: <FaSearch />,
+      title: language === 'am' ? "አዳዲስ ኢቨንቶችን ያግኙ" : language === 'om' ? "Qophii Haaraa Barbaadaa" : "Discover Exciting Events",
+      desc: language === 'am' ? "ጠቃሚ አጋጣሚዎች አያመልጥዎ። ሰፊ የኢቨንት አማራጮችን ያግኙ።" : language === 'om' ? "Qophiiwwan babbareedoo add addaa daawwadhaa." : "Never miss out on the experiences that matter. Explore a wide range of sessions.",
+    },
+    {
+      icon: <FaComments />,
+      title: language === 'am' ? "ታሪኮችን ያካፍሉ" : language === 'om' ? "Seenaa Qooddhadhaa" : "Share Stories & Inspire",
+      desc: language === 'am' ? "ድምፅዎ ዋጋ አለው። ሌሎችን ለማነሳሳት እና ለማበርከት ተሞክሮዎን ያካፍሉ።" : language === 'om' ? "Yaada fi seenaa keessan qoodachuun warra kaan kakaasaa." : "Your voice matters. Share insights to inspire others and contribute to the ecosystem.",
+    },
+    {
+      icon: <FaUserFriends />,
+      title: language === 'am' ? "ዘላቂ ወዳጅነት ይፍጠሩ" : language === 'om' ? "Michummaa Cimaa Ijaaraa" : "Build Lasting Friendships",
+      desc: language === 'am' ? "በተጠበቀ እና ወዳጃዊ አካባቢ ውስጥ እውነተኛ ግንኙነቶችን ያጠናክሩ።" : language === 'om' ? "Bakka nagaa fi gammachuu qabu irratti jaalala ijaaraa." : "Forge genuine connections in a safe, welcoming environment nurtured by joy.",
+    },
+  ];
 
   return (
     <div style={{ minHeight: "100vh", background: BRAND.primary }}>
@@ -177,36 +205,14 @@ const Community = () => {
       {/* ── Hero Section ─────────────────────────────────────────────────── */}
       <section
         style={{
-          padding: "180px 0 100px",
+          padding: "140px 0 80px",
           position: "relative",
           overflow: "hidden",
           background: BRAND.primary,
         }}
       >
-        {/* Creative Layers */}
-        <div 
-          style={{ 
-            position: 'absolute', 
-            top: '50%', 
-            left: '50%', 
-            transform: 'translate(-50%, -50%)',
-            fontSize: 'max(25vw, 400px)',
-            fontWeight: 900,
-            fontFamily: "'Playfair Display', serif",
-            color: 'rgba(255, 212, 71, 0.02)', 
-            whiteSpace: 'nowrap',
-            pointerEvents: 'none',
-            zIndex: 0,
-            userSelect: 'none'
-          }}
-        >
-          COMMUNITY
-        </div>
         <div className="noise-bk" />
-        <div className="sidebrand">YENEGE ECOSYSTEM 2024</div>
-        <div style={{ position: 'absolute', bottom: '-10%', right: '-10%', width: '50%', height: '50%', background: 'radial-gradient(circle, rgba(251,111,94,0.05) 0%, transparent 70%)', filter: 'blur(100px)', pointerEvents: 'none', zIndex: 1 }} />
-        <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '40%', height: '40%', background: 'radial-gradient(circle, rgba(228,232,33,0.05) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none', zIndex: 1 }} />
-
+        <div className="sidebrand">YENEGE ECOSYSTEM 2026</div>
 
         <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", position: 'relative', zIndex: 2 }}>
           <div style={{ maxWidth: "900px", textAlign: "center", margin: "0 auto" }}>
@@ -214,15 +220,15 @@ const Community = () => {
             <h1
               className="yg-font-serif"
               style={{
-                fontSize: "clamp(52px, 8vw, 92px)",
+                fontSize: "clamp(42px, 7vw, 84px)",
                 fontWeight: 900,
                 color: BRAND.white,
-                lineHeight: 0.95,
-                letterSpacing: "-0.04em",
-                marginBottom: "32px",
+                lineHeight: 1.05,
+                letterSpacing: "-0.03em",
+                marginBottom: "24px",
               }}
             >
-              The YENEGE <br />
+              {language === 'am' ? 'የየነገ' : language === 'om' ? 'Hawaasa' : 'The YENEGE'} <br />
               <span
                 style={{
                   background: GRADIENT.brand,
@@ -232,27 +238,31 @@ const Community = () => {
                   fontStyle: "italic",
                 }}
               >
-                Community.
+                {language === 'am' ? 'ማህበረሰብ' : language === 'om' ? 'Yenege.' : 'Community.'}
               </span>
             </h1>
             <p
               className="yg-font-sans"
               style={{
-                fontSize: "22px",
-                color: 'rgba(255,255,255,0.5)',
+                fontSize: "18px",
+                color: 'rgba(255,255,255,0.7)',
                 lineHeight: 1.6,
                 maxWidth: "720px",
-                margin: "0 auto 48px",
+                margin: "0 auto 36px",
               }}
             >
-              Connect, Share, Grow. Your all-in-one hub for events, networking, and personal growth in Addis Ababa. Join a vibrant, supportive ecosystem.
+              {language === 'am'
+                ? 'ይገናኙ፣ ያካፍሉ፣ ያድጉ። በአዲስ አበባ ውስጥ የኢቨንቶች፣ የመረብ ዝርጋታ እና የግል እድገት ማዕከልዎ።'
+                : language === 'om'
+                ? 'Walquunnamaa, qooddhadhaa, guddadhaa. Finfinnee keessatti waltajjii qophii fi guddina dhuunfaa keenya.'
+                : 'Connect, Share, Grow. Your all-in-one hub for events, networking, and personal growth in Addis Ababa.'}
             </p>
-            <div style={{ display: "flex", justifyContent: "center", gap: "20px", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", justifyContent: "center", gap: "16px", flexWrap: "wrap" }}>
               <a href={telegramLink} target="_blank" rel="noopener noreferrer" className="yg-btn-primary">
-                Join Locally <FaTelegramPlane size={14} />
+                {language === 'am' ? 'ቴሌግራም ይቀላቀሉ' : language === 'om' ? 'Telegram-iin Makamaa' : 'Join Locally'} <FaTelegramPlane size={14} />
               </a>
               <Link to="/events" className="yg-btn-outline" style={{ color: '#fff' }}>
-                Explore Events <FaArrowRight size={12} />
+                {language === 'am' ? 'ኢቨንቶችን ይመልከቱ' : language === 'om' ? 'Qophiiwwan Daawwadhaa' : 'Explore Events'} <FaArrowRight size={12} />
               </Link>
             </div>
           </div>
@@ -260,13 +270,13 @@ const Community = () => {
       </section>
 
       {/* ── Intro Section ────────────────────────────────────────────────── */}
-      <section style={{ padding: "120px 0", background: BRAND.primary, position: 'relative', overflow: 'hidden' }}>
+      <section style={{ padding: "80px 0", background: BRAND.primary, position: 'relative', overflow: 'hidden' }}>
         <div className="noise-bk" />
         <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", textAlign: "center", position: 'relative', zIndex: 2 }}>
           <p
             className="yg-font-serif"
             style={{
-              fontSize: "clamp(24px, 4vw, 36px)",
+              fontSize: "clamp(20px, 3.5vw, 32px)",
               color: BRAND.white,
               lineHeight: 1.4,
               maxWidth: "1000px",
@@ -276,29 +286,17 @@ const Community = () => {
           >
             "At Yenege, we are building <span style={{ fontWeight: 700, color: BRAND.gold }}>more than just a platform</span> — we’re creating a vibrant space where people can connect, collaborate, and thrive."
           </p>
-          <div style={{ height: "3px", width: "60px", background: BRAND.gold, margin: "48px auto" }} />
-          <p
-            className="yg-font-sans"
-            style={{
-              fontSize: "18px",
-              color: 'rgba(255,255,255,0.4)',
-              maxWidth: "700px",
-              margin: "0 auto",
-              lineHeight: 1.7,
-            }}
-          >
-            Whether you’re an event organizer, a creative looking to promote your work, or someone seeking like-minded friends, Yenege is the place to be.
-          </p>
+          <div style={{ height: "3px", width: "60px", background: BRAND.gold, margin: "36px auto" }} />
         </div>
       </section>
 
-      {/* ── Why YENEGE Grid ────────────────────────────────────────────────── */}
-      <section style={{ padding: "140px 0", background: BRAND.primary, position: 'relative', overflow: 'hidden' }}>
+      {/* ── Benefits Grid ────────────────────────────────────────────────── */}
+      <section style={{ padding: "80px 0", background: BRAND.primary, position: 'relative', overflow: 'hidden' }}>
         <div className="noise-bk" />
         <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", position: 'relative', zIndex: 2 }}>
-          <div style={{ textAlign: "center", marginBottom: "80px" }}>
+          <div style={{ textAlign: "center", marginBottom: "60px" }}>
             <SectionLabel>Member Benefits</SectionLabel>
-            <h2 className="yg-font-serif" style={{ fontSize: "clamp(36px, 5vw, 56px)", fontWeight: 900, color: BRAND.white }}>
+            <h2 className="yg-font-serif" style={{ fontSize: "clamp(32px, 4.5vw, 48px)", fontWeight: 900, color: BRAND.white }}>
               Why <span style={{ fontStyle: "italic", color: BRAND.gold }}>YENEGE?</span>
             </h2>
           </div>
@@ -307,132 +305,36 @@ const Community = () => {
             className="yg-grid-mobile"
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: "32px",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gap: "24px",
             }}
           >
-            {[
-              {
-                icon: <FaUsers />,
-                title: "Connect with Amazing People",
-                desc: "Meet individuals who share your passions and values. Build meaningful relationships that last.",
-              },
-              {
-                icon: <FaBullhorn />,
-                title: "Promote Your Work",
-                desc: "Showcase your events or personal achievements. Our community encourages visibility.",
-              },
-              {
-                icon: <FaSearch />,
-                title: "Discover Exciting Events",
-                desc: "Never miss out on the experiences that matter. Explore a wide range of sessions.",
-              },
-              {
-                icon: <FaComments />,
-                title: "Share Stories & Inspire",
-                desc: "Your voice matters. Share insights to inspire others and contribute to the ecosystem.",
-              },
-              {
-                icon: <FaUserFriends />,
-                title: "Build Lasting Friendships",
-                desc: "Forge genuine connections in a safe, welcoming environment nurtured by joy.",
-              },
-            ].map((item, i) => (
+            {benefits.map((item, i) => (
               <div key={i} className="yg-feature-card">
                 <div
                   style={{
-                    width: "56px",
-                    height: "56px",
-                    borderRadius: "16px",
+                    width: "48px",
+                    height: "48px",
+                    borderRadius: "14px",
                     background: "rgba(255,212,71,0.1)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     color: BRAND.gold,
-                    marginBottom: "32px",
-                    fontSize: "24px",
+                    marginBottom: "24px",
+                    fontSize: "20px",
                   }}
                 >
                   {item.icon}
                 </div>
-                <h3 className="yg-font-serif" style={{ fontSize: "24px", fontWeight: 800, color: BRAND.white, marginBottom: "16px", lineHeight: 1.2 }}>
+                <h3 className="yg-font-serif" style={{ fontSize: "20px", fontWeight: 800, color: BRAND.white, marginBottom: "12px", lineHeight: 1.2 }}>
                   {item.title}
                 </h3>
-                <p className="yg-font-sans" style={{ fontSize: "16px", color: 'rgba(255,255,255,0.4)', lineHeight: 1.7 }}>
+                <p className="yg-font-sans" style={{ fontSize: "14px", color: 'rgba(255,255,255,0.6)', lineHeight: 1.6 }}>
                   {item.desc}
                 </p>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── How to Join ───────────────────────────────────────────────────── */}
-      <section style={{ padding: "140px 0", background: BRAND.primary, color: BRAND.white, position: 'relative', overflow: 'hidden' }}>
-        <div className="noise-bk" />
-
-        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
-          <div className="yg-grid-mobile" style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: "80px", alignItems: "center" }}>
-            <div>
-              <SectionLabel><span style={{ color: BRAND.gold }}>The Journey</span></SectionLabel>
-              <h2 className="yg-font-serif" style={{ fontSize: "48px", fontWeight: 900, marginBottom: "32px" }}>How to Join</h2>
-              <p className="yg-font-sans" style={{ fontSize: "20px", color: "rgba(255,255,255,0.7)", marginBottom: "48px" }}>
-                Becoming part of Yenege is simple and open to everyone:
-              </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-                {[
-                  "Sign up and create your profile.",
-                  "Connect with people who share your interests.",
-                  "Explore events and promote your own.",
-                  "Engage in discussions and share your stories.",
-                ].map((step, i) => (
-                  <div key={i} style={{ display: "flex", gap: "20px", alignItems: "start" }}>
-                    <FaCheckCircle style={{ color: BRAND.gold, marginTop: "6px" }} />
-                    <span className="yg-font-sans" style={{ fontSize: "18px", lineHeight: 1.5 }}>{step}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div
-              style={{
-                padding: "60px",
-                background: "rgba(255,255,255,0.05)",
-                backdropFilter: "blur(10px)",
-                borderRadius: "40px",
-                border: "1px solid rgba(255,255,255,0.1)",
-                textAlign: "center",
-              }}
-            >
-              <h3 className="yg-font-serif" style={{ fontSize: "32px", fontWeight: 800, color: BRAND.gold, marginBottom: "20px" }}>
-                Start Connecting!
-              </h3>
-              <p className="yg-font-sans" style={{ fontSize: "17px", color: "rgba(255,255,255,0.8)", marginBottom: "40px" }}>
-                Join today and begin your journey with Yenege Community.
-              </p>
-              <a href={telegramLink} target="_blank" rel="noopener noreferrer" className="yg-btn-primary">
-                Join Local Community <FaTelegramPlane size={14} />
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Final CTA ─────────────────────────────────────────────────────── */}
-      <section style={{ padding: "140px 0", background: BRAND.primary, textAlign: "center", position: 'relative', overflow: 'hidden' }}>
-        <div className="noise-bk" />
-        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", position: 'relative', zIndex: 2 }}>
-          <h2 className="yg-font-serif" style={{ fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 900, color: BRAND.white, marginBottom: "48px" }}>
-            Ready to Start Making <br />
-            <span style={{ fontStyle: "italic", color: BRAND.gold }}>Meaningful Connections?</span>
-          </h2>
-          <div style={{ display: "flex", justifyContent: "center", gap: "20px", flexWrap: "wrap" }}>
-            <a href={telegramLink} target="_blank" rel="noopener noreferrer" className="yg-btn-primary">
-              Join Locally Today <FaTelegramPlane size={14} />
-            </a>
-            <Link to="/contact" className="yg-btn-outline" style={{ color: '#fff' }}>
-              Talk to Our Team
-            </Link>
           </div>
         </div>
       </section>
@@ -441,4 +343,3 @@ const Community = () => {
 };
 
 export default Community;
-

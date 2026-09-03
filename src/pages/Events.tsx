@@ -2,23 +2,25 @@ import { useEffect, useMemo, useState } from "react";
 import {
   FaArrowRight,
   FaCalendarAlt,
-  FaWhatsapp,
-  FaSearch,
+  FaFilter,
   FaMapMarkerAlt,
-  FaTicketAlt,
-  FaFilter
+  FaSearch,
+  FaWhatsapp
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { EventsSkeleton } from "../Components/ui/EventsSkeleton";
 import OptimizedImage from "../Components/ui/OptimizedImage";
+import { useLanguage } from "../contexts/LanguageContext";
 import { useCategories, useEvents } from "../hooks/useApi";
 import { useScrollReveal } from "../hooks/useScrollReveal";
 import { toEthiopianDate } from "../utils/ethiopianCalendar";
 
-const formatDateShort = (dateString: string) => {
+const formatDateShort = (dateString: string, lang: string) => {
   if (!dateString) return "TBD";
   const date = new Date(dateString);
-  return isNaN(date.getTime()) ? dateString : date.toLocaleDateString("en-US", {
+  if (isNaN(date.getTime())) return dateString;
+  const locale = lang === 'am' ? 'am-ET' : lang === 'om' ? 'om-ET' : 'en-US';
+  return date.toLocaleDateString(locale, {
     month: "short",
     day: "numeric",
     year: "numeric"
@@ -28,6 +30,7 @@ const formatDateShort = (dateString: string) => {
 type Orientation = 'portrait' | 'landscape' | 'unknown';
 
 const Events = () => {
+  const { t, language } = useLanguage();
   const [imgOrientations, setImgOrientations] = useState<Record<string, Orientation>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -38,8 +41,8 @@ const Events = () => {
   useScrollReveal();
 
   useEffect(() => {
-    document.title = "Exclusive Events & Experiences | YENEGE";
-  }, []);
+    document.title = `${t.eventsPage.title || 'Exclusive Events & Experiences'} | YENEGE`;
+  }, [t, language]);
 
   const detectOrientation = (id: string, src: string) => {
     if (!src || imgOrientations[id]) return;
@@ -74,30 +77,35 @@ const Events = () => {
   return (
     <div className="min-h-screen bg-[#0F172A] text-white font-sans overflow-x-hidden selection:bg-[#FFD447] selection:text-[#1C2951] pb-24">
       {/* ── APP-STYLE PAGE HEADER ──────────────────────────────────────── */}
-      <section className="relative pt-28 lg:pt-32 pb-6 border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+      <section className="relative pt-24 sm:pt-28 lg:pt-32 pb-6 border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
           {/* Row 1: Title + Live Count */}
-          <div className="flex items-end justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
             <div>
-              <p className="text-[#FFD447] font-black text-[10px] uppercase tracking-[0.3em] mb-1">Yenege Events</p>
-              <h1 className="font-heading text-3xl sm:text-4xl font-black text-white leading-tight">
-                Upcoming <span className="italic text-[#FFD447]">Experiences</span>
+              <p className="text-[#FFD447] font-black text-[10px] uppercase tracking-[0.3em] mb-1">
+                {language === 'am' ? 'የነገ ኢቨንቶች' : language === 'om' ? 'QOPHIWWAN YENEGE' : 'YENEGE EVENTS'}
+              </p>
+              <h1 className="font-heading text-2xl sm:text-4xl lg:text-5xl font-black text-white leading-tight">
+                {t.eventsPage.title}
               </h1>
+              <p className="text-xs text-slate-400 font-medium mt-1">
+                {t.eventsPage.subtitle}
+              </p>
             </div>
-            <span className="text-[10px] font-bold text-slate-400 bg-white/5 border border-white/10 px-3 py-1.5 rounded-full">
-              {filteredEvents.length} event{filteredEvents.length !== 1 ? 's' : ''} found
+            <span className="text-[10px] font-bold text-slate-300 bg-white/10 border border-white/10 px-3.5 py-1.5 rounded-full self-start sm:self-auto">
+              {filteredEvents.length} {t.eventsPage.upcoming}
             </span>
           </div>
 
           {/* Row 2: Search + Filter Bar */}
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col md:flex-row gap-3">
             {/* Search Input */}
             <div className="relative flex-1">
               <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
               <input 
                 type="text" 
-                placeholder="Search by name, category or city..."
+                placeholder={t.eventsPage.searchPlaceholder}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-[#1E293B] border border-white/10 rounded-2xl pl-11 pr-4 py-3 text-white placeholder:text-slate-500 text-sm focus:outline-none focus:border-[#FFD447] transition-all"
@@ -115,7 +123,7 @@ const Events = () => {
                     : 'bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10'
                 }`}
               >
-                All Events
+                {t.eventsPage.all}
               </button>
               {categories.map((cat) => {
                 const isActive = selectedCategory === cat.slug;
@@ -140,28 +148,34 @@ const Events = () => {
       </section>
 
       {/* ── EVENTS GRID ─────────────────────────────────────────────────── */}
-      <section className="py-12 relative">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+      <section className="py-8 sm:py-12 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {filteredEvents.length === 0 ? (
-            <div className="text-center py-20 bg-white/5 rounded-3xl border border-white/10 max-w-xl mx-auto p-8 space-y-4">
+            <div className="text-center py-16 sm:py-20 bg-white/5 rounded-3xl border border-white/10 max-w-xl mx-auto p-6 sm:p-8 space-y-4">
               <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-[#FFD447] text-2xl mx-auto">
                 <FaFilter />
               </div>
-              <h3 className="font-heading text-2xl font-bold text-white">No Matching Events Found</h3>
+              <h3 className="font-heading text-xl sm:text-2xl font-bold text-white">
+                {t.eventsPage.noEvents}
+              </h3>
               <p className="text-xs text-slate-400 leading-relaxed font-medium">
-                Try adjusting your search criteria or selecting a different category tab. New events are published regularly!
+                {language === 'am' 
+                  ? 'እባክዎ የተለየ መፈለጊያ ቃል ወይም ምድብ ይምረጡ። አዳዲስ ኢቨንቶች በቅርቡ ይወጣሉ።' 
+                  : language === 'om'
+                  ? 'Maaloo jecha biraatiin barbaadaa ykn kaffaltii biraa filadhaa.'
+                  : 'Try adjusting your search criteria or selecting a different category tab. New events are published regularly!'}
               </p>
               <button 
                 type="button"
                 onClick={() => { setSearchQuery(""); setSelectedCategory(null); }}
-                className="px-6 py-2.5 rounded-full bg-[#FFD447] text-[#1C2951] font-black text-xs uppercase tracking-wider"
+                className="px-6 py-2.5 rounded-full bg-[#FFD447] text-[#1C2951] font-black text-xs uppercase tracking-wider hover:bg-amber-300 transition-all"
               >
-                Clear Filters
+                {t.eventsPage.clearFilters}
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
               {filteredEvents.map((event) => {
                 if (event.image && !imgOrientations[event.id]) {
                   detectOrientation(event.id, event.image);
@@ -195,20 +209,20 @@ const Events = () => {
                       <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A] via-[#0F172A]/40 to-transparent" />
 
                       {/* Top Category & Price Badges */}
-                      <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-                        <span className="px-3.5 py-1.5 rounded-full bg-[#0F172A]/80 backdrop-blur-md text-[#FFD447] text-[10px] font-black uppercase tracking-widest border border-white/10">
+                      <div className="absolute top-4 left-4 right-4 flex items-center justify-between gap-2">
+                        <span className="px-3.5 py-1.5 rounded-full bg-[#0F172A]/80 backdrop-blur-md text-[#FFD447] text-[10px] font-black uppercase tracking-widest border border-white/10 truncate max-w-[50%]">
                           {event.category || 'Special Event'}
                         </span>
 
-                        <span className="px-4 py-1.5 rounded-full bg-[#FFD447] text-[#1C2951] font-black text-xs uppercase tracking-wider shadow-lg">
-                          {event.price === 'Free' || event.price === '0' ? 'Gratis / Free' : `${event.price} ${event.currency || 'ETB'}`}
+                        <span className="px-3.5 py-1.5 rounded-full bg-[#FFD447] text-[#1C2951] font-black text-[11px] uppercase tracking-wider shadow-lg">
+                          {event.price === 'Free' || event.price === '0' ? t.eventsPage.free : `${event.price} ${event.currency || 'ETB'}`}
                         </span>
                       </div>
 
                       {/* Date Badge */}
-                      <div className="absolute bottom-4 left-4 flex flex-wrap items-center gap-2 bg-[#0F172A]/90 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-white/10 text-xs font-bold text-slate-200">
+                      <div className="absolute bottom-4 left-4 right-4 flex flex-wrap items-center gap-2 bg-[#0F172A]/90 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-white/10 text-xs font-bold text-slate-200">
                         <FaCalendarAlt className="text-[#FFD447]" />
-                        <span>{formatDateShort(event.date)}</span>
+                        <span>{formatDateShort(event.date, language)}</span>
                         {toEthiopianDate(event.date) && (
                           <span className="text-[#FFD447] text-[10px] font-black pl-1.5 border-l border-white/15">
                             🇪🇹 {toEthiopianDate(event.date)?.formattedAmharic}
@@ -218,13 +232,13 @@ const Events = () => {
                     </div>
 
                     {/* Card Content Body */}
-                    <div className="p-6 sm:p-8 space-y-4">
+                    <div className="p-5 sm:p-7 space-y-4">
                       <div className="flex items-center gap-2 text-xs text-slate-400 font-medium">
-                        <FaMapMarkerAlt className="text-[#FF6F5E]" />
-                        <span>{event.location || 'Addis Ababa, Ethiopia'}</span>
+                        <FaMapMarkerAlt className="text-[#FF6F5E] flex-shrink-0" />
+                        <span className="truncate">{event.location || 'Addis Ababa, Ethiopia'}</span>
                       </div>
 
-                      <h3 className="font-heading text-2xl font-black text-white group-hover:text-[#FFD447] transition-colors leading-snug">
+                      <h3 className="font-heading text-xl sm:text-2xl font-black text-white group-hover:text-[#FFD447] transition-colors leading-snug">
                         {event.title}
                       </h3>
 
@@ -233,8 +247,8 @@ const Events = () => {
                       </p>
 
                       <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs font-black uppercase tracking-widest text-[#FFD447]">
-                        <span>Explore Event Details</span>
-                        <div className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white group-hover:bg-[#FFD447] group-hover:text-[#1C2951] transition-all">
+                        <span>{t.eventsPage.details}</span>
+                        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white group-hover:bg-[#FFD447] group-hover:text-[#1C2951] transition-all">
                           <FaArrowRight size={12} />
                         </div>
                       </div>
@@ -248,33 +262,33 @@ const Events = () => {
       </section>
 
       {/* ── COLLABORATE / BRIEF CTA ───────────────────────────────────────── */}
-      <section className="py-20 relative px-6">
-        <div className="max-w-5xl mx-auto rounded-[3rem] bg-gradient-to-r from-[#1C2951] via-[#0F172A] to-[#1C2951] border border-white/20 p-10 md:p-16 text-center relative overflow-hidden shadow-2xl">
+      <section className="py-12 sm:py-20 relative px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto rounded-[2.5rem] sm:rounded-[3rem] bg-gradient-to-r from-[#1C2951] via-[#0F172A] to-[#1C2951] border border-white/20 p-8 sm:p-12 md:p-16 text-center relative overflow-hidden shadow-2xl">
           <div className="absolute top-0 right-0 w-80 h-80 bg-[#FFD447]/10 rounded-full blur-3xl pointer-events-none" />
           
           <div className="space-y-6 relative z-10 max-w-2xl mx-auto">
-            <span className="text-xs font-black text-[#FFD447] uppercase tracking-[0.25em] block">Host With Us</span>
-            <h2 className="font-heading text-4xl md:text-5xl font-black text-white leading-tight">
-              Want to Host an <span className="text-[#FFD447] italic">Exceptional Event?</span>
+            <span className="text-xs font-black text-[#FFD447] uppercase tracking-[0.25em] block">{t.eventsPage.hostWithUs}</span>
+            <h2 className="font-heading text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight">
+              {t.eventsPage.wantToHost}
             </h2>
             <p className="text-xs md:text-sm text-slate-300 font-medium leading-relaxed">
-              Submit a feasibility brief and let our experience architects assess technical viability, budget structure, and operational ROI.
+              {t.eventsPage.submitBriefDesc}
             </p>
 
-            <div className="flex flex-wrap justify-center items-center gap-4 pt-4">
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4 pt-4">
               <Link 
                 to="/event-feasibility" 
-                className="bg-gradient-to-r from-[#FFD447] to-[#FF6F5E] hover:from-[#ffe066] hover:to-[#ff8273] text-[#1C2951] font-black px-10 py-4 rounded-full text-xs uppercase tracking-widest transition-all shadow-xl shadow-[#FF6F5E]/20 hover:scale-105 flex items-center gap-3"
+                className="w-full sm:w-auto bg-gradient-to-r from-[#FFD447] to-[#FF6F5E] hover:from-[#ffe066] hover:to-[#ff8273] text-[#1C2951] font-black px-8 py-4 rounded-full text-xs uppercase tracking-widest transition-all shadow-xl shadow-[#FF6F5E]/20 hover:scale-105 flex items-center justify-center gap-3"
               >
-                Submit Event Brief <FaArrowRight />
+                {t.eventsPage.submitBriefBtn} <FaArrowRight />
               </Link>
               <a 
                 href="https://wa.me/251978639887" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-full font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg"
+                className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-full font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg"
               >
-                <FaWhatsapp size={16} /> WhatsApp Inquiry
+                <FaWhatsapp size={16} /> {t.eventsPage.waInquiry}
               </a>
             </div>
           </div>

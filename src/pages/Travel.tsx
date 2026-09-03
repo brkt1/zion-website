@@ -3,9 +3,11 @@ import { FaArrowRight, FaCalendarAlt, FaMapMarkerAlt, FaMountain, FaUmbrellaBeac
 import { Link } from "react-router-dom";
 import { LocationButton } from "../Components/ui/LocationButton";
 import OptimizedImage from "../Components/ui/OptimizedImage";
+import { useLanguage } from "../contexts/LanguageContext";
 import { useEvents } from "../hooks/useApi";
 
 const Travel = () => {
+  const { t, language } = useLanguage();
   // Fetch travel events
   const { events: travelEvents, isLoading: eventsLoading } = useEvents({
     category: "travel",
@@ -83,10 +85,10 @@ const Travel = () => {
               backgroundClip: "text",
             }}
           >
-            Travel & Adventures
+            {language === 'am' ? 'ጉዞዎች እና ጀብዱዎች' : language === 'om' ? 'Imala fi Qophiiwwan' : 'Travel & Adventures'}
           </h1>
           <p className="text-gray-500 text-xs mt-0.5">
-            Discover amazing destinations
+            {language === 'am' ? 'ድንቅ ቦታዎችን ይጎብኙ' : language === 'om' ? 'Bakka Baddaa Barbaadaa' : 'Discover amazing destinations'}
           </p>
         </div>
       </div>
@@ -114,11 +116,15 @@ const Travel = () => {
                   backgroundClip: "text",
                 }}
               >
-                Yenege
+                Yenege Travel
               </span>
             </h1>
             <p className="text-lg md:text-xl lg:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed px-4">
-              Weekend getaways, day trips, and exciting adventures. Explore new places with amazing people. Your premier destination for travel and events in Ethiopia.
+              {language === 'am'
+                ? 'የሳምንት እረፍት ጉዞዎች፣ የቀን ሽርሽሮች እና አስደሳች ገጠመኞች። አዳዲስ ቦታዎችን ከድንቅ ሰዎች ጋር ይጎብኙ።'
+                : language === 'om'
+                ? 'Imala dhuma torbaniti fi boqonnaa gabaabaa. Bakka haaraa namoota gaarii waliin daawwadhaa.'
+                : 'Weekend getaways, day trips, and exciting adventures. Explore new places with amazing people. Your premier destination for travel and events in Ethiopia.'}
             </p>
           </div>
         </div>
@@ -133,28 +139,8 @@ const Travel = () => {
                 background: "linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 248, 240, 0.9) 100%)",
                 boxShadow: "0 10px 30px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(255, 212, 71, 0.1)",
               }}
-              onMouseEnter={(e) => {
-                if (window.innerWidth >= 768) {
-                  e.currentTarget.style.transform = "translateY(-8px)";
-                  e.currentTarget.style.boxShadow = "0 30px 80px rgba(255, 111, 94, 0.15), 0 0 0 1px rgba(255, 212, 71, 0.2)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow = "0 10px 30px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(255, 212, 71, 0.1)";
-              }}
             >
-              {/* Animated gradient background */}
-              <div 
-                className="absolute top-0 right-0 w-64 sm:w-80 md:w-96 h-64 sm:h-80 md:h-96 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-3xl"
-                style={{
-                  background: "radial-gradient(circle, rgba(255, 212, 71, 0.3) 0%, rgba(255, 111, 94, 0.3) 100%)",
-                  transform: "translate(30%, -30%)",
-                }}
-              />
-
               <div className="relative z-10">
-                {/* Decorative line */}
                 <div 
                   className="h-0.5 sm:h-1 w-16 sm:w-20 md:w-24 mb-4 sm:mb-6 md:mb-8 rounded-full"
                   style={{
@@ -171,14 +157,15 @@ const Travel = () => {
                     backgroundClip: "text",
                   }}
                 >
-                  Yenege - Discover Amazing Destinations
+                  {language === 'am' ? 'የነገ - ድንቅ ቦታዎችን ይጎብኙ' : language === 'om' ? 'Yenege - Bakka Baddaa Barbaadaa' : 'Yenege - Discover Amazing Destinations'}
                 </h2>
                 <div className="space-y-4 sm:space-y-5 md:space-y-6 text-gray-700 text-base sm:text-lg md:text-xl leading-relaxed font-light">
                   <p>
-                    Embark on unforgettable journeys with Yenege! Whether you're looking for a quick weekend escape or an extended adventure, we curate the perfect travel experiences that combine exploration, fun, and meaningful connections.
-                  </p>
-                  <p>
-                    From scenic mountain hikes to relaxing beach getaways, from cultural city tours to thrilling outdoor activities - we've got something for every type of traveler. Join us and discover hidden gems, create lasting memories, and make new friends along the way. Yenege is your trusted partner for amazing travel experiences in Ethiopia.
+                    {language === 'am'
+                      ? 'ከየነገ ጋር የማይረሱ የጉዞ ገጠመኞችን ይለማመዱ! የሳምንት እረፍት ሽርሽር ወይም ረዘም ያለ ጉዞ፣ የተሟላ የጉዞ ልምድ እናዘጋጃለን።'
+                      : language === 'om'
+                      ? 'Yenege waliin imala hin irraanfatamne taasisaa! Imala gabaabaa yookiin dheeraa bifa baredaan qopheessina.'
+                      : 'Embark on unforgettable journeys with Yenege! Whether you\'re looking for a quick weekend escape or an extended adventure, we curate the perfect travel experiences that combine exploration, fun, and meaningful connections.'}
                   </p>
                 </div>
               </div>
@@ -209,7 +196,7 @@ const Travel = () => {
                   backgroundClip: "text",
                 }}
               >
-                What We Offer
+                {language === 'am' ? 'የምናቀርባቸው አገልግሎቶች' : language === 'om' ? 'Tajaajila Keenya' : 'What We Offer'}
               </span>
             </h2>
           </div>
@@ -218,18 +205,18 @@ const Travel = () => {
             {[
               {
                 icon: FaMountain,
-                title: "Weekend Getaways",
-                description: "Perfect short trips to recharge and explore nearby destinations. Ideal for busy schedules.",
+                title: language === 'am' ? "የሳምንት እረፍት ጉዞዎች" : language === 'om' ? "Imala Dhuma Torbanii" : "Weekend Getaways",
+                description: language === 'am' ? "በአቅራቢያ ያሉ ቦታዎችን ለመጎብኘት የሚረዱ አጫጭር ጉዞዎች።" : language === 'om' ? "Imala gabaabaa fi bashannansiisaa." : "Perfect short trips to recharge and explore nearby destinations. Ideal for busy schedules.",
               },
               {
                 icon: FaUmbrellaBeach,
-                title: "Day Trips",
-                description: "Quick adventures that fit into your day. Discover local attractions and hidden spots.",
+                title: language === 'am' ? "የአንድ ቀን ሽርሽሮች" : language === 'om' ? "Imala Guyyaa Tokkoo" : "Day Trips",
+                description: language === 'am' ? "በቀን ውስጥ የሚያልቁ ፈጣንና አዝናኝ ጉዞዎች።" : language === 'om' ? "Imala ariifachiisaa guyyaa keessatti raawwatamu." : "Quick adventures that fit into your day. Discover local attractions and hidden spots.",
               },
               {
                 icon: FaMapMarkerAlt,
-                title: "Extended Adventures",
-                description: "Multi-day journeys to explore far-off places and immerse yourself in new cultures.",
+                title: language === 'am' ? "ረጅም ጉዞዎች" : language === 'om' ? "Imala Dheeraa" : "Extended Adventures",
+                description: language === 'am' ? "ሩቅ ቦታዎችን ለመጎብኘት የሚያስችሉ የበርካታ ቀናት ጉዞዎች።" : language === 'om' ? "Imala guyyoota hedduu qophaa'e." : "Multi-day journeys to explore far-off places and immerse yourself in new cultures.",
               },
             ].map((feature, index) => {
               const Icon = feature.icon;

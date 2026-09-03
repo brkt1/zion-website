@@ -11,34 +11,34 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Use Amharic as default as requested
   const [language, setLanguageState] = useState<Language>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('language') as Language;
-      return saved || 'am';
+      if (saved && (saved === 'am' || saved === 'en' || saved === 'om')) {
+        return saved;
+      }
     }
     return 'am';
   });
 
   useEffect(() => {
     localStorage.setItem('language', language);
-    // Add font or class to body if needed for Amharic
-    if (language === 'am') {
-      document.documentElement.lang = 'am';
-    } else {
-      document.documentElement.lang = 'en';
-    }
+    document.documentElement.lang = language;
   }, [language]);
 
   const toggleLanguage = () => {
-    setLanguageState((prev) => (prev === 'en' ? 'am' : 'en'));
+    setLanguageState((prev) => {
+      if (prev === 'am') return 'en';
+      if (prev === 'en') return 'om';
+      return 'am';
+    });
   };
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
   };
 
-  const t = translations[language];
+  const t = translations[language] || translations.am;
 
   return (
     <LanguageContext.Provider value={{ language, t, toggleLanguage, setLanguage }}>

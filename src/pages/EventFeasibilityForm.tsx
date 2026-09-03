@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { api } from "../services/api";
 import { BRAND, GRADIENT } from "../styles/theme";
 import { EthiopianDatePicker } from "../Components/ui/EthiopianDatePicker";
+import { useLanguage } from "../contexts/LanguageContext";
 
 /* ─────────────────────────────────────────────────────────────
    Types
@@ -250,6 +251,7 @@ const StepCard = ({
    Main Page
 ───────────────────────────────────────────────────────────── */
 const EventFeasibilityForm = () => {
+  const { t, language } = useLanguage();
   const [form, setForm] = useState<FormData>({
     eventType: "",
     proposedDate: "",

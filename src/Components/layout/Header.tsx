@@ -31,7 +31,7 @@ const Header = () => {
       case "/masterclass": return t.header.masterclass;
       case "/about": return t.header.about;
       case "/contact": return t.header.contact;
-      case "/expo-info": return language === 'am' ? "የሰርግ ኤክስፖ" : "Wedding Expo";
+      case "/expo-info": return language === 'am' ? "የሰርግ ኤክስፖ" : language === 'om' ? "Eksipoo Cidhaa" : "Wedding Expo";
       default: return label;
     }
   };
@@ -123,11 +123,14 @@ const Header = () => {
           <div className="flex items-center gap-5">
             <button 
               onClick={toggleLanguage}
-              className="px-3 py-1 rounded-full border border-white/20 hover:bg-white/10 transition-all text-[10px] font-bold uppercase tracking-widest flex items-center gap-2"
+              title="Switch Language (አማርኛ / English / Afaan Oromoo)"
+              className="px-3 py-1 rounded-full border border-white/20 hover:bg-white/10 transition-all text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5"
             >
-              <span className={language === 'am' ? 'text-[#FFD447]' : 'text-white/60'}>አማ</span>
+              <span className={language === 'am' ? 'text-[#FFD447] font-black' : 'text-white/60'}>አማ</span>
               <div className="w-px h-2 bg-white/20"></div>
-              <span className={language === 'en' ? 'text-[#FFD447]' : 'text-white/60'}>EN</span>
+              <span className={language === 'en' ? 'text-[#FFD447] font-black' : 'text-white/60'}>EN</span>
+              <div className="w-px h-2 bg-white/20"></div>
+              <span className={language === 'om' ? 'text-[#FFD447] font-black' : 'text-white/60'}>OM</span>
             </button>
             <div className="w-px h-4 bg-white/20 mx-1"></div>
             <a href={waLink} target="_blank" rel="noopener noreferrer" className="hover:text-[#25D366] transition-colors flex items-center gap-1">

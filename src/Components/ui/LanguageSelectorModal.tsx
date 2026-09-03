@@ -16,7 +16,7 @@ const LanguageSelectorModal: React.FC = () => {
     }
   }, []);
 
-  const handleSelect = (lang: 'en' | 'am') => {
+  const handleSelect = (lang: 'en' | 'am' | 'om') => {
     setLanguage(lang);
     localStorage.setItem('language_selected', 'true');
     localStorage.setItem('language', lang);
@@ -104,12 +104,11 @@ const LanguageSelectorModal: React.FC = () => {
           <h2 className="yg-font-serif" style={{ fontSize: '32px', fontWeight: 900, color: BRAND.navy, marginBottom: '12px', lineHeight: 1.2 }}>
             Welcome to <span style={{ color: BRAND.gold }}>YENEGE</span>
           </h2>
-          <p className="yg-font-sans" style={{ fontSize: '15px', color: BRAND.gray500, marginBottom: '40px', lineHeight: 1.6 }}>
-            Please select your preferred language to continue.<br/>
-            እባክዎ ለመቀጠል የሚፈልጉትን ቋንቋ ይምረጡ።
+          <p className="yg-font-sans" style={{ fontSize: '15px', color: BRAND.gray500, marginBottom: '32px', lineHeight: 1.6 }}>
+            Please select your preferred language / ቋንቋ ይምረጡ / Luqqa keessan filadhaa:
           </p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <button
               onClick={() => handleSelect('am')}
               style={{
@@ -117,7 +116,7 @@ const LanguageSelectorModal: React.FC = () => {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 width: '100%',
-                padding: '24px 32px',
+                padding: '20px 28px',
                 background: BRAND.navy,
                 borderRadius: '20px',
                 border: 'none',
@@ -126,14 +125,40 @@ const LanguageSelectorModal: React.FC = () => {
                 transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
                 textAlign: 'left'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-3px)'}
               onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
             >
               <div>
-                <div style={{ fontSize: '18px', fontWeight: 800, marginBottom: '4px' }}>አማርኛ</div>
-                <div style={{ fontSize: '11px', opacity: 0.6, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Amharic</div>
+                <div style={{ fontSize: '17px', fontWeight: 800, marginBottom: '2px' }}>አማርኛ</div>
+                <div style={{ fontSize: '11px', opacity: 0.6, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Amharic (Ethiopia)</div>
               </div>
               <FaChevronRight size={14} />
+            </button>
+
+            <button
+              onClick={() => handleSelect('om')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                width: '100%',
+                padding: '20px 28px',
+                background: '#1F2937',
+                borderRadius: '20px',
+                border: '1px solid rgba(255, 212, 71, 0.3)',
+                color: '#fff',
+                cursor: 'pointer',
+                transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                textAlign: 'left'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-3px)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+            >
+              <div>
+                <div style={{ fontSize: '17px', fontWeight: 800, marginBottom: '2px', color: BRAND.gold }}>Afaan Oromoo</div>
+                <div style={{ fontSize: '11px', opacity: 0.7, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Oromifa</div>
+              </div>
+              <FaChevronRight size={14} style={{ color: BRAND.gold }} />
             </button>
 
             <button
@@ -143,7 +168,7 @@ const LanguageSelectorModal: React.FC = () => {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 width: '100%',
-                padding: '24px 32px',
+                padding: '20px 28px',
                 background: BRAND.cream,
                 borderRadius: '20px',
                 border: `1px solid ${BRAND.navy}15`,
@@ -152,12 +177,12 @@ const LanguageSelectorModal: React.FC = () => {
                 transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
                 textAlign: 'left'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-3px)'}
               onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
             >
               <div>
-                <div style={{ fontSize: '18px', fontWeight: 800, marginBottom: '4px' }}>English</div>
-                <div style={{ fontSize: '11px', opacity: 0.6, textTransform: 'uppercase', letterSpacing: '0.1em' }}>United Kingdom</div>
+                <div style={{ fontSize: '17px', fontWeight: 800, marginBottom: '2px' }}>English</div>
+                <div style={{ fontSize: '11px', opacity: 0.6, textTransform: 'uppercase', letterSpacing: '0.1em' }}>International</div>
               </div>
               <FaChevronRight size={14} />
             </button>
@@ -165,7 +190,7 @@ const LanguageSelectorModal: React.FC = () => {
 
           <div style={{ marginTop: '40px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <div style={{ fontSize: '11px', color: BRAND.gray400, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.15em' }}>
-              Precision in Experience Architecture
+              Mastery in Experience Architecture
             </div>
             
             <button

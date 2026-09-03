@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { FaBriefcase, FaHandsHelping, FaSpinner } from "react-icons/fa";
 import { ApplySkeleton } from "../Components/ui/ApplySkeleton";
+import { useLanguage } from "../contexts/LanguageContext";
 import { useContactInfo } from "../hooks/useApi";
 import { supabase } from "../services/supabase";
 
 const Apply = () => {
+  const { language } = useLanguage();
   const { contactInfo, isLoading } = useContactInfo();
   const [formData, setFormData] = useState({
     name: "",
@@ -19,8 +21,6 @@ const Apply = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
 
-  // Show skeleton loading while loading or if contact info is not available yet
-  // The hook will keep retrying automatically until contact info loads
   if (isLoading || !contactInfo) {
     return <ApplySkeleton />;
   }
@@ -30,7 +30,6 @@ const Apply = () => {
     setIsSubmitting(true);
     
     try {
-      // Save application to database using supabase client directly (for public access)
       const { error: insertError } = await supabase
         .from('applications')
         .insert([{
@@ -50,7 +49,6 @@ const Apply = () => {
         throw insertError;
       }
 
-      // Format the message with form data for WhatsApp
       const whatsappMessage = `Hello! I'm ${formData.name}.\n\n` +
         `Application Type: ${formData.type === "internship" ? "Internship" : "Volunteer"}\n` +
         `Email: ${formData.email}\n` +
@@ -60,15 +58,12 @@ const Apply = () => {
         (formData.availability ? `Availability: ${formData.availability}\n` : '') +
         `\nMotivation:\n${formData.motivation}`;
       
-      // Create WhatsApp URL (phone number without + or spaces)
       const phoneNumber = contactInfo?.phone?.replace(/\D/g, '') || "251978639887";
       const encodedMessage = encodeURIComponent(whatsappMessage);
       const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
       
-      // Open WhatsApp in a new tab
       window.open(whatsappUrl, '_blank');
       
-      // Reset form and show success message
       setIsSubmitting(false);
       setSubmitStatus("success");
       setFormData({ 
@@ -103,7 +98,7 @@ const Apply = () => {
       <div className="container mx-auto px-4 sm:px-6 py-12 md:py-16 lg:py-24">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="text-center mb-12 md:mb-16">
+          <div className="text-center mb-12 md:mb-16 pt-12">
             <div className="inline-block mb-4 md:mb-6">
               <div 
                 className="h-1 w-16 md:w-20 mx-auto mb-3 md:mb-4 rounded-full"
@@ -112,13 +107,15 @@ const Apply = () => {
                 }}
               ></div>
             </div>
-            <h1 
-              className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 md:mb-6 tracking-tight text-gray-900"
-            >
-              Join Our Team
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 md:mb-6 tracking-tight text-gray-900">
+              {language === 'am' ? 'ቡድናችንን ይቀላቀሉ' : language === 'om' ? 'Gareen Keenyatti Makamaa' : 'Join Our Team'}
             </h1>
             <p className="text-gray-600 text-base md:text-lg leading-relaxed max-w-2xl mx-auto">
-              Help us build the future of African events. We're looking for innovative minds to join our ecosystem as interns or volunteers and scale world-class experiences.
+              {language === 'am'
+                ? 'በኢቨንት እና አካደሚ ስራዎቻችን ላይ በስልጠና ወይም በበጎ ፈቃደኝነት በመሳተፍ የወደፊቱን የኢቨንት ዘርፍ ከእኛ ጋር ይገንቡ።'
+                : language === 'om'
+                ? 'Qophii fi leenjii keenya irratti leenjifamaa yookiin arjoomaan hirmaachuun seenaa haaraa waliin haaijaarru.'
+                : "Help us build the future of African events. We're looking for innovative minds to join our ecosystem as interns or volunteers and scale world-class experiences."}
             </p>
           </div>
 
@@ -162,10 +159,10 @@ const Apply = () => {
                     formData.type === "internship" ? "text-gray-900" : "text-gray-600"
                   }`}
                 >
-                  Internship
+                  {language === 'am' ? 'የተለማማጅነት (Internship)' : language === 'om' ? 'Leenjii Shaakalaa (Internship)' : 'Internship'}
                 </h3>
                 <p className="text-sm md:text-base text-gray-600">
-                  Gain valuable experience and learn from industry professionals
+                  {language === 'am' ? 'ከባለሙያዎች ጋር በመስራት ተግባራዊ ልምድ ያግኙ' : language === 'om' ? 'Ogeessota waliin hojechuun muuxannoo gayaa argadhaa' : 'Gain valuable experience and learn from industry professionals'}
                 </p>
               </div>
             </button>
@@ -208,35 +205,17 @@ const Apply = () => {
                     formData.type === "volunteer" ? "text-gray-900" : "text-gray-600"
                   }`}
                 >
-                  Volunteer
+                  {language === 'am' ? 'በጎ ፈቃደኝነት (Volunteer)' : language === 'om' ? 'Arjoomaa (Volunteer)' : 'Volunteer'}
                 </h3>
                 <p className="text-sm md:text-base text-gray-600">
-                  Make a difference and contribute to our community initiatives
+                  {language === 'am' ? 'በማህበረሰብ ፕሮግራሞች ላይ በመሳተፍ አዎንታዊ ተፅእኖ ይፍጠሩ' : language === 'om' ? 'Sagantaa hawaasaa irratti hirmaachuun dhiibbaa gaarii uumaa' : 'Make a difference and contribute to our community initiatives'}
                 </p>
               </div>
             </button>
           </div>
 
           {/* Application Form */}
-          <div className="group relative overflow-hidden rounded-2xl md:rounded-3xl p-6 md:p-8 lg:p-10 bg-white border border-gray-200 transition-all duration-700 shadow-lg"
-            onMouseEnter={(e) => {
-              if (window.innerWidth >= 768) {
-                e.currentTarget.style.boxShadow = "0 20px 40px rgba(255, 111, 94, 0.15)";
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = "0 4px 24px rgba(0, 0, 0, 0.08)";
-            }}
-          >
-            {/* Light decorative background */}
-            <div 
-              className="absolute top-0 right-0 w-40 h-40 md:w-64 md:h-64 rounded-full opacity-30 group-hover:opacity-50 transition-opacity duration-700 blur-3xl"
-              style={{
-                background: "linear-gradient(135deg, rgba(255, 212, 71, 0.3) 0%, rgba(255, 111, 94, 0.3) 100%)",
-                transform: "translate(30%, -30%)",
-              }}
-            ></div>
-
+          <div className="group relative overflow-hidden rounded-2xl md:rounded-3xl p-6 md:p-8 lg:p-10 bg-white border border-gray-200 transition-all duration-700 shadow-lg">
             <div className="relative z-10">
               <div 
                 className="h-1 w-16 md:w-20 mb-6 rounded-full"
@@ -245,29 +224,17 @@ const Apply = () => {
                 }}
               ></div>
               <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8 tracking-tight text-gray-900">
-                Application Form
+                {language === 'am' ? 'የማመልከቻ ቅጽ' : language === 'om' ? 'Unka Galmee' : 'Application Form'}
               </h2>
               
               {submitStatus === "success" && (
-                <div className="mb-6 p-4 rounded-xl text-sm md:text-base"
-                  style={{
-                    background: "rgba(34, 197, 94, 0.1)",
-                    border: "1px solid rgba(34, 197, 94, 0.3)",
-                    color: "#16a34a",
-                  }}
-                >
+                <div className="mb-6 p-4 rounded-xl text-sm md:text-base bg-emerald-50 border border-emerald-200 text-emerald-700">
                   Opening WhatsApp... If it didn't open, please check your browser settings.
                 </div>
               )}
 
               {submitStatus === "error" && (
-                <div className="mb-6 p-4 rounded-xl text-sm md:text-base"
-                  style={{
-                    background: "rgba(239, 68, 68, 0.1)",
-                    border: "1px solid rgba(239, 68, 68, 0.3)",
-                    color: "#dc2626",
-                  }}
-                >
+                <div className="mb-6 p-4 rounded-xl text-sm md:text-base bg-red-50 border border-red-200 text-red-700">
                   Something went wrong. Please try again or contact us directly.
                 </div>
               )}
@@ -276,7 +243,7 @@ const Apply = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
                   <div>
                     <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
-                      Full Name *
+                      {language === 'am' ? 'ሙሉ ስም' : language === 'om' ? 'Maqaa Guutuu' : 'Full Name'} *
                     </label>
                     <input
                       type="text"
@@ -285,14 +252,14 @@ const Apply = () => {
                       required
                       value={formData.name}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FF6F5E] focus:border-[#FF6F5E] transition-all duration-300 bg-white"
-                      placeholder="Your full name"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FF6F5E] focus:border-[#FF6F5E] transition-all duration-300 bg-white text-gray-900"
+                      placeholder="e.g. Abebe Bikila"
                     />
                   </div>
 
                   <div>
                     <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
-                      Email *
+                      {language === 'am' ? 'ኢሜይል' : language === 'om' ? 'Teessoo Imeelii' : 'Email Address'} *
                     </label>
                     <input
                       type="email"
@@ -301,7 +268,7 @@ const Apply = () => {
                       required
                       value={formData.email}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FF6F5E] focus:border-[#FF6F5E] transition-all duration-300 bg-white"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FF6F5E] focus:border-[#FF6F5E] transition-all duration-300 bg-white text-gray-900"
                       placeholder="your.email@example.com"
                     />
                   </div>
@@ -309,7 +276,7 @@ const Apply = () => {
 
                 <div>
                   <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">
-                    Phone Number *
+                    {language === 'am' ? 'ስልክ ቁጥር' : language === 'om' ? 'Lakk. Bilbilaa' : 'Phone Number'} *
                   </label>
                   <input
                     type="tel"
@@ -318,14 +285,14 @@ const Apply = () => {
                     required
                     value={formData.phone}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF6F5E] focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FF6F5E] focus:border-[#FF6F5E] transition-all duration-300 bg-white text-gray-900"
                     placeholder="+251 9XX XXX XXX"
                   />
                 </div>
 
                 <div>
                   <label htmlFor="position" className="block text-sm font-semibold text-gray-700 mb-2">
-                    Position / Area of Interest
+                    {language === 'am' ? 'የፍላጎት ዘርፍ' : language === 'om' ? 'Gosa Hojii Barbaaddan' : 'Position / Area of Interest'}
                   </label>
                   <input
                     type="text"
@@ -333,14 +300,14 @@ const Apply = () => {
                     name="position"
                     value={formData.position}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF6F5E] focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FF6F5E] focus:border-[#FF6F5E] transition-all duration-300 bg-white text-gray-900"
                     placeholder="e.g., Marketing, Event Planning, Social Media, etc."
                   />
                 </div>
 
                 <div>
                   <label htmlFor="experience" className="block text-sm font-semibold text-gray-700 mb-2">
-                    Relevant Experience
+                    {language === 'am' ? 'ተዛማጅ ልምድ' : language === 'om' ? 'Muuxannoo Hojii' : 'Relevant Experience'}
                   </label>
                   <textarea
                     id="experience"
@@ -348,38 +315,23 @@ const Apply = () => {
                     rows={3}
                     value={formData.experience}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FF6F5E] focus:border-[#FF6F5E] resize-none transition-all duration-300 bg-white"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FF6F5E] focus:border-[#FF6F5E] resize-none transition-all duration-300 bg-white text-gray-900"
                     placeholder="Tell us about your relevant experience, skills, or education..."
                   ></textarea>
                 </div>
 
                 <div>
-                  <label htmlFor="availability" className="block text-sm font-semibold text-gray-700 mb-2">
-                    Availability
-                  </label>
-                  <input
-                    type="text"
-                    id="availability"
-                    name="availability"
-                    value={formData.availability}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF6F5E] focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm"
-                    placeholder="e.g., Full-time, Part-time, Weekends only, etc."
-                  />
-                </div>
-
-                <div>
                   <label htmlFor="motivation" className="block text-sm font-semibold text-gray-700 mb-2">
-                    Why do you want to join us? *
+                    {language === 'am' ? 'የመቀላቀል ምክንያት' : language === 'om' ? 'Sababa Hirmaannaa' : 'Why do you want to join us?'} *
                   </label>
                   <textarea
                     id="motivation"
                     name="motivation"
                     required
-                    rows={6}
+                    rows={5}
                     value={formData.motivation}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FF6F5E] focus:border-[#FF6F5E] resize-none transition-all duration-300 bg-white"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FF6F5E] focus:border-[#FF6F5E] resize-none transition-all duration-300 bg-white text-gray-900"
                     placeholder="Tell us what motivates you and why you're interested in this opportunity..."
                   ></textarea>
                 </div>
@@ -387,20 +339,10 @@ const Apply = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="group w-full py-3 md:py-4 rounded-full font-semibold transition-all duration-500 relative overflow-hidden text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed text-white"
+                  className="group w-full py-4 rounded-full font-semibold transition-all duration-500 relative overflow-hidden text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed text-white"
                   style={{
                     background: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)",
                     boxShadow: "0 4px 20px rgba(37, 211, 102, 0.3)",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (window.innerWidth >= 768 && !isSubmitting) {
-                      e.currentTarget.style.transform = "translateY(-2px)";
-                      e.currentTarget.style.boxShadow = "0 8px 30px rgba(37, 211, 102, 0.4)";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "0 4px 20px rgba(37, 211, 102, 0.3)";
                   }}
                 >
                   <span className="relative z-10 inline-flex items-center justify-center">
@@ -411,7 +353,7 @@ const Apply = () => {
                       </>
                     ) : (
                       <>
-                        Submit Application via WhatsApp
+                        {language === 'am' ? 'ማመልከቻውን በ WhatsApp ላክ' : language === 'om' ? 'Galmee WhatsApp-iin Ergaa' : 'Submit Application via WhatsApp'}
                       </>
                     )}
                   </span>
@@ -426,4 +368,3 @@ const Apply = () => {
 };
 
 export default Apply;
-

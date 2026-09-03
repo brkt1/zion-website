@@ -7,6 +7,7 @@ import { LocationButton } from "../Components/ui/LocationButton";
 import OptimizedImage from "../Components/ui/OptimizedImage";
 import ShatterSlideshow from "../Components/ui/ShatterSlideshow";
 import { useActiveCommissionSellers, useContactInfo, useEvent } from "../hooks/useApi";
+import { useLanguage } from "../contexts/LanguageContext";
 import { useScrollReveal } from "../hooks/useScrollReveal";
 import { generateTransactionReference, getChapaPublicKey, initializePayment, submitChapaHTMLCheckout } from "../services/payment";
 import { registerForFreeEvent } from "../services/ticket";
@@ -18,6 +19,7 @@ const EventDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const { event, isLoading, mutate: refetchEvent } = useEvent(id);
+  const { t, language } = useLanguage();
   
   // Initialize scroll reveal animations
   useScrollReveal();
@@ -624,7 +626,7 @@ const EventDetail = () => {
             onClick={() => navigate(-1)}
             className="ed-back-btn mb-auto mt-8 sm:mt-12"
           >
-            <FaChevronLeft size={14} /> Back to Events
+            <FaChevronLeft size={14} /> {language === 'am' ? 'ወደ ኢቨንቶች ተመለስ' : language === 'om' ? 'Gara Qophiiwwaniiti Deebi\'aa' : 'Back to Events'}
           </button>
 
           <div className="max-w-3xl reveal-wrapper">
@@ -633,7 +635,7 @@ const EventDetail = () => {
                 {event.category}
               </span>
             </div>
-            <h1 className="ed-font-serif text-4xl sm:text-5xl md:text-6xl font-black text-white leading-[1.1] mb-6 tracking-tight">
+            <h1 className="ed-font-serif text-3xl sm:text-5xl md:text-6xl font-black text-white leading-[1.1] mb-6 tracking-tight">
               {event.title}
             </h1>
           </div>
@@ -642,19 +644,21 @@ const EventDetail = () => {
 
       {/* ── 2. Content Grid ────────────────────────────────────────────────── */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-20 pb-24">
-        <div className="grid lg:grid-cols-12 gap-12">
+        <div className="grid lg:grid-cols-12 gap-8 lg:gap-12">
           
           {/* Main Content Area */}
-          <div className="lg:col-span-8 flex flex-col gap-12">
+          <div className="lg:col-span-8 flex flex-col gap-8 sm:gap-12">
             
             {/* Quick Info Bar */}
-            <div className="bg-white rounded-[32px] p-8 border border-black/5 shadow-xl shadow-black/5 grid grid-cols-1 md:grid-cols-3 gap-8 reveal-wrapper reveal-delay-300">
+            <div className="bg-white rounded-[32px] p-6 sm:p-8 border border-black/5 shadow-xl shadow-black/5 grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 reveal-wrapper reveal-delay-300">
               <div className="flex items-center gap-4">
                 <div className="ed-info-icon-wrap">
                   <FaCalendarAlt size={20} />
                 </div>
                 <div>
-                  <div className="text-[10px] font-bold text-black/40 uppercase tracking-widest mb-0.5">Date & Time</div>
+                  <div className="text-[10px] font-bold text-black/40 uppercase tracking-widest mb-0.5">
+                    {language === 'am' ? 'ቀን እና ሰዓት' : language === 'om' ? 'Guyyaa fi Sa\'aatii' : 'Date & Time'}
+                  </div>
                   <div className="ed-font-sans font-bold text-slate-900 truncate">{formatDate(event.date)}</div>
                   {event.time && <div className="text-xs text-slate-500">{event.time}</div>}
                 </div>
@@ -665,7 +669,9 @@ const EventDetail = () => {
                   <FaMapMarkerAlt size={20} />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-[10px] font-bold text-black/40 uppercase tracking-widest mb-0.5">Location</div>
+                  <div className="text-[10px] font-bold text-black/40 uppercase tracking-widest mb-0.5">
+                    {t.eventsPage.location || (language === 'am' ? 'ቦታ' : language === 'om' ? 'Bakka' : 'Location')}
+                  </div>
                   <div className="ed-font-sans font-bold text-slate-900">
                     <LocationButton location={event.location} className="hover:text-[#FFD447] transition-colors truncate block" />
                   </div>
@@ -677,13 +683,15 @@ const EventDetail = () => {
                   <FaUsers size={20} />
                 </div>
                 <div>
-                  <div className="text-[10px] font-bold text-black/40 uppercase tracking-widest mb-0.5">Availability</div>
+                  <div className="text-[10px] font-bold text-black/40 uppercase tracking-widest mb-0.5">
+                    {language === 'am' ? 'የቦታ ሁኔታ' : language === 'om' ? 'Bakka Hafe' : 'Availability'}
+                  </div>
                   <div className={`ed-font-sans font-bold ${
                     event.maxAttendees && (event.attendees || 0) >= event.maxAttendees
                       ? 'text-red-600'
                       : 'text-slate-900'
                   }`}>
-                    {event.attendees || 0} {event.maxAttendees ? `of ${event.maxAttendees}` : 'joined'}
+                    {event.attendees || 0} {event.maxAttendees ? `${language === 'am' ? 'ከ' : language === 'om' ? 'keessaa' : 'of'} ${event.maxAttendees}` : (language === 'am' ? 'ተመዝግበዋል' : language === 'om' ? 'galmaa\'aniiru' : 'joined')}
                   </div>
                   {event.maxAttendees && (
                     <div className={`text-xs font-medium ${
@@ -692,8 +700,8 @@ const EventDetail = () => {
                         : 'text-emerald-600'
                     }`}>
                       {(event.attendees || 0) >= event.maxAttendees
-                        ? '🚫 Event is full'
-                        : `${Math.max(0, event.maxAttendees - (event.attendees || 0))} spots left`
+                        ? (language === 'am' ? '🚫 ቦታዎች ተሞልተዋል' : language === 'om' ? '🚫 Qophiin kun guuteera' : '🚫 Event is full')
+                        : `${Math.max(0, event.maxAttendees - (event.attendees || 0))} ${language === 'am' ? 'ቦታዎች ቀርተዋል' : language === 'om' ? 'bakka hafe' : 'spots left'}`
                       }
                     </div>
                   )}
@@ -703,7 +711,9 @@ const EventDetail = () => {
 
             {/* About Section */}
             <div>
-              <h2 className="ed-font-serif text-3xl font-bold text-slate-900 mb-6">Experience Highlights</h2>
+              <h2 className="ed-font-serif text-3xl font-bold text-slate-900 mb-6">
+                {language === 'am' ? 'የኢቨንቱ ዋና ዋና ይዘቶች' : language === 'om' ? 'Waa\'ee Qophii Kanaa' : 'Experience Highlights'}
+              </h2>
               <div className="ed-font-sans text-lg text-slate-600 leading-relaxed whitespace-pre-line bg-white/50 p-8 rounded-[32px] border border-black/5">
                 {event.description}
               </div>
@@ -719,7 +729,9 @@ const EventDetail = () => {
                 <div className="space-y-4 reveal-wrapper">
                   <div className="flex items-center gap-3 px-2">
                     <div className="h-px flex-1 bg-black/5" />
-                    <h4 className="ed-font-serif text-lg font-black text-slate-900 italic">Perspective Series</h4>
+                    <h4 className="ed-font-serif text-lg font-black text-slate-900 italic">
+                      {language === 'am' ? 'የፎቶ ማህደር' : language === 'om' ? 'Suuraawwan Qophii' : 'Perspective Series'}
+                    </h4>
                     <div className="h-px w-8 bg-black/5" />
                   </div>
                   <ShatterSlideshow images={event.gallery} />
@@ -730,11 +742,11 @@ const EventDetail = () => {
                 <div className="flex justify-between items-baseline mb-8">
                   <div>
                     <span className="text-[11px] font-extrabold text-[#0F172A]/40 uppercase tracking-[0.2em] block mb-1">
-                      Admission Fee
+                      {language === 'am' ? 'የመግቢያ ክፍያ' : language === 'om' ? 'Kaffaltii Seensaa' : 'Admission Fee'}
                     </span>
                     <div className="ed-font-serif text-4xl font-black text-[#0F172A]">
-                      {event.price === "Free" ? "Gratis" : ticketTypes.length > 1 ? `From ${Math.min(...ticketTypes.map(t => t.price))}` : `${event.price}`}
-                      {event.price !== "Free" && <span className="text-lg ml-1 opacity-60 font-medium">{event.currency}</span>}
+                      {event.price === "Free" || event.price === "0" ? t.eventsPage.free : ticketTypes.length > 1 ? `${language === 'am' ? 'ከ ' : language === 'om' ? 'Irraa ' : 'From '}${Math.min(...ticketTypes.map(t => t.price))}` : `${event.price}`}
+                      {event.price !== "Free" && event.price !== "0" && <span className="text-lg ml-1 opacity-60 font-medium">{event.currency || 'ETB'}</span>}
                     </div>
                   </div>
                   <div className="w-12 h-0.5 bg-[#FF6F5E]/30 rounded-full" />
@@ -750,8 +762,12 @@ const EventDetail = () => {
                       return (
                         <div className="flex flex-col gap-3">
                           <div className="w-full py-5 flex flex-col items-center justify-center gap-2 bg-gray-100 border-2 border-gray-200 rounded-full text-center">
-                            <span className="text-gray-600 font-black text-sm uppercase tracking-widest">🔒 Registration Closed</span>
-                            <span className="text-gray-500 text-xs font-medium">This event is currently not accepting registrations.</span>
+                            <span className="text-gray-600 font-black text-sm uppercase tracking-widest">
+                              🔒 {language === 'am' ? 'ምዝገባ ተዘጋል' : language === 'om' ? 'Galmeen Cufameera' : 'Registration Closed'}
+                            </span>
+                            <span className="text-gray-500 text-xs font-medium">
+                              {language === 'am' ? 'ለዚህ ኢቨንት ምዝገባ በአሁኑ ወቅት ተቁሟል።' : language === 'om' ? 'Qophii kanaaf galmeen cufameera.' : 'This event is currently not accepting registrations.'}
+                            </span>
                           </div>
                           {hasSocialLink && (
                             <a
@@ -760,7 +776,7 @@ const EventDetail = () => {
                               rel="noopener noreferrer"
                               className="w-full bg-white border-2 border-[#0F172A] text-[#0F172A] py-4 rounded-full text-xs font-black uppercase tracking-widest text-center hover:bg-[#0F172A] hover:text-white transition-all flex items-center justify-center gap-2"
                             >
-                              Join Discussion <FaExternalLinkAlt size={12} />
+                              {language === 'am' ? 'ውይይቱን ይቀላቀሉ' : language === 'om' ? 'Mariitti Makamaa' : 'Join Discussion'} <FaExternalLinkAlt size={12} />
                             </a>
                           )}
                         </div>
@@ -774,8 +790,12 @@ const EventDetail = () => {
                         return (
                           <div className="flex flex-col gap-3">
                             <div className="w-full py-5 flex flex-col items-center justify-center gap-2 bg-red-50 border-2 border-red-200 rounded-full text-center">
-                              <span className="text-red-600 font-black text-sm uppercase tracking-widest">🚫 This Event Is Full</span>
-                              <span className="text-red-400 text-xs font-medium">Please look for our next event!</span>
+                              <span className="text-red-600 font-black text-sm uppercase tracking-widest">
+                                🚫 {language === 'am' ? 'ቦታው ሙሉ በሙሉ ተሞልቷል' : language === 'om' ? 'Qophiin Kun Guuteera' : 'This Event Is Full'}
+                              </span>
+                              <span className="text-red-400 text-xs font-medium">
+                                {language === 'am' ? 'እባክዎ የሚቀጥለውን ኢቨንት ይጠብቁ!' : language === 'om' ? 'Maaloo qophii itti aanu eegaa!' : 'Please look for our next event!'}
+                              </span>
                             </div>
                             {hasSocialLink && (
                               <a
@@ -784,7 +804,7 @@ const EventDetail = () => {
                                 rel="noopener noreferrer"
                                 className="w-full bg-white border-2 border-[#0F172A] text-[#0F172A] py-4 rounded-full text-xs font-black uppercase tracking-widest text-center hover:bg-[#0F172A] hover:text-white transition-all flex items-center justify-center gap-2"
                               >
-                                Join Discussion <FaExternalLinkAlt size={12} />
+                                {language === 'am' ? 'ውይይቱን ይቀላቀሉ' : language === 'om' ? 'Mariitti Makamaa' : 'Join Discussion'} <FaExternalLinkAlt size={12} />
                               </a>
                             )}
                           </div>
@@ -798,7 +818,7 @@ const EventDetail = () => {
                             className="ed-btn-primary w-full py-5 flex items-center justify-center gap-3 disabled:opacity-50"
                             disabled={isProcessing}
                           >
-                            {isProcessing ? <FaSpinner className="animate-spin" /> : "Secure My Spot"}
+                            {isProcessing ? <FaSpinner className="animate-spin" /> : (language === 'am' ? 'ቦታዬን ላስይዝ' : language === 'om' ? 'Bakka Koos Qabadha' : 'Secure My Spot')}
                           </button>
                           {hasSocialLink && (
                             <a
@@ -807,7 +827,7 @@ const EventDetail = () => {
                               rel="noopener noreferrer"
                               className="w-full bg-white border-2 border-[#0F172A] text-[#0F172A] py-4 rounded-full text-xs font-black uppercase tracking-widest text-center hover:bg-[#0F172A] hover:text-white transition-all flex items-center justify-center gap-2"
                             >
-                              Join Discussion <FaExternalLinkAlt size={12} />
+                              {language === 'am' ? 'ውይይቱን ይቀላቀሉ' : language === 'om' ? 'Mariitti Makamaa' : 'Join Discussion'} <FaExternalLinkAlt size={12} />
                             </a>
                           )}
                         </div>
@@ -820,7 +840,7 @@ const EventDetail = () => {
                         className="ed-btn-primary w-full py-5 flex items-center justify-center gap-3 disabled:opacity-50"
                         disabled={isProcessing}
                       >
-                        {isProcessing ? <FaSpinner className="animate-spin" /> : "Reserve Admission"}
+                        {isProcessing ? <FaSpinner className="animate-spin" /> : (language === 'am' ? 'መግቢያ ቲኬት ያዝ' : language === 'om' ? 'Tiikeetii Seensaa Qabadhaa' : 'Reserve Admission')}
                       </button>
                     );
                   })()}
@@ -828,7 +848,9 @@ const EventDetail = () => {
 
                 {/* Benefits / Social Share */}
                 <div className="pt-8 border-t border-black/5">
-                  <h4 className="text-[10px] font-black text-black/30 uppercase tracking-[0.2em] mb-4">Share Experience</h4>
+                  <h4 className="text-[10px] font-black text-black/30 uppercase tracking-[0.2em] mb-4">
+                    {language === 'am' ? 'ለሌሎች ያካፍሉ' : language === 'om' ? 'Hiriyootaaf Qoodaa' : 'Share Experience'}
+                  </h4>
                   <div className="flex gap-3">
                     <a
                       href={`https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`}
@@ -849,13 +871,15 @@ const EventDetail = () => {
 
                 {/* Support Link */}
                 <div className="mt-10 bg-[#FAF9F6] rounded-2xl p-5 border border-black/5">
-                  <p className="text-xs text-slate-500 mb-3 font-medium">Have inquiries regarding this curation?</p>
+                  <p className="text-xs text-slate-500 mb-3 font-medium">
+                    {language === 'am' ? 'ስለዚህ ዝግጅት ጥያቄ አለዎት?' : language === 'om' ? 'Waa\'ee qophii kanaa gaaffii qabduu?' : 'Have inquiries regarding this curation?'}
+                  </p>
                   <a
                     href={`https://wa.me/${contactInfo?.phone?.replace(/\D/g, '') || '251978639887'}`}
                     target="_blank" rel="noopener noreferrer"
                     className="text-[11px] font-extrabold text-[#0F172A] uppercase tracking-widest flex items-center gap-2 hover:text-[#FF6F5E] transition-colors"
                   >
-                    Connect via WhatsApp <FaChevronRight size={10} />
+                    {language === 'am' ? 'በዋትስአፕ ያናግሩን' : language === 'om' ? 'WhatsApp-iin Nu Quunnamaa' : 'Connect via WhatsApp'} <FaChevronRight size={10} />
                   </a>
                 </div>
               </div>

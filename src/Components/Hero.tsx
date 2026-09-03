@@ -32,7 +32,7 @@ const fallbackDestinations = [
 const Hero = () => {
   const { destinations: apiDestinations } = useDestinations();
   const { content: homeContent } = useHomeContent();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const destinations = apiDestinations.length > 0 ? apiDestinations : fallbackDestinations;
   
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -413,10 +413,14 @@ const Hero = () => {
             {/* Floating Trust Badge */}
             <div className="hero-trust-badge">
                <div className="badge-ring"></div>
-               <div className="badge-content">
-                  <span className="badge-title">One of East Africa's</span>
-                  <span className="badge-label">Leading Academies</span>
-               </div>
+                <div className="badge-content">
+                  <span className="badge-title">
+                    {language === 'am' ? 'በምስራቅ አፍሪካ' : language === 'om' ? 'Baha Afrikaatti' : "One of East Africa's"}
+                  </span>
+                  <span className="badge-label">
+                    {language === 'am' ? 'ግንባር ቀደም አካደሚ' : language === 'om' ? 'Akaadaamii Dursaa' : 'Leading Academies'}
+                  </span>
+                </div>
             </div>
 
             <h1 className="hero-slogan">{t.hero.tagline}</h1>

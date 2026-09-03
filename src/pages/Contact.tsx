@@ -17,7 +17,7 @@ import { useScrollReveal } from "../hooks/useScrollReveal";
 
 const Contact = () => {
   useScrollReveal();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { contactInfo, isLoading } = useContactInfo();
 
   const [formData, setFormData] = useState({
@@ -30,9 +30,9 @@ const Contact = () => {
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
   
   useEffect(() => {
-    document.title = "Contact Us | YENEGE - Connect for Event Production & Academy";
+    document.title = `${t.contact?.title || 'Contact Us'} | YENEGE`;
     window.scrollTo(0, 0);
-  }, []);
+  }, [t, language]);
 
   const fallbackContact = {
     email: "yenegeevents@gmail.com",
@@ -91,16 +91,18 @@ const Contact = () => {
         <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10 text-center space-y-6">
           <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl mx-auto">
             <span className="w-2.5 h-2.5 rounded-full bg-[#FFD447] shadow-[0_0_12px_#FFD447]" />
-            <span className="text-[#FFD447] font-black text-xs uppercase tracking-[0.25em]">CONNECT WITH OUR TEAM</span>
+            <span className="text-[#FFD447] font-black text-xs uppercase tracking-[0.25em]">{t.contact?.label || "CONNECT WITH OUR TEAM"}</span>
           </div>
 
-          <h1 className="font-heading text-5xl sm:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight text-white max-w-4xl mx-auto">
-            Let's Architect Your Next <br />
-            <span className="bg-gradient-to-r from-[#FFD447] via-[#FF6F5E] to-[#7B5CFF] bg-clip-text text-transparent italic">Unforgettable Experience</span>
+          <h1 className="font-heading text-4xl sm:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight text-white max-w-4xl mx-auto">
+            {t.contact?.title || "Let's Architect Your Next"} <br />
+            <span className="bg-gradient-to-r from-[#FFD447] via-[#FF6F5E] to-[#7B5CFF] bg-clip-text text-transparent italic">
+              {t.contact?.subtitle || "Unforgettable Experience"}
+            </span>
           </h1>
 
           <p className="text-base sm:text-lg text-slate-300 font-medium leading-relaxed max-w-2xl mx-auto">
-            Have a question about event execution, sponsorship strategy, or enrolling in Yenege Academy? We are here to help.
+            {t.contact?.desc || "Have a question about event execution, sponsorship strategy, or enrolling in Yenege Academy? We are here to help."}
           </p>
         </div>
       </section>
@@ -118,7 +120,7 @@ const Contact = () => {
                 <div className="w-12 h-12 rounded-2xl bg-[#FFD447]/10 text-[#FFD447] flex items-center justify-center text-xl border border-[#FFD447]/20">
                   <FaMapMarkerAlt />
                 </div>
-                <h3 className="font-heading text-xl font-bold text-white">Our Head Studio</h3>
+                <h3 className="font-heading text-xl font-bold text-white">{t.contact?.headStudioTitle || "Our Head Studio"}</h3>
                 <p className="text-xs text-slate-300 leading-relaxed font-medium">
                   {finalContact.location}
                 </p>
@@ -129,7 +131,7 @@ const Contact = () => {
                 <div className="w-12 h-12 rounded-2xl bg-[#FF6F5E]/10 text-[#FF6F5E] flex items-center justify-center text-xl border border-[#FF6F5E]/20">
                   <FaEnvelope />
                 </div>
-                <h3 className="font-heading text-xl font-bold text-white">Email Enquiries</h3>
+                <h3 className="font-heading text-xl font-bold text-white">{t.contact?.emailEnquiriesTitle || "Email Enquiries"}</h3>
                 <a 
                   href={`mailto:${finalContact.email || 'yenegeevents@gmail.com'}`}
                   className="text-xs text-slate-300 hover:text-[#FFD447] transition-colors font-medium block underline"
@@ -143,7 +145,7 @@ const Contact = () => {
                 <div className="w-12 h-12 rounded-2xl bg-[#7B5CFF]/10 text-[#7B5CFF] flex items-center justify-center text-xl border border-[#7B5CFF]/20">
                   <FaPhone />
                 </div>
-                <h3 className="font-heading text-xl font-bold text-white">Direct Line &amp; Support</h3>
+                <h3 className="font-heading text-xl font-bold text-white">{t.contact?.phoneHotlineTitle || "Direct Line & Support"}</h3>
                 <a 
                   href={`tel:${finalContact.phone?.replace(/\D/g, '') || '251978639887'}`}
                   className="text-xs text-slate-300 hover:text-[#FFD447] transition-colors font-medium block"
@@ -154,7 +156,7 @@ const Contact = () => {
 
               {/* Social Channels */}
               <div className="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl space-y-4">
-                <h3 className="font-heading text-lg font-bold text-white">Official Channels</h3>
+                <h3 className="font-heading text-lg font-bold text-white">{t.contact?.officialChannelsTitle || "Official Channels"}</h3>
                 <div className="flex gap-3">
                   {[
                     { icon: <FaInstagram />, href: "https://instagram.com/yenege_event" },
@@ -179,23 +181,23 @@ const Contact = () => {
             {/* Right Column: Interactive Form */}
             <div className="lg:col-span-7 bg-[#1E293B]/80 backdrop-blur-2xl p-8 sm:p-12 rounded-3xl border border-white/10 shadow-2xl space-y-8">
               <div>
-                <h2 className="font-heading text-3xl font-black text-white mb-2">Send Us a Direct Message</h2>
+                <h2 className="font-heading text-3xl font-black text-white mb-2">{t.contact?.formTitle || "Send Us a Direct Message"}</h2>
                 <p className="text-xs text-slate-400 font-medium leading-relaxed">
-                  Fill in your details below. Your message will be formatted and sent directly to our team via WhatsApp for an immediate response.
+                  {t.contact?.formSub || "Fill in your details below. Your message will be formatted and sent directly to our team via WhatsApp for an immediate response."}
                 </p>
               </div>
 
               {submitStatus === "success" && (
                 <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold flex items-center gap-2">
                   <FaCheckCircle className="text-base shrink-0" />
-                  <span>WhatsApp conversation initiated! Check your WhatsApp window to send.</span>
+                  <span>{t.contact?.waSuccess || "WhatsApp conversation initiated! Check your WhatsApp window to send."}</span>
                 </div>
               )}
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-[10px] font-black uppercase tracking-widest text-[#FFD447] mb-2">Your Full Name *</label>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-[#FFD447] mb-2">{t.contact?.name || "Full Name"} *</label>
                     <input 
                       type="text" 
                       name="name" 
@@ -207,7 +209,7 @@ const Contact = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black uppercase tracking-widest text-[#FFD447] mb-2">Email Address *</label>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-[#FFD447] mb-2">{t.contact?.email || "Email Address"} *</label>
                     <input 
                       type="email" 
                       name="email" 
@@ -221,7 +223,7 @@ const Contact = () => {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#FFD447] mb-2">Phone Number (Optional)</label>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#FFD447] mb-2">{t.contact?.phone || "Phone Number"}</label>
                   <input 
                     type="tel" 
                     name="phone" 
@@ -233,7 +235,7 @@ const Contact = () => {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#FFD447] mb-2">Message or Inquiry *</label>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#FFD447] mb-2">{t.contact?.message || "Message or Inquiry"} *</label>
                   <textarea 
                     name="message" 
                     required 
@@ -251,7 +253,7 @@ const Contact = () => {
                   className="w-full py-5 rounded-2xl bg-gradient-to-r from-[#FFD447] to-[#FF6F5E] hover:from-[#ffe066] hover:to-[#ff8273] text-[#1C2951] font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 transition-all shadow-xl shadow-[#FF6F5E]/20 hover:scale-[1.01]"
                 >
                   <FaWhatsapp size={18} />
-                  <span>{isSubmitting ? "Opening WhatsApp..." : "Send Message Via WhatsApp"}</span>
+                  <span>{isSubmitting ? "Opening WhatsApp..." : (t.contact?.send || "Send Message Via WhatsApp")}</span>
                 </button>
               </form>
             </div>
