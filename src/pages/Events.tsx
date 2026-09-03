@@ -66,7 +66,7 @@ const Events = () => {
     });
   }, [events, searchQuery, selectedCategory]);
 
-  if (eventsLoading || !events) {
+  if (eventsLoading && events.length === 0) {
     return <EventsSkeleton />;
   }
 

@@ -79,9 +79,6 @@ const Contact = () => {
     });
   };
 
-  if (isLoading && !contactInfo) {
-    return <ContactSkeleton />;
-  }
 
   return (
     <div className="min-h-screen bg-[#0F172A] text-white font-sans overflow-x-hidden selection:bg-[#FFD447] selection:text-[#1C2951] pb-24">
