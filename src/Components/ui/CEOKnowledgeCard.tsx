@@ -18,7 +18,7 @@ interface CEOProps {
   }[];
 }
 
-const CEOKnowledgeCard: React.FC<CEOProps> = ({ name, title, bio, image, details, socials }) => {
+const CEOKnowledgeCard: React.FC<CEOProps> = ({ name, title, bio, image, details = [], socials = [] }) => {
   const getSocialIcon = (platform: string) => {
     switch (platform.toLowerCase()) {
       case 'instagram': return <FaInstagram />;

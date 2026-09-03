@@ -157,16 +157,16 @@
 
 .body--animated .hero-container .background::before,
 .body--animated .hero-container .background::after {
-  animation: rotate ease-in-out 1s forwards;
-  animation-delay: 0.4s;
-  transition-delay: 0.4s;
-  will-change: transform, background-size;
+  animation: heroFadeZoom ease-in-out 1.2s forwards;
+  animation-delay: 0.3s;
+  transition-delay: 0.3s;
+  will-change: opacity, transform;
 }
 
 .body--animated .hero-container .background--2::before,
 .body--animated .hero-container .background--2::after {
-  animation-delay: 0.2s;
-  transition-delay: 0.2s;
+  animation-delay: 0.15s;
+  transition-delay: 0.15s;
 }
 
 .body--animated .hero-container .background--3::before,
@@ -707,18 +707,19 @@
   text-decoration: none;
 }
 
-/* Animation */
-@keyframes rotate {
+/* Animation — smooth Ken Burns zoom-fade, no spinning */
+@keyframes heroFadeZoom {
   0% {
-    transform: rotate(0deg) translateZ(0);
     background-size: max(110vw, 110vh) max(110vw, 110vh);
+    transform: translateZ(0) scale(1);
   }
   50% {
-    background-size: max(160vw, 160vh) max(160vw, 160vh);
+    background-size: max(118vw, 118vh) max(118vw, 118vh);
+    transform: translateZ(0) scale(1.04);
   }
   100% {
-    transform: rotate(360deg) translateZ(0);
     background-size: max(110vw, 110vh) max(110vw, 110vh);
+    transform: translateZ(0) scale(1);
   }
 }
 

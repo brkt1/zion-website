@@ -194,21 +194,20 @@ const MasterclassRegistration: React.FC = () => {
   const coralOrange = "#FF6F5E";
   const indigoDeep = "#1C2951";
 
-  const inputClasses = "w-full bg-white/70 border border-slate-200 rounded-2xl px-12 py-4 text-slate-900 focus:border-amber-500/50 focus:bg-white focus:ring-[6px] focus:ring-amber-500/5 outline-none transition-all placeholder:text-slate-300 font-sans shadow-sm hover:border-slate-300 duration-300";
-  const selectClasses = "w-full bg-white/70 border border-slate-200 rounded-2xl px-12 py-4 text-slate-900 focus:border-amber-500/50 focus:bg-white focus:ring-[6px] focus:ring-amber-500/5 outline-none transition-all font-sans shadow-sm hover:border-slate-300 duration-300 appearance-none";
-  const labelClasses = "block text-[10px] uppercase tracking-[0.4em] font-black text-slate-400 mb-2 ml-1 font-sans";
+  const inputClasses = "w-full bg-[#1E293B]/80 border border-white/10 rounded-2xl px-12 py-4 text-white focus:border-[#FFD447] focus:bg-[#1E293B] focus:ring-[6px] focus:ring-[#FFD447]/10 outline-none transition-all placeholder:text-slate-400 font-sans shadow-inner hover:border-white/20 duration-300";
+  const selectClasses = "w-full bg-[#1E293B]/80 border border-white/10 rounded-2xl px-12 py-4 text-white focus:border-[#FFD447] focus:bg-[#1E293B] focus:ring-[6px] focus:ring-[#FFD447]/10 outline-none transition-all font-sans shadow-inner hover:border-white/20 duration-300 appearance-none";
+  const labelClasses = "block text-[10px] uppercase tracking-[0.4em] font-black text-[#FFD447] mb-2 ml-1 font-sans";
 
   const stepLabels = ["Profile", "Delivery", "Interests", "Consent", "Review"];
 
   const sharedStyles = `
-    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Manrope:wght@300;400;600;800&display=swap');
-    .font-serif { font-family: 'Playfair Display', serif; }
-    .font-sans  { font-family: 'Manrope', sans-serif; }
+    .font-serif { font-family: 'Outfit', 'Playfair Display', serif; }
+    .font-sans  { font-family: 'Inter', 'Manrope', sans-serif; }
     .glass-vivid-light {
-      background: rgba(255,255,255,0.92);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255,255,255,1);
-      box-shadow: 0 40px 100px -20px rgba(0,0,0,0.06);
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.5);
     }
     .text-gold-gradient {
       background: linear-gradient(135deg, ${yenegeYellow}, ${coralOrange});
@@ -220,9 +219,9 @@ const MasterclassRegistration: React.FC = () => {
       transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
     }
     .bg-luxury {
-      background: radial-gradient(circle at top right, rgba(255,212,71,0.06) 0%, transparent 40%),
-                  radial-gradient(circle at bottom left, rgba(255,111,94,0.04) 0%, transparent 40%),
-                  #FAF9F6;
+      background: radial-gradient(circle at top right, rgba(255,212,71,0.08) 0%, transparent 45%),
+                  radial-gradient(circle at bottom left, rgba(255,111,94,0.06) 0%, transparent 45%),
+                  #0F172A;
     }
     @keyframes slideIn {
       from { opacity: 0; transform: translateY(12px); }
@@ -310,23 +309,23 @@ const MasterclassRegistration: React.FC = () => {
   }
 
   return (
-    <div className="bg-luxury min-h-screen text-slate-900 pb-20 font-sans selection:bg-amber-100 selection:text-amber-900">
+    <div className="bg-luxury min-h-screen text-white pb-20 font-sans selection:bg-[#FFD447] selection:text-[#1C2951]">
       <style>{sharedStyles}</style>
 
       {/* Navigation Header */}
-      <nav className="fixed top-0 left-0 right-0 z-[100] bg-white/80 backdrop-blur-xl border-b border-white/20 px-6 py-4 flex items-center gap-4">
-        <Link to="/masterclass" className="w-10 h-10 rounded-full flex items-center justify-center bg-white shadow-sm border border-slate-100">
-          <FiArrowLeft className="text-slate-600" />
+      <nav className="fixed top-0 left-0 right-0 z-[100] bg-[#0F172A]/85 backdrop-blur-xl border-b border-white/10 px-6 py-4 flex items-center gap-4">
+        <Link to="/masterclass" className="w-10 h-10 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 text-white transition-all border border-white/10">
+          <FiArrowLeft className="text-white" />
         </Link>
-        <span className="font-bold tracking-tight text-slate-800">YENEGE ACADEMY</span>
+        <span className="font-bold tracking-tight text-white">YENEGE ACADEMY</span>
       </nav>
 
       {/* Header section */}
       <div className="pt-32 pb-6 px-6 text-center max-w-3xl mx-auto">
-        <h1 className="font-serif text-4xl md:text-5xl mb-4 tracking-tighter text-slate-900 leading-tight">
+        <h1 className="font-serif text-4xl md:text-5xl mb-4 tracking-tighter text-white leading-tight">
           Event Industry Interest &amp; <span className="italic text-gold-gradient">Registration</span>
         </h1>
-        <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.3em]">Become a Certified Experience Architect</p>
+        <p className="text-[#FFD447]/80 text-[10px] font-black uppercase tracking-[0.3em]">Become a Certified Experience Architect</p>
       </div>
 
       <div className="max-w-3xl mx-auto px-6">
@@ -334,9 +333,9 @@ const MasterclassRegistration: React.FC = () => {
         {/* Step Progress Line */}
         <div className="mb-12 max-w-xl mx-auto px-4">
           <div className="flex items-center justify-between relative">
-            <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-slate-100 -translate-y-1/2 z-0" />
+            <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-white/10 -translate-y-1/2 z-0" />
             <div 
-              className="absolute left-0 top-1/2 h-0.5 bg-gradient-to-r from-amber-400 to-amber-500 -translate-y-1/2 z-0 transition-all duration-500" 
+              className="absolute left-0 top-1/2 h-0.5 bg-gradient-to-r from-[#FFD447] to-[#FF6F5E] -translate-y-1/2 z-0 transition-all duration-500" 
               style={{ width: `${((currentStep - 1) / 4) * 100}%` }}
             />
             {[1, 2, 3, 4, 5].map((step) => {
@@ -347,7 +346,6 @@ const MasterclassRegistration: React.FC = () => {
                   <button 
                     type="button"
                     onClick={() => {
-                      // Allow going back to any step, or forward to a step if the current step is validated
                       if (step < currentStep) {
                         setCurrentStep(step);
                       } else if (step > currentStep && validateStep(currentStep)) {
@@ -363,15 +361,15 @@ const MasterclassRegistration: React.FC = () => {
                     }}
                     className={`w-9 h-9 rounded-full flex items-center justify-center font-extrabold text-xs transition-all duration-300 ${
                       isCompleted 
-                        ? 'bg-amber-400 text-[#1C2951] shadow-lg shadow-amber-400/20' 
+                        ? 'bg-[#FFD447] text-[#1C2951] shadow-lg shadow-[#FFD447]/20' 
                         : isActive 
-                          ? 'bg-[#1C2951] text-white ring-4 ring-amber-400/30 border-2 border-amber-400 scale-110 shadow-lg shadow-amber-400/10' 
-                          : 'bg-white text-slate-300 border border-slate-100'
+                          ? 'bg-[#1C2951] text-white ring-4 ring-[#FFD447]/30 border-2 border-[#FFD447] scale-110 shadow-lg shadow-[#FFD447]/10' 
+                          : 'bg-[#1E293B] text-slate-400 border border-white/10'
                     }`}
                   >
                     {isCompleted ? <FiCheck className="stroke-[3px]" /> : step}
                   </button>
-                  <span className={`absolute top-11 text-[8px] uppercase tracking-widest font-black whitespace-nowrap hidden sm:block ${isActive ? 'text-slate-900 font-extrabold' : 'text-slate-400/70 font-semibold'}`}>
+                  <span className={`absolute top-11 text-[8px] uppercase tracking-widest font-black whitespace-nowrap hidden sm:block ${isActive ? 'text-[#FFD447] font-extrabold' : 'text-slate-400 font-semibold'}`}>
                     {stepLabels[step - 1]}
                   </span>
                 </div>
@@ -381,7 +379,7 @@ const MasterclassRegistration: React.FC = () => {
         </div>
 
         {/* Form Wizard Container */}
-        <div className="bg-white/90 backdrop-blur-md p-5 sm:p-10 md:p-12 rounded-[2rem] sm:rounded-[2.5rem] border border-white/60 shadow-xl shadow-slate-200/40 relative">
+        <div className="bg-[#1E293B]/70 backdrop-blur-xl p-5 sm:p-10 md:p-12 rounded-[2rem] sm:rounded-[2.5rem] border border-white/10 shadow-2xl shadow-black/50 relative">
           
           {submissionError && (
             <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl text-red-600 text-xs font-bold font-sans">
@@ -393,7 +391,7 @@ const MasterclassRegistration: React.FC = () => {
           {currentStep === 1 && (
             <div className="animate-step space-y-6">
               <div>
-                <h3 className="font-serif text-xl sm:text-2xl text-slate-900 mb-1">Tell us about <span className="italic text-gold-gradient">yourself</span></h3>
+                <h3 className="font-serif text-xl sm:text-2xl text-white mb-1 font-bold">Tell us about <span className="italic text-gold-gradient">yourself</span></h3>
                 <p className="text-[9px] sm:text-[10px] text-slate-400 font-extrabold uppercase tracking-widest mb-6">Step 1 of 5: Personal Profile</p>
               </div>
 

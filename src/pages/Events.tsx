@@ -2,53 +2,25 @@ import { useEffect, useMemo, useState } from "react";
 import {
   FaArrowRight,
   FaCalendarAlt,
-  FaWhatsapp
+  FaWhatsapp,
+  FaSearch,
+  FaMapMarkerAlt,
+  FaTicketAlt,
+  FaFilter
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { EventsSkeleton } from "../Components/ui/EventsSkeleton";
 import OptimizedImage from "../Components/ui/OptimizedImage";
 import { useCategories, useEvents } from "../hooks/useApi";
 import { useScrollReveal } from "../hooks/useScrollReveal";
-import { BRAND, GRADIENT } from "../styles/theme";
-
-
-
-const SectionLabel = ({ children }: { children: React.ReactNode }) => (
-  <div
-    style={{
-      display: "inline-flex",
-      alignItems: "center",
-      gap: "8px",
-      padding: "6px 18px",
-      borderRadius: "999px",
-      background: "rgba(228,232,33,0.1)",
-      border: "1px solid rgba(228,232,33,0.3)",
-      marginBottom: "20px",
-    }}
-  >
-    <span
-      style={{
-        background: GRADIENT.brand,
-        WebkitBackgroundClip: "text",
-        WebkitTextFillColor: "transparent",
-        backgroundClip: "text",
-        fontSize: "11px",
-        fontWeight: 800,
-        letterSpacing: "0.2em",
-        textTransform: "uppercase",
-        fontFamily: "'Manrope', sans-serif",
-      }}
-    >
-      {children}
-    </span>
-  </div>
-);
 
 const formatDateShort = (dateString: string) => {
+  if (!dateString) return "TBD";
   const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", {
+  return isNaN(date.getTime()) ? dateString : date.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
+    year: "numeric"
   });
 };
 
@@ -56,6 +28,17 @@ type Orientation = 'portrait' | 'landscape' | 'unknown';
 
 const Events = () => {
   const [imgOrientations, setImgOrientations] = useState<Record<string, Orientation>>({});
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  const { events, isLoading: eventsLoading } = useEvents();
+  const { categories } = useCategories();
+
+  useScrollReveal();
+
+  useEffect(() => {
+    document.title = "Exclusive Events & Experiences | YENEGE";
+  }, []);
 
   const detectOrientation = (id: string, src: string) => {
     if (!src || imgOrientations[id]) return;
@@ -68,477 +51,185 @@ const Events = () => {
     };
     img.src = src;
   };
-  useScrollReveal();
-
-  useEffect(() => {
-    document.title = "Events | YENEGE";
-
-    const metaDescription = document.querySelector('meta[name="description"]');
-    if (metaDescription) {
-      metaDescription.setAttribute(
-        "content",
-        "Yenege - Exclusive Event Portfolio. Bespoke travels and curated events across Ethiopia. Discover Ethiopia's most refined experiences."
-      );
-    }
-  }, []);
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-
-  const { events, isLoading: eventsLoading } = useEvents();
-  const { categories } = useCategories();
 
   const filteredEvents = useMemo(() => {
     return (events || []).filter((event) => {
-      // Apply the search filter
       const matchesSearch = 
         event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
         event.location.toLowerCase().includes(searchQuery.toLowerCase());
 
-      // Apply category filter
       const matchesCategory = !selectedCategory || event.category === selectedCategory;
-
       const isRegistrationOpen = event.is_registration_open !== false;
 
       return matchesSearch && matchesCategory && isRegistrationOpen;
     });
   }, [events, searchQuery, selectedCategory]);
 
-
-
   if (eventsLoading || !events) {
     return <EventsSkeleton />;
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: BRAND.cream }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Manrope:wght@300;400;500;600;700;800&display=swap');
+    <div className="min-h-screen bg-[#0F172A] text-white font-sans overflow-x-hidden selection:bg-[#FFD447] selection:text-[#1C2951] pb-24">
+      {/* ── APP-STYLE PAGE HEADER ──────────────────────────────────────── */}
+      <section className="relative pt-28 lg:pt-32 pb-6 border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
 
-        .yg-font-serif { font-family: 'Playfair Display', Georgia, serif; }
-        .yg-font-sans  { font-family: 'Manrope', system-ui, sans-serif; }
+          {/* Row 1: Title + Live Count */}
+          <div className="flex items-end justify-between mb-6">
+            <div>
+              <p className="text-[#FFD447] font-black text-[10px] uppercase tracking-[0.3em] mb-1">Yenege Events</p>
+              <h1 className="font-heading text-3xl sm:text-4xl font-black text-white leading-tight">
+                Upcoming <span className="italic text-[#FFD447]">Experiences</span>
+              </h1>
+            </div>
+            <span className="text-[10px] font-bold text-slate-400 bg-white/5 border border-white/10 px-3 py-1.5 rounded-full">
+              {filteredEvents.length} event{filteredEvents.length !== 1 ? 's' : ''} found
+            </span>
+          </div>
 
-        .yg-event-card {
-          background: #fff;
-          border-radius: 42px;
-          overflow: hidden;
-          transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-          border: 1px solid rgba(0,0,0,0.03);
-          box-shadow: 0 10px 30px rgba(0,0,0,0.01);
-          display: flex;
-          flex-direction: column;
-          height: 100%;
-          text-decoration: none;
-          position: relative;
-        }
-        .yg-event-card:hover {
-          transform: translateY(-16px) scale(1.01);
-          box-shadow: 0 80px 140px -30px rgba(1, 33, 28, 0.15);
-          border-color: rgba(228, 232, 33, 0.2);
-        }
-        .yg-event-card:hover .card-img {
-          transform: scale(1.08);
-        }
-        .yg-event-card:hover .arrow-circle {
-          background: #0F172A;
-          color: #FFD447;
-          transform: rotate(-45deg);
-        }
-
-        .vertical-date {
-          writing-mode: vertical-rl;
-          text-orientation: mixed;
-          font-family: 'Manrope', sans-serif;
-          font-size: 9px;
-          font-weight: 900;
-          text-transform: uppercase;
-          letter-spacing: 0.4em;
-          color: rgba(255, 255, 255, 0.4);
-        }
-
-        .category-chip {
-          padding: 8px 20px;
-          border-radius: 999px;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          background: rgba(255, 255, 255, 0.03);
-          color: rgba(255, 255, 255, 0.6);
-          font-family: 'Manrope', sans-serif;
-          font-size: 11px;
-          font-weight: 800;
-          letter-spacing: 0.15em;
-          text-transform: uppercase;
-          transition: all 0.3s ease;
-          cursor: pointer;
-        }
-        .category-chip:hover {
-          background: rgba(255, 255, 255, 0.08);
-          border-color: rgba(255, 255, 255, 0.3);
-          color: #fff;
-        }
-        .category-chip.active {
-          background: #FFD447;
-          border-color: #FFD447;
-          color: #0F172A;
-        }
-
-        .price-badge {
-          background: #0F172A;
-          color: #FFD447;
-          font-family: 'Playfair Display', serif;
-          font-size: 16px;
-          font-style: italic;
-          font-weight: 900;
-          padding: 8px 18px;
-          border-radius: 16px;
-          box-shadow: 0 10px 20px rgba(1, 33, 28, 0.2);
-        }
-
-        .category-pill {
-          background: rgba(255, 255, 255, 0.1);
-          backdrop-filter: blur(12px);
-          color: #fff;
-          font-size: 9px;
-          font-weight: 900;
-          text-transform: uppercase;
-          letter-spacing: 0.2em;
-          padding: 6px 14px;
-          border-radius: 99px;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .yg-category-nav {
-          display: flex;
-          gap: 32px;
-          margin-bottom: 60px;
-          border-bottom: 1px solid rgba(0,0,0,0.05);
-          padding-bottom: 2px;
-        }
-
-        .yg-category-btn {
-          position: relative;
-          padding: 12px 0;
-          font-family: 'Manrope', sans-serif;
-          font-size: 11px;
-          font-weight: 800;
-          color: #9CA3AF;
-          background: transparent;
-          border: none;
-          cursor: pointer;
-          transition: all 0.3s;
-          text-transform: uppercase;
-          letter-spacing: 0.2em;
-        }
-        .yg-category-btn.active {
-          color: #0F172A;
-        }
-        .yg-category-btn::after {
-          content: '';
-          position: absolute;
-          bottom: -1px;
-          left: 0;
-          width: 0;
-          height: 3px;
-          background: #FFD447;
-          transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .yg-category-btn.active::after {
-          width: 100%;
-        }
-
-        .search-container {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          background: #fff;
-          border: 1px solid rgba(0,0,0,0.05);
-          border-radius: 20px;
-          padding: 8px 16px;
-          width: 100%;
-          max-width: 320px;
-          transition: all 0.3s;
-        }
-        .search-container:focus-within {
-          border-color: #0F172A;
-          box-shadow: 0 10px 30px rgba(1, 33, 28, 0.05);
-        }
-        .search-input {
-          background: transparent;
-          border: none;
-          outline: none;
-          font-family: 'Manrope', sans-serif;
-          font-size: 13px;
-          font-weight: 700;
-          color: #0F172A;
-          width: 100%;
-        }
-        .search-input::placeholder {
-          color: #9CA3AF;
-        }
-
-        .noise-bk {
-          position: absolute;
-          inset: 0;
-          opacity: 0.2;
-          pointer-events: none;
-          background: linear-gradient(to bottom, transparent, #0F172A), 
-                      url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-          z-index: 1;
-        }
-
-        .sidebrand {
-          position: absolute;
-          right: 40px;
-          top: 50%;
-          transform: translateY(-50%) rotate(90deg);
-          transform-origin: right center;
-          font-family: 'Manrope', sans-serif;
-          font-size: 10px;
-          font-weight: 900;
-          letter-spacing: 1em;
-          color: rgba(255, 212, 71, 0.1);
-          text-transform: uppercase;
-          pointer-events: none;
-          z-index: 10;
-          white-space: nowrap;
-        }
-
-        @media (max-width: 768px) {
-          .yg-event-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
-          .yg-category-nav { gap: 20px; overflow-x: auto; padding-bottom: 15px; }
-          .yg-category-btn { white-space: nowrap; }
-          .search-container { max-width: 100%; border-color: rgba(255,255,255,0.1) !important; background: rgba(255,255,255,0.05) !important; }
-          .search-input { color: #fff !important; }
-          .filtration-row { flex-direction: column; align-items: flex-start !important; }
-          .sidebrand { display: none; }
-        }
-      `}</style>
-
-      {/* ── 1. Hero Header ─────────────────────────────────────────────────── */}
-      <section style={{ padding: "160px 0 40px", background: BRAND.primary, position: 'relative', overflow: 'hidden' }}>
-        {/* Creative Layers */}
-        <div 
-          style={{ 
-            position: 'absolute', 
-            top: '50%', 
-            left: '50%', 
-            transform: 'translate(-50%, -50%)',
-            fontSize: 'max(25vw, 400px)',
-            fontWeight: 900,
-            fontFamily: "'Playfair Display', serif",
-            color: 'rgba(255, 212, 71, 0.02)', 
-            whiteSpace: 'nowrap',
-            pointerEvents: 'none',
-            zIndex: 0,
-            userSelect: 'none'
-          }}
-        >
-          EXPERIENCES
-        </div>
-        <div className="noise-bk" />
-        <div className="sidebrand">YENEGE PORTFOLIO 2024</div>
-        <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '40%', height: '40%', background: 'radial-gradient(circle, rgba(255,111,94,0.1) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none', zIndex: 1 }} />
-
-        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", position: 'relative', zIndex: 2 }}>
-          <SectionLabel>Collections</SectionLabel>
-          <h1 className="yg-font-serif" style={{ fontSize: "clamp(48px, 8vw, 84px)", fontWeight: 900, color: BRAND.white, lineHeight: 1, letterSpacing: "-0.02em", marginBottom: "24px" }}>
-            Event <br />
-            <span style={{ fontStyle: "italic", background: GRADIENT.brand, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Curation</span>
-          </h1>
-          <p className="yg-font-sans" style={{ fontSize: "18px", color: 'rgba(255,255,255,0.5)', maxWidth: "540px", lineHeight: 1.6 }}>
-            Discover our portfolio of exclusive experiences, from bespoke travels to curated business environments and strategic navigation systems.
-          </p>
-        </div>
-      </section>
-
-      {/* ── 2. Events Grid ───── */}
-      <section
-        style={{
-          padding: "40px 0 140px",
-          background: BRAND.primary,
-          position: 'relative',
-          overflow: 'hidden'
-        }}
-      >
-        <div className="noise-bk" />
-        <div style={{ position: 'absolute', bottom: '-10%', right: '-10%', width: '50%', height: '50%', background: 'radial-gradient(circle, rgba(228,232,33,0.05) 0%, transparent 70%)', filter: 'blur(100px)', pointerEvents: 'none', zIndex: 1 }} />
-
-        <div className="reveal-wrapper" style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 40px" }}>
-          
-          <div className="filtration-row flex flex-col md:flex-row md:items-center justify-between mb-16 gap-8 relative z-20">
-            {/* Left Aligned Search - Glow Theme */}
-            <div className="search-container reveal-wrapper" style={{ background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)', maxWidth: '400px' }}>
-               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-white/30">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-               </svg>
-               <input 
-                 type="text" 
-                 placeholder="Search Yenege experiences..."
-                 value={searchQuery}
-                 onChange={(e) => setSearchQuery(e.target.value)}
-                 className="search-input"
-               />
+          {/* Row 2: Search + Filter Bar */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Search Input */}
+            <div className="relative flex-1">
+              <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+              <input 
+                type="text" 
+                placeholder="Search by name, category or city..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-[#1E293B] border border-white/10 rounded-2xl pl-11 pr-4 py-3 text-white placeholder:text-slate-500 text-sm focus:outline-none focus:border-[#FFD447] transition-all"
+              />
             </div>
 
             {/* Category Filter Chips */}
-            <div className="flex flex-wrap gap-3 items-center">
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
               <button
+                type="button"
                 onClick={() => setSelectedCategory(null)}
-                className={`category-chip ${!selectedCategory ? 'active' : ''}`}
+                className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap ${
+                  !selectedCategory 
+                    ? 'bg-[#FFD447] text-[#1C2951] shadow-lg shadow-[#FFD447]/20' 
+                    : 'bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10'
+                }`}
               >
-                All
+                All Events
               </button>
-              {categories.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => setSelectedCategory(cat.slug)}
-                  className={`category-chip ${selectedCategory === cat.slug ? 'active' : ''}`}
-                >
-                  {cat.name}
-                </button>
-              ))}
+              {categories.map((cat) => {
+                const isActive = selectedCategory === cat.slug;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setSelectedCategory(cat.slug)}
+                    className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap ${
+                      isActive 
+                        ? 'bg-[#FFD447] text-[#1C2951] shadow-lg shadow-[#FFD447]/20' 
+                        : 'bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10'
+                    }`}
+                  >
+                    {cat.name}
+                  </button>
+                );
+              })}
             </div>
           </div>
+        </div>
+      </section>
 
-          {eventsLoading ? (
-            <div style={{ textAlign: "center", padding: "120px 0" }}>
-              <div
-                style={{
-                  width: "40px",
-                  height: "40px",
-                  border: `3px solid ${BRAND.gray100}`,
-                  borderTopColor: BRAND.gold,
-                  borderRadius: "50%",
-                  animation: "spin 1s linear infinite",
-                  margin: "0 auto 24px",
-                }}
-              />
-              <p className="yg-font-sans" style={{ color: BRAND.gray400, fontSize: "14px", letterSpacing: "0.1em", textTransform: "uppercase" }}>
-                Curating Experiences...
+      {/* ── EVENTS GRID ─────────────────────────────────────────────────── */}
+      <section className="py-12 relative">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          
+          {filteredEvents.length === 0 ? (
+            <div className="text-center py-20 bg-white/5 rounded-3xl border border-white/10 max-w-xl mx-auto p-8 space-y-4">
+              <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-[#FFD447] text-2xl mx-auto">
+                <FaFilter />
+              </div>
+              <h3 className="font-heading text-2xl font-bold text-white">No Matching Events Found</h3>
+              <p className="text-xs text-slate-400 leading-relaxed font-medium">
+                Try adjusting your search criteria or selecting a different category tab. New events are published regularly!
               </p>
-              <style>{`
-                @keyframes spin { to { transform: rotate(360deg); } }
-              `}</style>
-            </div>
-          ) : filteredEvents.length === 0 ? (
-            <div
-              style={{
-                textAlign: "center",
-                padding: "100px 24px",
-                background: "rgba(15,23,42,0.02)",
-                borderRadius: "32px",
-                border: `1px dashed ${BRAND.gray100}`,
-              }}
-            >
-              <h3
-                className="yg-font-serif"
-                style={{
-                  fontSize: "28px",
-                  fontWeight: 700,
-                  color: BRAND.navy,
-                  marginBottom: "16px",
-                }}
+              <button 
+                type="button"
+                onClick={() => { setSearchQuery(""); setSelectedCategory(null); }}
+                className="px-6 py-2.5 rounded-full bg-[#FFD447] text-[#1C2951] font-black text-xs uppercase tracking-wider"
               >
-                No events found
-              </h3>
-              <p
-                className="yg-font-sans"
-                style={{
-                  color: BRAND.gray500,
-                  fontSize: "18px",
-                  maxWidth: "480px",
-                  margin: "0 auto",
-                  lineHeight: 1.6,
-                }}
-              >
-                Try adjusting your filters or check back later! We're constantly curating new experiences.
-              </p>
+                Clear Filters
+              </button>
             </div>
           ) : (
-            <div
-              className="yg-event-grid reveal-wrapper reveal-delay-200"
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(2, 1fr)",
-                gap: "32px",
-              }}
-            >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {filteredEvents.map((event) => {
-                // Kick off orientation detection
                 if (event.image && !imgOrientations[event.id]) {
                   detectOrientation(event.id, event.image);
                 }
-                const orient = imgOrientations[event.id] ?? 'portrait';
-                const isLandscape = orient === 'landscape';
+                const isLandscape = imgOrientations[event.id] === 'landscape';
 
                 return (
                   <Link
                     key={event.id}
                     to={`/events/${event.id}`}
-                    className="yg-event-card group"
-                    style={isLandscape ? { gridColumn: '1 / -1' } : {}}
+                    className={`group rounded-3xl bg-white/5 border border-white/10 overflow-hidden backdrop-blur-xl hover:border-[#FFD447]/40 transition-all duration-500 shadow-2xl flex flex-col justify-between hover:-translate-y-1.5 ${
+                      isLandscape ? 'md:col-span-2' : ''
+                    }`}
                   >
-                    {/* Image fills full card — aspect ratio adapts to orientation */}
-                    <div
-                      className="relative overflow-hidden"
-                      style={{ aspectRatio: isLandscape ? '16/7' : '3/4' }}
-                    >
+                    {/* Media Container */}
+                    <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-900">
                       {event.image ? (
                         <OptimizedImage
                           src={event.image}
                           alt={event.title}
-                          width={isLandscape ? 1600 : 800}
-                          height={isLandscape ? 700 : 1067}
-                          className="card-img w-full h-full object-cover transition-transform duration-1000"
+                          width={800}
+                          height={450}
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                         />
                       ) : (
-                        <div className="w-full h-full bg-[#0F172A] flex items-center justify-center">
-                          <FaCalendarAlt size={40} className="text-[#FFD447]/20" />
+                        <div className="w-full h-full flex items-center justify-center bg-slate-800 text-slate-600">
+                          <FaCalendarAlt size={48} />
                         </div>
                       )}
 
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A]/95 via-[#0F172A]/20 to-black/10" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A] via-[#0F172A]/40 to-transparent" />
 
-                      {/* Date pill — top right */}
-                      <div className="absolute right-6 top-6 flex flex-col items-center gap-3">
-                        <div className="w-px h-8 bg-white/20" />
-                        <span className="vertical-date">{formatDateShort(event.date)}</span>
+                      {/* Top Category & Price Badges */}
+                      <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
+                        <span className="px-3.5 py-1.5 rounded-full bg-[#0F172A]/80 backdrop-blur-md text-[#FFD447] text-[10px] font-black uppercase tracking-widest border border-white/10">
+                          {event.category || 'Special Event'}
+                        </span>
+
+                        <span className="px-4 py-1.5 rounded-full bg-[#FFD447] text-[#1C2951] font-black text-xs uppercase tracking-wider shadow-lg">
+                          {event.price === 'Free' || event.price === '0' ? 'Gratis / Free' : `${event.price} ${event.currency || 'ETB'}`}
+                        </span>
                       </div>
 
-                      {/* Content overlay */}
-                      <div
-                        className="absolute flex flex-col items-start"
-                        style={{
-                          bottom: isLandscape ? 40 : 36,
-                          left: isLandscape ? 48 : 32,
-                          right: isLandscape ? 48 : 32,
-                        }}
-                      >
-                        <div className="flex items-center gap-3 mb-4">
-                          <span className="category-pill">{event.category}</span>
-                          <span className="h-1 w-1 bg-[#FFD447] rounded-full" />
-                          <span className="text-[9px] font-black text-white/50 uppercase tracking-[0.3em] truncate max-w-[160px]">
-                            {event.location}
-                          </span>
-                        </div>
+                      {/* Date Badge */}
+                      <div className="absolute bottom-4 left-4 flex items-center gap-2 bg-[#0F172A]/90 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-white/10 text-xs font-bold text-slate-200">
+                        <FaCalendarAlt className="text-[#FFD447]" />
+                        <span>{formatDateShort(event.date)}</span>
+                      </div>
+                    </div>
 
-                        <h3
-                          className="yg-font-serif font-black text-white leading-[1.05] tracking-tight mb-6"
-                          style={{ fontSize: isLandscape ? 'clamp(28px,3vw,48px)' : 'clamp(22px,2.5vw,36px)' }}
-                        >
-                          {event.title}
-                        </h3>
+                    {/* Card Content Body */}
+                    <div className="p-6 sm:p-8 space-y-4">
+                      <div className="flex items-center gap-2 text-xs text-slate-400 font-medium">
+                        <FaMapMarkerAlt className="text-[#FF6F5E]" />
+                        <span>{event.location || 'Addis Ababa, Ethiopia'}</span>
+                      </div>
 
-                        <div className="flex items-center justify-between w-full">
-                          <div className="price-badge">
-                            {event.price === 'Free' || event.price === '0'
-                              ? 'Gratis'
-                              : `${event.price} ${event.currency}`}
-                          </div>
-                          <div className="arrow-circle w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-white transition-all duration-500">
-                            <FaArrowRight size={13} />
-                          </div>
+                      <h3 className="font-heading text-2xl font-black text-white group-hover:text-[#FFD447] transition-colors leading-snug">
+                        {event.title}
+                      </h3>
+
+                      <p className="text-xs text-slate-400 leading-relaxed line-clamp-2 font-medium">
+                        {event.description}
+                      </p>
+
+                      <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs font-black uppercase tracking-widest text-[#FFD447]">
+                        <span>Explore Event Details</span>
+                        <div className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white group-hover:bg-[#FFD447] group-hover:text-[#1C2951] transition-all">
+                          <FaArrowRight size={12} />
                         </div>
                       </div>
                     </div>
@@ -550,122 +241,36 @@ const Events = () => {
         </div>
       </section>
 
-      {/* ── 3. Final CTA ─────────────────────────────────────────────────────── */}
-      <section
-        style={{
-          padding: "140px 0",
-          background: BRAND.white,
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            bottom: "-10%",
-            left: "-5%",
-            width: "40%",
-            height: "100%",
-            background: "radial-gradient(circle, rgba(255,111,94,0.06) 0%, transparent 70%)",
-            filter: "blur(60px)",
-          }}
-        />
+      {/* ── COLLABORATE / BRIEF CTA ───────────────────────────────────────── */}
+      <section className="py-20 relative px-6">
+        <div className="max-w-5xl mx-auto rounded-[3rem] bg-gradient-to-r from-[#1C2951] via-[#0F172A] to-[#1C2951] border border-white/20 p-10 md:p-16 text-center relative overflow-hidden shadow-2xl">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-[#FFD447]/10 rounded-full blur-3xl pointer-events-none" />
+          
+          <div className="space-y-6 relative z-10 max-w-2xl mx-auto">
+            <span className="text-xs font-black text-[#FFD447] uppercase tracking-[0.25em] block">Host With Us</span>
+            <h2 className="font-heading text-4xl md:text-5xl font-black text-white leading-tight">
+              Want to Host an <span className="text-[#FFD447] italic">Exceptional Event?</span>
+            </h2>
+            <p className="text-xs md:text-sm text-slate-300 font-medium leading-relaxed">
+              Submit a feasibility brief and let our experience architects assess technical viability, budget structure, and operational ROI.
+            </p>
 
-        <div
-          className="reveal-wrapper"
-          style={{
-            maxWidth: "800px",
-            margin: "0 auto",
-            padding: "0 24px",
-            textAlign: "center",
-          }}
-        >
-          <SectionLabel>Collaborate</SectionLabel>
-          <h2
-            className="yg-font-serif"
-            style={{
-              fontSize: "clamp(40px, 6vw, 64px)",
-              fontWeight: 900,
-              color: BRAND.navy,
-              lineHeight: 1.1,
-              letterSpacing: "-0.02em",
-              marginBottom: "32px",
-            }}
-          >
-            Want to Host <br />
-            <span
-              style={{
-                background: GRADIENT.brand,
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-                fontStyle: "italic",
-              }}
-            >
-              An Event?
-            </span>
-          </h2>
-          <p
-            className="yg-font-sans"
-            style={{
-              fontSize: "19px",
-              color: BRAND.gray600,
-              lineHeight: 1.8,
-              marginBottom: "48px",
-              maxWidth: "520px",
-              margin: "0 auto 48px",
-            }}
-          >
-            Submit a feasibility brief and let our strategists assess the technical viability and ROI of your event — before any commitment.
-          </p>
-
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", justifyContent: "center" }}>
-            <Link
-              to="/event-feasibility"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "10px",
-                background: BRAND.navy,
-                color: BRAND.gold,
-                padding: "18px 40px",
-                borderRadius: "999px",
-                fontFamily: "'Manrope', sans-serif",
-                fontSize: "13px",
-                fontWeight: 800,
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-                textDecoration: "none",
-                transition: "all 0.3s",
-                boxShadow: "0 12px 40px rgba(15,23,42,0.18)",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "translateY(-2px)";
-                e.currentTarget.style.boxShadow = "0 20px 60px rgba(15,23,42,0.25)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "none";
-                e.currentTarget.style.boxShadow = "0 12px 40px rgba(15,23,42,0.18)";
-              }}
-            >
-              Submit Event Brief
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
-              </svg>
-            </Link>
-
-            <a
-              href="https://wa.me/251978639887"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="yg-btn-whatsapp"
-              style={{ display: "inline-flex", alignItems: "center", gap: "10px" }}
-            >
-              <FaWhatsapp size={18} />
-              WhatsApp Us
-            </a>
+            <div className="flex flex-wrap justify-center items-center gap-4 pt-4">
+              <Link 
+                to="/event-feasibility" 
+                className="bg-gradient-to-r from-[#FFD447] to-[#FF6F5E] hover:from-[#ffe066] hover:to-[#ff8273] text-[#1C2951] font-black px-10 py-4 rounded-full text-xs uppercase tracking-widest transition-all shadow-xl shadow-[#FF6F5E]/20 hover:scale-105 flex items-center gap-3"
+              >
+                Submit Event Brief <FaArrowRight />
+              </Link>
+              <a 
+                href="https://wa.me/251978639887" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-full font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg"
+              >
+                <FaWhatsapp size={16} /> WhatsApp Inquiry
+              </a>
+            </div>
           </div>
         </div>
       </section>
@@ -674,5 +279,3 @@ const Events = () => {
 };
 
 export default Events;
-
-

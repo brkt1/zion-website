@@ -7,70 +7,19 @@ import {
   FaTelegram,
   FaTiktok,
   FaWhatsapp,
-  FaYoutube
+  FaYoutube,
+  FaCheckCircle
 } from "react-icons/fa";
 import { ContactSkeleton } from "../Components/ui/ContactSkeleton";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useContactInfo } from "../hooks/useApi";
 import { useScrollReveal } from "../hooks/useScrollReveal";
 
-/* ─── Shared design tokens ─────────────────────────────────────────────────── */
-const BRAND = {
-  primary: "#0F172A",
-  navy: "#0F172A",
-  navyLight: "#1E293B",
-  gold: "#FFD447",
-  coral: "#FF6F5E",
-  cream: "#FAF9F6",
-  white: "#FFFFFF",
-  gray100: "#F0F2F5",
-  gray400: "#9CA3AF",
-  gray500: "#6B7280",
-  gray600: "#4B5563",
-};
-
-const GRADIENT = {
-  brand: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
-  textDark: "linear-gradient(135deg, #111827 0%, #374151 100%)",
-};
-
-/* ─── Sub-components ────────────────────────────────────────────────────────── */
-
-const SectionLabel = ({ children }: { children: React.ReactNode }) => (
-  <div
-    style={{
-      display: "inline-flex",
-      alignItems: "center",
-      gap: "8px",
-      padding: "6px 18px",
-      borderRadius: "999px",
-      background: "rgba(228,232,33,0.1)",
-      border: "1px solid rgba(228,232,33,0.3)",
-      marginBottom: "20px",
-    }}
-  >
-    <span
-      className="yg-font-sans"
-      style={{
-        background: GRADIENT.brand,
-        WebkitBackgroundClip: "text",
-        WebkitTextFillColor: "transparent",
-        backgroundClip: "text",
-        fontSize: "11px",
-        fontWeight: 800,
-        letterSpacing: "0.2em",
-        textTransform: "uppercase",
-      }}
-    >
-      {children}
-    </span>
-  </div>
-);
-
 const Contact = () => {
   useScrollReveal();
   const { t } = useLanguage();
   const { contactInfo, isLoading } = useContactInfo();
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -82,23 +31,14 @@ const Contact = () => {
   
   useEffect(() => {
     document.title = "Contact Us | YENEGE - Connect for Event Production & Academy";
+    window.scrollTo(0, 0);
   }, []);
 
-  // We no longer strictly block on contactInfo to make the page independent of database availability
-  // isLoading is still used to show a brief skeleton for better UX, but we proceed if it takes too long or fails
-  const showSkeleton = isLoading && !contactInfo;
-
-  if (showSkeleton) {
-    return <ContactSkeleton />;
-  }
-
-  // Define hardcoded fallbacks
   const fallbackContact = {
     email: "yenegeevents@gmail.com",
     phone: "+251978639887",
     phoneFormatted: "+251 978 639 887",
     location: "Amir Commercial Complex, 12th Floor, Office No. 12-003, Gabon St (Olympia), Bole Sub-city, Addis Ababa, Ethiopia",
-    socialLinks: []
   };
 
   const finalContact = contactInfo || fallbackContact;
@@ -108,10 +48,10 @@ const Contact = () => {
     setIsSubmitting(true);
     
     try {
-      const whatsappMessage = `Hello! I'm ${formData.name}.\n\n` +
-        `Email: ${formData.email}\n` +
-        (formData.phone ? `Phone: ${formData.phone}\n` : '') +
-        `\nMessage:\n${formData.message}`;
+      const whatsappMessage = `Hello Yenege Team! I'm ${formData.name}.\n\n` +
+        `✉️ Email: ${formData.email}\n` +
+        (formData.phone ? `📞 Phone: ${formData.phone}\n` : '') +
+        `\n💬 Message:\n${formData.message}`;
       
       const phoneNumber = finalContact?.phone?.replace(/\D/g, '') || "251978639887";
       const encodedMessage = encodeURIComponent(whatsappMessage);
@@ -123,7 +63,7 @@ const Contact = () => {
       setSubmitStatus("success");
       setFormData({ name: "", email: "", phone: "", message: "" });
       
-      setTimeout(() => setSubmitStatus("idle"), 5000);
+      setTimeout(() => setSubmitStatus("idle"), 6000);
     } catch (error) {
       console.error('Form submission error:', error);
       setSubmitStatus("error");
@@ -139,238 +79,99 @@ const Contact = () => {
     });
   };
 
-
-
-  const contactInfoItems = [
-    {
-      num: "01",
-      icon: <FaMapMarkerAlt />,
-      title: "Our Studio",
-      content: (finalContact.location === "Addis Ababa, Ethiopia" || !finalContact.location) 
-        ? "Amir Commercial Complex, 12th Floor, Office No. 12-003, Gabon St (Olympia), Bole Sub-city, Addis Ababa, Ethiopia" 
-        : finalContact.location,
-      link: null,
-    },
-    {
-      num: "02",
-      icon: <FaEnvelope />,
-      title: "Email Us",
-      content: finalContact.email || "yenegeevents@gmail.com",
-      link: `mailto:${finalContact.email || "yenegeevents@gmail.com"}`,
-    },
-    {
-      num: "03",
-      icon: <FaPhone />,
-      title: "Call Us",
-      content: finalContact.phoneFormatted || finalContact.phone || "+251 978 639 887",
-      link: `tel:${finalContact.phone?.replace(/\D/g, '') || '251978639887'}`,
-    },
-  ];
+  if (isLoading && !contactInfo) {
+    return <ContactSkeleton />;
+  }
 
   return (
-    <div style={{ minHeight: "100vh", background: BRAND.primary }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Manrope:wght@300;400;500;600;700;800&display=swap');
+    <div className="min-h-screen bg-[#0F172A] text-white font-sans overflow-x-hidden selection:bg-[#FFD447] selection:text-[#1C2951] pb-24">
+      {/* ── HERO HEADER ─────────────────────────────────────────────────── */}
+      <section className="relative pt-32 lg:pt-40 pb-16 overflow-hidden">
+        {/* Ambient background glows */}
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-radial from-[#FFD447]/10 via-transparent to-transparent blur-[130px] pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-radial from-[#FF6F5E]/10 via-transparent to-transparent blur-[130px] pointer-events-none" />
 
-        .yg-font-serif { font-family: 'Playfair Display', Georgia, serif; }
-        .yg-font-sans  { font-family: 'Manrope', system-ui, sans-serif; }
-
-        .noise-bk {
-          position: absolute;
-          inset: 0;
-          opacity: 0.2;
-          pointer-events: none;
-          background: linear-gradient(to bottom, transparent, #0F172A), 
-                      url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-          z-index: 1;
-        }
-
-        .sidebrand {
-          position: absolute;
-          right: 40px;
-          top: 50%;
-          transform: translateY(-50%) rotate(90deg);
-          transform-origin: right center;
-          font-family: 'Manrope', sans-serif;
-          font-size: 10px;
-          font-weight: 900;
-          letter-spacing: 1em;
-          color: rgba(255, 212, 71, 0.1);
-          text-transform: uppercase;
-          pointer-events: none;
-          z-index: 10;
-          white-space: nowrap;
-        }
-
-        .yg-contact-input {
-          width: 100%;
-          padding: 16px 24px;
-          background: rgba(255,255,255,0.03);
-          border: 1px solid rgba(255,255,255,0.1);
-          border-radius: 16px;
-          font-family: 'Manrope', sans-serif;
-          font-size: 15px;
-          color: #fff;
-          transition: all 0.3s;
-        }
-        .yg-contact-input:focus {
-          outline: none;
-          background: rgba(255,255,255,0.07);
-          border-color: ${BRAND.gold};
-          box-shadow: 0 0 0 4px rgba(255,212,71,0.05);
-        }
-
-        .yg-btn-submit {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 12px;
-          width: 100%;
-          padding: 20px;
-          border-radius: 16px;
-          background: ${BRAND.gold};
-          color: ${BRAND.primary};
-          font-family: 'Manrope', sans-serif;
-          font-weight: 800;
-          font-size: 14px;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-          border: none;
-          cursor: pointer;
-          transition: all 0.3s;
-          box-shadow: 0 12px 30px rgba(255,212,71,0.15);
-        }
-        .yg-btn-submit:hover {
-          transform: translateY(-2px);
-          filter: brightness(1.1);
-          box-shadow: 0 20px 40px rgba(255,212,71,0.25);
-        }
-
-        .yg-social-btn {
-          width: 56px;
-          height: 56px;
-          border-radius: 16px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #fff;
-          font-size: 20px;
-          transition: all 0.3s;
-          background: rgba(255,255,255,0.05) !important;
-          border: 1px solid rgba(255,255,255,0.1);
-        }
-        .yg-social-btn:hover {
-          transform: translateY(-4px) scale(1.1);
-          background: ${BRAND.gold} !important;
-          color: ${BRAND.primary} !important;
-          border-color: ${BRAND.gold};
-        }
-
-        @media (max-width: 768px) {
-          .yg-grid-mobile { grid-template-columns: 1fr !important; gap: 40px !important; }
-          .sidebrand { display: none; }
-        }
-      `}</style>
-
-      {/* ── Page Header ─────────────────────────────────────────────────── */}
-      <section style={{ padding: "180px 0 80px", background: BRAND.primary, position: 'relative', overflow: 'hidden' }}>
-        {/* Creative Layers */}
-        <div 
-          style={{ 
-            position: 'absolute', 
-            top: '50%', 
-            left: '50%', 
-            transform: 'translate(-50%, -50%)',
-            fontSize: 'max(25vw, 400px)',
-            fontWeight: 900,
-            fontFamily: "'Playfair Display', serif",
-            color: 'rgba(255, 212, 71, 0.02)', 
-            whiteSpace: 'nowrap',
-            pointerEvents: 'none',
-            zIndex: 0,
-            userSelect: 'none'
-          }}
-        >
-          CONNECT
-        </div>
-        <div className="noise-bk" />
-        <div className="sidebrand">YENEGE CONTACT 2024</div>
-        <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '40%', height: '40%', background: 'radial-gradient(circle, rgba(255,111,94,0.1) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none', zIndex: 1 }} />
-
-        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", position: 'relative', zIndex: 2 }}>
-          <div style={{ maxWidth: "800px" }}>
-            <SectionLabel>{t.contact.label}</SectionLabel>
-            <h1
-              className="yg-font-serif"
-              style={{
-                fontSize: "clamp(52px, 8vw, 92px)",
-                fontWeight: 900,
-                color: BRAND.white,
-                lineHeight: 1,
-                letterSpacing: "-0.04em",
-                marginBottom: "32px",
-              }}
-            >
-              {t.contact.title?.split(' ')?.slice(0, 3)?.join(' ') || t.contact.title} <br />
-              <span
-                style={{
-                  background: GRADIENT.brand,
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                  fontStyle: "italic",
-                }}
-              >
-                {t.contact.title?.split(' ')?.slice(3)?.join(' ') || ''}
-              </span>
-            </h1>
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10 text-center space-y-6">
+          <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl mx-auto">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#FFD447] shadow-[0_0_12px_#FFD447]" />
+            <span className="text-[#FFD447] font-black text-xs uppercase tracking-[0.25em]">CONNECT WITH OUR TEAM</span>
           </div>
+
+          <h1 className="font-heading text-5xl sm:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight text-white max-w-4xl mx-auto">
+            Let's Architect Your Next <br />
+            <span className="bg-gradient-to-r from-[#FFD447] via-[#FF6F5E] to-[#7B5CFF] bg-clip-text text-transparent italic">Unforgettable Experience</span>
+          </h1>
+
+          <p className="text-base sm:text-lg text-slate-300 font-medium leading-relaxed max-w-2xl mx-auto">
+            Have a question about event execution, sponsorship strategy, or enrolling in Yenege Academy? We are here to help.
+          </p>
         </div>
       </section>
 
-      {/* ── Contact Section ─────────────────────────────────────────────── */}
-      <section style={{ padding: "40px 0 140px", background: BRAND.primary, position: 'relative', overflow: 'hidden' }}>
-        <div className="noise-bk" />
-        <div style={{ position: 'absolute', bottom: '-10%', right: '-10%', width: '50%', height: '50%', background: 'radial-gradient(circle, rgba(228,232,33,0.05) 0%, transparent 70%)', filter: 'blur(100px)', pointerEvents: 'none', zIndex: 1 }} />
-        
-        <div className="reveal-wrapper" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", position: 'relative', zIndex: 2 }}>
-          <div className="yg-grid-mobile" style={{ display: "grid", gridTemplateColumns: "1fr 1.1fr", gap: "100px", alignItems: "start" }}>
+      {/* ── MAIN CONTACT CONTENT ────────────────────────────────────────── */}
+      <section className="py-12 relative">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="grid lg:grid-cols-12 gap-12 items-start">
             
-            {/* Left Column: Info */}
-            <div>
-              <p className="yg-font-sans" style={{ fontSize: "20px", color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, marginBottom: "64px" }}>
-                {t.contact.desc}
-              </p>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: "48px" }}>
-                {contactInfoItems.map((item, i) => (
-                  <div key={i} style={{ display: "flex", gap: "24px", alignItems: "start" }}>
-                    <div style={{ position: "relative" }}>
-                       <span style={{ fontSize: "64px", fontWeight: 900, color: "rgba(15,23,42,0.04)", position: "absolute", top: "-24px", left: "-16px", zIndex: 0 }}>{item.num}</span>
-                       <div style={{ position: "relative", zIndex: 1, color: BRAND.coral, fontSize: "24px", marginTop: "12px" }}>{item.icon}</div>
-                    </div>
-                    <div>
-                       <h3 className="yg-font-serif" style={{ fontSize: "20px", fontWeight: 800, color: BRAND.white, marginBottom: "8px" }}>{item.title}</h3>
-                       {item.link ? (
-                         <a href={item.link} className="yg-font-sans" style={{ fontSize: "17px", color: 'rgba(255,255,255,0.4)', textDecoration: "none" }}>{item.content}</a>
-                       ) : (
-                         <p className="yg-font-sans" style={{ fontSize: "17px", color: 'rgba(255,255,255,0.4)' }}>{item.content}</p>
-                       )}
-                    </div>
-                  </div>
-                ))}
+            {/* Left Column: Contact Cards */}
+            <div className="lg:col-span-5 space-y-6">
+              
+              {/* Studio Address Card */}
+              <div className="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl space-y-4 hover:border-white/20 transition-all">
+                <div className="w-12 h-12 rounded-2xl bg-[#FFD447]/10 text-[#FFD447] flex items-center justify-center text-xl border border-[#FFD447]/20">
+                  <FaMapMarkerAlt />
+                </div>
+                <h3 className="font-heading text-xl font-bold text-white">Our Head Studio</h3>
+                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                  {finalContact.location}
+                </p>
               </div>
 
-              <div style={{ marginTop: "80px" }}>
-                <h3 className="yg-font-serif" style={{ fontSize: "20px", fontWeight: 800, color: BRAND.white, marginBottom: "24px" }}>Follow Our Journey</h3>
-                <div style={{ display: "flex", gap: "16px" }}>
+              {/* Email Card */}
+              <div className="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl space-y-4 hover:border-white/20 transition-all">
+                <div className="w-12 h-12 rounded-2xl bg-[#FF6F5E]/10 text-[#FF6F5E] flex items-center justify-center text-xl border border-[#FF6F5E]/20">
+                  <FaEnvelope />
+                </div>
+                <h3 className="font-heading text-xl font-bold text-white">Email Enquiries</h3>
+                <a 
+                  href={`mailto:${finalContact.email || 'yenegeevents@gmail.com'}`}
+                  className="text-xs text-slate-300 hover:text-[#FFD447] transition-colors font-medium block underline"
+                >
+                  {finalContact.email || 'yenegeevents@gmail.com'}
+                </a>
+              </div>
+
+              {/* Phone & Hotline Card */}
+              <div className="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl space-y-4 hover:border-white/20 transition-all">
+                <div className="w-12 h-12 rounded-2xl bg-[#7B5CFF]/10 text-[#7B5CFF] flex items-center justify-center text-xl border border-[#7B5CFF]/20">
+                  <FaPhone />
+                </div>
+                <h3 className="font-heading text-xl font-bold text-white">Direct Line &amp; Support</h3>
+                <a 
+                  href={`tel:${finalContact.phone?.replace(/\D/g, '') || '251978639887'}`}
+                  className="text-xs text-slate-300 hover:text-[#FFD447] transition-colors font-medium block"
+                >
+                  {finalContact.phoneFormatted || finalContact.phone || '+251 978 639 887'}
+                </a>
+              </div>
+
+              {/* Social Channels */}
+              <div className="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl space-y-4">
+                <h3 className="font-heading text-lg font-bold text-white">Official Channels</h3>
+                <div className="flex gap-3">
                   {[
-                    { icon: <FaInstagram />, href: "https://instagram.com/yenege_event", bg: "linear-gradient(135deg, #E4405F 0%, #833AB4 100%)" },
-                    { icon: <FaTelegram />, href: "https://t.me/yenegeevents", bg: "linear-gradient(135deg, #0088cc 0%, #006699 100%)" },
-                    { icon: <FaTiktok />, href: "https://tiktok.com/@yenegeevents", bg: "linear-gradient(135deg, #000000 0%, #333333 100%)" },
-                    { icon: <FaYoutube />, href: "https://youtube.com/@yenegeevents", bg: "linear-gradient(135deg, #FF0000 0%, #CC0000 100%)" },
+                    { icon: <FaInstagram />, href: "https://instagram.com/yenege_event" },
+                    { icon: <FaTelegram />, href: "https://t.me/yenegeevents" },
+                    { icon: <FaTiktok />, href: "https://tiktok.com/@yenegeevents" },
+                    { icon: <FaYoutube />, href: "https://youtube.com/@yenegeevents" },
                   ].map((social, i) => (
-                    <a key={i} href={social.href} target="_blank" rel="noopener noreferrer" className="yg-social-btn">
+                    <a 
+                      key={i} 
+                      href={social.href} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="w-12 h-12 rounded-2xl bg-white/5 hover:bg-[#FFD447] text-white hover:text-[#1C2951] border border-white/10 flex items-center justify-center text-lg transition-all"
+                    >
                       {social.icon}
                     </a>
                   ))}
@@ -378,43 +179,86 @@ const Contact = () => {
               </div>
             </div>
 
-            {/* Right Column: Form */}
-            <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: "40px", border: "1px solid rgba(255,255,255,0.1)", padding: "60px", backdropFilter: 'blur(20px)' }}>
-               <h2 className="yg-font-serif" style={{ fontSize: "32px", fontWeight: 900, marginBottom: "40px", color: BRAND.white }}>{t.contact.formTitle}</h2>
-               
-               {submitStatus === "success" && (
-                 <div style={{ padding: "20px", borderRadius: "12px", background: "rgba(37,211,102,0.1)", color: "#128C7E", marginBottom: "32px", fontSize: "14px", fontWeight: 600 }}>
-                   Opening WhatsApp... If it didn't open, please check your browser settings.
-                 </div>
-               )}
+            {/* Right Column: Interactive Form */}
+            <div className="lg:col-span-7 bg-[#1E293B]/80 backdrop-blur-2xl p-8 sm:p-12 rounded-3xl border border-white/10 shadow-2xl space-y-8">
+              <div>
+                <h2 className="font-heading text-3xl font-black text-white mb-2">Send Us a Direct Message</h2>
+                <p className="text-xs text-slate-400 font-medium leading-relaxed">
+                  Fill in your details below. Your message will be formatted and sent directly to our team via WhatsApp for an immediate response.
+                </p>
+              </div>
 
-               <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }} className="yg-grid-mobile">
-                    <div>
-                      <label style={{ display: "block", fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: BRAND.gray500, marginBottom: "10px" }}>{t.contact.name} *</label>
-                      <input type="text" name="name" required placeholder="John Doe" value={formData.name} onChange={handleChange} className="yg-contact-input" />
-                    </div>
-                    <div>
-                      <label style={{ display: "block", fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: BRAND.gray500, marginBottom: "10px" }}>{t.contact.email} *</label>
-                      <input type="email" name="email" required placeholder="john@example.com" value={formData.email} onChange={handleChange} className="yg-contact-input" />
-                    </div>
-                 </div>
-                 
-                 <div>
-                   <label style={{ display: "block", fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: BRAND.gray500, marginBottom: "10px" }}>{t.contact.phone}</label>
-                   <input type="tel" name="phone" placeholder="+251 9XX XXX XXX" value={formData.phone} onChange={handleChange} className="yg-contact-input" />
-                 </div>
+              {submitStatus === "success" && (
+                <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold flex items-center gap-2">
+                  <FaCheckCircle className="text-base shrink-0" />
+                  <span>WhatsApp conversation initiated! Check your WhatsApp window to send.</span>
+                </div>
+              )}
 
-                 <div>
-                   <label style={{ display: "block", fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: BRAND.gold, marginBottom: "10px" }}>{t.contact.message} *</label>
-                   <textarea name="message" required rows={5} placeholder="Tell us about your next project or goal..." value={formData.message} onChange={handleChange} className="yg-contact-input" style={{ resize: "none" }} />
-                 </div>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-[#FFD447] mb-2">Your Full Name *</label>
+                    <input 
+                      type="text" 
+                      name="name" 
+                      required 
+                      placeholder="e.g. Abebe Bikila" 
+                      value={formData.name} 
+                      onChange={handleChange} 
+                      className="w-full bg-[#0F172A]/80 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm focus:border-[#FFD447] focus:outline-none transition-all placeholder:text-slate-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-[#FFD447] mb-2">Email Address *</label>
+                    <input 
+                      type="email" 
+                      name="email" 
+                      required 
+                      placeholder="name@example.com" 
+                      value={formData.email} 
+                      onChange={handleChange} 
+                      className="w-full bg-[#0F172A]/80 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm focus:border-[#FFD447] focus:outline-none transition-all placeholder:text-slate-500"
+                    />
+                  </div>
+                </div>
 
-                 <button type="submit" disabled={isSubmitting} className="yg-btn-submit">
-                   {isSubmitting ? "Processing..." : <><FaWhatsapp size={18} /> {t.contact.send}</>}
-                 </button>
-               </form>
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#FFD447] mb-2">Phone Number (Optional)</label>
+                  <input 
+                    type="tel" 
+                    name="phone" 
+                    placeholder="+251 9XX XXX XXX" 
+                    value={formData.phone} 
+                    onChange={handleChange} 
+                    className="w-full bg-[#0F172A]/80 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm focus:border-[#FFD447] focus:outline-none transition-all placeholder:text-slate-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#FFD447] mb-2">Message or Inquiry *</label>
+                  <textarea 
+                    name="message" 
+                    required 
+                    rows={5} 
+                    placeholder="Tell us about your event vision, partnership ideas, or enrollment questions..." 
+                    value={formData.message} 
+                    onChange={handleChange} 
+                    className="w-full bg-[#0F172A]/80 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm focus:border-[#FFD447] focus:outline-none transition-all placeholder:text-slate-500 resize-none"
+                  />
+                </div>
+
+                <button 
+                  type="submit" 
+                  disabled={isSubmitting} 
+                  className="w-full py-5 rounded-2xl bg-gradient-to-r from-[#FFD447] to-[#FF6F5E] hover:from-[#ffe066] hover:to-[#ff8273] text-[#1C2951] font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 transition-all shadow-xl shadow-[#FF6F5E]/20 hover:scale-[1.01]"
+                >
+                  <FaWhatsapp size={18} />
+                  <span>{isSubmitting ? "Opening WhatsApp..." : "Send Message Via WhatsApp"}</span>
+                </button>
+              </form>
             </div>
+
           </div>
         </div>
       </section>
@@ -423,5 +267,3 @@ const Contact = () => {
 };
 
 export default Contact;
-
-
