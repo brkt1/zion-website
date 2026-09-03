@@ -70,16 +70,16 @@ const Home = () => {
       <Hero />
 
       {/* ── 2. ACADEMY SPOTLIGHT ─────────────────────────────────────────── */}
-      <section className="py-16 md:py-24 relative overflow-hidden bg-[#0B0F19]">
+      <section className="py-10 md:py-16 relative overflow-hidden bg-[#0B0F19]">
         {/* Ambient glow */}
         <div className="absolute top-0 right-0 w-[300px] sm:w-[600px] h-[300px] sm:h-[600px] bg-radial from-[#FFD447]/8 via-transparent to-transparent blur-[120px] pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-[250px] sm:w-[500px] h-[250px] sm:h-[500px] bg-radial from-[#FF6F5E]/8 via-transparent to-transparent blur-[120px] pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
 
             {/* LEFT: Copy */}
-            <div className="space-y-6 sm:space-y-7">
+            <div className="space-y-5 sm:space-y-6">
               <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-[#FFD447]/10 border border-[#FFD447]/30">
                 <span className="w-2 h-2 rounded-full bg-[#FFD447] shadow-[0_0_10px_#FFD447]" />
                 <span className="text-[#FFD447] font-black text-[10px] uppercase tracking-[0.25em]">
@@ -87,7 +87,7 @@ const Home = () => {
                 </span>
               </div>
 
-              <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black text-white leading-[1.1] tracking-tight">
+              <h2 className="font-heading text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-black text-white leading-[1.1] tracking-tight">
                 {t.home?.academyTitle || "Learn the Art of Event Architecture."}
               </h2>
 
@@ -108,35 +108,35 @@ const Home = () => {
                 ))}
               </div>
 
-              <div className="flex flex-col sm:flex-row flex-wrap gap-3.5 pt-2">
-                <Link to="/masterclass-registration" className="w-full sm:w-auto text-center justify-center bg-gradient-to-r from-[#FFD447] to-[#FF6F5E] hover:from-[#ffe066] hover:to-[#ff8273] text-[#1C2951] font-black px-8 py-4 rounded-full text-xs uppercase tracking-widest transition-all shadow-xl shadow-[#FF6F5E]/20 hover:scale-105 flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-1">
+                <Link to="/masterclass-registration" className="w-full sm:w-auto text-center justify-center bg-gradient-to-r from-[#FFD447] to-[#FF6F5E] hover:from-[#ffe066] hover:to-[#ff8273] text-[#1C2951] font-black px-8 py-3.5 rounded-full text-xs uppercase tracking-widest transition-all shadow-xl shadow-[#FF6F5E]/20 hover:scale-105 flex items-center gap-2">
                   {t.home?.enrollNow || "Enroll Now"} <FaGraduationCap />
                 </Link>
-                <Link to="/masterclass" className="w-full sm:w-auto text-center justify-center bg-white/5 hover:bg-white/10 text-white border border-white/15 px-8 py-4 rounded-full font-bold text-xs uppercase tracking-widest transition-all hover:border-[#FFD447]/40 flex items-center gap-2">
+                <Link to="/masterclass" className="w-full sm:w-auto text-center justify-center bg-white/5 hover:bg-white/10 text-white border border-white/15 px-8 py-3.5 rounded-full font-bold text-xs uppercase tracking-widest transition-all hover:border-[#FFD447]/40 flex items-center gap-2">
                   {t.home?.seeMasterclass || "See Masterclass"} <FaArrowRight size={11} />
                 </Link>
               </div>
             </div>
 
             {/* RIGHT: Stats cards */}
-            <div className="flex flex-col gap-5">
-              <div className="grid grid-cols-2 gap-4 sm:gap-5">
+            <div className="flex flex-col gap-4">
+              <div className="grid grid-cols-2 gap-3.5 sm:gap-5">
                 {[
                   { val: "1k+", label: t.home?.communityMembers || "Community Members", icon: <FaUsers size={18} /> },
                   { val: "4.9★", label: t.home?.studentRating || "Student Rating", icon: <FaStar size={18} /> },
                 ].map((s, i) => (
-                  <div key={i} className="p-5 sm:p-7 rounded-2xl sm:rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl relative overflow-hidden hover:border-[#FFD447]/30 transition-all">
-                    <div className="text-[#FFD447] mb-2 sm:mb-3">{s.icon}</div>
-                    <div className="font-heading text-3xl sm:text-4xl font-black text-white mb-1">{s.val}</div>
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em] sm:tracking-[0.18em]">{s.label}</div>
+                  <div key={i} className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl relative overflow-hidden hover:border-[#FFD447]/30 transition-all">
+                    <div className="text-[#FFD447] mb-2">{s.icon}</div>
+                    <div className="font-heading text-2xl sm:text-4xl font-black text-white mb-1">{s.val}</div>
+                    <div className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em]">{s.label}</div>
                   </div>
                 ))}
               </div>
 
               {/* Highlight card */}
-              <div className="p-6 sm:p-8 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#FFD447]/10 to-[#FF6F5E]/8 border border-[#FFD447]/20 backdrop-blur-xl relative overflow-hidden hover:border-[#FFD447]/40 transition-all">
-                <div className="text-[#FFD447] mb-3 sm:mb-4"><FaGraduationCap size={28} /></div>
-                <h3 className="font-heading text-xl sm:text-2xl font-black text-white mb-2">
+              <div className="p-5 sm:p-7 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#FFD447]/10 to-[#FF6F5E]/8 border border-[#FFD447]/20 backdrop-blur-xl relative overflow-hidden hover:border-[#FFD447]/40 transition-all">
+                <div className="text-[#FFD447] mb-2 sm:mb-3"><FaGraduationCap size={24} /></div>
+                <h3 className="font-heading text-lg sm:text-2xl font-black text-white mb-1.5">
                   {t.home?.eliteCircleTitle || "Join the Elite Circle."}
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium">
@@ -150,15 +150,15 @@ const Home = () => {
       </section>
 
       {/* ── 3. FEATURED EVENTS ───────────────────────────────────────────── */}
-      <section className="py-16 md:py-24 relative">
+      <section className="py-10 md:py-16 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-12 gap-4">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 sm:mb-10 gap-3">
             <div>
               <p className="text-[#FFD447] font-black text-[10px] uppercase tracking-[0.3em] mb-1">
                 {t.home?.curatedExperiences || "Curated Experiences"}
               </p>
-              <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-black text-white">
+              <h2 className="font-heading text-2xl sm:text-4xl lg:text-5xl font-black text-white">
                 {t.home?.featuredEvents || "Featured Events"}
               </h2>
             </div>
@@ -167,7 +167,7 @@ const Home = () => {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
             {(recentEvents || []).filter(e => e.is_registration_open !== false).map((event) => {
               if (event.image && !imgOrientations[event.id]) {
                 detectOrientation(event.id, event.image);
@@ -208,18 +208,18 @@ const Home = () => {
                     </div>
                   </div>
 
-                  <div className="p-5 sm:p-6 space-y-3">
+                  <div className="p-4 sm:p-6 space-y-2.5">
                     <div className="flex flex-wrap items-center gap-3 text-[10px] text-slate-400 font-semibold">
                       <span className="flex items-center gap-1.5"><FaCalendarAlt className="text-[#FFD447]" />{formattedDate}</span>
                       <span>·</span>
                       <span className="flex items-center gap-1.5"><FaMapMarkerAlt className="text-[#FF6F5E]" />{event.location}</span>
                     </div>
-                    <h3 className="font-heading text-lg sm:text-xl font-black text-white group-hover:text-[#FFD447] transition-colors">
+                    <h3 className="font-heading text-base sm:text-xl font-black text-white group-hover:text-[#FFD447] transition-colors">
                       {event.title}
                     </h3>
-                    <div className="pt-3 border-t border-white/8 flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-[#FFD447]">
+                    <div className="pt-2.5 border-t border-white/8 flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-[#FFD447]">
                       <span>{t.eventsPage?.details || "View Details"}</span>
-                      <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white group-hover:bg-[#FFD447] group-hover:text-[#1C2951] transition-all">
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white group-hover:bg-[#FFD447] group-hover:text-[#1C2951] transition-all">
                         <FaArrowRight size={10} />
                       </div>
                     </div>
@@ -229,8 +229,8 @@ const Home = () => {
             })}
           </div>
 
-          <div className="mt-8 sm:mt-10 text-center md:hidden">
-            <Link to="/events" className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-white/5 border border-white/10 text-xs font-black text-white uppercase tracking-widest hover:bg-white/10 transition-all">
+          <div className="mt-6 sm:mt-8 text-center md:hidden">
+            <Link to="/events" className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/5 border border-white/10 text-xs font-black text-white uppercase tracking-widest hover:bg-white/10 transition-all">
               {t.home?.viewAll || "View All Events"} <FaArrowRight size={10} />
             </Link>
           </div>
@@ -238,39 +238,120 @@ const Home = () => {
       </section>
 
       {/* ── 4. THE YENEGE DISTINCTION ────────────────────────────────────── */}
-      <section className="py-16 md:py-24 relative bg-[#0B0F19] overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#FFD447]/30 to-transparent" />
+      <section className="py-14 md:py-24 relative bg-[#080C14] overflow-hidden">
+        {/* Ambient Glow Orbs */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-gradient-to-r from-[#F59E0B]/10 via-[#8B5CF6]/5 to-[#10B981]/10 blur-[130px] pointer-events-none rounded-full" />
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#F59E0B]/30 to-transparent" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12 sm:mb-16 space-y-3 sm:space-y-4">
-            <p className="text-[#FFD447] font-black text-[10px] uppercase tracking-[0.3em]">
-              {t.home?.distinctionLabel || "The Yenege Distinction"}
-            </p>
-            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-black text-white">
-              {t.home?.distinctionTitle || "Our Journey of Excellence."}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          {/* Header */}
+          <div className="text-center mb-12 sm:mb-16 space-y-3">
+            <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-slate-900/80 border border-[#F59E0B]/30 backdrop-blur-md shadow-lg shadow-black/40 mx-auto">
+              <span className="w-2 h-2 rounded-full bg-[#F59E0B] shadow-[0_0_8px_#F59E0B] animate-pulse" />
+              <span className="text-[#F59E0B] font-extrabold text-[10px] sm:text-xs uppercase tracking-[0.25em]">
+                {t.home?.distinctionLabel || "The Yenege Distinction"}
+              </span>
+            </div>
+
+            <h2 className="font-heading text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight">
+              <span className="bg-gradient-to-r from-white via-slate-100 to-[#F59E0B] bg-clip-text text-transparent">
+                {t.home?.distinctionTitle || "Our Journey of Excellence."}
+              </span>
             </h2>
-            <p className="text-xs sm:text-sm text-slate-400 font-medium max-w-xl mx-auto leading-relaxed">
+
+            <p className="text-xs sm:text-base text-slate-300 font-medium max-w-2xl mx-auto leading-relaxed">
               {t.home?.distinctionDesc || "Our methodology is a continuous cycle of innovation, education, and proven results."}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          {/* Desktop Connecting Process Track */}
+          <div className="hidden lg:block relative mb-6">
+            <div className="absolute top-1/2 left-[10%] right-[10%] h-[2px] -translate-y-1/2 bg-gradient-to-r from-[#F59E0B]/40 via-[#8B5CF6]/40 to-[#10B981]/40 z-0" />
+          </div>
+
+          {/* Cards Grid / Mobile Timeline */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6 relative">
             {[
-              { id: "01", title: t.home?.step1Title || "Architectural Mastery", desc: t.home?.step1Desc || "We design experience systems where every detail is intentional and every moment is impactful.", icon: <FaRocket />, color: "#FFD447" },
-              { id: "02", title: t.home?.step2Title || "Educational Core", desc: t.home?.step2Desc || "As home to East Africa's leading Event Academy, our team stays at the industry's absolute forefront.", icon: <FaGraduationCap />, color: "#FF6F5E" },
-              { id: "03", title: t.home?.step3Title || "Hybrid Delivery", desc: t.home?.step3Desc || "We host one event and reach two audiences — connecting Addis Ababa to the global Ethiopian diaspora.", icon: <FaNetworkWired />, color: "#7B5CFF" },
-              { id: "04", title: t.home?.step4Title || "Verified Footprint", desc: t.home?.step4Desc || "Thousands of successful events and a community spanning the globe — our track record speaks for itself.", icon: <FaCheckCircle />, color: "#3CCFCF" },
+              { 
+                id: "01", 
+                phase: "Phase I",
+                title: t.home?.step1Title || "Architectural Mastery", 
+                desc: t.home?.step1Desc || "We design experience systems where every detail is intentional and every moment is impactful.", 
+                icon: <FaRocket className="text-base sm:text-lg" />, 
+                accent: "#F59E0B",
+                gradient: "from-[#F59E0B]/20 to-transparent",
+                border: "group-hover:border-[#F59E0B]/60"
+              },
+              { 
+                id: "02", 
+                phase: "Phase II",
+                title: t.home?.step2Title || "Educational Core", 
+                desc: t.home?.step2Desc || "As home to East Africa's leading Event Academy, our team stays at the industry's absolute forefront.", 
+                icon: <FaGraduationCap className="text-base sm:text-lg" />, 
+                accent: "#FF6F5E",
+                gradient: "from-[#FF6F5E]/20 to-transparent",
+                border: "group-hover:border-[#FF6F5E]/60"
+              },
+              { 
+                id: "03", 
+                phase: "Phase III",
+                title: t.home?.step3Title || "Hybrid Delivery", 
+                desc: t.home?.step3Desc || "We host one event and reach two audiences — connecting Addis Ababa to the global Ethiopian diaspora.", 
+                icon: <FaNetworkWired className="text-base sm:text-lg" />, 
+                accent: "#8B5CF6",
+                gradient: "from-[#8B5CF6]/20 to-transparent",
+                border: "group-hover:border-[#8B5CF6]/60"
+              },
+              { 
+                id: "04", 
+                phase: "Phase IV",
+                title: t.home?.step4Title || "Verified Footprint", 
+                desc: t.home?.step4Desc || "Thousands of successful events and a community spanning the globe — our track record speaks for itself.", 
+                icon: <FaCheckCircle className="text-base sm:text-lg" />, 
+                accent: "#10B981",
+                gradient: "from-[#10B981]/20 to-transparent",
+                border: "group-hover:border-[#10B981]/60"
+              },
             ].map((step, i) => (
-              <div key={i} className="p-6 sm:p-8 rounded-2xl sm:rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl flex flex-col justify-between hover:border-[#FFD447]/30 transition-all duration-300 group">
+              <div 
+                key={i} 
+                className={`relative p-6 sm:p-7 rounded-2xl sm:rounded-3xl bg-slate-900/70 border border-white/10 backdrop-blur-xl flex flex-col justify-between transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-black/60 group overflow-hidden ${step.border}`}
+              >
+                {/* Background Ambient Glow */}
+                <div className={`absolute top-0 right-0 w-36 h-36 bg-gradient-to-bl ${step.gradient} rounded-bl-full opacity-40 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`} />
+
                 <div>
-                  <div className="flex items-center justify-between mb-4 sm:mb-6">
-                    <span className="font-heading text-2xl sm:text-3xl font-black text-white/10 group-hover:text-[#FFD447] transition-colors">{step.id}</span>
-                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform" style={{ color: step.color }}>
+                  {/* Top Bar: Step Pill & Icon */}
+                  <div className="flex items-center justify-between mb-5 sm:mb-6">
+                    <span 
+                      className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-white/10 bg-white/5 backdrop-blur-md"
+                      style={{ color: step.accent }}
+                    >
+                      {step.id} • {step.phase}
+                    </span>
+                    <div 
+                      className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-slate-800/90 border border-white/15 flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-110"
+                      style={{ color: step.accent }}
+                    >
                       {step.icon}
                     </div>
                   </div>
-                  <h3 className="font-heading text-lg sm:text-xl font-black text-white mb-2 sm:mb-3 group-hover:text-[#FFD447] transition-colors">{step.title}</h3>
-                  <p className="text-xs text-slate-400 leading-relaxed font-medium">{step.desc}</p>
+
+                  {/* Title & Desc */}
+                  <h3 className="font-heading text-lg sm:text-xl font-black text-white mb-2.5 group-hover:text-white transition-colors">
+                    {step.title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium">
+                    {step.desc}
+                  </p>
+                </div>
+
+                {/* Card Bottom Progress Bar Accent */}
+                <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 group-hover:text-slate-200 transition-colors">
+                    System Milestone
+                  </span>
+                  <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: step.accent }} />
                 </div>
               </div>
             ))}
@@ -279,10 +360,10 @@ const Home = () => {
       </section>
 
       {/* ── 5. YENEGE UNITY ──────────────────────────────────────────────── */}
-      <section className="py-16 md:py-24 relative overflow-hidden">
+      <section className="py-10 md:py-16 relative overflow-hidden">
         <div className="absolute inset-0 bg-radial from-[#FFD447]/5 via-transparent to-transparent pointer-events-none" />
 
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6 sm:space-y-8 relative z-10">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4 sm:space-y-6 relative z-10">
           <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl mx-auto">
             <span className="w-2 h-2 rounded-full bg-[#FFD447] shadow-[0_0_10px_#FFD447]" />
             <span className="text-[#FFD447] font-black text-[10px] uppercase tracking-[0.25em]">
@@ -290,7 +371,7 @@ const Home = () => {
             </span>
           </div>
 
-          <h2 className="font-heading text-3xl sm:text-5xl lg:text-6xl font-black text-white leading-tight">
+          <h2 className="font-heading text-2xl sm:text-5xl lg:text-6xl font-black text-white leading-tight">
             {t.home?.unityTitle || "Curated Access. Premium Connections."}
           </h2>
 
@@ -298,8 +379,8 @@ const Home = () => {
             {t.home?.unityDesc || "A curated business environment designed strictly for strategic partnerships and brand visibility. Elevate your enterprise and connect directly with key decision-makers."}
           </p>
 
-          <div className="flex flex-wrap justify-center gap-4 pt-2">
-            <Link to="/yenege-unity" className="w-full sm:w-auto text-center justify-center bg-gradient-to-r from-[#FFD447] to-[#FF6F5E] hover:from-[#ffe066] hover:to-[#ff8273] text-[#1C2951] font-black px-8 sm:px-10 py-4 rounded-full text-xs uppercase tracking-widest transition-all shadow-xl shadow-[#FF6F5E]/20 hover:scale-105 flex items-center gap-3">
+          <div className="flex flex-wrap justify-center gap-4 pt-1">
+            <Link to="/yenege-unity" className="w-full sm:w-auto text-center justify-center bg-gradient-to-r from-[#FFD447] to-[#FF6F5E] hover:from-[#ffe066] hover:to-[#ff8273] text-[#1C2951] font-black px-8 sm:px-10 py-3.5 rounded-full text-xs uppercase tracking-widest transition-all shadow-xl shadow-[#FF6F5E]/20 hover:scale-105 flex items-center gap-3">
               {t.home?.exploreUnity || "Explore Yenege Unity"} <FaArrowRight />
             </Link>
           </div>

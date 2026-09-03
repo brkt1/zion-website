@@ -3,7 +3,7 @@ import { FiArrowLeft, FiCheckCircle, FiChevronDown, FiLoader, FiMapPin, FiPhone,
 import { Link, useSearchParams } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { adminApi } from '../services/adminApi';
-import { getActiveMasterclassSchedules, MasterclassScheduleOption } from '../services/masterclassSchedules';
+import { getActiveMasterclassSchedules, getActiveMasterclassSchedulesSync, MasterclassScheduleOption } from '../services/masterclassSchedules';
 import { toEthiopianDate } from '../utils/ethiopianCalendar';
 
 const MasterclassRegistration: React.FC = () => {
@@ -34,15 +34,20 @@ const MasterclassRegistration: React.FC = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
-  const [scheduleOptions, setScheduleOptions] = useState<MasterclassScheduleOption[]>([]);
+  // Seed from localStorage cache immediately (instant paint, no flicker)
+  const [scheduleOptions, setScheduleOptions] = useState<MasterclassScheduleOption[]>(
+    getActiveMasterclassSchedulesSync()
+  );
 
   useEffect(() => {
-    const updateOptions = () => {
-      setScheduleOptions(getActiveMasterclassSchedules());
+    // Refresh from Supabase — this updates both state and the localStorage cache
+    const fetchSchedules = async () => {
+      const fresh = await getActiveMasterclassSchedules();
+      setScheduleOptions(fresh);
     };
-    updateOptions();
-    window.addEventListener('masterclass_schedules_updated', updateOptions);
-    return () => window.removeEventListener('masterclass_schedules_updated', updateOptions);
+    fetchSchedules();
+    window.addEventListener('masterclass_schedules_updated', fetchSchedules);
+    return () => window.removeEventListener('masterclass_schedules_updated', fetchSchedules);
   }, []);
 
   useEffect(() => {
@@ -197,46 +202,128 @@ const MasterclassRegistration: React.FC = () => {
   const coralOrange = "#FF6F5E";
   const indigoDeep = "#1C2951";
 
-  const inputClasses = "w-full bg-[#1E293B]/80 border border-white/10 rounded-2xl pl-11 pr-4 py-3.5 text-white focus:border-[#FFD447] focus:bg-[#1E293B] focus:ring-[4px] focus:ring-[#FFD447]/10 outline-none transition-all placeholder:text-slate-400 font-sans shadow-inner hover:border-white/20 duration-300 text-sm";
-  const selectClasses = "w-full bg-[#1E293B]/80 border border-white/10 rounded-2xl pl-11 pr-10 py-3.5 text-white focus:border-[#FFD447] focus:bg-[#1E293B] focus:ring-[4px] focus:ring-[#FFD447]/10 outline-none transition-all font-sans shadow-inner hover:border-white/20 duration-300 appearance-none text-sm";
-  const labelClasses = "block text-[10px] uppercase tracking-[0.3em] font-black text-[#FFD447] mb-1.5 ml-1 font-sans";
+  const inputClasses = "w-full bg-white/[0.04] border border-white/[0.08] rounded-2xl pl-12 pr-4 py-3.5 text-white focus:border-[#FFD447]/80 focus:bg-white/[0.08] focus:ring-4 focus:ring-[#FFD447]/10 outline-none transition-all duration-300 placeholder:text-slate-500 font-sans hover:border-white/20 hover:bg-white/[0.06] text-sm";
+  const selectClasses = "w-full bg-white/[0.04] border border-white/[0.08] rounded-2xl pl-12 pr-10 py-3.5 text-white focus:border-[#FFD447]/80 focus:bg-white/[0.08] focus:ring-4 focus:ring-[#FFD447]/10 outline-none transition-all duration-300 font-sans hover:border-white/20 appearance-none text-sm";
+  const labelClasses = "block text-[10px] uppercase tracking-[0.3em] font-black text-slate-400 mb-2 font-sans";
 
   const stepLabels = language === 'am' 
-    ? ["ግል መረጃ", "የስልጠና ሁኔታ", "ፍላጎቶች", "ስምምነት", "ማረጋገጫ"]
+    ? ["ግል መረጃ", "ሁኔታ", "ፍላጎቶች", "ስምምነት", "ማረጋገጫ"]
     : language === 'om'
-      ? ["Odeeffannoo", "Mala Leenjii", "Fedhii", "Waliigaltee", "Mirkaneessa"]
-      : ["Profile", "Delivery", "Interests", "Consent", "Review"];
+      ? ["Odeeffannoo", "Mala", "Fedhii", "Waliigaltee", "Mirkaneessa"]
+      : ["Profile", "Format", "Interests", "Consent", "Review"];
 
+  const stepIcons = ["👤", "🎯", "✨", "🤝", "🚀"];
 
   const sharedStyles = `
-    .font-serif { font-family: 'Outfit', 'Playfair Display', serif; }
-    .font-sans  { font-family: 'Inter', 'Manrope', sans-serif; }
-    .glass-vivid-light {
-      background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(24px);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.5);
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;700;800;900&display=swap');
+    .font-serif { font-family: 'Outfit', serif; }
+    .font-sans  { font-family: 'Inter', sans-serif; }
+
+    .reg-bg {
+      background: #050C1A;
+      min-height: 100vh;
+      position: relative;
     }
+    .reg-bg::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% -10%, rgba(255,212,71,0.14) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 50% at 80% 110%, rgba(255,111,94,0.12) 0%, transparent 55%),
+        radial-gradient(ellipse 40% 40% at 50% 50%, rgba(123,92,255,0.07) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
     .text-gold-gradient {
-      background: linear-gradient(135deg, ${yenegeYellow}, ${coralOrange});
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background: linear-gradient(135deg, #FFD447 0%, #FFB347 50%, #FF6F5E 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
+
     .glow-button-amber {
-      background: linear-gradient(135deg, ${yenegeYellow} 0%, ${coralOrange} 100%);
-      color: ${indigoDeep}; font-weight: 800;
-      transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+      background: linear-gradient(135deg, #FFD447 0%, #FF9A3C 50%, #FF6F5E 100%);
+      color: #0B0F19;
+      font-weight: 900;
+      box-shadow: 0 0 0 1px rgba(255,212,71,0.4), 0 8px 32px rgba(255,212,71,0.25), 0 2px 8px rgba(255,111,94,0.2);
+      transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+      letter-spacing: 0.06em;
     }
-    .bg-luxury {
-      background: radial-gradient(circle at top right, rgba(255,212,71,0.08) 0%, transparent 45%),
-                  radial-gradient(circle at bottom left, rgba(255,111,94,0.06) 0%, transparent 45%),
-                  #0F172A;
+    .glow-button-amber:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 0 1px rgba(255,212,71,0.6), 0 12px 40px rgba(255,212,71,0.35), 0 4px 16px rgba(255,111,94,0.3);
     }
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateY(12px); }
-      to { opacity: 1; transform: translateY(0); }
+
+    .glass-card {
+      background: rgba(255,255,255,0.03);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .glass-card-gold {
+      background: rgba(255,212,71,0.06);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,212,71,0.25);
+      box-shadow: 0 0 30px rgba(255,212,71,0.08), inset 0 1px 0 rgba(255,212,71,0.15);
+    }
+
+    .choice-btn {
+      position: relative;
+      overflow: hidden;
+      transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+    }
+    .choice-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,212,71,0.08), rgba(255,111,94,0.04));
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+    .choice-btn:hover::before { opacity: 1; }
+    .choice-btn.selected::before { opacity: 1; }
+    .choice-btn.selected {
+      border-color: rgba(255,212,71,0.6) !important;
+      box-shadow: 0 0 0 3px rgba(255,212,71,0.12), 0 4px 20px rgba(255,212,71,0.1);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
     .animate-step {
-      animation: slideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @keyframes pulse-ring {
+      0%   { transform: scale(1); opacity: 0.6; }
+      100% { transform: scale(1.8); opacity: 0; }
+    }
+    .step-ring::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 2px solid #FFD447;
+      animation: pulse-ring 2s ease-out infinite;
+    }
+
+    .input-focus-line {
+      position: absolute;
+      bottom: 0; left: 0;
+      height: 2px;
+      width: 0%;
+      background: linear-gradient(90deg, #FFD447, #FF6F5E);
+      border-radius: 0 0 12px 12px;
+      transition: width 0.3s ease;
+    }
+    .input-wrapper:focus-within .input-focus-line { width: 100%; }
+    .input-wrapper:focus-within > svg { color: #FFD447 !important; }
+
+    .step-pill {
+      transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
     }
   `;
 
@@ -317,103 +404,117 @@ const MasterclassRegistration: React.FC = () => {
   }
 
   return (
-    <div className="bg-luxury min-h-screen text-white pb-20 font-sans selection:bg-[#FFD447] selection:text-[#1C2951]">
+    <div className="reg-bg text-white pb-28 font-sans selection:bg-[#FFD447] selection:text-[#0B0F19] relative z-0">
       <style>{sharedStyles}</style>
 
       {/* Navigation Header */}
-      <nav className="fixed top-0 left-0 right-0 z-[100] bg-[#0F172A]/90 backdrop-blur-xl border-b border-white/10 px-4 sm:px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link to="/masterclass" className="w-9 h-9 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 text-white transition-all border border-white/10" title="Back to Masterclass">
-            <FiArrowLeft className="text-white" />
+      <nav className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between px-4 sm:px-6 py-3.5">
+        <div className="glass-card rounded-2xl flex items-center gap-3 px-3 py-2 shadow-lg">
+          <Link to="/masterclass" className="w-8 h-8 rounded-xl flex items-center justify-center bg-white/[0.07] hover:bg-white/15 text-white/80 hover:text-white transition-all border border-white/[0.08]" title="Back">
+            <FiArrowLeft size={14} />
           </Link>
-          <span className="font-bold tracking-tight text-white text-sm sm:text-base">YENEGE ACADEMY</span>
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#FFD447] to-[#FF6F5E] flex items-center justify-center">
+              <span className="text-[8px] font-black text-[#0B0F19]">Y</span>
+            </div>
+            <span className="font-black tracking-wider text-white/90 text-xs uppercase">Yenege Academy</span>
+          </div>
         </div>
         <button 
           onClick={toggleLanguage}
-          className="px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 text-white transition-all active:scale-95"
-          title="Change Language"
+          className="glass-card rounded-2xl px-3 py-2 text-[10px] font-black uppercase tracking-widest flex items-center gap-2 text-white/70 hover:text-white transition-all active:scale-95 shadow-lg"
         >
-          <span className={language === 'am' ? 'text-[#FFD447] font-black' : 'text-white/60'}>አማ</span>
-          <div className="w-px h-2 bg-white/30" />
-          <span className={language === 'en' ? 'text-[#FFD447] font-black' : 'text-white/60'}>EN</span>
-          <div className="w-px h-2 bg-white/30" />
-          <span className={language === 'om' ? 'text-[#FFD447] font-black' : 'text-white/60'}>OM</span>
+          <span className={language === 'am' ? 'text-[#FFD447]' : ''}>አማ</span>
+          <span className="text-white/20">·</span>
+          <span className={language === 'en' ? 'text-[#FFD447]' : ''}>EN</span>
+          <span className="text-white/20">·</span>
+          <span className={language === 'om' ? 'text-[#FFD447]' : ''}>OM</span>
         </button>
       </nav>
 
-      {/* Header section */}
-      <div className="pt-24 sm:pt-28 pb-4 px-4 sm:px-6 text-center max-w-3xl mx-auto">
-        <h1 className="font-serif text-2xl sm:text-4xl md:text-5xl mb-3 tracking-tighter text-white leading-tight">
-          {language === 'am' ? 'የኢቨንት ዘርፍ መመዝገቢያ' : language === 'om' ? 'Uunka Galmee Qophii' : 'Event Industry Interest &'} <span className="italic text-gold-gradient">{language === 'am' ? 'ቅጽ' : language === 'om' ? 'Leenjii' : 'Registration'}</span>
+      {/* Hero Header */}
+      <div className="relative z-10 pt-24 sm:pt-28 pb-6 px-4 sm:px-6 text-center max-w-2xl mx-auto">
+        {/* Eyebrow badge */}
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-card border border-[#FFD447]/20 mb-5">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#FFD447] shadow-[0_0_6px_#FFD447]" />
+          <span className="text-[#FFD447] text-[10px] font-black uppercase tracking-[0.3em]">
+            {language === 'am' ? 'ነፃ ምዝገባ · Yenege Masterclass' : language === 'om' ? 'Galmee Bilisaa · Yenege Masterclass' : 'Free Enrollment · Yenege Masterclass'}
+          </span>
+        </div>
+        <h1 className="font-serif text-3xl sm:text-5xl font-black mb-3 leading-[1.1] tracking-tight">
+          {language === 'am' ? (
+            <><span className="text-white">የኢቨንት ዘርፍ </span><span className="text-gold-gradient">ምዝገባ ቅጽ</span></>
+          ) : language === 'om' ? (
+            <><span className="text-white">Uunka </span><span className="text-gold-gradient">Galmee Leenjii</span></>
+          ) : (
+            <><span className="text-white">Join the </span><span className="text-gold-gradient">Experience Architects</span></>
+          )}
         </h1>
-        <p className="text-[#FFD447]/80 text-[10px] font-black uppercase tracking-[0.25em]">
-          {language === 'am' ? 'የተረጋገጠ የኢቨንት አርክቴክቸር ባለሙያ ይሁኑ' : language === 'om' ? 'Ogeessa Ijaarsa Qophii Beekamtii Qabu Ta\'aa' : 'Become a Certified Experience Architect'}
+        <p className="text-slate-400 text-sm font-medium max-w-md mx-auto">
+          {language === 'am' ? 'የተረጋገጠ የኢቨንት አርክቴክቸር ባለሙያ ይሁኑ' : language === 'om' ? 'Ogeessa Ijaarsa Qophii Beekamtii Qabu Ta\'aa' : 'A 5-minute form that puts you on the path to becoming a certified event professional in East Africa.'}
         </p>
       </div>
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6">
-        
-        {/* Step Progress Line */}
-        <div className="mb-8 max-w-xl mx-auto px-2">
-          <div className="flex items-center justify-between relative">
-            <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-white/10 -translate-y-1/2 z-0" />
-            <div 
-              className="absolute left-0 top-1/2 h-0.5 bg-gradient-to-r from-[#FFD447] to-[#FF6F5E] -translate-y-1/2 z-0 transition-all duration-500" 
-              style={{ width: `${((currentStep - 1) / 4) * 100}%` }}
-            />
+      <div className="relative z-10 max-w-2xl mx-auto px-4 sm:px-6">
+
+        {/* Step Pills Tracker */}
+        <div className="mb-6">
+          {/* Desktop: horizontal pills */}
+          <div className="hidden sm:flex items-center gap-1 glass-card rounded-2xl p-1.5">
             {[1, 2, 3, 4, 5].map((step) => {
               const isCompleted = currentStep > step;
               const isActive = currentStep === step;
               return (
-                <div key={step} className="relative z-10 flex flex-col items-center">
-                  <button 
-                    type="button"
-                    onClick={() => {
-                      if (step < currentStep) {
-                        setCurrentStep(step);
-                      } else if (step > currentStep && validateStep(currentStep)) {
-                        let ok = true;
-                        for (let s = currentStep; s < step; s++) {
-                          if (!validateStep(s)) {
-                            ok = false;
-                            break;
-                          }
-                        }
-                        if (ok) setCurrentStep(step);
-                      }
-                    }}
-                    className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-extrabold text-xs transition-all duration-300 ${
-                      isCompleted 
-                        ? 'bg-[#FFD447] text-[#1C2951] shadow-lg shadow-[#FFD447]/20' 
-                        : isActive 
-                          ? 'bg-[#1C2951] text-white ring-4 ring-[#FFD447]/30 border-2 border-[#FFD447] scale-110 shadow-lg shadow-[#FFD447]/10' 
-                          : 'bg-[#1E293B] text-slate-400 border border-white/10'
-                    }`}
-                  >
-                    {isCompleted ? <FiCheck className="stroke-[3px]" /> : step}
-                  </button>
-                  <span className={`absolute top-10 text-[8px] uppercase tracking-widest font-black whitespace-nowrap hidden sm:block ${isActive ? 'text-[#FFD447] font-extrabold' : 'text-slate-400 font-semibold'}`}>
-                    {stepLabels[step - 1]}
-                  </span>
-                </div>
+                <button
+                  key={step}
+                  type="button"
+                  onClick={() => {
+                    if (step < currentStep) setCurrentStep(step);
+                  }}
+                  className={`step-pill flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition-all ${
+                    isCompleted
+                      ? 'bg-[#FFD447]/15 text-[#FFD447] border border-[#FFD447]/20'
+                      : isActive
+                        ? 'bg-gradient-to-r from-[#FFD447] to-[#FF9A3C] text-[#0B0F19] font-black shadow-lg shadow-[#FFD447]/20'
+                        : 'text-slate-500 hover:text-slate-300'
+                  }`}
+                >
+                  {isCompleted ? <FiCheck size={12} strokeWidth={3} /> : <span className="text-sm">{stepIcons[step - 1]}</span>}
+                  <span className="text-[10px] uppercase tracking-wider hidden md:block">{stepLabels[step - 1]}</span>
+                </button>
               );
             })}
           </div>
-
-          {/* Mobile Active Step Label Badge */}
-          <div className="sm:hidden text-center mt-3">
-            <span className="px-3.5 py-1 rounded-full bg-[#FFD447]/10 text-[#FFD447] border border-[#FFD447]/30 text-[10px] font-black uppercase tracking-widest inline-block">
-              Step {currentStep} of 5 — {stepLabels[currentStep - 1]}
-            </span>
+          {/* Mobile: progress arc */}
+          <div className="sm:hidden glass-card rounded-2xl p-3 flex items-center gap-3">
+            <div className="relative w-10 h-10 flex-shrink-0">
+              <svg viewBox="0 0 40 40" className="w-10 h-10 -rotate-90">
+                <circle cx="20" cy="20" r="16" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3" />
+                <circle cx="20" cy="20" r="16" fill="none" stroke="url(#gold)" strokeWidth="3"
+                  strokeDasharray={`${2 * Math.PI * 16}`}
+                  strokeDashoffset={`${2 * Math.PI * 16 * (1 - (currentStep - 1) / 4)}`}
+                  strokeLinecap="round" style={{transition: 'stroke-dashoffset 0.5s ease'}} />
+                <defs><linearGradient id="gold" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#FFD447"/><stop offset="100%" stopColor="#FF6F5E"/></linearGradient></defs>
+              </svg>
+              <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-white">{currentStep}/5</span>
+            </div>
+            <div>
+              <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Step {currentStep} of 5</p>
+              <p className="text-sm font-black text-white">{stepIcons[currentStep - 1]} {stepLabels[currentStep - 1]}</p>
+            </div>
+            <div className="ml-auto text-xl">{stepIcons[currentStep - 1]}</div>
           </div>
         </div>
 
         {/* Form Wizard Container */}
-        <div className="bg-[#1E293B]/70 backdrop-blur-xl p-5 sm:p-10 md:p-12 rounded-[2rem] sm:rounded-[2.5rem] border border-white/10 shadow-2xl shadow-black/50 relative">
+        <div className="glass-card rounded-[2rem] p-5 sm:p-8 relative overflow-hidden" style={{boxShadow: '0 0 0 1px rgba(255,212,71,0.08), 0 25px 60px rgba(0,0,0,0.5), 0 0 80px rgba(255,212,71,0.05)'}}>
+          {/* Decorative gold corner accent */}
+          <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-[#FFD447]/8 via-[#FF9A3C]/4 to-transparent rounded-[2rem] pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-[#FF6F5E]/6 to-transparent rounded-[2rem] pointer-events-none" />
           
           {submissionError && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl text-red-600 text-xs font-bold font-sans">
-              {submissionError}
+            <div className="mb-5 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold flex items-center gap-2">
+              <span className="text-base">⚠️</span> {submissionError}
             </div>
           )}
 
@@ -486,51 +587,49 @@ const MasterclassRegistration: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className={labelClasses}>{language === 'am' ? 'ዕድሜ' : language === 'om' ? 'Umurii' : 'Age'}</label>
-                  <input 
-                    required 
-                    type="number" 
-                    name="age" 
-                    value={formData.age} 
-                    onChange={handleChange} 
-                    className="w-full bg-[#1E293B]/80 border border-white/10 rounded-2xl px-5 py-3.5 text-white focus:border-[#FFD447] focus:bg-[#1E293B] focus:ring-[4px] focus:ring-[#FFD447]/10 outline-none transition-all placeholder:text-slate-400 font-sans shadow-inner hover:border-white/20 duration-300 text-sm"
-                    placeholder="e.g. 21" 
-                  />
-                  {stepErrors.age && <p className="text-[10px] text-red-500 font-bold mt-1 ml-1">{stepErrors.age}</p>}
+                  <div className="input-wrapper relative flex items-center">
+                    <input 
+                      required 
+                      type="number" 
+                      name="age" 
+                      value={formData.age} 
+                      onChange={handleChange} 
+                      className={`${inputClasses} pl-5`}
+                      placeholder="e.g. 21" 
+                    />
+                    <div className="input-focus-line" />
+                  </div>
+                  {stepErrors.age && <p className="text-[10px] text-red-400 font-bold mt-1 ml-1 flex items-center gap-1"><span>⚠</span> {stepErrors.age}</p>}
                 </div>
                 <div className="space-y-1.5">
-                  <label className={labelClasses}>{language === 'am' ? 'ጾታ' : language === 'om' ? 'Kornyaa' : 'Sex'}</label>
-                  <div className="grid grid-cols-2 gap-2.5">
+                  <label className={labelClasses}>{language === 'am' ? 'ጾታ' : language === 'om' ? 'Kornyaa' : 'Gender'}</label>
+                  <div className="grid grid-cols-2 gap-2">
                     {['male', 'female'].map((s) => {
                       const isSelected = formData.sex === s;
                       const sexLabel = s === 'male' 
                         ? (language === 'am' ? 'ወንድ' : language === 'om' ? 'Dhiira' : 'Male')
                         : (language === 'am' ? 'ሴት' : language === 'om' ? 'Dubara' : 'Female');
+                      const sexIcon = s === 'male' ? '♂' : '♀';
                       return (
                         <button
                           key={s}
                           type="button"
                           onClick={() => {
                             setFormData(prev => ({ ...prev, sex: s }));
-                            if (stepErrors.sex) {
-                              setStepErrors(prev => {
-                                const next = { ...prev };
-                                delete next.sex;
-                                return next;
-                              });
-                            }
+                            if (stepErrors.sex) setStepErrors(prev => { const next = { ...prev }; delete next.sex; return next; });
                           }}
-                          className={`py-3.5 rounded-2xl border text-center font-bold text-xs uppercase tracking-wider transition-all ${
+                          className={`choice-btn py-3 rounded-2xl border text-center font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 ${
                             isSelected
-                              ? 'border-[#FFD447] bg-[#FFD447]/10 text-white ring-[3px] ring-[#FFD447]/10 font-black'
-                              : 'border-white/10 bg-[#1E293B]/60 hover:bg-[#1E293B] text-slate-300'
+                              ? 'selected bg-[#FFD447]/10 text-[#FFD447]'
+                              : 'bg-white/[0.03] border-white/[0.08] hover:border-white/20 text-slate-400'
                           }`}
                         >
-                          {sexLabel}
+                          <span className="text-base">{sexIcon}</span> {sexLabel}
                         </button>
                       );
                     })}
                   </div>
-                  {stepErrors.sex && <p className="text-[10px] text-red-500 font-bold mt-1 ml-1">{stepErrors.sex}</p>}
+                  {stepErrors.sex && <p className="text-[10px] text-red-400 font-bold mt-1 ml-1 flex items-center gap-1"><span>⚠</span> {stepErrors.sex}</p>}
                 </div>
               </div>
 
@@ -641,7 +740,12 @@ const MasterclassRegistration: React.FC = () => {
                         key={id || val}
                         type="button"
                         onClick={() => {
-                          setFormData(prev => ({ ...prev, preferred_schedule: val }));
+                          setFormData(prev => ({
+                            ...prev,
+                            preferred_schedule: val,
+                            // Clear learning mode so user picks it fresh for this session
+                            learning_mode: prev.preferred_schedule !== val ? '' : prev.learning_mode,
+                          }));
                           if (stepErrors.preferred_schedule) {
                             setStepErrors(prev => {
                               const next = { ...prev };
@@ -679,55 +783,105 @@ const MasterclassRegistration: React.FC = () => {
                 {stepErrors.preferred_schedule && <p className="text-[10px] text-red-500 font-bold mt-1 ml-1">{stepErrors.preferred_schedule}</p>}
               </div>
 
-              {/* Q7: Learning Mode Choice */}
-              <div className="space-y-3">
-                <label className={labelClasses}>
-                  7. {language === 'am' ? 'ስልጠናውን በምን መንገድ መውሰድ ይፈልጋሉ?' : language === 'om' ? 'Leenjii akkamitti fudhachuu barbaadu?' : 'How would you prefer to learn?'}
-                </label>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {[
-                    { mode: 'In-person', amMode: 'በአካል', omMode: 'Qaamaan', price: '15,000 ETB', desc: language === 'am' ? 'በቀጥታ በአካል የሚሰጥ ስልጠና' : language === 'om' ? 'Leenjii qaamaan berbaadamu' : 'Face-to-face immersive workshops' },
-                    { mode: 'Full Online', amMode: 'ኦንላይን', omMode: 'Intarneetiin', price: '7,000 ETB', desc: language === 'am' ? 'በዲጂታል አማራጭ በቪዲዮ' : language === 'om' ? 'Leenjii intarneetiin kennamu' : 'Remote digital curriculum' },
-                    { mode: 'Hybrid', amMode: 'ሃይብሪድ', omMode: 'Makuu', price: '10,000 ETB', desc: language === 'am' ? 'የተቀላቀለ በአካል እና ኦንላይን' : language === 'om' ? 'Makuu intarneetii fi qaamaan' : 'Mixed offline & online delivery' },
-                  ].map(({ mode, amMode, omMode, price, desc }) => {
-                    const isSelected = formData.learning_mode === `${mode} — ${price}`;
-                    const displayMode = language === 'am' ? amMode : language === 'om' ? omMode : mode;
+              {/* Q7: Learning Mode Choice — only shown after Q6 is selected */}
+              {formData.preferred_schedule ? (
+                <div className="space-y-3">
+                  <label className={labelClasses}>
+                    7. {language === 'am' ? 'ስልጠናውን በምን መንገድ መውሰድ ይፈልጋሉ?' : language === 'om' ? 'Leenjii akkamitti fudhachuu barbaadu?' : 'How would you prefer to learn?'}
+                  </label>
+                  {(() => {
+                    const selectedSchedObj = scheduleOptions.find(s => s.val === formData.preferred_schedule);
+                    const modesToDisplay = (selectedSchedObj?.available_modes || [
+                      { mode: 'In-person', amMode: 'በአካል', omMode: 'Qaamaan', price: '15,000 ETB', desc: language === 'am' ? 'በቀጥታ በአካል የሚሰጥ ስልጠና' : language === 'om' ? 'Leenjii qaamaan berbaadamu' : 'Face-to-face immersive workshops', enabled: true },
+                      { mode: 'Full Online', amMode: 'ኦንላይን', omMode: 'Intarneetiin', price: '7,000 ETB', desc: language === 'am' ? 'በዲጂታል አማራጭ በቪዲዮ' : language === 'om' ? 'Leenjii intarneetiin kennamu' : 'Remote digital curriculum', enabled: true },
+                      { mode: 'Hybrid', amMode: 'ሃይብሪድ', omMode: 'Makuu', price: '10,000 ETB', desc: language === 'am' ? 'የተቀላቀለ በአካል እና ኦንላይን' : language === 'om' ? 'Makuu intarneetii fi qaamaan' : 'Mixed offline & online delivery', enabled: true },
+                    ]).filter(m => m.enabled !== false);
+
+                    if (modesToDisplay.length === 0) {
+                      return (
+                        <p className="text-xs text-amber-400 font-bold p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                          {language === 'am'
+                            ? 'ለዚህ ክፍል የተለየ የተዘጋጀ አማራጭ የለም።'
+                            : 'No available learning packages configured for this session schedule.'}
+                        </p>
+                      );
+                    }
+
                     return (
-                      <button
-                        key={mode}
-                        type="button"
-                        onClick={() => {
-                          setFormData(prev => ({ ...prev, learning_mode: `${mode} — ${price}` }));
-                          if (stepErrors.learning_mode) {
-                            setStepErrors(prev => {
-                              const next = { ...prev };
-                              delete next.learning_mode;
-                              return next;
-                            });
-                          }
-                        }}
-                        className={`p-4 sm:p-5 rounded-2xl border text-left transition-all duration-300 flex flex-col justify-between min-h-[96px] ${
-                          isSelected 
-                            ? 'border-[#FFD447] bg-[#FFD447]/10 ring-[4px] ring-[#FFD447]/10 shadow-md' 
-                            : 'border-white/10 bg-[#1E293B]/60 hover:bg-[#1E293B]'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between w-full">
-                          <span className={`text-xs font-black uppercase tracking-wider ${isSelected ? 'text-[#FFD447]' : 'text-slate-400'}`}>
-                            {displayMode}
-                          </span>
-                          {isSelected && <FiCheckCircle className="text-[#FFD447]" />}
-                        </div>
-                        <div>
-                          <p className="text-lg md:text-xl font-extrabold text-white leading-none mb-1">{price}</p>
-                          <p className="text-[9px] md:text-[10px] text-slate-400 leading-tight font-medium">{desc}</p>
-                        </div>
-                      </button>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {modesToDisplay.map(({ mode, amMode, omMode, price, desc }) => {
+                          const isSelected = formData.learning_mode === `${mode} — ${price}`;
+                          const displayMode = language === 'am' ? (amMode || mode) : language === 'om' ? (omMode || mode) : mode;
+                          const displayDesc = desc || (
+                            mode === 'In-person' 
+                              ? (language === 'am' ? 'በቀጥታ በአካል የሚሰጥ ስልጠና' : language === 'om' ? 'Leenjii qaamaan berbaadamu' : 'Face-to-face immersive workshops')
+                              : mode === 'Full Online'
+                              ? (language === 'am' ? 'በዲጂታል አማራጭ በቪዲዮ' : language === 'om' ? 'Leenjii intarneetiin kennamu' : 'Remote digital curriculum')
+                              : (language === 'am' ? 'የተቀላቀለ በአካል እና ኦንላይን' : language === 'om' ? 'Makuu intarneetii fi qaamaan' : 'Mixed offline & online delivery')
+                          );
+
+                          return (
+                            <button
+                              key={mode}
+                              type="button"
+                              onClick={() => {
+                                setFormData(prev => ({ ...prev, learning_mode: `${mode} — ${price}` }));
+                                if (stepErrors.learning_mode) {
+                                  setStepErrors(prev => {
+                                    const next = { ...prev };
+                                    delete next.learning_mode;
+                                    return next;
+                                  });
+                                }
+                              }}
+                              className={`p-4 sm:p-5 rounded-2xl border text-left transition-all duration-300 flex flex-col justify-between min-h-[96px] ${
+                                isSelected 
+                                  ? 'border-[#FFD447] bg-[#FFD447]/10 ring-[4px] ring-[#FFD447]/10 shadow-md' 
+                                  : 'border-white/10 bg-[#1E293B]/60 hover:bg-[#1E293B]'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between w-full">
+                                <span className={`text-xs font-black uppercase tracking-wider ${isSelected ? 'text-[#FFD447]' : 'text-slate-400'}`}>
+                                  {displayMode}
+                                </span>
+                                {isSelected && <FiCheckCircle className="text-[#FFD447]" />}
+                              </div>
+                              <div>
+                                <p className="text-lg md:text-xl font-extrabold text-white leading-none mb-1">{price}</p>
+                                <p className="text-[9px] md:text-[10px] text-slate-400 leading-tight font-medium">{displayDesc}</p>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
                     );
-                  })}
+                  })()}
+                  {stepErrors.learning_mode && <p className="text-[10px] text-red-500 font-bold mt-1 ml-1">{stepErrors.learning_mode}</p>}
                 </div>
-                {stepErrors.learning_mode && <p className="text-[10px] text-red-500 font-bold mt-1 ml-1">{stepErrors.learning_mode}</p>}
-              </div>
+              ) : (
+                /* Locked placeholder — user must pick Q6 first */
+                <div className="flex items-start gap-3 p-4 rounded-2xl border border-white/8 bg-white/[0.02]">
+                  <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <FiInfo className="text-slate-500" size={14} />
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-slate-300 mb-0.5">
+                      {language === 'am'
+                        ? '7. ስልጠናውን በምን መንገድ መውሰድ ይፈልጋሉ?'
+                        : language === 'om'
+                        ? '7. Leenjii akkamitti fudhachuu barbaadu?'
+                        : '7. How would you prefer to learn?'}
+                    </p>
+                    <p className="text-[11px] text-slate-500">
+                      {language === 'am'
+                        ? 'ይህን ጥያቄ ለመመለስ መጀመሪያ ከላይ ያለውን የስልጠና ጊዜ (#6) ይምረጡ።'
+                        : language === 'om'
+                        ? 'Gaaffii kana deebisuuf, dursa sagantaa leenjii (#6) filadhu.'
+                        : 'Please select a session schedule above (Q6) first — available formats depend on the session.'}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

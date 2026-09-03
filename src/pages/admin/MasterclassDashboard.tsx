@@ -9,11 +9,13 @@ import { MasterclassReservation } from '../../types';
 import { NetworkErrorBanner } from '../../Components/ui/NetworkStatus';
 import { 
   getMasterclassSchedules, 
-  saveMasterclassSchedules, 
   addMasterclassSchedule, 
   toggleMasterclassScheduleActive, 
   deleteMasterclassSchedule, 
-  MasterclassScheduleOption 
+  updateMasterclassSchedule,
+  MasterclassScheduleOption,
+  LearningModeConfig,
+  DEFAULT_LEARNING_MODES
 } from '../../services/masterclassSchedules';
 import { EthiopianDatePicker } from '../../Components/ui/EthiopianDatePicker';
 import { toEthiopianDate } from '../../utils/ethiopianCalendar';
@@ -83,6 +85,7 @@ export default function MasterclassDashboard() {
   const [newLabel, setNewLabel] = useState('');
   const [newTime, setNewTime] = useState('');
   const [newDate, setNewDate] = useState('');
+  const [modesConfig, setModesConfig] = useState<LearningModeConfig[]>(DEFAULT_LEARNING_MODES);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -97,39 +100,55 @@ export default function MasterclassDashboard() {
     checkAuth();
   }, []);
 
-  const loadSchedules = () => {
-    setSchedules(getMasterclassSchedules());
+  const loadSchedules = async () => {
+    const options = await getMasterclassSchedules();
+    setSchedules(options);
   };
 
-  const handleToggleSchedule = (id: string) => {
-    toggleMasterclassScheduleActive(id);
-    loadSchedules();
-  };
-
-  const handleDeleteSchedule = (id: string) => {
-    if (window.confirm('Are you sure you want to remove this schedule option?')) {
-      deleteMasterclassSchedule(id);
-      loadSchedules();
+  const handleToggleSchedule = async (id: string) => {
+    try {
+      const updated = await toggleMasterclassScheduleActive(id);
+      setSchedules(updated);
+    } catch (e) {
+      console.error('Failed to toggle schedule:', e);
     }
   };
 
-  const handleAddSchedule = (e: React.FormEvent) => {
+  const handleDeleteSchedule = async (id: string) => {
+    if (window.confirm('Are you sure you want to remove this schedule option?')) {
+      try {
+        const updated = await deleteMasterclassSchedule(id);
+        setSchedules(updated);
+      } catch (e) {
+        console.error('Failed to delete schedule:', e);
+      }
+    }
+  };
+
+  const handleAddSchedule = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newLabel.trim() || !newTime.trim()) {
       alert('Please enter a schedule option name and session time.');
       return;
     }
-    addMasterclassSchedule({
-      label: newLabel.trim(),
-      time: newTime.trim(),
-      date: newDate || undefined,
-      is_active: true
-    });
-    setNewLabel('');
-    setNewTime('');
-    setNewDate('');
-    setShowScheduleModal(false);
-    loadSchedules();
+    try {
+      const updated = await addMasterclassSchedule({
+        label: newLabel.trim(),
+        time: newTime.trim(),
+        date: newDate || undefined,
+        is_active: true,
+        available_modes: modesConfig,
+      });
+      setSchedules(updated);
+      setNewLabel('');
+      setNewTime('');
+      setNewDate('');
+      setModesConfig(DEFAULT_LEARNING_MODES);
+      setShowScheduleModal(false);
+    } catch (e) {
+      console.error('Failed to add schedule:', e);
+      alert('Failed to save schedule. Please check your connection and try again.');
+    }
   };
 
   const load = async () => {
@@ -501,6 +520,31 @@ export default function MasterclassDashboard() {
                           )}
                         </div>
                       )}
+
+                      {/* Configured Packages Badge */}
+                      <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                        {(sched.available_modes || DEFAULT_LEARNING_MODES).map(m => (
+                          <button
+                            key={m.mode}
+                            type="button"
+                            onClick={async () => {
+                              const currentModes = (sched.available_modes || DEFAULT_LEARNING_MODES).map(item => 
+                                item.mode === m.mode ? { ...item, enabled: !item.enabled } : item
+                              );
+                              const updated = await updateMasterclassSchedule(sched.id, { available_modes: currentModes });
+                              setSchedules(updated);
+                            }}
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-all ${
+                              m.enabled !== false
+                                ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
+                                : 'bg-rose-500/10 border-rose-500/20 text-rose-400 line-through opacity-60'
+                            }`}
+                            title="Click to enable/disable for this session"
+                          >
+                            {m.mode}: {m.price}
+                          </button>
+                        ))}
+                      </div>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -930,6 +974,46 @@ export default function MasterclassDashboard() {
                 onChange={setNewDate}
                 label="Class Start Date (GC & Ethiopian Calendar / የትምህርት መጀመሪያ ቀን)"
               />
+
+              {/* Available Packages & Pricing config */}
+              <div className="space-y-2 pt-2 border-t border-slate-100">
+                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider">
+                  Available Learning Preferences &amp; Pricing
+                </label>
+                <div className="space-y-2">
+                  {modesConfig.map((m, idx) => (
+                    <div key={m.mode} className="flex items-center justify-between gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
+                      <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-800">
+                        <input 
+                          type="checkbox"
+                          checked={m.enabled}
+                          onChange={(e) => {
+                            const next = [...modesConfig];
+                            next[idx].enabled = e.target.checked;
+                            setModesConfig(next);
+                          }}
+                          className="w-4 h-4 rounded text-amber-500 focus:ring-amber-500"
+                        />
+                        <span>{m.mode}</span>
+                      </label>
+                      <input 
+                        type="text"
+                        value={m.price}
+                        disabled={!m.enabled}
+                        onChange={(e) => {
+                          const next = [...modesConfig];
+                          next[idx].price = e.target.value;
+                          setModesConfig(next);
+                        }}
+                        className={`w-36 px-3 py-1.5 rounded-lg text-xs font-bold border outline-none ${
+                          m.enabled ? 'bg-white border-slate-300 focus:border-amber-500 text-slate-900' : 'bg-slate-100 border-slate-200 text-slate-400'
+                        }`}
+                        placeholder="e.g. 15,000 ETB"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
 
               <div className="pt-4 flex items-center justify-end gap-3">
                 <button
