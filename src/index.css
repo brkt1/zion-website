@@ -29,7 +29,7 @@
     box-sizing: border-box;
   }
 
-  /* Custom Scrollbar - Minimal Monochrome & Red */
+  /* Custom Scrollbar - Minimal Monochrome & Golden */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -45,18 +45,18 @@
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #FF0033;
+    background: #D4AF37;
   }
 
-  /* Selection - Electric Red */
+  /* Selection - Royal Metallic Gold */
   ::selection {
-    background: #FF0033;
-    color: #FFFFFF;
+    background: #D4AF37;
+    color: #000000;
   }
 
   ::-moz-selection {
-    background: #FF0033;
-    color: #FFFFFF;
+    background: #D4AF37;
+    color: #000000;
   }
 }
 
@@ -80,7 +80,7 @@ html.light ::-webkit-scrollbar-thumb {
 }
 
 html.light ::-webkit-scrollbar-thumb:hover {
-  background: #FF0033;
+  background: #D4AF37;
 }
 
 /* Light Mode Background Overrides */
@@ -107,8 +107,8 @@ html.light .minimal-card {
 }
 
 html.light .minimal-card:hover {
-  border-color: rgba(255, 0, 51, 0.5) !important;
-  box-shadow: 0 12px 32px rgba(255, 0, 51, 0.12) !important;
+  border-color: rgba(212, 175, 55, 0.5) !important;
+  box-shadow: 0 12px 32px rgba(212, 175, 55, 0.15) !important;
 }
 
 html.light .minimal-card-interactive {
@@ -118,8 +118,8 @@ html.light .minimal-card-interactive {
 }
 
 html.light .minimal-card-interactive:hover {
-  border-color: #FF0033 !important;
-  box-shadow: 0 0 25px rgba(255, 0, 51, 0.15) !important;
+  border-color: #D4AF37 !important;
+  box-shadow: 0 0 25px rgba(212, 175, 55, 0.2) !important;
 }
 
 /* Light Mode Text Overrides */
@@ -168,28 +168,35 @@ html.light .bg-white\/20 {
   background-color: rgba(0, 0, 0, 0.09) !important;
 }
 
-/* Red Elements: Always keep red and white text */
+/* Golden Elements: Always keep gold and dark/light text sharp */
+html.light .bg-\[\#D4AF37\],
+html.light .bg-\[\#D4AF37\] *,
 html.light .bg-\[\#FF0033\],
 html.light .bg-\[\#FF0033\] *,
 html.light .ed-btn-primary,
 html.light .ed-btn-primary *,
-html.light button.bg-\[\#FF0033\],
-html.light a.bg-\[\#FF0033\] {
-  color: #FFFFFF !important;
+html.light button.bg-\[\#D4AF37\],
+html.light a.bg-\[\#D4AF37\] {
+  color: #000000 !important;
+  font-weight: 800;
 }
 
+html.light .text-\[\#D4AF37\],
 html.light .text-\[\#FF0033\],
-html.light .text-red-500,
-html.light .text-red-600 {
-  color: #FF0033 !important;
+html.light .text-gold-500,
+html.light .text-gold-600 {
+  color: #B89327 !important;
 }
 
+html.light .border-\[\#D4AF37\],
+html.light .border-\[\#D4AF37\]\/20,
+html.light .border-\[\#D4AF37\]\/30,
+html.light .border-\[\#D4AF37\]\/40,
+html.light .border-\[\#D4AF37\]\/50,
 html.light .border-\[\#FF0033\],
 html.light .border-\[\#FF0033\]\/20,
-html.light .border-\[\#FF0033\]\/30,
-html.light .border-\[\#FF0033\]\/40,
-html.light .border-\[\#FF0033\]\/50 {
-  border-color: #FF0033 !important;
+html.light .border-\[\#FF0033\]\/30 {
+  border-color: #D4AF37 !important;
 }
 
 /* Light Mode Inverted Logo (Makes white logo pure black) */
@@ -226,7 +233,7 @@ html.light .mobile-dock-container svg {
 }
 
 html.light .mobile-dock-container .active-dock-pill svg {
-  color: #FF0033 !important;
+  color: #D4AF37 !important;
 }
 
 /* Light Mode Form Inputs */
@@ -241,8 +248,8 @@ html.light select {
 html.light input:focus,
 html.light textarea:focus,
 html.light select:focus {
-  border-color: #FF0033 !important;
-  box-shadow: 0 0 0 2px rgba(255, 0, 51, 0.15) !important;
+  border-color: #D4AF37 !important;
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.25) !important;
 }
 
 html.light select {
@@ -255,8 +262,8 @@ html.light select option {
 }
 
 html.light select option:checked {
-  background-color: #FFF0F2 !important;
-  color: #FF0033 !important;
+  background-color: #FFF9E6 !important;
+  color: #B89327 !important;
 }
 
 /* ── Minimal Lit Modern Card Utilities ── */
@@ -269,8 +276,8 @@ html.light select option:checked {
 }
 
 .minimal-card:hover {
-  border-color: rgba(255, 0, 51, 0.4);
-  box-shadow: 0 12px 36px -10px rgba(255, 0, 51, 0.15);
+  border-color: rgba(212, 175, 55, 0.45);
+  box-shadow: 0 12px 36px -10px rgba(212, 175, 55, 0.2);
   transform: translateY(-3px);
 }
 
@@ -281,8 +288,8 @@ html.light select option:checked {
 }
 
 .minimal-card-interactive:hover {
-  border-color: #FF0033;
-  box-shadow: 0 0 30px rgba(255, 0, 51, 0.2);
+  border-color: #D4AF37;
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.25);
   transform: translateY(-4px);
 }
 

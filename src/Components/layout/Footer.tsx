@@ -77,25 +77,25 @@ const Footer = () => {
       aria-label="Site footer"
       className="relative bg-black text-white overflow-hidden border-t border-white/10 pb-28 md:pb-0"
     >
-      {/* Red accent line */}
+      {/* Golden accent line */}
       <div 
         className="absolute top-0 left-0 right-0 h-px"
         style={{
-          background: "linear-gradient(90deg, transparent 0%, #FF0033 50%, transparent 100%)",
+          background: "linear-gradient(90deg, transparent 0%, #D4AF37 50%, transparent 100%)",
         }}
       />
 
       {/* ── Callout Banner: yenege.events & EventJobs ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-6">
         <div className="grid md:grid-cols-2 gap-5 p-6 rounded-2xl bg-[#080808] border border-white/10 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-radial from-[#FF0033]/10 to-transparent blur-[80px] pointer-events-none" />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-radial from-[#D4AF37]/15 to-transparent blur-[80px] pointer-events-none" />
           
           {/* Card 1: Discover on yenege.events */}
-          <div className="flex flex-col justify-between p-6 rounded-xl bg-black border border-white/10 hover:border-[#FF0033]/60 transition-all duration-300 group">
+          <div className="flex flex-col justify-between p-6 rounded-xl bg-black border border-white/10 hover:border-[#D4AF37]/60 transition-all duration-300 group">
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <span className="w-2 h-2 rounded-full bg-[#FF0033] shadow-[0_0_8px_#FF0033]" />
-                <span className="text-[11px] font-black uppercase tracking-[0.2em] text-[#FF0033]">
+                <span className="w-2 h-2 rounded-full bg-[#D4AF37] shadow-[0_0_8px_#D4AF37]" />
+                <span className="text-[11px] font-black uppercase tracking-[0.2em] text-[#D4AF37]">
                   Event Discovery Hub
                 </span>
               </div>
@@ -110,7 +110,7 @@ const Footer = () => {
               href="https://yenege.events"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-between px-5 py-3 rounded-lg bg-[#FF0033] hover:bg-[#E5002D] text-white text-xs font-bold uppercase tracking-wider transition-all duration-300 shadow-[0_0_15px_rgba(255,0,51,0.3)] hover:shadow-[0_0_25px_rgba(255,0,51,0.5)]"
+              className="inline-flex items-center justify-between px-5 py-3 rounded-lg bg-[#D4AF37] hover:bg-[#F5BD42] text-black text-xs font-black uppercase tracking-wider transition-all duration-300 shadow-[0_0_15px_rgba(212,175,55,0.3)] hover:shadow-[0_0_25px_rgba(212,175,55,0.5)]"
             >
               <span>Explore yenege.events</span>
               <FaExternalLinkAlt size={11} />
@@ -121,7 +121,7 @@ const Footer = () => {
           <div className="flex flex-col justify-between p-6 rounded-xl bg-black border border-white/10 hover:border-white/40 transition-all duration-300 group">
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <FaBriefcase size={12} className="text-[#FF0033]" />
+                <FaBriefcase size={12} className="text-[#D4AF37]" />
                 <span className="text-[11px] font-black uppercase tracking-[0.2em] text-white/70">
                   Career & Production Crew
                 </span>
@@ -178,10 +178,10 @@ const Footer = () => {
                       href={social.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group relative w-9 h-9 rounded-lg bg-white/5 hover:bg-[#FF0033] border border-white/10 hover:border-[#FF0033] flex items-center justify-center transition-all duration-300 hover:scale-105 hover:shadow-[0_0_15px_rgba(255,0,51,0.5)]"
+                      className="group relative w-9 h-9 rounded-lg bg-white/5 hover:bg-[#D4AF37] border border-white/10 hover:border-[#D4AF37] flex items-center justify-center transition-all duration-300 hover:scale-105 hover:shadow-[0_0_15px_rgba(212,175,55,0.5)]"
                       aria-label={social.label}
                     >
-                      <Icon size={14} className="relative z-10 text-white transition-colors" />
+                      <Icon size={14} className="relative z-10 text-white group-hover:text-black transition-colors" />
                     </a>
                   );
                 })}
@@ -192,7 +192,7 @@ const Footer = () => {
           {/* Quick Links */}
           <div>
             <div className="flex items-center gap-3 mb-5">
-              <div className="h-0.5 w-6 rounded-full bg-[#FF0033]" />
+              <div className="h-0.5 w-6 rounded-full bg-[#D4AF37]" />
               <h3 className="text-white font-black text-xs tracking-[0.2em] uppercase">
                 {t.footer.quickLinks}
               </h3>
@@ -205,7 +205,7 @@ const Footer = () => {
                     onMouseEnter={() => handleLinkHover(link.path)}
                     className="group flex items-center gap-2 text-xs text-white/60 hover:text-white transition-all duration-300"
                   >
-                    <span className="w-0 h-0.5 bg-[#FF0033] rounded-full transition-all duration-300 group-hover:w-2.5" />
+                    <span className="w-0 h-0.5 bg-[#D4AF37] rounded-full transition-all duration-300 group-hover:w-2.5" />
                     <span className="group-hover:translate-x-1 transition-transform duration-300">
                       {link.label}
                     </span>
@@ -217,9 +217,9 @@ const Footer = () => {
                   href="https://yenege.events" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="group flex items-center gap-2 text-xs text-[#FF0033] hover:text-white font-bold transition-all duration-300"
+                  className="group flex items-center gap-2 text-xs text-[#D4AF37] hover:text-white font-bold transition-all duration-300"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#FF0033]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />
                   <span>yenege.events (Discovery)</span>
                   <FaExternalLinkAlt size={9} />
                 </a>
@@ -230,7 +230,7 @@ const Footer = () => {
           {/* Contact Info */}
           <div>
             <div className="flex items-center gap-3 mb-5">
-              <div className="h-0.5 w-6 rounded-full bg-[#FF0033]" />
+              <div className="h-0.5 w-6 rounded-full bg-[#D4AF37]" />
               <h3 className="text-white font-black text-xs tracking-[0.2em] uppercase">
                 {t.footer.contact}
               </h3>
@@ -241,8 +241,8 @@ const Footer = () => {
                   href={`mailto:${finalContact?.email || "yenegeevents@gmail.com"}`}
                   className="group flex items-start gap-3 text-xs text-white/60 hover:text-white transition-all duration-300"
                 >
-                  <div className="mt-0.5 p-1.5 rounded bg-white/5 group-hover:bg-[#FF0033] transition-all duration-300 flex-shrink-0">
-                    <FaEnvelope size={12} className="text-white" />
+                  <div className="mt-0.5 p-1.5 rounded bg-white/5 group-hover:bg-[#D4AF37] group-hover:text-black transition-all duration-300 flex-shrink-0">
+                    <FaEnvelope size={12} className="text-white group-hover:text-black" />
                   </div>
                   <span className="break-all pt-1">{finalContact?.email || "yenegeevents@gmail.com"}</span>
                 </a>
@@ -254,8 +254,8 @@ const Footer = () => {
                   rel="noopener noreferrer"
                   className="group flex items-center gap-3 text-xs text-white/60 hover:text-white transition-all duration-300"
                 >
-                  <div className="p-1.5 rounded bg-white/5 group-hover:bg-[#FF0033] transition-all duration-300 flex-shrink-0">
-                    <FaWhatsapp size={12} className="text-white" />
+                  <div className="p-1.5 rounded bg-white/5 group-hover:bg-[#D4AF37] transition-all duration-300 flex-shrink-0">
+                    <FaWhatsapp size={12} className="text-white group-hover:text-black" />
                   </div>
                   <span>WhatsApp: {finalContact?.phoneFormatted || finalContact?.phone || "+251 978 639 887"}</span>
                 </a>
@@ -276,7 +276,7 @@ const Footer = () => {
           {/* Newsletter */}
           <div>
             <div className="flex items-center gap-3 mb-5">
-              <div className="h-0.5 w-6 rounded-full bg-[#FF0033]" />
+              <div className="h-0.5 w-6 rounded-full bg-[#D4AF37]" />
               <h3 className="text-white font-black text-xs tracking-[0.2em] uppercase">
                 {t.footer.stayUpdated}
               </h3>
@@ -289,12 +289,12 @@ const Footer = () => {
                 <input
                   type="email"
                   placeholder={t.footer.subscribePlaceholder}
-                  className="w-full px-3.5 py-3 bg-[#0A0A0A] border border-white/10 rounded-lg text-white placeholder-white/40 text-xs focus:outline-none focus:border-[#FF0033] focus:ring-1 focus:ring-[#FF0033]/50 transition-all duration-300"
+                  className="w-full px-3.5 py-3 bg-[#0A0A0A] border border-white/10 rounded-lg text-white placeholder-white/40 text-xs focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/50 transition-all duration-300"
                 />
               </div>
               <button
                 type="submit"
-                className="group w-full px-5 py-3 text-xs font-bold uppercase tracking-wider text-white bg-[#FF0033] hover:bg-[#E5002D] rounded-lg transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,0,51,0.4)] flex items-center justify-center gap-2"
+                className="group w-full px-5 py-3 text-xs font-black uppercase tracking-wider text-black bg-[#D4AF37] hover:bg-[#F5BD42] rounded-lg transition-all duration-300 hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] flex items-center justify-center gap-2"
               >
                 <span>{t.footer.subscribe}</span>
                 <FaArrowRight size={11} className="group-hover:translate-x-1 transition-transform duration-300" />

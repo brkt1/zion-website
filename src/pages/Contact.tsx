@@ -80,13 +80,13 @@ const Contact = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans overflow-x-hidden selection:bg-[#FF0033] selection:text-white pb-24">
+    <div className="min-h-screen bg-black text-white font-sans overflow-x-hidden selection:bg-[#D4AF37] selection:text-black pb-24">
       
       {/* ── TOP EVENT DISCOVERY & EVENTJOBS CALLOUT ──────────────────────── */}
       <div className="pt-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="bg-[#0A0A0A] border border-white/10 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#FF0033] animate-ping" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#D4AF37] animate-ping" />
             <div>
               <p className="text-xs font-black uppercase tracking-wider text-white">
                 Discover Events &amp; Event Industry Jobs
@@ -101,7 +101,7 @@ const Contact = () => {
               href="https://yenege.events"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-[#FF0033] hover:bg-[#D9002C] text-white text-xs font-black tracking-wider uppercase transition-all shadow-md shadow-[#FF0033]/20"
+              className="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-[#D4AF37] hover:bg-[#F5BD42] text-black text-xs font-black tracking-wider uppercase transition-all shadow-md shadow-[#D4AF37]/20"
             >
               <span>Visit yenege.events</span>
               <FaExternalLinkAlt size={10} />
@@ -121,18 +121,18 @@ const Contact = () => {
       {/* ── HERO HEADER ─────────────────────────────────────────────────── */}
       <section className="relative pt-12 sm:pt-16 lg:pt-20 pb-16 overflow-hidden">
         {/* Ambient background glows */}
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-radial from-[#FF0033]/10 via-transparent to-transparent blur-[130px] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-radial from-[#FF0033]/5 via-transparent to-transparent blur-[130px] pointer-events-none" />
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-radial from-[#D4AF37]/15 via-transparent to-transparent blur-[130px] pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-radial from-[#D4AF37]/5 via-transparent to-transparent blur-[130px] pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10 text-center space-y-6">
           <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl mx-auto">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#FF0033] shadow-[0_0_12px_#FF0033]" />
-            <span className="text-[#FF0033] font-black text-xs uppercase tracking-[0.25em]">{t.contact?.label || "CONNECT WITH OUR TEAM"}</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-[#D4AF37] shadow-[0_0_12px_#D4AF37]" />
+            <span className="text-[#D4AF37] font-black text-xs uppercase tracking-[0.25em]">{t.contact?.label || "CONNECT WITH OUR TEAM"}</span>
           </div>
 
           <h1 className="font-heading text-4xl sm:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight text-white max-w-4xl mx-auto">
             {t.contact?.title || "Let's Architect Your Next"} <br />
-            <span className="text-[#FF0033] italic">
+            <span className="text-[#D4AF37] italic">
               {t.contact?.subtitle || "Unforgettable Experience"}
             </span>
           </h1>
@@ -152,8 +152,8 @@ const Contact = () => {
             <div className="lg:col-span-5 space-y-6">
               
               {/* Studio Address Card */}
-              <div className="p-8 rounded-3xl bg-[#0A0A0A] border border-white/10 space-y-4 hover:border-[#FF0033]/40 transition-all">
-                <div className="w-12 h-12 rounded-2xl bg-black text-[#FF0033] flex items-center justify-center text-xl border border-white/10">
+              <div className="p-8 rounded-3xl bg-[#0A0A0A] border border-white/10 space-y-4 hover:border-[#D4AF37]/40 transition-all">
+                <div className="w-12 h-12 rounded-2xl bg-black text-[#D4AF37] flex items-center justify-center text-xl border border-white/10">
                   <FaMapMarkerAlt />
                 </div>
                 <h3 className="font-heading text-xl font-bold text-white">{t.contact?.headStudioTitle || "Our Head Studio"}</h3>
@@ -163,28 +163,28 @@ const Contact = () => {
               </div>
 
               {/* Email Card */}
-              <div className="p-8 rounded-3xl bg-[#0A0A0A] border border-white/10 space-y-4 hover:border-[#FF0033]/40 transition-all">
-                <div className="w-12 h-12 rounded-2xl bg-black text-[#FF0033] flex items-center justify-center text-xl border border-white/10">
+              <div className="p-8 rounded-3xl bg-[#0A0A0A] border border-white/10 space-y-4 hover:border-[#D4AF37]/40 transition-all">
+                <div className="w-12 h-12 rounded-2xl bg-black text-[#D4AF37] flex items-center justify-center text-xl border border-white/10">
                   <FaEnvelope />
                 </div>
                 <h3 className="font-heading text-xl font-bold text-white">{t.contact?.emailEnquiriesTitle || "Email Enquiries"}</h3>
                 <a 
                   href={`mailto:${finalContact.email || 'yenegeevents@gmail.com'}`}
-                  className="text-xs text-white/70 hover:text-[#FF0033] transition-colors font-medium block underline"
+                  className="text-xs text-white/70 hover:text-[#D4AF37] transition-colors font-medium block underline"
                 >
                   {finalContact.email || 'yenegeevents@gmail.com'}
                 </a>
               </div>
 
               {/* Phone & Hotline Card */}
-              <div className="p-8 rounded-3xl bg-[#0A0A0A] border border-white/10 space-y-4 hover:border-[#FF0033]/40 transition-all">
-                <div className="w-12 h-12 rounded-2xl bg-black text-[#FF0033] flex items-center justify-center text-xl border border-white/10">
+              <div className="p-8 rounded-3xl bg-[#0A0A0A] border border-white/10 space-y-4 hover:border-[#D4AF37]/40 transition-all">
+                <div className="w-12 h-12 rounded-2xl bg-black text-[#D4AF37] flex items-center justify-center text-xl border border-white/10">
                   <FaPhone />
                 </div>
                 <h3 className="font-heading text-xl font-bold text-white">{t.contact?.phoneHotlineTitle || "Direct Line & Support"}</h3>
                 <a 
                   href={`tel:${finalContact.phone?.replace(/\D/g, '') || '251978639887'}`}
-                  className="text-xs text-white/70 hover:text-[#FF0033] transition-colors font-medium block"
+                  className="text-xs text-white/70 hover:text-[#D4AF37] transition-colors font-medium block"
                 >
                   {finalContact.phoneFormatted || finalContact.phone || '+251 978 639 887'}
                 </a>
@@ -205,7 +205,7 @@ const Contact = () => {
                       href={social.href} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="w-12 h-12 rounded-2xl bg-black hover:bg-[#FF0033] text-white border border-white/10 flex items-center justify-center text-lg transition-all"
+                      className="w-12 h-12 rounded-2xl bg-black hover:bg-[#D4AF37] hover:text-black text-white border border-white/10 flex items-center justify-center text-lg transition-all"
                     >
                       {social.icon}
                     </a>
@@ -224,8 +224,8 @@ const Contact = () => {
               </div>
 
               {submitStatus === "success" && (
-                <div className="p-4 rounded-2xl bg-[#FF0033]/10 border border-[#FF0033]/30 text-white text-xs font-bold flex items-center gap-2">
-                  <FaCheckCircle className="text-base shrink-0 text-[#FF0033]" />
+                <div className="p-4 rounded-2xl bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-white text-xs font-bold flex items-center gap-2">
+                  <FaCheckCircle className="text-base shrink-0 text-[#D4AF37]" />
                   <span>{t.contact?.waSuccess || "WhatsApp conversation initiated! Check your WhatsApp window to send."}</span>
                 </div>
               )}
@@ -241,7 +241,7 @@ const Contact = () => {
                       placeholder="e.g. Abebe Bikila" 
                       value={formData.name} 
                       onChange={handleChange} 
-                      className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-white text-sm focus:border-[#FF0033] focus:ring-1 focus:ring-[#FF0033] focus:outline-none transition-all placeholder:text-white/30"
+                      className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-white text-sm focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] focus:outline-none transition-all placeholder:text-white/30"
                     />
                   </div>
                   <div>
@@ -253,7 +253,7 @@ const Contact = () => {
                       placeholder="name@example.com" 
                       value={formData.email} 
                       onChange={handleChange} 
-                      className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-white text-sm focus:border-[#FF0033] focus:ring-1 focus:ring-[#FF0033] focus:outline-none transition-all placeholder:text-white/30"
+                      className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-white text-sm focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] focus:outline-none transition-all placeholder:text-white/30"
                     />
                   </div>
                 </div>
@@ -266,7 +266,7 @@ const Contact = () => {
                     placeholder="+251 9XX XXX XXX" 
                     value={formData.phone} 
                     onChange={handleChange} 
-                    className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-white text-sm focus:border-[#FF0033] focus:ring-1 focus:ring-[#FF0033] focus:outline-none transition-all placeholder:text-white/30"
+                    className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-white text-sm focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] focus:outline-none transition-all placeholder:text-white/30"
                   />
                 </div>
 
@@ -279,14 +279,14 @@ const Contact = () => {
                     placeholder="Tell us about your event vision, partnership ideas, or enrollment questions..." 
                     value={formData.message} 
                     onChange={handleChange} 
-                    className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-white text-sm focus:border-[#FF0033] focus:ring-1 focus:ring-[#FF0033] focus:outline-none transition-all placeholder:text-white/30 resize-none"
+                    className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-white text-sm focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] focus:outline-none transition-all placeholder:text-white/30 resize-none"
                   />
                 </div>
 
                 <button 
                   type="submit" 
                   disabled={isSubmitting} 
-                  className="w-full py-5 rounded-2xl bg-[#FF0033] hover:bg-[#D9002C] text-white font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 transition-all shadow-xl shadow-[#FF0033]/25 hover:scale-[1.01]"
+                  className="w-full py-5 rounded-2xl bg-[#D4AF37] hover:bg-[#F5BD42] text-black font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 transition-all shadow-xl shadow-[#D4AF37]/25 hover:scale-[1.01]"
                 >
                   <FaWhatsapp size={18} />
                   <span>{isSubmitting ? "Opening WhatsApp..." : (t.contact?.send || "Send Message Via WhatsApp")}</span>

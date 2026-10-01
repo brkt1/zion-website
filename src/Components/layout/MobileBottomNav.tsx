@@ -39,7 +39,7 @@ const MobileBottomNav = () => {
 
   const navItems = [
     { path: "/", label: t.header.home || "Home", rawKey: 'home' },
-    { path: "/events", label: t.header.events || "Events", rawKey: 'events' },
+    { path: "https://yenege.events", label: t.header.events || "Events", rawKey: 'events', isExternal: true },
     { path: "/masterclass", label: t.header.masterclass || "Masterclass", rawKey: 'masterclass' },
     { path: "/about", label: t.header.about || "About", rawKey: 'about' },
     { path: "/contact", label: t.header.contact || "Contact", rawKey: 'contact' },
@@ -67,10 +67,10 @@ const MobileBottomNav = () => {
       {showScrollTop && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-24 right-4 z-50 w-10 h-10 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-90 bg-[#FF0033] hover:bg-[#D9002C] text-white shadow-[0_0_20px_rgba(255,0,51,0.5)]"
+          className="fixed bottom-24 right-4 z-50 w-10 h-10 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-90 bg-[#D4AF37] hover:bg-[#F5BD42] text-black shadow-[0_0_20px_rgba(212,175,55,0.5)]"
           aria-label="Scroll to top"
         >
-          <FaArrowUp size={14} className="text-white" />
+          <FaArrowUp size={14} className="text-black" />
         </button>
       )}
 
@@ -84,19 +84,41 @@ const MobileBottomNav = () => {
         <div 
           className="mobile-dock-container relative px-2 py-2 rounded-full border border-white/15 shadow-[0_10px_40px_rgba(0,0,0,0.8)] overflow-hidden bg-black/95 backdrop-blur-2xl transition-colors duration-300"
         >
-          {/* Subtle electric red accent glow */}
+          {/* Subtle golden accent glow */}
           <div 
-            className="absolute -top-8 -left-8 w-24 h-24 rounded-full blur-[40px] opacity-20 pointer-events-none bg-[#FF0033]"
+            className="absolute -top-8 -left-8 w-24 h-24 rounded-full blur-[40px] opacity-25 pointer-events-none bg-[#D4AF37]"
           />
           <div 
-            className="absolute -bottom-8 -right-8 w-24 h-24 rounded-full blur-[40px] opacity-15 pointer-events-none bg-[#FF0033]"
+            className="absolute -bottom-8 -right-8 w-24 h-24 rounded-full blur-[40px] opacity-20 pointer-events-none bg-[#D4AF37]"
           />
 
           <div className="relative flex items-center justify-between px-1">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const active = isActive(item.path);
+              const isExt = (item as any).isExternal;
+              const active = !isExt && isActive(item.path);
               
+              if (isExt) {
+                return (
+                  <a
+                    key={item.path}
+                    href={item.path}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center relative p-2.5 rounded-full transition-all duration-300 opacity-60 hover:opacity-100 hover:text-[#D4AF37] active:scale-95"
+                    aria-label={item.label}
+                    title={item.label}
+                  >
+                    <Icon 
+                      size={18} 
+                      style={{ 
+                        color: theme === 'light' ? '#000000' : '#FFFFFF',
+                      }}
+                    />
+                  </a>
+                );
+              }
+
               return (
                 <Link
                   key={item.path}
@@ -112,7 +134,7 @@ const MobileBottomNav = () => {
                   {/* Active background pill */}
                   {active && (
                     <div 
-                      className="absolute inset-0 rounded-full bg-[#FF0033]/15 scale-95"
+                      className="absolute inset-0 rounded-full bg-[#D4AF37]/15 scale-95"
                     />
                   )}
                   
@@ -125,8 +147,8 @@ const MobileBottomNav = () => {
                     <Icon 
                       size={18} 
                       style={{ 
-                        color: active ? '#FF0033' : (theme === 'light' ? '#000000' : '#FFFFFF'),
-                        filter: active ? 'drop-shadow(0 0 6px rgba(255, 0, 51, 0.6))' : 'none'
+                        color: active ? '#D4AF37' : (theme === 'light' ? '#000000' : '#FFFFFF'),
+                        filter: active ? 'drop-shadow(0 0 6px rgba(212, 175, 55, 0.6))' : 'none'
                       }}
                     />
                   </div>
@@ -134,7 +156,7 @@ const MobileBottomNav = () => {
                   {/* Active Indicator Dot */}
                   {active && (
                     <div 
-                      className="absolute -bottom-0.5 w-1.5 h-1.5 rounded-full bg-[#FF0033] shadow-[0_0_6px_#FF0033]"
+                      className="absolute -bottom-0.5 w-1.5 h-1.5 rounded-full bg-[#D4AF37] shadow-[0_0_6px_#D4AF37]"
                     />
                   )}
                 </Link>
@@ -149,9 +171,9 @@ const MobileBottomNav = () => {
               aria-label="Toggle Theme"
             >
               {theme === 'dark' ? (
-                <FaSun size={17} className="text-white hover:text-[#FF0033]" />
+                <FaSun size={17} className="text-white hover:text-[#D4AF37]" />
               ) : (
-                <FaMoon size={17} className="text-black hover:text-[#FF0033]" />
+                <FaMoon size={17} className="text-black hover:text-[#D4AF37]" />
               )}
             </button>
 
@@ -164,7 +186,7 @@ const MobileBottomNav = () => {
               title="Discover Live Events on yenege.events"
               aria-label="yenege.events"
             >
-              <span className="text-[9px] font-black tracking-tighter text-white bg-[#FF0033] px-1.5 py-0.5 rounded-full shadow-sm shadow-[#FF0033]/30">
+              <span className="text-[9px] font-black tracking-tighter text-black bg-[#D4AF37] px-1.5 py-0.5 rounded-full shadow-sm shadow-[#D4AF37]/40">
                 .EVENTS
               </span>
             </a>

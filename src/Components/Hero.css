@@ -151,8 +151,8 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #FF0033;
-  box-shadow: 0 0 12px #FF0033;
+  background: #D4AF37;
+  box-shadow: 0 0 12px #D4AF37;
   position: relative;
 }
 
@@ -161,7 +161,7 @@
   position: absolute;
   inset: -3px;
   border-radius: 50%;
-  border: 2px solid #FF0033;
+  border: 2px solid #D4AF37;
   opacity: 0.8;
   animation: badgeGlowPulse 2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
 }
@@ -183,7 +183,7 @@
 
 .badge-title {
   font-weight: 900;
-  color: #FF0033;
+  color: #D4AF37;
 }
 
 .badge-dot-sep {
@@ -245,16 +245,16 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #FF0033;
-  box-shadow: 0 0 6px #FF0033;
+  background: #D4AF37;
+  box-shadow: 0 0 6px #D4AF37;
 }
 
 .category-chip:hover {
   background: #0A0A0A;
-  border-color: #FF0033;
+  border-color: #D4AF37;
   color: #FFFFFF;
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 0, 51, 0.25);
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.25);
 }
 
 /* --------------------------------------------------------------------------
@@ -307,16 +307,17 @@
 }
 
 .cta-primary {
-  background: #FF0033;
-  color: #FFFFFF;
-  box-shadow: 0 8px 30px rgba(255, 0, 51, 0.45);
-  border: 1px solid #FF0033;
+  background: #D4AF37;
+  color: #000000;
+  font-weight: 800;
+  box-shadow: 0 8px 30px rgba(212, 175, 55, 0.45);
+  border: 1px solid #D4AF37;
 }
 
 .cta-primary:hover {
   transform: translateY(-3px) scale(1.02);
-  background: #E5002D;
-  box-shadow: 0 14px 40px rgba(255, 0, 51, 0.65);
+  background: #F5BD42;
+  box-shadow: 0 14px 40px rgba(212, 175, 55, 0.65);
 }
 
 .cta-secondary {
@@ -594,7 +595,7 @@ html.light .hero-stats-bar {
 }
 
 html.light .stat-number {
-  color: #FF0033;
+  color: #B89327;
 }
 
 html.light .stat-label {

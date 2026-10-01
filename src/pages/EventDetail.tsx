@@ -538,7 +538,7 @@ const EventDetail = () => {
   const shareText = `Check out this event: ${event.title}`;
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans selection:bg-[#FF0033] selection:text-white pb-24">
+    <div className="min-h-screen bg-black text-white font-sans selection:bg-[#D4AF37] selection:text-white pb-24">
       {/* ── Global Style Injections ────────────────────────────────────────── */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Manrope:wght@300;400;500;600;700;800&display=swap');
@@ -565,11 +565,11 @@ const EventDetail = () => {
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #FF0033;
+          color: #D4AF37;
         }
 
         .ed-btn-primary {
-          background: #FF0033;
+          background: #D4AF37;
           color: #ffffff;
           border-radius: 100px;
           font-weight: 800;
@@ -579,7 +579,7 @@ const EventDetail = () => {
           box-shadow: 0 10px 25px rgba(255,0,51,0.3);
         }
         .ed-btn-primary:hover {
-          background: #D9002C;
+          background: #F5BD42;
           transform: translateY(-2px);
           box-shadow: 0 15px 35px rgba(255,0,51,0.45);
         }
@@ -601,7 +601,7 @@ const EventDetail = () => {
           font-size: 14px;
         }
         .ed-back-btn:hover {
-          color: #FF0033;
+          color: #D4AF37;
           transform: translateX(-4px);
         }
       `}</style>
@@ -610,7 +610,7 @@ const EventDetail = () => {
       <div className="pt-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="bg-[#0A0A0A] border border-white/10 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#FF0033] animate-ping" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#D4AF37] animate-ping" />
             <div>
               <p className="text-xs font-black uppercase tracking-wider text-white">
                 Discover More Live Events &amp; EventJobs
@@ -625,7 +625,7 @@ const EventDetail = () => {
               href="https://yenege.events"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-[#FF0033] hover:bg-[#D9002C] text-white text-xs font-black tracking-wider uppercase transition-all shadow-md shadow-[#FF0033]/20"
+              className="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-[#D4AF37] hover:bg-[#F5BD42] text-white text-xs font-black tracking-wider uppercase transition-all shadow-md shadow-[#D4AF37]/20"
             >
               <span>Explore yenege.events</span>
               <FaExternalLinkAlt size={10} />
@@ -668,7 +668,7 @@ const EventDetail = () => {
 
           <div className="max-w-3xl reveal-wrapper">
             <div className="mb-4">
-              <span className="inline-block px-4 py-1.5 rounded-full bg-[#FF0033]/15 backdrop-blur-md border border-[#FF0033]/30 text-[#FF0033] text-xs font-black uppercase tracking-widest">
+              <span className="inline-block px-4 py-1.5 rounded-full bg-[#D4AF37]/15 backdrop-blur-md border border-[#D4AF37]/30 text-[#D4AF37] text-xs font-black uppercase tracking-widest">
                 {event.category}
               </span>
             </div>
@@ -710,7 +710,7 @@ const EventDetail = () => {
                     {t.eventsPage.location || (language === 'am' ? 'ቦታ' : language === 'om' ? 'Bakka' : 'Location')}
                   </div>
                   <div className="ed-font-sans font-bold text-white">
-                    <LocationButton location={event.location} className="hover:text-[#FF0033] transition-colors truncate block" />
+                    <LocationButton location={event.location} className="hover:text-[#D4AF37] transition-colors truncate block" />
                   </div>
                 </div>
               </div>
@@ -725,7 +725,7 @@ const EventDetail = () => {
                   </div>
                   <div className={`ed-font-sans font-bold ${
                     event.maxAttendees && (event.attendees || 0) >= event.maxAttendees
-                      ? 'text-[#FF0033]'
+                      ? 'text-[#D4AF37]'
                       : 'text-white'
                   }`}>
                     {event.attendees || 0} {event.maxAttendees ? `${language === 'am' ? 'ከ' : language === 'om' ? 'keessaa' : 'of'} ${event.maxAttendees}` : (language === 'am' ? 'ተመዝግበዋል' : language === 'om' ? 'galmaa\'aniiru' : 'joined')}
@@ -733,7 +733,7 @@ const EventDetail = () => {
                   {event.maxAttendees && (
                     <div className={`text-xs font-medium ${
                       (event.attendees || 0) >= event.maxAttendees
-                        ? 'text-[#FF0033] font-bold'
+                        ? 'text-[#D4AF37] font-bold'
                         : 'text-white/70'
                     }`}>
                       {(event.attendees || 0) >= event.maxAttendees
@@ -786,7 +786,7 @@ const EventDetail = () => {
                       {event.price !== "Free" && event.price !== "0" && <span className="text-lg ml-1 opacity-60 font-medium">{event.currency || 'ETB'}</span>}
                     </div>
                   </div>
-                  <div className="w-12 h-0.5 bg-[#FF0033]/40 rounded-full" />
+                  <div className="w-12 h-0.5 bg-[#D4AF37]/40 rounded-full" />
                 </div>
 
                 <div className="space-y-4 mb-8">
@@ -826,8 +826,8 @@ const EventDetail = () => {
                       if (isFull) {
                         return (
                           <div className="flex flex-col gap-3">
-                            <div className="w-full py-5 flex flex-col items-center justify-center gap-2 bg-[#FF0033]/10 border border-[#FF0033]/30 rounded-full text-center">
-                              <span className="text-[#FF0033] font-black text-sm uppercase tracking-widest">
+                            <div className="w-full py-5 flex flex-col items-center justify-center gap-2 bg-[#D4AF37]/10 border border-[#D4AF37]/30 rounded-full text-center">
+                              <span className="text-[#D4AF37] font-black text-sm uppercase tracking-widest">
                                 🚫 {language === 'am' ? 'ቦታው ሙሉ በሙሉ ተሞልቷል' : language === 'om' ? 'Qophiin Kun Guuteera' : 'This Event Is Full'}
                               </span>
                               <span className="text-white/50 text-xs font-medium">
@@ -892,14 +892,14 @@ const EventDetail = () => {
                     <a
                       href={`https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`}
                       target="_blank" rel="noopener noreferrer"
-                      className="flex-1 h-12 rounded-2xl bg-white/5 text-white flex items-center justify-center hover:bg-[#FF0033] hover:text-white transition-all border border-white/10"
+                      className="flex-1 h-12 rounded-2xl bg-white/5 text-white flex items-center justify-center hover:bg-[#D4AF37] hover:text-white transition-all border border-white/10"
                     >
                       <FaWhatsapp size={20} />
                     </a>
                     <a
                       href={`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`}
                       target="_blank" rel="noopener noreferrer"
-                      className="flex-1 h-12 rounded-2xl bg-white/5 text-white flex items-center justify-center hover:bg-[#FF0033] hover:text-white transition-all border border-white/10"
+                      className="flex-1 h-12 rounded-2xl bg-white/5 text-white flex items-center justify-center hover:bg-[#D4AF37] hover:text-white transition-all border border-white/10"
                     >
                       <FaTelegram size={20} />
                     </a>
@@ -914,7 +914,7 @@ const EventDetail = () => {
                   <a
                     href={`https://wa.me/${contactInfo?.phone?.replace(/\D/g, '') || '251978639887'}`}
                     target="_blank" rel="noopener noreferrer"
-                    className="text-[11px] font-extrabold text-white uppercase tracking-widest flex items-center gap-2 hover:text-[#FF0033] transition-colors"
+                    className="text-[11px] font-extrabold text-white uppercase tracking-widest flex items-center gap-2 hover:text-[#D4AF37] transition-colors"
                   >
                     {language === 'am' ? 'በዋትስአፕ ያናግሩን' : language === 'om' ? 'WhatsApp-iin Nu Quunnamaa' : 'Connect via WhatsApp'} <FaChevronRight size={10} />
                   </a>
@@ -941,7 +941,7 @@ const EventDetail = () => {
             </button>
 
             <div className="mb-10 text-center">
-              <span className="text-[11px] font-black text-[#FF0033] uppercase tracking-[0.3em] block mb-2">Secure Booking</span>
+              <span className="text-[11px] font-black text-[#D4AF37] uppercase tracking-[0.3em] block mb-2">Secure Booking</span>
               <h2 className="ed-font-serif text-3xl sm:text-4xl font-black text-white">Experience Admission</h2>
             </div>
             
@@ -954,7 +954,7 @@ const EventDetail = () => {
                     <input
                       type="text" name="first_name" required
                       value={paymentForm.first_name} onChange={handleInputChange}
-                      className="w-full px-6 py-4 rounded-2xl bg-black border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#FF0033]/50 focus:border-[#FF0033] transition-all ed-font-sans font-bold"
+                      className="w-full px-6 py-4 rounded-2xl bg-black border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] transition-all ed-font-sans font-bold"
                       placeholder="John"
                     />
                   </div>
@@ -963,7 +963,7 @@ const EventDetail = () => {
                     <input
                       type="text" name="last_name" required
                       value={paymentForm.last_name} onChange={handleInputChange}
-                      className="w-full px-6 py-4 rounded-2xl bg-black border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#FF0033]/50 focus:border-[#FF0033] transition-all ed-font-sans font-bold"
+                      className="w-full px-6 py-4 rounded-2xl bg-black border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] transition-all ed-font-sans font-bold"
                       placeholder="Doe"
                     />
                   </div>
@@ -974,7 +974,7 @@ const EventDetail = () => {
                   <input
                     type="email" name="email" required
                     value={paymentForm.email} onChange={handleInputChange}
-                    className="w-full px-6 py-4 rounded-2xl bg-black border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#FF0033]/50 focus:border-[#FF0033] transition-all ed-font-sans font-bold"
+                    className="w-full px-6 py-4 rounded-2xl bg-black border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] transition-all ed-font-sans font-bold"
                     placeholder="john@example.com"
                   />
                 </div>
@@ -985,7 +985,7 @@ const EventDetail = () => {
                     <input
                       type="tel" name="phone_number" required
                       value={paymentForm.phone_number} onChange={handleInputChange}
-                      className="w-full px-6 py-4 rounded-2xl bg-black border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#FF0033]/50 focus:border-[#FF0033] transition-all ed-font-sans font-bold"
+                      className="w-full px-6 py-4 rounded-2xl bg-black border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] transition-all ed-font-sans font-bold"
                       placeholder="09..."
                     />
                   </div>
@@ -995,7 +995,7 @@ const EventDetail = () => {
                       <select
                         value={selectedTicketTypeIndex}
                         onChange={(e) => setSelectedTicketTypeIndex(parseInt(e.target.value, 10))}
-                        className="w-full px-6 py-4 rounded-2xl bg-black border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#FF0033]/50 focus:border-[#FF0033] transition-all ed-font-sans font-bold appearance-none"
+                        className="w-full px-6 py-4 rounded-2xl bg-black border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] transition-all ed-font-sans font-bold appearance-none"
                       >
                         {ticketTypes.map((type, index) => (
                           <option key={index} value={index}>
@@ -1034,11 +1034,11 @@ const EventDetail = () => {
 
               {/* Discount Section */}
               {commissionSellers.length > 0 && (
-                <div className="p-6 bg-[#FF0033]/10 rounded-2xl border border-[#FF0033]/20 space-y-4">
+                <div className="p-6 bg-[#D4AF37]/10 rounded-2xl border border-[#D4AF37]/20 space-y-4">
                   <div className="flex items-center justify-between">
-                    <label className="text-[11px] font-black text-[#FF0033] uppercase tracking-widest">Partner Discount</label>
+                    <label className="text-[11px] font-black text-[#D4AF37] uppercase tracking-widest">Partner Discount</label>
                     {paymentForm.commission_seller_id && (
-                      <span className="px-3 py-1 bg-[#FF0033] text-white text-[10px] font-black rounded-full animate-bounce">
+                      <span className="px-3 py-1 bg-[#D4AF37] text-white text-[10px] font-black rounded-full animate-bounce">
                         OFFER UNLOCKED
                       </span>
                     )}
@@ -1047,7 +1047,7 @@ const EventDetail = () => {
                     name="commission_seller_id"
                     value={paymentForm.commission_seller_id}
                     onChange={handleInputChange}
-                    className="w-full px-6 py-4 rounded-xl bg-black border border-white/10 text-white font-bold focus:ring-2 focus:ring-[#FF0033]/50 focus:outline-none appearance-none"
+                    className="w-full px-6 py-4 rounded-xl bg-black border border-white/10 text-white font-bold focus:ring-2 focus:ring-[#D4AF37]/50 focus:outline-none appearance-none"
                   >
                     <option value="">Select a referral partner...</option>
                     {commissionSellers.map(seller => (
@@ -1066,14 +1066,14 @@ const EventDetail = () => {
                   <span>{(basePrice * paymentForm.quantity).toFixed(2)} {event.currency}</span>
                 </div>
                 {discountCalculation.discountAmount > 0 && (
-                  <div className="flex justify-between text-[#FF0033] font-extrabold text-xs uppercase tracking-widest">
+                  <div className="flex justify-between text-[#D4AF37] font-extrabold text-xs uppercase tracking-widest">
                     <span>Discount — {discountCalculation.discountText}</span>
                     <span>-{discountCalculation.discountAmount.toFixed(2)} {event.currency}</span>
                   </div>
                 )}
                 <div className="flex justify-between items-center pt-2">
                   <span className="text-xl font-black text-white ed-font-serif">Total Admission</span>
-                  <span className="text-3xl font-black text-[#FF0033] ed-font-serif">
+                  <span className="text-3xl font-black text-[#D4AF37] ed-font-serif">
                     {Math.max(0, (basePrice * paymentForm.quantity) - discountCalculation.discountAmount).toFixed(2)} {event.currency}
                   </span>
                 </div>
@@ -1106,7 +1106,7 @@ const EventDetail = () => {
           <div className="bg-[#0A0A0A] border border-white/15 rounded-[32px] max-w-md w-full overflow-hidden shadow-2xl relative text-white">
             {registrationSuccess ? (
               <div className="text-center p-12">
-                <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-6 text-[#FF0033]">
+                <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-6 text-[#D4AF37]">
                   <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                   </svg>
@@ -1117,7 +1117,7 @@ const EventDetail = () => {
                 </p>
                 <button 
                   onClick={() => setShowRegistrationModal(false)}
-                  className="mt-10 px-10 py-4 bg-[#FF0033] hover:bg-[#D9002C] text-white rounded-full font-black uppercase text-[11px] tracking-widest transition-all font-sans"
+                  className="mt-10 px-10 py-4 bg-[#D4AF37] hover:bg-[#F5BD42] text-white rounded-full font-black uppercase text-[11px] tracking-widest transition-all font-sans"
                 >
                   Close
                 </button>
@@ -1125,7 +1125,7 @@ const EventDetail = () => {
             ) : (
               <div className="p-8 sm:p-10">
                 <div className="mb-8">
-                  <span className="text-[10px] font-black text-[#FF0033] uppercase tracking-[0.3em] block mb-1">Free Admission</span>
+                  <span className="text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.3em] block mb-1">Free Admission</span>
                   <h2 className="ed-font-serif text-3xl font-black text-white">Join the Curation</h2>
                 </div>
                 
@@ -1134,23 +1134,23 @@ const EventDetail = () => {
                     <input
                       type="text" name="first_name" required placeholder="First Name"
                       value={paymentForm.first_name} onChange={handleInputChange}
-                      className="w-full px-5 py-4 rounded-2xl bg-black border border-white/15 text-white focus:outline-none focus:ring-2 focus:ring-[#FF0033]/50 focus:border-[#FF0033] transition-all font-bold text-sm"
+                      className="w-full px-5 py-4 rounded-2xl bg-black border border-white/15 text-white focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] transition-all font-bold text-sm"
                     />
                     <input
                       type="text" name="last_name" required placeholder="Last Name"
                       value={paymentForm.last_name} onChange={handleInputChange}
-                      className="w-full px-5 py-4 rounded-2xl bg-black border border-white/15 text-white focus:outline-none focus:ring-2 focus:ring-[#FF0033]/50 focus:border-[#FF0033] transition-all font-bold text-sm"
+                      className="w-full px-5 py-4 rounded-2xl bg-black border border-white/15 text-white focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] transition-all font-bold text-sm"
                     />
                   </div>
                   <input
                     type="email" name="email" required placeholder="Email Address"
                     value={paymentForm.email} onChange={handleInputChange}
-                    className="w-full px-5 py-4 rounded-2xl bg-black border border-white/15 text-white focus:outline-none focus:ring-2 focus:ring-[#FF0033]/50 focus:border-[#FF0033] transition-all font-bold text-sm font-sans"
+                    className="w-full px-5 py-4 rounded-2xl bg-black border border-white/15 text-white focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] transition-all font-bold text-sm font-sans"
                   />
                   <input
                     type="tel" name="phone_number" required placeholder="Phone (09...)"
                     value={paymentForm.phone_number} onChange={handleInputChange}
-                    className="w-full px-5 py-4 rounded-2xl bg-black border border-white/15 text-white focus:outline-none focus:ring-2 focus:ring-[#FF0033]/50 focus:border-[#FF0033] transition-all font-bold text-sm font-sans"
+                    className="w-full px-5 py-4 rounded-2xl bg-black border border-white/15 text-white focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] transition-all font-bold text-sm font-sans"
                   />
                   {/* Free events: 1 ticket per person only */}
                   <div className="flex items-center gap-3 pt-1 px-1 font-sans">

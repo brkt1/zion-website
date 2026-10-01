@@ -43,13 +43,13 @@ const Header = () => {
 
   const navLinks = [
     { path: "/", label: "Home" },
-    { path: "/events", label: "Events" },
+    { path: "https://yenege.events", label: "Events", isExternal: true },
     { path: "/masterclass", label: "Masterclass" },
     { path: "/about", label: "About" },
     { path: "/contact", label: "Contact" },
   ].map(link => ({
     ...link,
-    label: getTranslatedLabel(link.label, link.path)
+    label: (link.path === "https://yenege.events" || link.path === "/events") ? t.header.events : getTranslatedLabel(link.label, link.path)
   })).filter(link => 
     !["community", "corporate", "game", "apply", "travel"].includes(link.label.toLowerCase()) &&
     !["/community", "/apply", "/travel"].includes(link.path.toLowerCase())
@@ -113,12 +113,12 @@ const Header = () => {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-9 flex items-center justify-between text-xs font-medium tracking-wide">
           <div className="flex items-center gap-6 opacity-80">
-            <a href={`mailto:${contactEmail}`} className="flex items-center gap-2 hover:text-[#FF0033] transition-colors">
-              <FaEnvelope size={11} className="text-[#FF0033]" />
+            <a href={`mailto:${contactEmail}`} className="flex items-center gap-2 hover:text-[#D4AF37] transition-colors">
+              <FaEnvelope size={11} className="text-[#D4AF37]" />
               {contactEmail}
             </a>
-            <a href={`tel:${contactPhone}`} className="flex items-center gap-2 hover:text-[#FF0033] transition-colors">
-              <FaPhoneAlt size={11} className="text-[#FF0033]" />
+            <a href={`tel:${contactPhone}`} className="flex items-center gap-2 hover:text-[#D4AF37] transition-colors">
+              <FaPhoneAlt size={11} className="text-[#D4AF37]" />
               {contactPhone}
             </a>
           </div>
@@ -129,9 +129,9 @@ const Header = () => {
               href="https://yenege.events" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-[11px] font-bold text-white hover:text-[#FF0033] transition-colors"
+              className="flex items-center gap-1.5 text-[11px] font-bold text-white hover:text-[#D4AF37] transition-colors"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FF0033] animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] animate-pulse" />
               <span>yenege.events</span>
               <FaExternalLinkAlt size={9} className="opacity-70" />
             </a>
@@ -142,7 +142,7 @@ const Header = () => {
             <button
               onClick={toggleTheme}
               title={theme === 'dark' ? "Switch to Light Mode" : "Switch to Dark Mode"}
-              className="w-6 h-6 rounded-full border border-white/15 hover:border-white/40 transition-all flex items-center justify-center text-white hover:text-[#FF0033]"
+              className="w-6 h-6 rounded-full border border-white/15 hover:border-white/40 transition-all flex items-center justify-center text-white hover:text-[#D4AF37]"
               aria-label="Toggle Theme"
             >
               {theme === 'dark' ? <FaSun size={10} /> : <FaMoon size={10} />}
@@ -156,28 +156,28 @@ const Header = () => {
               title="Switch Language (አማርኛ / English / Afaan Oromoo)"
               className="px-2.5 py-0.5 rounded-full border border-white/15 hover:border-white/40 transition-all text-[10px] font-bold uppercase tracking-wider flex items-center gap-1"
             >
-              <span className={language === 'am' ? 'text-[#FF0033] font-black' : 'text-white/60'}>አማ</span>
+              <span className={language === 'am' ? 'text-[#D4AF37] font-black' : 'text-white/60'}>አማ</span>
               <div className="w-px h-2 bg-white/20"></div>
-              <span className={language === 'en' ? 'text-[#FF0033] font-black' : 'text-white/60'}>EN</span>
+              <span className={language === 'en' ? 'text-[#D4AF37] font-black' : 'text-white/60'}>EN</span>
               <div className="w-px h-2 bg-white/20"></div>
-              <span className={language === 'om' ? 'text-[#FF0033] font-black' : 'text-white/60'}>OM</span>
+              <span className={language === 'om' ? 'text-[#D4AF37] font-black' : 'text-white/60'}>OM</span>
             </button>
             <div className="w-px h-3 bg-white/15"></div>
-            <a href={waLink} target="_blank" rel="noopener noreferrer" className="hover:text-[#FF0033] transition-colors flex items-center gap-1">
+            <a href={waLink} target="_blank" rel="noopener noreferrer" className="hover:text-[#D4AF37] transition-colors flex items-center gap-1">
               <FaWhatsapp size={13} /> {t.header.wa}
             </a>
             <div className="w-px h-3 bg-white/15"></div>
             {/* Social Icons */}
-            <a href="https://instagram.com/yenege_event" target="_blank" rel="noopener noreferrer" className="hover:text-[#FF0033] transition-colors" aria-label="Instagram">
+            <a href="https://instagram.com/yenege_event" target="_blank" rel="noopener noreferrer" className="hover:text-[#D4AF37] transition-colors" aria-label="Instagram">
               <FaInstagram size={13} />
             </a>
-            <a href="https://t.me/yenegeevents" target="_blank" rel="noopener noreferrer" className="hover:text-[#FF0033] transition-colors" aria-label="Telegram">
+            <a href="https://t.me/yenegeevents" target="_blank" rel="noopener noreferrer" className="hover:text-[#D4AF37] transition-colors" aria-label="Telegram">
               <FaTelegramPlane size={13} />
             </a>
-            <a href="https://tiktok.com/@yenegeevents" target="_blank" rel="noopener noreferrer" className="hover:text-[#FF0033] transition-colors" aria-label="TikTok">
+            <a href="https://tiktok.com/@yenegeevents" target="_blank" rel="noopener noreferrer" className="hover:text-[#D4AF37] transition-colors" aria-label="TikTok">
               <FaTiktok size={13} />
             </a>
-            <a href="https://linkedin.com/company/yenegeevents" target="_blank" rel="noopener noreferrer" className="hover:text-[#FF0033] transition-colors" aria-label="LinkedIn">
+            <a href="https://linkedin.com/company/yenegeevents" target="_blank" rel="noopener noreferrer" className="hover:text-[#D4AF37] transition-colors" aria-label="LinkedIn">
               <FaLinkedin size={13} />
             </a>
           </div>
@@ -213,33 +213,51 @@ const Header = () => {
             aria-label="Main navigation"
             className="hidden md:flex items-center gap-7"
           >
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                onMouseEnter={() => handleLinkHover(link.path)}
-                aria-current={isActive(link.path) ? "page" : undefined}
-                className={`relative text-xs uppercase tracking-[0.18em] font-semibold transition-all duration-300 py-1 ${
-                  (link as any).className || (
-                    isActive(link.path)
-                      ? "text-white"
-                      : "text-white/60 hover:text-white"
-                  )
-                }`}
-              >
-                <span className="relative z-10">{link.label}</span>
-                {isActive(link.path) && (
-                  <span
-                    className="absolute -bottom-1 left-0 right-0 h-0.5 rounded-full transition-all duration-300 bg-[#FF0033] shadow-[0_0_10px_#FF0033]"
-                  />
-                )}
-                {!isActive(link.path) && (
-                  <span
-                    className="absolute -bottom-1 left-0 right-0 h-0.5 scale-x-0 rounded-full transition-transform duration-300 origin-left bg-[#FF0033]"
-                  />
-                )}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              if ((link as any).isExternal) {
+                return (
+                  <a
+                    key={link.path}
+                    href={link.path}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="relative text-xs uppercase tracking-[0.18em] font-semibold transition-all duration-300 py-1 text-white/60 hover:text-[#D4AF37] flex items-center gap-1.5"
+                    title="Discover Events on yenege.events"
+                  >
+                    <span>{link.label}</span>
+                    <FaExternalLinkAlt size={8} className="opacity-60" />
+                  </a>
+                );
+              }
+
+              return (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  onMouseEnter={() => handleLinkHover(link.path)}
+                  aria-current={isActive(link.path) ? "page" : undefined}
+                  className={`relative text-xs uppercase tracking-[0.18em] font-semibold transition-all duration-300 py-1 ${
+                    (link as any).className || (
+                      isActive(link.path)
+                        ? "text-white"
+                        : "text-white/60 hover:text-white"
+                    )
+                  }`}
+                >
+                  <span className="relative z-10">{link.label}</span>
+                  {isActive(link.path) && (
+                    <span
+                      className="absolute -bottom-1 left-0 right-0 h-0.5 rounded-full transition-all duration-300 bg-[#D4AF37] shadow-[0_0_10px_#D4AF37]"
+                    />
+                  )}
+                  {!isActive(link.path) && (
+                    <span
+                      className="absolute -bottom-1 left-0 right-0 h-0.5 scale-x-0 rounded-full transition-transform duration-300 origin-left bg-[#D4AF37]"
+                    />
+                  )}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* CTAs: Discover Events on yenege.events & EventJobs & Theme */}
@@ -248,7 +266,7 @@ const Header = () => {
             <button
               onClick={toggleTheme}
               title={theme === 'dark' ? "Switch to Light Mode" : "Switch to Dark Mode"}
-              className="hidden md:flex w-8 h-8 rounded-full border border-white/20 hover:border-white/50 items-center justify-center text-white hover:text-[#FF0033] transition-all"
+              className="hidden md:flex w-8 h-8 rounded-full border border-white/20 hover:border-white/50 items-center justify-center text-white hover:text-[#D4AF37] transition-all"
               aria-label="Toggle Theme"
             >
               {theme === 'dark' ? <FaSun size={13} /> : <FaMoon size={13} />}
@@ -262,7 +280,7 @@ const Header = () => {
               className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/20 hover:border-white text-white text-[11px] font-bold tracking-wider uppercase transition-all duration-300 hover:bg-white/10"
               title="Find Event Jobs & Crews on yenege.events"
             >
-              <FaBriefcase size={10} className="text-[#FF0033]" />
+              <FaBriefcase size={10} className="text-[#D4AF37]" />
               <span>EventJobs</span>
             </a>
 
@@ -271,7 +289,7 @@ const Header = () => {
               href="https://yenege.events"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#FF0033] hover:bg-[#E5002D] text-white text-[10px] sm:text-xs font-extrabold tracking-wider uppercase transition-all duration-300 shadow-[0_0_20px_rgba(255,0,51,0.35)] hover:shadow-[0_0_30px_rgba(255,0,51,0.6)] active:scale-95"
+              className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#D4AF37] hover:bg-[#F5BD42] text-black text-[10px] sm:text-xs font-black tracking-wider uppercase transition-all duration-300 shadow-[0_0_20px_rgba(212,175,55,0.35)] hover:shadow-[0_0_30px_rgba(212,175,55,0.6)] active:scale-95"
               title="Discover All Events on yenege.events"
             >
               <span>yenege.events</span>
@@ -293,11 +311,11 @@ const Header = () => {
                 title="Switch Language (አማርኛ / English / Afaan Oromoo)"
                 className="px-2 py-1 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 backdrop-blur-md text-[9px] font-black uppercase tracking-wider flex items-center gap-0.5 text-white active:scale-95 transition-all"
               >
-                <span className={language === 'am' ? 'text-[#FF0033] font-black' : 'text-white/60'}>አማ</span>
+                <span className={language === 'am' ? 'text-[#D4AF37] font-black' : 'text-white/60'}>አማ</span>
                 <div className="w-px h-2 bg-white/30"></div>
-                <span className={language === 'en' ? 'text-[#FF0033] font-black' : 'text-white/60'}>EN</span>
+                <span className={language === 'en' ? 'text-[#D4AF37] font-black' : 'text-white/60'}>EN</span>
                 <div className="w-px h-2 bg-white/30"></div>
-                <span className={language === 'om' ? 'text-[#FF0033] font-black' : 'text-white/60'}>OM</span>
+                <span className={language === 'om' ? 'text-[#D4AF37] font-black' : 'text-white/60'}>OM</span>
               </button>
             </div>
           </div>

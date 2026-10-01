@@ -193,8 +193,8 @@ const Gallery = () => {
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/5 border border-white/10 mb-3">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#FF0033] shadow-[0_0_8px_#FF0033]" />
-            <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#FF0033]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] shadow-[0_0_8px_#D4AF37]" />
+            <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#D4AF37]">
               Portfolio & Visuals
             </span>
           </div>

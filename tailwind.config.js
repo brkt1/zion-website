@@ -16,13 +16,14 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Pure White / Black / Red Theme
-        'yenege-red': '#FF0033',         // Pure Electric Red
-        'yenege-yellow': '#FF0033',      // Remapped to Red for legacy classes
+        // Pure White / Black / Golden Theme
+        'yenege-gold': '#D4AF37',        // Royal Metallic Gold
+        'yenege-red': '#D4AF37',         // Remapped to Gold for backward compatibility
+        'yenege-yellow': '#D4AF37',      // Royal Gold
         'indigo-deep': '#000000',        // Pure Black
-        'coral-orange': '#FF1E27',       // Accent Red
-        'purple-electric': '#FF0033',    // Remapped to Red
-        'teal-breeze': '#FF0033',        // Remapped to Red
+        'coral-orange': '#F5BD42',       // Radiant Highlight Gold
+        'purple-electric': '#D4AF37',    // Remapped to Gold
+        'teal-breeze': '#D4AF37',        // Remapped to Gold
         'soft-white': '#FFFFFF',         // Pure White
         'space-grey': '#0A0A0A',         // Surface Black
         
@@ -34,22 +35,22 @@ module.exports = {
         'gray-dark': '#141414',
         'gray-medium': '#262626',
         'gray-light': '#A3A3A3',
-        'gold-primary': '#FF0033',
-        'gold-secondary': '#FF0033',
+        'gold-primary': '#D4AF37',
+        'gold-secondary': '#B89327',
         'blue-primary': '#000000',
         'blue-secondary': '#0A0A0A',
-        'green-primary': '#FF0033',
-        'green-secondary': '#CC0029',
-        'red-primary': '#FF0033',
-        'red-secondary': '#CC0029',
-        'purple-primary': '#FF0033',
-        'purple-secondary': '#CC0029',
-        'pink-primary': '#FF0033',
-        'pink-secondary': '#CC0029',
-        'orange-primary': '#FF0033',
-        'orange-secondary': '#CC0029',
-        'yellow-primary': '#FF0033',
-        'yellow-secondary': '#CC0029'
+        'green-primary': '#D4AF37',
+        'green-secondary': '#B89327',
+        'red-primary': '#D4AF37',
+        'red-secondary': '#B89327',
+        'purple-primary': '#D4AF37',
+        'purple-secondary': '#B89327',
+        'pink-primary': '#D4AF37',
+        'pink-secondary': '#B89327',
+        'orange-primary': '#D4AF37',
+        'orange-secondary': '#B89327',
+        'yellow-primary': '#D4AF37',
+        'yellow-secondary': '#B89327'
       },
       fontFamily: {
         'sans': ['Inter', 'Nunito', 'system-ui', 'sans-serif'],
