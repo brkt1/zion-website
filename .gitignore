@@ -34,7 +34,9 @@ ENV_VARS_SIMPLE.txt
 secrets/
 credentials/
 
-# Test files
+# Test & Scratch files
+scratch/
+scratch.*
 test-*.js
 *-test.js
 *.test.js

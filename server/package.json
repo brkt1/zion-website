@@ -9,9 +9,6 @@
     "prebuild": "NODE_ENV=development npm install || npm install",
     "build": "tsc",
     "type-check": "tsc --noEmit",
-    "ngrok": "node start-ngrok.js",
-    "test-chapa": "node test-chapa-key.js",
-    "test-payment": "node test-payment-init.js",
     "generate-vapid": "node scripts/generate-vapid-keys.js"
   },
   "dependencies": {
