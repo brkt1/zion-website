@@ -5,19 +5,23 @@ import {
   FaExternalLinkAlt,
   FaInstagram,
   FaLinkedin,
+  FaMoon,
   FaPhoneAlt,
+  FaSun,
   FaTelegramPlane,
   FaTiktok,
   FaWhatsapp
 } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
 import { useLanguage } from "../../contexts/LanguageContext";
+import { useTheme } from "../../contexts/ThemeContext";
 import { useContactInfo } from "../../hooks/useApi";
 import { handleLinkHover } from "../../utils/prefetch";
 import OptimizedImage from "../ui/OptimizedImage";
 
 const Header = () => {
   const { contactInfo } = useContactInfo();
+  const { theme, toggleTheme } = useTheme();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isScrolledDown, setIsScrolledDown] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -134,6 +138,18 @@ const Header = () => {
 
             <div className="w-px h-3 bg-white/15"></div>
 
+            {/* Theme Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              title={theme === 'dark' ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              className="w-6 h-6 rounded-full border border-white/15 hover:border-white/40 transition-all flex items-center justify-center text-white hover:text-[#FF0033]"
+              aria-label="Toggle Theme"
+            >
+              {theme === 'dark' ? <FaSun size={10} /> : <FaMoon size={10} />}
+            </button>
+
+            <div className="w-px h-3 bg-white/15"></div>
+
             {/* Language toggle */}
             <button 
               onClick={toggleLanguage}
@@ -226,8 +242,18 @@ const Header = () => {
             ))}
           </nav>
 
-          {/* CTAs: Discover Events on yenege.events & EventJobs */}
-          <div className="flex items-center gap-2.5">
+          {/* CTAs: Discover Events on yenege.events & EventJobs & Theme */}
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            {/* Desktop Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              title={theme === 'dark' ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              className="hidden md:flex w-8 h-8 rounded-full border border-white/20 hover:border-white/50 items-center justify-center text-white hover:text-[#FF0033] transition-all"
+              aria-label="Toggle Theme"
+            >
+              {theme === 'dark' ? <FaSun size={13} /> : <FaMoon size={13} />}
+            </button>
+
             {/* EventJobs Link */}
             <a
               href="https://yenege.events"
@@ -245,19 +271,27 @@ const Header = () => {
               href="https://yenege.events"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#FF0033] hover:bg-[#E5002D] text-white text-[11px] sm:text-xs font-extrabold tracking-wider uppercase transition-all duration-300 shadow-[0_0_20px_rgba(255,0,51,0.35)] hover:shadow-[0_0_30px_rgba(255,0,51,0.6)] active:scale-95"
+              className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#FF0033] hover:bg-[#E5002D] text-white text-[10px] sm:text-xs font-extrabold tracking-wider uppercase transition-all duration-300 shadow-[0_0_20px_rgba(255,0,51,0.35)] hover:shadow-[0_0_30px_rgba(255,0,51,0.6)] active:scale-95"
               title="Discover All Events on yenege.events"
             >
               <span>yenege.events</span>
-              <FaExternalLinkAlt size={10} />
+              <FaExternalLinkAlt size={9} />
             </a>
 
-            {/* Mobile Embedded Language Switcher */}
-            <div className="flex md:hidden items-center ml-1">
+            {/* Mobile Embedded Theme Toggle & Language Switcher */}
+            <div className="flex md:hidden items-center gap-1.5 ml-0.5">
+              <button 
+                onClick={toggleTheme}
+                title={theme === 'dark' ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 backdrop-blur-md flex items-center justify-center text-white active:scale-95 transition-all"
+                aria-label="Toggle Theme"
+              >
+                {theme === 'dark' ? <FaSun size={11} /> : <FaMoon size={11} />}
+              </button>
               <button 
                 onClick={toggleLanguage}
                 title="Switch Language (አማርኛ / English / Afaan Oromoo)"
-                className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 backdrop-blur-md text-[10px] font-black uppercase tracking-wider flex items-center gap-1 text-white active:scale-95 transition-all"
+                className="px-2 py-1 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 backdrop-blur-md text-[9px] font-black uppercase tracking-wider flex items-center gap-0.5 text-white active:scale-95 transition-all"
               >
                 <span className={language === 'am' ? 'text-[#FF0033] font-black' : 'text-white/60'}>አማ</span>
                 <div className="w-px h-2 bg-white/30"></div>

@@ -75,7 +75,7 @@ const Footer = () => {
     <footer 
       role="contentinfo"
       aria-label="Site footer"
-      className="hidden md:block relative bg-black text-white overflow-hidden border-t border-white/10"
+      className="relative bg-black text-white overflow-hidden border-t border-white/10 pb-28 md:pb-0"
     >
       {/* Red accent line */}
       <div 

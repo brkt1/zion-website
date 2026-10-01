@@ -3,18 +3,6 @@
 @import 'tailwindcss/utilities';
 
 /* Custom Fonts - YENEGE Futuristic Typography */
-/* Using system fonts as fallback to avoid Google Fonts 503 errors */
-/* Uncomment below to use Google Fonts when available */
-/*
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800;900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
-*/
-
 /* Base Styles */
 @layer base {
   html {
@@ -28,6 +16,7 @@
     -moz-osx-font-smoothing: grayscale;
     background-color: #000000;
     color: #FFFFFF;
+    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -71,107 +60,204 @@
   }
 }
 
-/* Component Styles - Removed unused classes to reduce CSS bundle size */
-/* Custom component classes are now defined inline using Tailwind utilities */
-
-/* Utility Styles */
-@layer utilities {
-  .text-shadow {
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  }
-
-  .text-shadow-lg {
-    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-  }
-
-  .text-shadow-xl {
-    text-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
-  }
-
-  .backdrop-blur-xs {
-    -webkit-backdrop-filter: blur(2px);
-    backdrop-filter: blur(2px);
-  }
-
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-
-  .perspective {
-    perspective: 1000px;
-  }
-
-  .preserve-3d {
-    transform-style: preserve-3d;
-  }
-
-  .rotate-y-180 {
-    transform: rotateY(180deg);
-  }
-
-  /* Removed unused utility classes to reduce CSS bundle size */
-  /* Use Tailwind utilities directly in components instead */
+/* ── Light Mode Base & System Overrides ── */
+html.light {
+  background-color: #FFFFFF;
+  color: #000000;
 }
 
-/* Dark Mode Overrides */
-@media (prefers-color-scheme: dark) {
-  .dark-mode-override {
-    @apply bg-black-primary text-white;
-  }
+html.light body {
+  background-color: #FFFFFF;
+  color: #000000;
 }
 
-/* Print Styles */
-@media print {
-  .no-print {
-    display: none !important;
-  }
-
-  .print-only {
-    display: block !important;
-  }
+html.light ::-webkit-scrollbar-track {
+  background: #F0F0F0;
 }
 
-/* High Contrast Mode */
-@media (prefers-contrast: high) {
-  .high-contrast {
-    @apply border-2 border-white;
-  }
+html.light ::-webkit-scrollbar-thumb {
+  background: #D0D0D0;
 }
 
-/* Reduced Motion */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: #FF0033;
 }
 
-/* ── Scroll Reveal Animations ── */
-.reveal-wrapper {
-  opacity: 0;
-  transform: translateY(40px);
-  will-change: opacity, transform;
-  transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1), transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+/* Light Mode Background Overrides */
+html.light .bg-black,
+html.light .min-h-screen.bg-black {
+  background-color: #FFFFFF !important;
 }
 
-.reveal-wrapper.is-revealed {
-  opacity: 1;
-  transform: translateY(0);
+html.light .bg-\[\#050505\],
+html.light .bg-\[\#080808\],
+html.light .bg-\[\#0A0A0A\],
+html.light .bg-\[\#0D0D0D\],
+html.light .bg-\[\#111111\],
+html.light .bg-\[\#141414\] {
+  background-color: #F8F8F8 !important;
 }
 
-.reveal-delay-100 { transition-delay: 100ms; }
-.reveal-delay-200 { transition-delay: 200ms; }
-.reveal-delay-300 { transition-delay: 300ms; }
-.reveal-delay-400 { transition-delay: 400ms; }
-.reveal-delay-500 { transition-delay: 500ms; }
+/* Light Mode Card Overrides */
+html.light .minimal-card {
+  background-color: #FFFFFF !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  color: #000000 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
+}
+
+html.light .minimal-card:hover {
+  border-color: rgba(255, 0, 51, 0.5) !important;
+  box-shadow: 0 12px 32px rgba(255, 0, 51, 0.12) !important;
+}
+
+html.light .minimal-card-interactive {
+  background: #FAFAFA !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  color: #000000 !important;
+}
+
+html.light .minimal-card-interactive:hover {
+  border-color: #FF0033 !important;
+  box-shadow: 0 0 25px rgba(255, 0, 51, 0.15) !important;
+}
+
+/* Light Mode Text Overrides */
+html.light .text-white {
+  color: #000000 !important;
+}
+
+html.light .text-white\/90,
+html.light .text-white\/80 {
+  color: #1A1A1A !important;
+}
+
+html.light .text-white\/70,
+html.light .text-white\/60,
+html.light .text-white\/50,
+html.light .text-slate-300,
+html.light .text-slate-400 {
+  color: #555555 !important;
+}
+
+html.light .text-white\/40,
+html.light .text-white\/30 {
+  color: #888888 !important;
+}
+
+/* Light Mode Border Overrides */
+html.light .border-white\/10,
+html.light .border-white\/15,
+html.light .border-white\/20,
+html.light .border-white\/30,
+html.light .border-white\/5 {
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Light Mode Transparent Fill Overrides */
+html.light .bg-white\/5 {
+  background-color: rgba(0, 0, 0, 0.03) !important;
+}
+
+html.light .bg-white\/10 {
+  background-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+html.light .bg-white\/15,
+html.light .bg-white\/20 {
+  background-color: rgba(0, 0, 0, 0.09) !important;
+}
+
+/* Red Elements: Always keep red and white text */
+html.light .bg-\[\#FF0033\],
+html.light .bg-\[\#FF0033\] *,
+html.light .ed-btn-primary,
+html.light .ed-btn-primary *,
+html.light button.bg-\[\#FF0033\],
+html.light a.bg-\[\#FF0033\] {
+  color: #FFFFFF !important;
+}
+
+html.light .text-\[\#FF0033\],
+html.light .text-red-500,
+html.light .text-red-600 {
+  color: #FF0033 !important;
+}
+
+html.light .border-\[\#FF0033\],
+html.light .border-\[\#FF0033\]\/20,
+html.light .border-\[\#FF0033\]\/30,
+html.light .border-\[\#FF0033\]\/40,
+html.light .border-\[\#FF0033\]\/50 {
+  border-color: #FF0033 !important;
+}
+
+/* Light Mode Inverted Logo (Makes white logo pure black) */
+html.light .brightness-0.invert {
+  filter: brightness(0) !important;
+}
+
+/* Light Mode Header & Footer Overrides */
+html.light header {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-bottom-color: rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05) !important;
+}
+
+html.light header .bg-\[\#050505\] {
+  background-color: #FAFAFA !important;
+  border-bottom-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+html.light footer {
+  background-color: #F8F8F8 !important;
+  border-top-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Light Mode Floating Mobile Dock */
+html.light .mobile-dock-container {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.12) !important;
+}
+
+html.light .mobile-dock-container svg {
+  color: #000000;
+}
+
+html.light .mobile-dock-container .active-dock-pill svg {
+  color: #FF0033 !important;
+}
+
+/* Light Mode Form Inputs */
+html.light input,
+html.light textarea,
+html.light select {
+  background-color: #FFFFFF !important;
+  border-color: rgba(0, 0, 0, 0.15) !important;
+  color: #000000 !important;
+}
+
+html.light input:focus,
+html.light textarea:focus,
+html.light select:focus {
+  border-color: #FF0033 !important;
+  box-shadow: 0 0 0 2px rgba(255, 0, 51, 0.15) !important;
+}
+
+html.light select {
+  color-scheme: light;
+}
+
+html.light select option {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+}
+
+html.light select option:checked {
+  background-color: #FFF0F2 !important;
+  color: #FF0033 !important;
+}
 
 /* ── Minimal Lit Modern Card Utilities ── */
 .minimal-card {
@@ -200,21 +286,41 @@
   transform: translateY(-4px);
 }
 
-/* ── Select & Option Dropdown Legibility Styles ── */
-select {
-  color-scheme: dark;
+/* ── Scroll Reveal Animations ── */
+.reveal-wrapper {
+  opacity: 0;
+  transform: translateY(30px);
+  will-change: opacity, transform;
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-select option {
-  background-color: #0A0A0A !important;
-  color: #FFFFFF !important;
-  padding: 10px 14px;
+.reveal-wrapper.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
 }
 
-select option:hover,
-select option:focus,
-select option:checked {
-  background-color: #1A1A1A !important;
-  color: #FF0033 !important;
+.reveal-delay-100 { transition-delay: 100ms; }
+.reveal-delay-200 { transition-delay: 200ms; }
+.reveal-delay-300 { transition-delay: 300ms; }
+.reveal-delay-400 { transition-delay: 400ms; }
+.reveal-delay-500 { transition-delay: 500ms; }
+
+/* ── Mobile Viewport & Touch Enhancements ── */
+@media (max-width: 640px) {
+  h1 {
+    font-size: 2rem !important;
+    line-height: 1.15 !important;
+  }
+
+  .reveal-wrapper {
+    transform: translateY(15px);
+  }
 }
 
+.touch-pan-x {
+  touch-action: pan-x;
+}
+
+.touch-pan-y {
+  touch-action: pan-y;
+}

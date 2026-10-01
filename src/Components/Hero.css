@@ -422,9 +422,9 @@
   .hero-overlay-base {
     background: linear-gradient(
       to bottom,
-      rgba(11, 15, 25, 0.95) 0%,
-      rgba(11, 15, 25, 0.82) 50%,
-      rgba(11, 15, 25, 0.96) 100%
+      rgba(0, 0, 0, 0.95) 0%,
+      rgba(0, 0, 0, 0.85) 50%,
+      rgba(0, 0, 0, 0.96) 100%
     );
   }
 
@@ -533,4 +533,85 @@
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     padding-top: 0.5rem;
   }
+}
+
+/* --------------------------------------------------------------------------
+   LIGHT MODE OVERRIDES FOR HERO
+   -------------------------------------------------------------------------- */
+html.light .hero-container {
+  background-color: #FFFFFF;
+  color: #000000;
+}
+
+html.light .hero-overlay-base {
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.96) 0%,
+    rgba(255, 255, 255, 0.88) 50%,
+    rgba(255, 255, 255, 0.6) 100%
+  );
+}
+
+@media (max-width: 768px) {
+  html.light .hero-overlay-base {
+    background: linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.97) 0%,
+      rgba(255, 255, 255, 0.88) 50%,
+      rgba(255, 255, 255, 0.98) 100%
+    );
+  }
+}
+
+html.light .hero-slogan {
+  color: #000000;
+}
+
+html.light .hero-intro {
+  color: #444444;
+}
+
+html.light .hero-trust-badge {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+html.light .badge-title {
+  color: #333333;
+}
+
+html.light .category-chip {
+  background: #F0F0F0;
+  border-color: rgba(0, 0, 0, 0.08);
+  color: #222222;
+}
+
+html.light .hero-stats-bar {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+
+html.light .stat-number {
+  color: #FF0033;
+}
+
+html.light .stat-label {
+  color: #555555;
+}
+
+html.light .stat-divider {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+html.light .cta-secondary {
+  background: #F5F5F5;
+  border-color: rgba(0, 0, 0, 0.15);
+  color: #000000;
+}
+
+html.light .cta-secondary:hover {
+  background: #EBEBEB;
+  border-color: rgba(0, 0, 0, 0.3);
 }

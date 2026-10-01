@@ -9,6 +9,7 @@ import { LoadingState } from "./Components/ui/LoadingState";
 
 import VisitTracker from "./Components/VisitTracker";
 import { LanguageProvider } from "./contexts/LanguageContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import LanguageSelectorModal from "./Components/ui/LanguageSelectorModal";
 import { NetworkStatus } from "./Components/ui/NetworkStatus";
 
@@ -94,9 +95,10 @@ const CollaboratorEventView = lazy(() => import("./pages/CollaboratorEventView")
 
 function App() {
   return (
-    <LanguageProvider>
-      <LanguageSelectorModal />
-      <NetworkStatus />
+    <ThemeProvider>
+      <LanguageProvider>
+        <LanguageSelectorModal />
+        <NetworkStatus />
 
       <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <BrowserCompatibility />
@@ -505,7 +507,8 @@ function App() {
         </Route>
       </Routes>
       </Router>
-    </LanguageProvider>
+      </LanguageProvider>
+    </ThemeProvider>
   );
 }
 
