@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 import {
+  FaCheckCircle,
   FaEnvelope,
+  FaExternalLinkAlt,
   FaInstagram,
   FaMapMarkerAlt,
   FaPhone,
   FaTelegram,
   FaTiktok,
   FaWhatsapp,
-  FaYoutube,
-  FaCheckCircle
+  FaYoutube
 } from "react-icons/fa";
-import { ContactSkeleton } from "../Components/ui/ContactSkeleton";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useContactInfo } from "../hooks/useApi";
 import { useScrollReveal } from "../hooks/useScrollReveal";
@@ -18,7 +18,7 @@ import { useScrollReveal } from "../hooks/useScrollReveal";
 const Contact = () => {
   useScrollReveal();
   const { t, language } = useLanguage();
-  const { contactInfo, isLoading } = useContactInfo();
+  const { contactInfo } = useContactInfo();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -79,36 +79,72 @@ const Contact = () => {
     });
   };
 
-
   return (
-    <div className="min-h-screen bg-[#0F172A] text-white font-sans overflow-x-hidden selection:bg-[#FFD447] selection:text-[#1C2951] pb-24">
+    <div className="min-h-screen bg-black text-white font-sans overflow-x-hidden selection:bg-[#FF0033] selection:text-white pb-24">
+      
+      {/* ── TOP EVENT DISCOVERY & EVENTJOBS CALLOUT ──────────────────────── */}
+      <div className="pt-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="bg-[#0A0A0A] border border-white/10 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#FF0033] animate-ping" />
+            <div>
+              <p className="text-xs font-black uppercase tracking-wider text-white">
+                Discover Events &amp; Event Industry Jobs
+              </p>
+              <p className="text-[11px] text-white/50">
+                Browse our live event listings and career opportunities directly on yenege.events.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <a
+              href="https://yenege.events"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-[#FF0033] hover:bg-[#D9002C] text-white text-xs font-black tracking-wider uppercase transition-all shadow-md shadow-[#FF0033]/20"
+            >
+              <span>Visit yenege.events</span>
+              <FaExternalLinkAlt size={10} />
+            </a>
+            <a
+              href="https://yenege.events"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-white text-xs font-black tracking-wider uppercase transition-all"
+            >
+              <span>EventJobs</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
       {/* ── HERO HEADER ─────────────────────────────────────────────────── */}
-      <section className="relative pt-32 lg:pt-40 pb-16 overflow-hidden">
+      <section className="relative pt-12 sm:pt-16 lg:pt-20 pb-16 overflow-hidden">
         {/* Ambient background glows */}
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-radial from-[#FFD447]/10 via-transparent to-transparent blur-[130px] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-radial from-[#FF6F5E]/10 via-transparent to-transparent blur-[130px] pointer-events-none" />
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-radial from-[#FF0033]/10 via-transparent to-transparent blur-[130px] pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-radial from-[#FF0033]/5 via-transparent to-transparent blur-[130px] pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10 text-center space-y-6">
           <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl mx-auto">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#FFD447] shadow-[0_0_12px_#FFD447]" />
-            <span className="text-[#FFD447] font-black text-xs uppercase tracking-[0.25em]">{t.contact?.label || "CONNECT WITH OUR TEAM"}</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-[#FF0033] shadow-[0_0_12px_#FF0033]" />
+            <span className="text-[#FF0033] font-black text-xs uppercase tracking-[0.25em]">{t.contact?.label || "CONNECT WITH OUR TEAM"}</span>
           </div>
 
           <h1 className="font-heading text-4xl sm:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight text-white max-w-4xl mx-auto">
             {t.contact?.title || "Let's Architect Your Next"} <br />
-            <span className="bg-gradient-to-r from-[#FFD447] via-[#FF6F5E] to-[#7B5CFF] bg-clip-text text-transparent italic">
+            <span className="text-[#FF0033] italic">
               {t.contact?.subtitle || "Unforgettable Experience"}
             </span>
           </h1>
 
-          <p className="text-base sm:text-lg text-slate-300 font-medium leading-relaxed max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg text-white/70 font-medium leading-relaxed max-w-2xl mx-auto">
             {t.contact?.desc || "Have a question about event execution, sponsorship strategy, or enrolling in Yenege Academy? We are here to help."}
           </p>
         </div>
       </section>
 
       {/* ── MAIN CONTACT CONTENT ────────────────────────────────────────── */}
-      <section className="py-12 relative">
+      <section className="py-8 relative">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="grid lg:grid-cols-12 gap-12 items-start">
             
@@ -116,46 +152,46 @@ const Contact = () => {
             <div className="lg:col-span-5 space-y-6">
               
               {/* Studio Address Card */}
-              <div className="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl space-y-4 hover:border-white/20 transition-all">
-                <div className="w-12 h-12 rounded-2xl bg-[#FFD447]/10 text-[#FFD447] flex items-center justify-center text-xl border border-[#FFD447]/20">
+              <div className="p-8 rounded-3xl bg-[#0A0A0A] border border-white/10 space-y-4 hover:border-[#FF0033]/40 transition-all">
+                <div className="w-12 h-12 rounded-2xl bg-black text-[#FF0033] flex items-center justify-center text-xl border border-white/10">
                   <FaMapMarkerAlt />
                 </div>
                 <h3 className="font-heading text-xl font-bold text-white">{t.contact?.headStudioTitle || "Our Head Studio"}</h3>
-                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                <p className="text-xs text-white/60 leading-relaxed font-medium">
                   {finalContact.location}
                 </p>
               </div>
 
               {/* Email Card */}
-              <div className="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl space-y-4 hover:border-white/20 transition-all">
-                <div className="w-12 h-12 rounded-2xl bg-[#FF6F5E]/10 text-[#FF6F5E] flex items-center justify-center text-xl border border-[#FF6F5E]/20">
+              <div className="p-8 rounded-3xl bg-[#0A0A0A] border border-white/10 space-y-4 hover:border-[#FF0033]/40 transition-all">
+                <div className="w-12 h-12 rounded-2xl bg-black text-[#FF0033] flex items-center justify-center text-xl border border-white/10">
                   <FaEnvelope />
                 </div>
                 <h3 className="font-heading text-xl font-bold text-white">{t.contact?.emailEnquiriesTitle || "Email Enquiries"}</h3>
                 <a 
                   href={`mailto:${finalContact.email || 'yenegeevents@gmail.com'}`}
-                  className="text-xs text-slate-300 hover:text-[#FFD447] transition-colors font-medium block underline"
+                  className="text-xs text-white/70 hover:text-[#FF0033] transition-colors font-medium block underline"
                 >
                   {finalContact.email || 'yenegeevents@gmail.com'}
                 </a>
               </div>
 
               {/* Phone & Hotline Card */}
-              <div className="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl space-y-4 hover:border-white/20 transition-all">
-                <div className="w-12 h-12 rounded-2xl bg-[#7B5CFF]/10 text-[#7B5CFF] flex items-center justify-center text-xl border border-[#7B5CFF]/20">
+              <div className="p-8 rounded-3xl bg-[#0A0A0A] border border-white/10 space-y-4 hover:border-[#FF0033]/40 transition-all">
+                <div className="w-12 h-12 rounded-2xl bg-black text-[#FF0033] flex items-center justify-center text-xl border border-white/10">
                   <FaPhone />
                 </div>
                 <h3 className="font-heading text-xl font-bold text-white">{t.contact?.phoneHotlineTitle || "Direct Line & Support"}</h3>
                 <a 
                   href={`tel:${finalContact.phone?.replace(/\D/g, '') || '251978639887'}`}
-                  className="text-xs text-slate-300 hover:text-[#FFD447] transition-colors font-medium block"
+                  className="text-xs text-white/70 hover:text-[#FF0033] transition-colors font-medium block"
                 >
                   {finalContact.phoneFormatted || finalContact.phone || '+251 978 639 887'}
                 </a>
               </div>
 
               {/* Social Channels */}
-              <div className="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl space-y-4">
+              <div className="p-8 rounded-3xl bg-[#0A0A0A] border border-white/10 space-y-4">
                 <h3 className="font-heading text-lg font-bold text-white">{t.contact?.officialChannelsTitle || "Official Channels"}</h3>
                 <div className="flex gap-3">
                   {[
@@ -169,7 +205,7 @@ const Contact = () => {
                       href={social.href} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="w-12 h-12 rounded-2xl bg-white/5 hover:bg-[#FFD447] text-white hover:text-[#1C2951] border border-white/10 flex items-center justify-center text-lg transition-all"
+                      className="w-12 h-12 rounded-2xl bg-black hover:bg-[#FF0033] text-white border border-white/10 flex items-center justify-center text-lg transition-all"
                     >
                       {social.icon}
                     </a>
@@ -179,17 +215,17 @@ const Contact = () => {
             </div>
 
             {/* Right Column: Interactive Form */}
-            <div className="lg:col-span-7 bg-[#1E293B]/80 backdrop-blur-2xl p-8 sm:p-12 rounded-3xl border border-white/10 shadow-2xl space-y-8">
+            <div className="lg:col-span-7 bg-[#0A0A0A] p-8 sm:p-12 rounded-3xl border border-white/10 shadow-2xl space-y-8">
               <div>
                 <h2 className="font-heading text-3xl font-black text-white mb-2">{t.contact?.formTitle || "Send Us a Direct Message"}</h2>
-                <p className="text-xs text-slate-400 font-medium leading-relaxed">
+                <p className="text-xs text-white/60 font-medium leading-relaxed">
                   {t.contact?.formSub || "Fill in your details below. Your message will be formatted and sent directly to our team via WhatsApp for an immediate response."}
                 </p>
               </div>
 
               {submitStatus === "success" && (
-                <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold flex items-center gap-2">
-                  <FaCheckCircle className="text-base shrink-0" />
+                <div className="p-4 rounded-2xl bg-[#FF0033]/10 border border-[#FF0033]/30 text-white text-xs font-bold flex items-center gap-2">
+                  <FaCheckCircle className="text-base shrink-0 text-[#FF0033]" />
                   <span>{t.contact?.waSuccess || "WhatsApp conversation initiated! Check your WhatsApp window to send."}</span>
                 </div>
               )}
@@ -197,7 +233,7 @@ const Contact = () => {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-[10px] font-black uppercase tracking-widest text-[#FFD447] mb-2">{t.contact?.name || "Full Name"} *</label>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-white/50 mb-2">{t.contact?.name || "Full Name"} *</label>
                     <input 
                       type="text" 
                       name="name" 
@@ -205,11 +241,11 @@ const Contact = () => {
                       placeholder="e.g. Abebe Bikila" 
                       value={formData.name} 
                       onChange={handleChange} 
-                      className="w-full bg-[#0F172A]/80 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm focus:border-[#FFD447] focus:outline-none transition-all placeholder:text-slate-500"
+                      className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-white text-sm focus:border-[#FF0033] focus:ring-1 focus:ring-[#FF0033] focus:outline-none transition-all placeholder:text-white/30"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black uppercase tracking-widest text-[#FFD447] mb-2">{t.contact?.email || "Email Address"} *</label>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-white/50 mb-2">{t.contact?.email || "Email Address"} *</label>
                     <input 
                       type="email" 
                       name="email" 
@@ -217,25 +253,25 @@ const Contact = () => {
                       placeholder="name@example.com" 
                       value={formData.email} 
                       onChange={handleChange} 
-                      className="w-full bg-[#0F172A]/80 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm focus:border-[#FFD447] focus:outline-none transition-all placeholder:text-slate-500"
+                      className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-white text-sm focus:border-[#FF0033] focus:ring-1 focus:ring-[#FF0033] focus:outline-none transition-all placeholder:text-white/30"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#FFD447] mb-2">{t.contact?.phone || "Phone Number"}</label>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-white/50 mb-2">{t.contact?.phone || "Phone Number"}</label>
                   <input 
                     type="tel" 
                     name="phone" 
                     placeholder="+251 9XX XXX XXX" 
                     value={formData.phone} 
                     onChange={handleChange} 
-                    className="w-full bg-[#0F172A]/80 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm focus:border-[#FFD447] focus:outline-none transition-all placeholder:text-slate-500"
+                    className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-white text-sm focus:border-[#FF0033] focus:ring-1 focus:ring-[#FF0033] focus:outline-none transition-all placeholder:text-white/30"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#FFD447] mb-2">{t.contact?.message || "Message or Inquiry"} *</label>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-white/50 mb-2">{t.contact?.message || "Message or Inquiry"} *</label>
                   <textarea 
                     name="message" 
                     required 
@@ -243,14 +279,14 @@ const Contact = () => {
                     placeholder="Tell us about your event vision, partnership ideas, or enrollment questions..." 
                     value={formData.message} 
                     onChange={handleChange} 
-                    className="w-full bg-[#0F172A]/80 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm focus:border-[#FFD447] focus:outline-none transition-all placeholder:text-slate-500 resize-none"
+                    className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-white text-sm focus:border-[#FF0033] focus:ring-1 focus:ring-[#FF0033] focus:outline-none transition-all placeholder:text-white/30 resize-none"
                   />
                 </div>
 
                 <button 
                   type="submit" 
                   disabled={isSubmitting} 
-                  className="w-full py-5 rounded-2xl bg-gradient-to-r from-[#FFD447] to-[#FF6F5E] hover:from-[#ffe066] hover:to-[#ff8273] text-[#1C2951] font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 transition-all shadow-xl shadow-[#FF6F5E]/20 hover:scale-[1.01]"
+                  className="w-full py-5 rounded-2xl bg-[#FF0033] hover:bg-[#D9002C] text-white font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 transition-all shadow-xl shadow-[#FF0033]/25 hover:scale-[1.01]"
                 >
                   <FaWhatsapp size={18} />
                   <span>{isSubmitting ? "Opening WhatsApp..." : (t.contact?.send || "Send Message Via WhatsApp")}</span>

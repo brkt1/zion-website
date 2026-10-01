@@ -61,12 +61,7 @@ const MobileBottomNav = () => {
       {showScrollTop && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-20 right-5 z-50 w-11 h-11 rounded-full shadow-2xl flex items-center justify-center transition-all duration-500 hover:scale-110 active:scale-90"
-          style={{
-            background: GRADIENT.brand,
-            boxShadow: `0 8px 24px rgba(255, 111, 94, 0.4)`,
-            animation: "yg-float 3s ease-in-out infinite",
-          }}
+          className="fixed bottom-20 right-5 z-50 w-11 h-11 rounded-full shadow-2xl flex items-center justify-center transition-all duration-500 hover:scale-110 active:scale-90 bg-[#FF0033] hover:bg-[#E5002D] text-white shadow-[0_0_20px_rgba(255,0,51,0.5)]"
           aria-label="Scroll to top"
         >
           <FaArrowUp size={15} className="text-white" />
@@ -77,24 +72,17 @@ const MobileBottomNav = () => {
       <nav 
         role="navigation"
         aria-label="Mobile bottom navigation"
-        className="md:hidden fixed bottom-5 left-1/2 transform -translate-x-1/2 z-50 w-[88%] max-w-sm"
+        className="md:hidden fixed bottom-5 left-1/2 transform -translate-x-1/2 z-50 w-[90%] max-w-sm"
       >
         <div 
-          className="relative px-3 py-2.5 rounded-full border border-white/15 shadow-2xl overflow-hidden"
-          style={{
-            background: `${BRAND.navy}F0`, // 94% opacity navy
-            backdropFilter: "blur(24px)",
-            WebkitBackdropFilter: "blur(24px)",
-          }}
+          className="relative px-3 py-2.5 rounded-full border border-white/15 shadow-[0_10px_40px_rgba(0,0,0,0.9)] overflow-hidden bg-black/95 backdrop-blur-2xl"
         >
-          {/* Subtle accent glow */}
+          {/* Subtle electric red accent glow */}
           <div 
-            className="absolute -top-10 -left-10 w-32 h-32 rounded-full blur-[60px] opacity-20 pointer-events-none"
-            style={{ background: BRAND.gold }}
+            className="absolute -top-10 -left-10 w-28 h-28 rounded-full blur-[50px] opacity-25 pointer-events-none bg-[#FF0033]"
           />
           <div 
-            className="absolute -bottom-10 -right-10 w-32 h-32 rounded-full blur-[60px] opacity-20 pointer-events-none"
-            style={{ background: BRAND.coral }}
+            className="absolute -bottom-10 -right-10 w-28 h-28 rounded-full blur-[50px] opacity-20 pointer-events-none bg-[#FF0033]"
           />
 
           <div className="relative flex items-center justify-around">
@@ -115,22 +103,21 @@ const MobileBottomNav = () => {
                   {/* Active background pill */}
                   {active && (
                     <div 
-                      className="absolute inset-0 rounded-full opacity-20"
-                      style={{ background: GRADIENT.brand }}
+                      className="absolute inset-0 rounded-full bg-[#FF0033]/15"
                     />
                   )}
                   
                   {/* Icon Only */}
                   <div 
                     className={`relative transition-all duration-300 ${
-                      active ? 'transform scale-110' : 'opacity-50 hover:opacity-80'
+                      active ? 'transform scale-110' : 'opacity-40 hover:opacity-80'
                     }`}
                   >
                     <Icon 
-                      size={22} 
+                      size={20} 
                       style={{ 
-                        color: active ? BRAND.gold : 'white',
-                        filter: active ? `drop-shadow(0 0 10px ${BRAND.gold}60)` : 'none'
+                        color: active ? '#FF0033' : 'white',
+                        filter: active ? 'drop-shadow(0 0 8px rgba(255, 0, 51, 0.7))' : 'none'
                       }}
                     />
                   </div>
@@ -138,16 +125,26 @@ const MobileBottomNav = () => {
                   {/* Active Indicator Dot */}
                   {active && (
                     <div 
-                      className="absolute -bottom-0.5 w-1.5 h-1.5 rounded-full"
-                      style={{ 
-                        background: BRAND.gold,
-                        boxShadow: `0 0 10px ${BRAND.gold}`
-                      }}
+                      className="absolute -bottom-0.5 w-1.5 h-1.5 rounded-full bg-[#FF0033] shadow-[0_0_8px_#FF0033]"
                     />
                   )}
                 </Link>
               );
             })}
+
+            {/* External link to yenege.events */}
+            <a
+              href="https://yenege.events"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center relative p-2.5 rounded-full opacity-70 hover:opacity-100 text-white hover:text-[#FF0033] transition-all"
+              title="yenege.events"
+              aria-label="yenege.events"
+            >
+              <span className="text-[10px] font-black tracking-tighter text-[#FF0033] border border-[#FF0033]/60 px-1.5 py-0.5 rounded-full">
+                .EVENTS
+              </span>
+            </a>
           </div>
         </div>
       </nav>

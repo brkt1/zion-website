@@ -189,11 +189,19 @@ const Gallery = () => {
   }, [activeIndex, galleryItems, imagesLoaded]);
 
   return (
-    <section className="gallery-section py-20 bg-gray-50">
+    <section className="gallery-section py-20 bg-black text-white border-t border-b border-white/10">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">{t.gallery.title}</h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/5 border border-white/10 mb-3">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#FF0033] shadow-[0_0_8px_#FF0033]" />
+            <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#FF0033]">
+              Portfolio & Visuals
+            </span>
+          </div>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white mb-3 tracking-tight">
+            {t.gallery.title}
+          </h2>
+          <p className="text-sm text-white/60 max-w-2xl mx-auto leading-relaxed">
             {t.gallery.subtitle}
           </p>
         </div>

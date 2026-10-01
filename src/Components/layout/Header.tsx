@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import {
-    FaEnvelope,
-    FaInstagram,
-    FaLinkedin,
-    FaPhoneAlt,
-    FaTelegramPlane,
-    FaTiktok,
-    FaWhatsapp
+  FaBriefcase,
+  FaEnvelope,
+  FaExternalLinkAlt,
+  FaInstagram,
+  FaLinkedin,
+  FaPhoneAlt,
+  FaTelegramPlane,
+  FaTiktok,
+  FaWhatsapp
 } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
 import { useLanguage } from "../../contexts/LanguageContext";
@@ -15,7 +17,6 @@ import { handleLinkHover } from "../../utils/prefetch";
 import OptimizedImage from "../ui/OptimizedImage";
 
 const Header = () => {
-
   const { contactInfo } = useContactInfo();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isScrolledDown, setIsScrolledDown] = useState(false);
@@ -90,10 +91,10 @@ const Header = () => {
       aria-label="Site header"
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         isScrolled
-          ? "bg-[#0F172A]/95 backdrop-blur-xl shadow-lg"
+          ? "bg-black/95 backdrop-blur-xl border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.8)]"
           : isHomePage
-          ? "bg-[#0F172A]/80 backdrop-blur-md md:bg-transparent"
-          : "bg-[#0F172A]/95 backdrop-blur-xl border-b border-white/10"
+          ? "bg-black/60 backdrop-blur-md md:bg-transparent"
+          : "bg-black/95 backdrop-blur-xl border-b border-white/10"
       } ${
         isHomePage && isScrolledDown ? "md:translate-y-0 -translate-y-full" : "translate-y-0"
       }`}
@@ -102,51 +103,66 @@ const Header = () => {
       <div 
         className={`hidden md:block transition-colors duration-500 border-b ${
           isHomePage && !isScrolled
-            ? "bg-white/10 border-white/20 text-white" 
-            : "bg-[#0F172A] border-transparent text-white"
+            ? "bg-black/40 border-white/10 text-white" 
+            : "bg-[#050505] border-white/5 text-white"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-10 flex items-center justify-between text-xs font-semibold tracking-wide">
-          <div className="flex items-center gap-6 opacity-90">
-            <a href={`mailto:${contactEmail}`} className="flex items-center gap-2 hover:text-[#FFD447] transition-colors">
-              <FaEnvelope size={12} />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-9 flex items-center justify-between text-xs font-medium tracking-wide">
+          <div className="flex items-center gap-6 opacity-80">
+            <a href={`mailto:${contactEmail}`} className="flex items-center gap-2 hover:text-[#FF0033] transition-colors">
+              <FaEnvelope size={11} className="text-[#FF0033]" />
               {contactEmail}
             </a>
-            <a href={`tel:${contactPhone}`} className="flex items-center gap-2 hover:text-[#FFD447] transition-colors">
-              <FaPhoneAlt size={12} />
+            <a href={`tel:${contactPhone}`} className="flex items-center gap-2 hover:text-[#FF0033] transition-colors">
+              <FaPhoneAlt size={11} className="text-[#FF0033]" />
               {contactPhone}
             </a>
           </div>
           
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-4">
+            {/* Direct Portal Highlights */}
+            <a 
+              href="https://yenege.events" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-[11px] font-bold text-white hover:text-[#FF0033] transition-colors"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FF0033] animate-pulse" />
+              <span>yenege.events</span>
+              <FaExternalLinkAlt size={9} className="opacity-70" />
+            </a>
+
+            <div className="w-px h-3 bg-white/15"></div>
+
+            {/* Language toggle */}
             <button 
               onClick={toggleLanguage}
               title="Switch Language (አማርኛ / English / Afaan Oromoo)"
-              className="px-3 py-1 rounded-full border border-white/20 hover:bg-white/10 transition-all text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5"
+              className="px-2.5 py-0.5 rounded-full border border-white/15 hover:border-white/40 transition-all text-[10px] font-bold uppercase tracking-wider flex items-center gap-1"
             >
-              <span className={language === 'am' ? 'text-[#FFD447] font-black' : 'text-white/60'}>አማ</span>
+              <span className={language === 'am' ? 'text-[#FF0033] font-black' : 'text-white/60'}>አማ</span>
               <div className="w-px h-2 bg-white/20"></div>
-              <span className={language === 'en' ? 'text-[#FFD447] font-black' : 'text-white/60'}>EN</span>
+              <span className={language === 'en' ? 'text-[#FF0033] font-black' : 'text-white/60'}>EN</span>
               <div className="w-px h-2 bg-white/20"></div>
-              <span className={language === 'om' ? 'text-[#FFD447] font-black' : 'text-white/60'}>OM</span>
+              <span className={language === 'om' ? 'text-[#FF0033] font-black' : 'text-white/60'}>OM</span>
             </button>
-            <div className="w-px h-4 bg-white/20 mx-1"></div>
-            <a href={waLink} target="_blank" rel="noopener noreferrer" className="hover:text-[#25D366] transition-colors flex items-center gap-1">
-              <FaWhatsapp size={14} /> {t.header.wa}
+            <div className="w-px h-3 bg-white/15"></div>
+            <a href={waLink} target="_blank" rel="noopener noreferrer" className="hover:text-[#FF0033] transition-colors flex items-center gap-1">
+              <FaWhatsapp size={13} /> {t.header.wa}
             </a>
-            <div className="w-px h-4 bg-white/20 mx-1"></div>
+            <div className="w-px h-3 bg-white/15"></div>
             {/* Social Icons */}
-            <a href="https://instagram.com/yenege_event" target="_blank" rel="noopener noreferrer" className="hover:text-[#FFD447] transition-colors" aria-label="Instagram">
-              <FaInstagram size={14} />
+            <a href="https://instagram.com/yenege_event" target="_blank" rel="noopener noreferrer" className="hover:text-[#FF0033] transition-colors" aria-label="Instagram">
+              <FaInstagram size={13} />
             </a>
-            <a href="https://t.me/yenegeevents" target="_blank" rel="noopener noreferrer" className="hover:text-[#FFD447] transition-colors" aria-label="Telegram">
-              <FaTelegramPlane size={14} />
+            <a href="https://t.me/yenegeevents" target="_blank" rel="noopener noreferrer" className="hover:text-[#FF0033] transition-colors" aria-label="Telegram">
+              <FaTelegramPlane size={13} />
             </a>
-            <a href="https://tiktok.com/@yenegeevents" target="_blank" rel="noopener noreferrer" className="hover:text-[#FFD447] transition-colors" aria-label="TikTok">
-              <FaTiktok size={14} />
+            <a href="https://tiktok.com/@yenegeevents" target="_blank" rel="noopener noreferrer" className="hover:text-[#FF0033] transition-colors" aria-label="TikTok">
+              <FaTiktok size={13} />
             </a>
-            <a href="https://linkedin.com/company/yenegeevents" target="_blank" rel="noopener noreferrer" className="hover:text-[#FFD447] transition-colors" aria-label="LinkedIn">
-              <FaLinkedin size={14} />
+            <a href="https://linkedin.com/company/yenegeevents" target="_blank" rel="noopener noreferrer" className="hover:text-[#FF0033] transition-colors" aria-label="LinkedIn">
+              <FaLinkedin size={13} />
             </a>
           </div>
         </div>
@@ -154,7 +170,7 @@ const Header = () => {
 
       {/* ── Main Navbar ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 md:h-24">
+        <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link
             to="/"
@@ -171,7 +187,7 @@ const Header = () => {
               responsive={true}
               sizes="(max-width: 768px) 44px, 56px"
               fallback="/logo.png"
-              className="h-10 md:h-14 w-auto transition-all duration-500 brightness-0 invert"
+              className="h-9 md:h-12 w-auto transition-all duration-500 brightness-0 invert"
             />
           </Link>
 
@@ -179,7 +195,7 @@ const Header = () => {
           <nav 
             role="navigation"
             aria-label="Main navigation"
-            className="hidden md:flex items-center gap-8"
+            className="hidden md:flex items-center gap-7"
           >
             {navLinks.map((link) => (
               <Link
@@ -187,7 +203,7 @@ const Header = () => {
                 to={link.path}
                 onMouseEnter={() => handleLinkHover(link.path)}
                 aria-current={isActive(link.path) ? "page" : undefined}
-                className={`relative text-sm font-semibold tracking-wide transition-all duration-300 ${
+                className={`relative text-xs uppercase tracking-[0.18em] font-semibold transition-all duration-300 py-1 ${
                   (link as any).className || (
                     isActive(link.path)
                       ? "text-white"
@@ -198,31 +214,58 @@ const Header = () => {
                 <span className="relative z-10">{link.label}</span>
                 {isActive(link.path) && (
                   <span
-                    className="absolute -bottom-1 left-0 right-0 h-0.5 rounded-full transition-all duration-300 bg-[#FFD447]"
+                    className="absolute -bottom-1 left-0 right-0 h-0.5 rounded-full transition-all duration-300 bg-[#FF0033] shadow-[0_0_10px_#FF0033]"
                   />
                 )}
                 {!isActive(link.path) && (
                   <span
-                    className="absolute -bottom-1 left-0 right-0 h-0.5 scale-x-0 rounded-full transition-transform duration-300 origin-left bg-[#FFD447]"
+                    className="absolute -bottom-1 left-0 right-0 h-0.5 scale-x-0 rounded-full transition-transform duration-300 origin-left bg-[#FF0033]"
                   />
                 )}
               </Link>
             ))}
           </nav>
 
-          {/* Mobile Embedded Language Switcher */}
-          <div className="flex md:hidden items-center gap-2">
-            <button 
-              onClick={toggleLanguage}
-              title="Switch Language (አማርኛ / English / Afaan Oromoo)"
-              className="px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 text-white active:scale-95 transition-all"
+          {/* CTAs: Discover Events on yenege.events & EventJobs */}
+          <div className="flex items-center gap-2.5">
+            {/* EventJobs Link */}
+            <a
+              href="https://yenege.events"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/20 hover:border-white text-white text-[11px] font-bold tracking-wider uppercase transition-all duration-300 hover:bg-white/10"
+              title="Find Event Jobs & Crews on yenege.events"
             >
-              <span className={language === 'am' ? 'text-[#FFD447] font-black' : 'text-white/60'}>አማ</span>
-              <div className="w-px h-2.5 bg-white/30"></div>
-              <span className={language === 'en' ? 'text-[#FFD447] font-black' : 'text-white/60'}>EN</span>
-              <div className="w-px h-2.5 bg-white/30"></div>
-              <span className={language === 'om' ? 'text-[#FFD447] font-black' : 'text-white/60'}>OM</span>
-            </button>
+              <FaBriefcase size={10} className="text-[#FF0033]" />
+              <span>EventJobs</span>
+            </a>
+
+            {/* yenege.events Discover Button */}
+            <a
+              href="https://yenege.events"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#FF0033] hover:bg-[#E5002D] text-white text-[11px] sm:text-xs font-extrabold tracking-wider uppercase transition-all duration-300 shadow-[0_0_20px_rgba(255,0,51,0.35)] hover:shadow-[0_0_30px_rgba(255,0,51,0.6)] active:scale-95"
+              title="Discover All Events on yenege.events"
+            >
+              <span>yenege.events</span>
+              <FaExternalLinkAlt size={10} />
+            </a>
+
+            {/* Mobile Embedded Language Switcher */}
+            <div className="flex md:hidden items-center ml-1">
+              <button 
+                onClick={toggleLanguage}
+                title="Switch Language (አማርኛ / English / Afaan Oromoo)"
+                className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 backdrop-blur-md text-[10px] font-black uppercase tracking-wider flex items-center gap-1 text-white active:scale-95 transition-all"
+              >
+                <span className={language === 'am' ? 'text-[#FF0033] font-black' : 'text-white/60'}>አማ</span>
+                <div className="w-px h-2 bg-white/30"></div>
+                <span className={language === 'en' ? 'text-[#FF0033] font-black' : 'text-white/60'}>EN</span>
+                <div className="w-px h-2 bg-white/30"></div>
+                <span className={language === 'om' ? 'text-[#FF0033] font-black' : 'text-white/60'}>OM</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -231,3 +274,4 @@ const Header = () => {
 };
 
 export default Header;
+

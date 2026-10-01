@@ -120,31 +120,38 @@ const Hero: React.FC = () => {
 
           {/* CTA Buttons */}
           <div className="hero-cta-buttons">
-            {homeContent?.cta?.buttons && homeContent.cta.buttons.length > 0 ? (
-              homeContent.cta.buttons.map((button, index) => (
-                <Link
-                  key={index}
-                  to={button.link}
-                  className={`cta-button ${
-                    button.type === "primary" ? "cta-primary" : "cta-secondary"
-                  }`}
-                >
-                  <span>{button.text}</span>
-                  <FaArrowRight className="cta-icon" />
-                </Link>
-              ))
-            ) : (
-              <>
-                <Link to="/events" className="cta-button cta-primary">
-                  <span>{t.hero.exploreEvents}</span>
-                  <FaArrowRight className="cta-icon" />
-                </Link>
-                <Link to="/contact" className="cta-button cta-secondary">
-                  <span>{t.hero.contactWa}</span>
-                  <FaArrowRight className="cta-icon" />
-                </Link>
-              </>
-            )}
+            {/* Primary: yenege.events */}
+            <a
+              href="https://yenege.events"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="cta-button cta-primary"
+              title="Discover All Events on yenege.events"
+            >
+              <span>{language === 'am' ? 'ኢቨንቶችን በ yenege.events ይመልከቱ' : 'Discover on yenege.events'}</span>
+              <FaArrowRight className="cta-icon" />
+            </a>
+
+            {/* Secondary: EventJobs */}
+            <a
+              href="https://yenege.events"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="cta-button cta-secondary"
+              title="EventJobs Portal on yenege.events"
+            >
+              <span>{language === 'am' ? 'የኢቨንት ስራዎች (EventJobs)' : 'EventJobs Portal'}</span>
+              <FaArrowRight className="cta-icon" />
+            </a>
+
+            {/* Tertiary: Masterclass */}
+            <Link
+              to="/masterclass"
+              className="cta-button cta-secondary hidden sm:inline-flex"
+            >
+              <span>{language === 'am' ? 'ማስተርክላስ አካደሚ' : 'Academy Masterclass'}</span>
+              <FaArrowRight className="cta-icon" />
+            </Link>
           </div>
 
         </div>

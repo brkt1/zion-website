@@ -15,41 +15,40 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // YENEGE Primary Colors
-        'yenege-yellow': '#FFD447',      // Yenege Sunrise Yellow - Brand Happiness
-        'indigo-deep': '#1C2951',        // Deep Indigo Blue - Professional + Futuristic
+        // Pure White / Black / Red Theme
+        'yenege-red': '#FF0033',         // Pure Electric Red
+        'yenege-yellow': '#FF0033',      // Remapped to Red for legacy classes
+        'indigo-deep': '#000000',        // Pure Black
+        'coral-orange': '#FF1E27',       // Accent Red
+        'purple-electric': '#FF0033',    // Remapped to Red
+        'teal-breeze': '#FF0033',        // Remapped to Red
+        'soft-white': '#FFFFFF',         // Pure White
+        'space-grey': '#0A0A0A',         // Surface Black
         
-        // YENEGE Secondary Colors
-        'coral-orange': '#FF6F5E',       // Vibrant Coral Orange - Energy, fun, movement
-        'purple-electric': '#7B5CFF',    // Electric Purple - Futuristic, youth culture
-        'teal-breeze': '#3CCFCF',        // Teal Breeze - Travel, calming balance
-        
-        // YENEGE Neutral Colors
-        'soft-white': '#F7F7F9',         // Soft White - Clean, minimal, futuristic
-        'space-grey': '#202124',         // Space Grey - Contrast & elegance
-        
-        // Legacy colors (kept for backward compatibility)
-        'black-primary': '#0a0a0a',
-        'black-secondary': '#1a1a1a',
-        'gray-dark': '#2a2a2a',
-        'gray-medium': '#3a3a3a',
-        'gray-light': '#6a6a6a',
-        'gold-primary': '#FFD447',       // Mapped to Yenege Yellow
-        'gold-secondary': '#FFD447',
-        'blue-primary': '#1C2951',       // Mapped to Deep Indigo
-        'blue-secondary': '#1C2951',
-        'green-primary': '#10b981',
-        'green-secondary': '#059669',
-        'red-primary': '#ef4444',
-        'red-secondary': '#dc2626',
-        'purple-primary': '#7B5CFF',     // Mapped to Electric Purple
-        'purple-secondary': '#7B5CFF',
-        'pink-primary': '#ec4899',
-        'pink-secondary': '#db2777',
-        'orange-primary': '#FF6F5E',     // Mapped to Coral Orange
-        'orange-secondary': '#FF6F5E',
-        'yellow-primary': '#FFD447',     // Mapped to Yenege Yellow
-        'yellow-secondary': '#FFD447'
+        // Semantic Tokens
+        'black-primary': '#000000',
+        'black-secondary': '#0A0A0A',
+        'black-card': '#111111',
+        'black-border': 'rgba(255, 255, 255, 0.1)',
+        'gray-dark': '#141414',
+        'gray-medium': '#262626',
+        'gray-light': '#A3A3A3',
+        'gold-primary': '#FF0033',
+        'gold-secondary': '#FF0033',
+        'blue-primary': '#000000',
+        'blue-secondary': '#0A0A0A',
+        'green-primary': '#FF0033',
+        'green-secondary': '#CC0029',
+        'red-primary': '#FF0033',
+        'red-secondary': '#CC0029',
+        'purple-primary': '#FF0033',
+        'purple-secondary': '#CC0029',
+        'pink-primary': '#FF0033',
+        'pink-secondary': '#CC0029',
+        'orange-primary': '#FF0033',
+        'orange-secondary': '#CC0029',
+        'yellow-primary': '#FF0033',
+        'yellow-secondary': '#CC0029'
       },
       fontFamily: {
         'sans': ['Inter', 'Nunito', 'system-ui', 'sans-serif'],

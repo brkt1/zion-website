@@ -198,12 +198,12 @@ const MasterclassRegistration: React.FC = () => {
     }
   };
 
-  const yenegeYellow = "#FFD447";
-  const coralOrange = "#FF6F5E";
-  const indigoDeep = "#1C2951";
+  const yenegeYellow = "#FF0033";
+  const coralOrange = "#FF0033";
+  const indigoDeep = "#000000";
 
-  const inputClasses = "w-full bg-white/[0.04] border border-white/[0.08] rounded-2xl pl-12 pr-4 py-3.5 text-white focus:border-[#FFD447]/80 focus:bg-white/[0.08] focus:ring-4 focus:ring-[#FFD447]/10 outline-none transition-all duration-300 placeholder:text-slate-500 font-sans hover:border-white/20 hover:bg-white/[0.06] text-sm";
-  const selectClasses = "w-full bg-white/[0.04] border border-white/[0.08] rounded-2xl pl-12 pr-10 py-3.5 text-white focus:border-[#FFD447]/80 focus:bg-white/[0.08] focus:ring-4 focus:ring-[#FFD447]/10 outline-none transition-all duration-300 font-sans hover:border-white/20 appearance-none text-sm";
+  const inputClasses = "w-full bg-white/[0.04] border border-white/[0.08] rounded-2xl pl-12 pr-4 py-3.5 text-white focus:border-[#FF0033]/80 focus:bg-white/[0.08] focus:ring-4 focus:ring-[#FF0033]/10 outline-none transition-all duration-300 placeholder:text-white/60 font-sans hover:border-white/20 hover:bg-white/[0.06] text-sm";
+  const selectClasses = "w-full bg-white/[0.04] border border-white/[0.08] rounded-2xl pl-12 pr-10 py-3.5 text-white focus:border-[#FF0033]/80 focus:bg-white/[0.08] focus:ring-4 focus:ring-[#FF0033]/10 outline-none transition-all duration-300 font-sans hover:border-white/20 appearance-none text-sm";
   const labelClasses = "block text-[10px] uppercase tracking-[0.3em] font-black text-slate-400 mb-2 font-sans";
 
   const stepLabels = language === 'am' 
@@ -220,7 +220,7 @@ const MasterclassRegistration: React.FC = () => {
     .font-sans  { font-family: 'Inter', sans-serif; }
 
     .reg-bg {
-      background: #050C1A;
+      background: #000000;
       min-height: 100vh;
       position: relative;
     }
@@ -237,15 +237,15 @@ const MasterclassRegistration: React.FC = () => {
     }
 
     .text-gold-gradient {
-      background: linear-gradient(135deg, #FFD447 0%, #FFB347 50%, #FF6F5E 100%);
+      background: linear-gradient(135deg, #FF0033 0%, #FF0033 50%, #FF0033 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
 
     .glow-button-amber {
-      background: linear-gradient(135deg, #FFD447 0%, #FF9A3C 50%, #FF6F5E 100%);
-      color: #0B0F19;
+      background: linear-gradient(135deg, #FF0033 0%, #FF0033 50%, #FF0033 100%);
+      color: #000000;
       font-weight: 900;
       box-shadow: 0 0 0 1px rgba(255,212,71,0.4), 0 8px 32px rgba(255,212,71,0.25), 0 2px 8px rgba(255,111,94,0.2);
       transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
@@ -306,7 +306,7 @@ const MasterclassRegistration: React.FC = () => {
       position: absolute;
       inset: -4px;
       border-radius: 50%;
-      border: 2px solid #FFD447;
+      border: 2px solid #FF0033;
       animation: pulse-ring 2s ease-out infinite;
     }
 
@@ -315,12 +315,12 @@ const MasterclassRegistration: React.FC = () => {
       bottom: 0; left: 0;
       height: 2px;
       width: 0%;
-      background: linear-gradient(90deg, #FFD447, #FF6F5E);
+      background: linear-gradient(90deg, #FF0033, #FF0033);
       border-radius: 0 0 12px 12px;
       transition: width 0.3s ease;
     }
     .input-wrapper:focus-within .input-focus-line { width: 100%; }
-    .input-wrapper:focus-within > svg { color: #FFD447 !important; }
+    .input-wrapper:focus-within > svg { color: #FF0033 !important; }
 
     .step-pill {
       transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
@@ -340,50 +340,50 @@ const MasterclassRegistration: React.FC = () => {
     const tgUrl = `https://t.me/Yenegeevent?text=${encodeURIComponent(telegramText)}`;
 
     return (
-      <div className="bg-luxury min-h-screen text-slate-900 flex items-center justify-center p-6 font-sans">
+      <div className="bg-black min-h-screen text-white flex items-center justify-center p-6 font-sans">
         <style>{sharedStyles}</style>
-        <div className="max-w-xl w-full glass-vivid-light p-8 md:p-14 rounded-[3rem] text-center relative z-10 animate-step space-y-6">
-          <div className="w-20 h-20 bg-gradient-to-br from-amber-400 to-amber-600 text-white rounded-full flex items-center justify-center mx-auto shadow-2xl shadow-amber-500/20">
+        <div className="max-w-xl w-full bg-[#0A0A0A] border border-white/10 p-8 md:p-14 rounded-[3rem] text-center relative z-10 animate-step space-y-6">
+          <div className="w-20 h-20 bg-[#FF0033] text-white rounded-full flex items-center justify-center mx-auto shadow-2xl shadow-[#FF0033]/30">
             <FiCheckCircle size={40} />
           </div>
-          <h2 className="font-serif text-3xl md:text-4xl italic tracking-tight text-slate-900 text-gold-gradient">Registration Received!</h2>
-          <p className="text-slate-500 leading-relaxed font-medium text-sm">
-            Thank you for submitting your <span className="text-slate-900 font-bold">Event Industry Interest &amp; Registration Form</span>. Payment instructions and options will be shared with you by our admissions team upon review.
+          <h2 className="font-serif text-3xl md:text-4xl italic tracking-tight text-white">Registration Received!</h2>
+          <p className="text-white/60 leading-relaxed font-medium text-sm">
+            Thank you for submitting your <span className="text-white font-bold">Event Industry Interest &amp; Registration Form</span>. Payment instructions and options will be shared with you by our admissions team upon review.
           </p>
 
           {/* Email Notification Dispatch Card */}
-          <div className="bg-emerald-900/90 text-white p-5 rounded-2xl text-left space-y-2.5 border border-emerald-700/50 shadow-lg">
-            <div className="flex items-center justify-between border-b border-emerald-700/50 pb-2">
-              <span className="text-xs text-emerald-300 font-black uppercase tracking-wider flex items-center gap-1.5">
+          <div className="bg-[#0A0A0A] text-white p-5 rounded-2xl text-left space-y-2.5 border border-white/10 shadow-lg">
+            <div className="flex items-center justify-between border-b border-white/10 pb-2">
+              <span className="text-xs text-[#FF0033] font-black uppercase tracking-wider flex items-center gap-1.5">
                 ✉️ Registration Confirmation Email Dispatched
               </span>
-              <span className="text-[10px] font-mono bg-emerald-800/80 text-emerald-200 px-2 py-0.5 rounded-md">Verified</span>
+              <span className="text-[10px] font-mono bg-[#FF0033]/20 text-[#FF0033] px-2 py-0.5 rounded-md">Verified</span>
             </div>
-            <p className="text-xs text-emerald-100/90 leading-relaxed font-medium">
+            <p className="text-xs text-white/70 leading-relaxed font-medium">
               An official registration receipt and schedule details have been dispatched to <strong className="text-white underline">{formData.email}</strong>.
             </p>
             <a 
               href={`mailto:${formData.email}?subject=${encodeURIComponent(`Yenege Masterclass Registration Confirmation — ${formData.name}`)}&body=${encodeURIComponent(`Dear ${formData.name},\n\nThank you for registering for the Yenege Masterclass!\n\nRegistration Summary:\nName: ${formData.name}\nPhone: ${formData.phone}\nSchedule: ${formData.preferred_schedule}\nFormat: ${formData.learning_mode}\nTuition Fee: ${calculateFee().toLocaleString()} ETB\n\nAdmissions Team\nYenege Academy`)}`}
-              className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold rounded-xl text-[11px] uppercase tracking-wider transition-all"
+              className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-white hover:bg-white/90 text-black font-extrabold rounded-xl text-[11px] uppercase tracking-wider transition-all"
             >
               <span>📩 View Confirmation Email Receipt</span>
             </a>
           </div>
 
           {/* Telegram Submission Card */}
-          <div className="bg-[#1C2951] text-white p-6 rounded-2xl text-left space-y-3">
+          <div className="bg-[#000000] text-white p-6 rounded-2xl text-left space-y-3">
             <div className="flex items-center justify-between border-b border-white/10 pb-2">
-              <span className="text-xs text-amber-400 font-black uppercase tracking-wider">Telegram Submission</span>
+              <span className="text-xs text-[#FF0033] font-black uppercase tracking-wider">Telegram Submission</span>
               <span className="text-xs font-bold text-white/80">@Yenegeevent</span>
             </div>
             <p className="text-xs text-white/70 leading-relaxed">
-              Final info has been prepared for the telegram account of <strong className="text-amber-300">@Yenegeevent</strong>. Click below to open Telegram and send your registration details directly.
+              Final info has been prepared for the telegram account of <strong className="text-white">@Yenegeevent</strong>. Click below to open Telegram and send your registration details directly.
             </p>
             <a 
               href={tgUrl} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 w-full py-3.5 px-4 bg-sky-500 hover:bg-sky-400 text-white font-black rounded-xl text-xs uppercase tracking-wider shadow-lg transition-all"
+              className="inline-flex items-center justify-center gap-2 w-full py-3.5 px-4 bg-[#FF0033] hover:bg-[#D9002C] text-white font-black rounded-xl text-xs uppercase tracking-wider shadow-lg transition-all"
             >
               <span>✈️ Open &amp; Send to Telegram @Yenegeevent</span>
             </a>
@@ -392,7 +392,7 @@ const MasterclassRegistration: React.FC = () => {
           <div className="pt-2 flex justify-center gap-4">
             <Link
               to="/masterclass"
-              className="group relative inline-flex items-center gap-3 bg-slate-900 text-white px-8 py-3.5 rounded-full font-black text-xs hover:scale-105 transition-all shadow-xl"
+              className="group relative inline-flex items-center gap-3 bg-white/10 hover:bg-white/20 text-white border border-white/15 px-8 py-3.5 rounded-full font-black text-xs hover:scale-105 transition-all shadow-xl"
             >
               <span className="tracking-widest uppercase">Back to Program</span>
               <FiArrowLeft className="group-hover:-translate-x-1 transition-transform" />
@@ -404,7 +404,7 @@ const MasterclassRegistration: React.FC = () => {
   }
 
   return (
-    <div className="reg-bg text-white pb-28 font-sans selection:bg-[#FFD447] selection:text-[#0B0F19] relative z-0">
+    <div className="reg-bg text-white pb-28 font-sans selection:bg-[#FF0033] selection:text-[#000000] relative z-0">
       <style>{sharedStyles}</style>
 
       {/* Navigation Header */}
@@ -414,8 +414,8 @@ const MasterclassRegistration: React.FC = () => {
             <FiArrowLeft size={14} />
           </Link>
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#FFD447] to-[#FF6F5E] flex items-center justify-center">
-              <span className="text-[8px] font-black text-[#0B0F19]">Y</span>
+            <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#FF0033] to-[#FF0033] flex items-center justify-center">
+              <span className="text-[8px] font-black text-[#000000]">Y</span>
             </div>
             <span className="font-black tracking-wider text-white/90 text-xs uppercase">Yenege Academy</span>
           </div>
@@ -424,20 +424,20 @@ const MasterclassRegistration: React.FC = () => {
           onClick={toggleLanguage}
           className="glass-card rounded-2xl px-3 py-2 text-[10px] font-black uppercase tracking-widest flex items-center gap-2 text-white/70 hover:text-white transition-all active:scale-95 shadow-lg"
         >
-          <span className={language === 'am' ? 'text-[#FFD447]' : ''}>አማ</span>
+          <span className={language === 'am' ? 'text-[#FF0033]' : ''}>አማ</span>
           <span className="text-white/20">·</span>
-          <span className={language === 'en' ? 'text-[#FFD447]' : ''}>EN</span>
+          <span className={language === 'en' ? 'text-[#FF0033]' : ''}>EN</span>
           <span className="text-white/20">·</span>
-          <span className={language === 'om' ? 'text-[#FFD447]' : ''}>OM</span>
+          <span className={language === 'om' ? 'text-[#FF0033]' : ''}>OM</span>
         </button>
       </nav>
 
       {/* Hero Header */}
       <div className="relative z-10 pt-24 sm:pt-28 pb-6 px-4 sm:px-6 text-center max-w-2xl mx-auto">
         {/* Eyebrow badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-card border border-[#FFD447]/20 mb-5">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#FFD447] shadow-[0_0_6px_#FFD447]" />
-          <span className="text-[#FFD447] text-[10px] font-black uppercase tracking-[0.3em]">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-card border border-[#FF0033]/20 mb-5">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#FF0033] shadow-[0_0_6px_#FF0033]" />
+          <span className="text-[#FF0033] text-[10px] font-black uppercase tracking-[0.3em]">
             {language === 'am' ? 'ነፃ ምዝገባ · Yenege Masterclass' : language === 'om' ? 'Galmee Bilisaa · Yenege Masterclass' : 'Free Enrollment · Yenege Masterclass'}
           </span>
         </div>
@@ -473,10 +473,10 @@ const MasterclassRegistration: React.FC = () => {
                   }}
                   className={`step-pill flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition-all ${
                     isCompleted
-                      ? 'bg-[#FFD447]/15 text-[#FFD447] border border-[#FFD447]/20'
+                      ? 'bg-[#FF0033]/15 text-[#FF0033] border border-[#FF0033]/20'
                       : isActive
-                        ? 'bg-gradient-to-r from-[#FFD447] to-[#FF9A3C] text-[#0B0F19] font-black shadow-lg shadow-[#FFD447]/20'
-                        : 'text-slate-500 hover:text-slate-300'
+                        ? 'bg-gradient-to-r from-[#FF0033] to-[#FF0033] text-[#000000] font-black shadow-lg shadow-[#FF0033]/20'
+                        : 'text-white/60 hover:text-slate-300'
                   }`}
                 >
                   {isCompleted ? <FiCheck size={12} strokeWidth={3} /> : <span className="text-sm">{stepIcons[step - 1]}</span>}
@@ -494,7 +494,7 @@ const MasterclassRegistration: React.FC = () => {
                   strokeDasharray={`${2 * Math.PI * 16}`}
                   strokeDashoffset={`${2 * Math.PI * 16 * (1 - (currentStep - 1) / 4)}`}
                   strokeLinecap="round" style={{transition: 'stroke-dashoffset 0.5s ease'}} />
-                <defs><linearGradient id="gold" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#FFD447"/><stop offset="100%" stopColor="#FF6F5E"/></linearGradient></defs>
+                <defs><linearGradient id="gold" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#FF0033"/><stop offset="100%" stopColor="#FF0033"/></linearGradient></defs>
               </svg>
               <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-white">{currentStep}/5</span>
             </div>
@@ -509,8 +509,8 @@ const MasterclassRegistration: React.FC = () => {
         {/* Form Wizard Container */}
         <div className="glass-card rounded-[2rem] p-5 sm:p-8 relative overflow-hidden" style={{boxShadow: '0 0 0 1px rgba(255,212,71,0.08), 0 25px 60px rgba(0,0,0,0.5), 0 0 80px rgba(255,212,71,0.05)'}}>
           {/* Decorative gold corner accent */}
-          <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-[#FFD447]/8 via-[#FF9A3C]/4 to-transparent rounded-[2rem] pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-[#FF6F5E]/6 to-transparent rounded-[2rem] pointer-events-none" />
+          <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-[#FF0033]/8 via-[#FF0033]/4 to-transparent rounded-[2rem] pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-[#FF0033]/6 to-transparent rounded-[2rem] pointer-events-none" />
           
           {submissionError && (
             <div className="mb-5 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold flex items-center gap-2">
@@ -620,7 +620,7 @@ const MasterclassRegistration: React.FC = () => {
                           }}
                           className={`choice-btn py-3 rounded-2xl border text-center font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 ${
                             isSelected
-                              ? 'selected bg-[#FFD447]/10 text-[#FFD447]'
+                              ? 'selected bg-[#FF0033]/10 text-[#FF0033]'
                               : 'bg-white/[0.03] border-white/[0.08] hover:border-white/20 text-slate-400'
                           }`}
                         >
@@ -713,8 +713,8 @@ const MasterclassRegistration: React.FC = () => {
                         }}
                         className={`p-4 rounded-2xl border text-left transition-all duration-300 flex items-center gap-3 ${
                           isSelected
-                            ? 'border-[#FFD447] bg-[#FFD447]/10 text-white ring-[4px] ring-[#FFD447]/10 font-bold shadow-md'
-                            : 'border-white/10 bg-[#1E293B]/60 hover:bg-[#1E293B] text-slate-300'
+                            ? 'border-[#FF0033] bg-[#FF0033]/10 text-white ring-[4px] ring-[#FF0033]/10 font-bold shadow-md'
+                            : 'border-white/10 bg-[#0A0A0A]/60 hover:bg-[#0A0A0A] text-slate-300'
                         }`}
                       >
                         <span className="text-xl">{icon}</span>
@@ -756,15 +756,15 @@ const MasterclassRegistration: React.FC = () => {
                         }}
                         className={`w-full p-4 rounded-2xl border text-left transition-all duration-300 flex items-center justify-between ${
                           isSelected
-                            ? 'border-[#FFD447] bg-[#FFD447]/10 ring-[4px] ring-[#FFD447]/10 shadow-md'
-                            : 'border-white/10 bg-[#1E293B]/60 hover:bg-[#1E293B]'
+                            ? 'border-[#FF0033] bg-[#FF0033]/10 ring-[4px] ring-[#FF0033]/10 shadow-md'
+                            : 'border-white/10 bg-[#0A0A0A]/60 hover:bg-[#0A0A0A]'
                         }`}
                       >
                         <div className="space-y-1">
                           <div className="flex flex-wrap items-center gap-2">
                             <p className="text-xs font-extrabold text-white">{label}</p>
                             {eth && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#FFD447]/20 text-[#FFD447] font-black text-[10px] border border-[#FFD447]/30">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#FF0033]/20 text-[#FF0033] font-black text-[10px] border border-[#FF0033]/30">
                                 🇪🇹 {eth.formattedAmharic} ({eth.formattedEnglish})
                               </span>
                             )}
@@ -772,7 +772,7 @@ const MasterclassRegistration: React.FC = () => {
                           <p className="text-[10px] text-slate-400 font-medium">{time}</p>
                         </div>
                         <div className={`w-5 h-5 rounded-full flex items-center justify-center border transition-all ${
-                          isSelected ? 'bg-[#FFD447] border-[#FFD447] text-[#1C2951]' : 'border-white/20'
+                          isSelected ? 'bg-[#FF0033] border-[#FF0033] text-[#000000]' : 'border-white/20'
                         }`}>
                           {isSelected && <FiCheck size={12} className="stroke-[3px]" />}
                         </div>
@@ -799,7 +799,7 @@ const MasterclassRegistration: React.FC = () => {
 
                     if (modesToDisplay.length === 0) {
                       return (
-                        <p className="text-xs text-amber-400 font-bold p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                        <p className="text-xs text-[#FF0033] font-bold p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
                           {language === 'am'
                             ? 'ለዚህ ክፍል የተለየ የተዘጋጀ አማራጭ የለም።'
                             : 'No available learning packages configured for this session schedule.'}
@@ -836,15 +836,15 @@ const MasterclassRegistration: React.FC = () => {
                               }}
                               className={`p-4 sm:p-5 rounded-2xl border text-left transition-all duration-300 flex flex-col justify-between min-h-[96px] ${
                                 isSelected 
-                                  ? 'border-[#FFD447] bg-[#FFD447]/10 ring-[4px] ring-[#FFD447]/10 shadow-md' 
-                                  : 'border-white/10 bg-[#1E293B]/60 hover:bg-[#1E293B]'
+                                  ? 'border-[#FF0033] bg-[#FF0033]/10 ring-[4px] ring-[#FF0033]/10 shadow-md' 
+                                  : 'border-white/10 bg-[#0A0A0A]/60 hover:bg-[#0A0A0A]'
                               }`}
                             >
                               <div className="flex items-center justify-between w-full">
-                                <span className={`text-xs font-black uppercase tracking-wider ${isSelected ? 'text-[#FFD447]' : 'text-slate-400'}`}>
+                                <span className={`text-xs font-black uppercase tracking-wider ${isSelected ? 'text-[#FF0033]' : 'text-slate-400'}`}>
                                   {displayMode}
                                 </span>
-                                {isSelected && <FiCheckCircle className="text-[#FFD447]" />}
+                                {isSelected && <FiCheckCircle className="text-[#FF0033]" />}
                               </div>
                               <div>
                                 <p className="text-lg md:text-xl font-extrabold text-white leading-none mb-1">{price}</p>
@@ -862,7 +862,7 @@ const MasterclassRegistration: React.FC = () => {
                 /* Locked placeholder — user must pick Q6 first */
                 <div className="flex items-start gap-3 p-4 rounded-2xl border border-white/8 bg-white/[0.02]">
                   <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <FiInfo className="text-slate-500" size={14} />
+                    <FiInfo className="text-white/60" size={14} />
                   </div>
                   <div>
                     <p className="text-xs font-black text-slate-300 mb-0.5">
@@ -872,7 +872,7 @@ const MasterclassRegistration: React.FC = () => {
                         ? '7. Leenjii akkamitti fudhachuu barbaadu?'
                         : '7. How would you prefer to learn?'}
                     </p>
-                    <p className="text-[11px] text-slate-500">
+                    <p className="text-[11px] text-white/60">
                       {language === 'am'
                         ? 'ይህን ጥያቄ ለመመለስ መጀመሪያ ከላይ ያለውን የስልጠና ጊዜ (#6) ይምረጡ።'
                         : language === 'om'
@@ -919,8 +919,8 @@ const MasterclassRegistration: React.FC = () => {
                         onClick={() => toggleEventType(label)}
                         className={`p-3.5 sm:p-4 rounded-2xl border text-center transition-all duration-300 flex flex-col items-center justify-center gap-1.5 ${
                           isSelected
-                            ? 'border-[#FFD447] bg-[#FFD447]/10 text-white ring-[3px] ring-[#FFD447]/10 font-extrabold shadow-md'
-                            : 'border-white/10 bg-[#1E293B]/60 hover:bg-[#1E293B] text-slate-300 font-medium'
+                            ? 'border-[#FF0033] bg-[#FF0033]/10 text-white ring-[3px] ring-[#FF0033]/10 font-extrabold shadow-md'
+                            : 'border-white/10 bg-[#0A0A0A]/60 hover:bg-[#0A0A0A] text-slate-300 font-medium'
                         }`}
                       >
                         <span className="text-xl sm:text-2xl">{icon}</span>
@@ -958,13 +958,13 @@ const MasterclassRegistration: React.FC = () => {
                         onClick={() => toggleOpportunity(en)}
                         className={`p-4 rounded-2xl border text-left text-xs font-bold transition-all duration-300 flex items-center justify-between ${
                           isSelected 
-                            ? 'bg-[#FFD447]/10 text-white border-[#FFD447] shadow-md ring-[3px] ring-[#FFD447]/10' 
-                            : 'bg-[#1E293B]/60 hover:bg-[#1E293B] border-white/10 text-slate-300'
+                            ? 'bg-[#FF0033]/10 text-white border-[#FF0033] shadow-md ring-[3px] ring-[#FF0033]/10' 
+                            : 'bg-[#0A0A0A]/60 hover:bg-[#0A0A0A] border-white/10 text-slate-300'
                         }`}
                       >
                         <span className="font-semibold">{displayOpp}</span>
                         <div className={`w-5 h-5 rounded-full flex items-center justify-center border transition-all ${
-                          isSelected ? 'bg-[#FFD447] border-[#FFD447] text-[#1C2951]' : 'border-white/20'
+                          isSelected ? 'bg-[#FF0033] border-[#FF0033] text-[#000000]' : 'border-white/20'
                         }`}>
                           {isSelected && <FiCheck size={12} className="stroke-[3px]" />}
                         </div>
@@ -987,7 +987,7 @@ const MasterclassRegistration: React.FC = () => {
                   onChange={handleChange}
                   placeholder={language === 'am' ? 'አላማዎን እና የሙያ እቅድዎን ያጋሩን...' : language === 'om' ? 'Kaayyoof fedhii keessan nuus etaa...' : 'Share your objectives and career expectations...'}
                   rows={4}
-                  className="w-full bg-[#1E293B]/80 border border-white/10 rounded-2xl px-5 py-4 text-white focus:border-[#FFD447] focus:bg-[#1E293B] focus:ring-[6px] focus:ring-[#FFD447]/10 outline-none transition-all placeholder:text-slate-400 font-sans shadow-inner hover:border-white/20 duration-300 resize-none"
+                  className="w-full bg-[#0A0A0A]/80 border border-white/10 rounded-2xl px-5 py-4 text-white focus:border-[#FF0033] focus:bg-[#0A0A0A] focus:ring-[6px] focus:ring-[#FF0033]/10 outline-none transition-all placeholder:text-slate-400 font-sans shadow-inner hover:border-white/20 duration-300 resize-none"
                 />
                 {stepErrors.learning_goals && <p className="text-[10px] text-red-500 font-bold mt-1 ml-1">{stepErrors.learning_goals}</p>}
               </div>
@@ -1043,8 +1043,8 @@ const MasterclassRegistration: React.FC = () => {
                         }}
                         className={`p-3.5 rounded-2xl border text-left transition-all duration-300 flex items-center gap-2 ${
                           isSelected
-                            ? 'border-[#FFD447] bg-[#FFD447]/10 text-white ring-[4px] ring-[#FFD447]/10 font-extrabold shadow-md'
-                            : 'border-white/10 bg-[#1E293B]/60 hover:bg-[#1E293B] text-slate-300'
+                            ? 'border-[#FF0033] bg-[#FF0033]/10 text-white ring-[4px] ring-[#FF0033]/10 font-extrabold shadow-md'
+                            : 'border-white/10 bg-[#0A0A0A]/60 hover:bg-[#0A0A0A] text-slate-300'
                         }`}
                       >
                         <span className="text-base">{icon}</span>
@@ -1085,8 +1085,8 @@ const MasterclassRegistration: React.FC = () => {
                         }}
                         className={`w-full p-4 rounded-2xl border text-left transition-all duration-300 flex items-center justify-between ${
                           isSelected
-                            ? 'border-[#FFD447] bg-[#FFD447]/10 ring-[4px] ring-[#FFD447]/10 shadow-md'
-                            : 'border-white/10 bg-[#1E293B]/60 hover:bg-[#1E293B]'
+                            ? 'border-[#FF0033] bg-[#FF0033]/10 ring-[4px] ring-[#FF0033]/10 shadow-md'
+                            : 'border-white/10 bg-[#0A0A0A]/60 hover:bg-[#0A0A0A]'
                         }`}
                       >
                         <div>
@@ -1094,7 +1094,7 @@ const MasterclassRegistration: React.FC = () => {
                           <p className="text-[10px] text-slate-400 font-medium mt-0.5">{desc}</p>
                         </div>
                         <div className={`w-5 h-5 rounded-full flex items-center justify-center border transition-all ${
-                          isSelected ? 'bg-[#FFD447] border-[#FFD447] text-[#1C2951]' : 'border-white/20'
+                          isSelected ? 'bg-[#FF0033] border-[#FF0033] text-[#000000]' : 'border-white/20'
                         }`}>
                           {isSelected && <FiCheck size={12} className="stroke-[3px]" />}
                         </div>
@@ -1107,7 +1107,7 @@ const MasterclassRegistration: React.FC = () => {
 
               {/* Guidelines checklist */}
               <div className="space-y-2">
-                <label className="flex items-start gap-4 p-4 hover:bg-[#1E293B] rounded-2xl transition-all cursor-pointer border border-white/10 bg-[#1E293B]/40">
+                <label className="flex items-start gap-4 p-4 hover:bg-[#0A0A0A] rounded-2xl transition-all cursor-pointer border border-white/10 bg-[#0A0A0A]/40">
                   <input 
                     required 
                     type="checkbox" 
@@ -1123,7 +1123,7 @@ const MasterclassRegistration: React.FC = () => {
                         });
                       }
                     }} 
-                    className="mt-1 w-5 h-5 accent-[#FFD447] rounded border-white/20" 
+                    className="mt-1 w-5 h-5 accent-[#FF0033] rounded border-white/20" 
                   />
                   <span className="text-xs text-slate-300 font-medium leading-relaxed">
                     {language === 'am' ? 'የስልጠና መመሪያዎችን እስማማለሁ፤ የኢቨንት አመራርን መማር እፈልጋለሁ።' : language === 'om' ? 'Qajeelfama leenjichaatiin walii gala; ogummaa qophii barachuu barbaada.' : 'I agree to the program guidelines and want to learn how to launch professional events.'}
@@ -1146,7 +1146,7 @@ const MasterclassRegistration: React.FC = () => {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#1E293B]/60 p-4 sm:p-6 rounded-2xl sm:rounded-[2rem] border border-white/10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#0A0A0A]/60 p-4 sm:p-6 rounded-2xl sm:rounded-[2rem] border border-white/10">
                 <ReviewField label={language === 'am' ? 'ሙሉ ስም' : language === 'om' ? 'Maqaa Guutuu' : 'Full Name'} value={formData.name} />
                 <ReviewField label={language === 'am' ? 'ኢሜይል' : language === 'om' ? 'Imeelii' : 'Email Address'} value={formData.email || 'N/A'} />
                 <ReviewField label={language === 'am' ? 'ስልክ' : language === 'om' ? 'Bilbila' : 'Phone Number'} value={formData.phone} />
@@ -1171,10 +1171,10 @@ const MasterclassRegistration: React.FC = () => {
               </div>
 
               {/* Dynamic Invoice / Tuition Breakdown Card */}
-              <div className="bg-[#1C2951] text-white p-5 sm:p-8 rounded-2xl sm:rounded-[2rem] border border-white/10 shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-[#FFD447]/10 rounded-full blur-3xl pointer-events-none" />
+              <div className="bg-[#000000] text-white p-5 sm:p-8 rounded-2xl sm:rounded-[2rem] border border-white/10 shadow-xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#FF0033]/10 rounded-full blur-3xl pointer-events-none" />
                 
-                <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#FFD447] mb-4">
+                <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#FF0033] mb-4">
                   {language === 'am' ? 'የምዝገባ ክፍያ ማጠቃለያ' : language === 'om' ? 'Gudunfaa Kaffaltii Galmee' : 'Enrollment Summary Invoice'}
                 </h4>
                 
@@ -1196,11 +1196,11 @@ const MasterclassRegistration: React.FC = () => {
                   )}
 
                   <div className="flex justify-between border-t border-white/20 pt-4 text-lg font-black mt-4">
-                    <span className="text-[#FFD447]">{language === 'am' ? 'ጠቅላላ ክፍያ' : language === 'om' ? "Ida'amama Kaffaltii" : 'Total Tuition due:'}</span>
-                    <span className="text-[#FFD447]">{calculateFee().toLocaleString()} ETB</span>
+                    <span className="text-[#FF0033]">{language === 'am' ? 'ጠቅላላ ክፍያ' : language === 'om' ? "Ida'amama Kaffaltii" : 'Total Tuition due:'}</span>
+                    <span className="text-[#FF0033]">{calculateFee().toLocaleString()} ETB</span>
                   </div>
                   <p className="text-[10px] text-slate-300 leading-relaxed font-medium pt-2 border-t border-white/10 mt-3">
-                    Payment instructions and options will be shared with you by our admissions team upon review. final info to the telegram account of <a href="https://t.me/Yenegeevent" target="_blank" rel="noopener noreferrer" className="text-[#FFD447] font-bold underline hover:text-white">@Yenegeevent</a>
+                    Payment instructions and options will be shared with you by our admissions team upon review. final info to the telegram account of <a href="https://t.me/Yenegeevent" target="_blank" rel="noopener noreferrer" className="text-[#FF0033] font-bold underline hover:text-white">@Yenegeevent</a>
                   </p>
                 </div>
               </div>
@@ -1209,10 +1209,10 @@ const MasterclassRegistration: React.FC = () => {
                 type="button" 
                 onClick={handleFinalSubmit}
                 disabled={isSubmitting}
-                className="w-full py-5 rounded-[1.5rem] bg-gradient-to-r from-[#FFD447] to-[#FF6F5E] text-[#1C2951] font-black flex items-center justify-center gap-3 text-xs sm:text-sm tracking-[0.2em] uppercase hover:-translate-y-1 active:scale-95 transition-all duration-300 shadow-2xl shadow-[#FF6F5E]/20 disabled:opacity-75"
+                className="w-full py-5 rounded-[1.5rem] bg-gradient-to-r from-[#FF0033] to-[#FF0033] text-[#000000] font-black flex items-center justify-center gap-3 text-xs sm:text-sm tracking-[0.2em] uppercase hover:-translate-y-1 active:scale-95 transition-all duration-300 shadow-2xl shadow-[#FF0033]/20 disabled:opacity-75"
               >
                 {isSubmitting ? (
-                  <><FiLoader className="animate-spin text-[#1C2951]" /> {language === 'am' ? 'በማስገባት ላይ...' : language === 'om' ? 'Ergamaa jira...' : 'Submitting Reservation...'}</>
+                  <><FiLoader className="animate-spin text-[#000000]" /> {language === 'am' ? 'በማስገባት ላይ...' : language === 'om' ? 'Ergamaa jira...' : 'Submitting Reservation...'}</>
                 ) : (
                   <><FiCheck className="stroke-[3px]" /> {language === 'am' ? 'ምዝገባውን አረጋግጥ' : language === 'om' ? 'Galmee Mirkaneessi' : 'Complete & Submit'}</>
                 )}
@@ -1238,7 +1238,7 @@ const MasterclassRegistration: React.FC = () => {
               <button 
                 type="button" 
                 onClick={handleNext}
-                className="flex items-center gap-2 px-8 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest text-[#1C2951] bg-[#FFD447] hover:bg-[#ffe073] hover:shadow-md transition-all ml-auto font-sans"
+                className="flex items-center gap-2 px-8 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest text-[#000000] bg-[#FF0033] hover:bg-[#ffe073] hover:shadow-md transition-all ml-auto font-sans"
               >
                 {language === 'am' ? 'ቀጣይ' : language === 'om' ? 'Itti Fufaa' : 'Next'} <FiArrowRight />
               </button>
@@ -1254,7 +1254,7 @@ const MasterclassRegistration: React.FC = () => {
 
 const ReviewField = ({ label, value }: { label: string; value: string }) => (
   <div className="space-y-1">
-    <p className="text-[9px] uppercase tracking-wider font-extrabold text-[#FFD447]">{label}</p>
+    <p className="text-[9px] uppercase tracking-wider font-extrabold text-[#FF0033]">{label}</p>
     <p className="text-xs font-bold text-white break-words leading-relaxed">{value || 'N/A'}</p>
   </div>
 );

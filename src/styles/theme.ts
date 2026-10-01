@@ -1,26 +1,35 @@
 export const BRAND = {
-  // Primary
-  primary: "#0F172A", // Navy
-  secondary: "#FFD447", // Gold
-  accent: "#FF6F5E", // Coral
+  // Primary & Accents (Pure Black, Pure White, Pure Red)
+  primary: "#000000", // Pure Black
+  secondary: "#FF0033", // Pure Electric Red
+  accent: "#FF1E27", // Accent Red
+  red: "#FF0033",
+  redHover: "#E5002D",
+  redGlow: "rgba(255, 0, 51, 0.4)",
   
-  // Neutral
-  navy: "#0F172A",
-  navyLight: "#1E293B",
-  gold: "#FFD447",
-  coral: "#FF6F5E",
-  cream: "#FAF9F6",
+  // Monochrome Neutrals
+  black: "#000000",
+  blackElevated: "#0A0A0A",
+  blackCard: "#111111",
+  blackBorder: "rgba(255, 255, 255, 0.1)",
+  navy: "#000000", // Aliased for backward compatibility
+  navyLight: "#0D0D0D", // Aliased for backward compatibility
+  gold: "#FF0033", // Re-mapped to red for backward compatibility
+  coral: "#FF1E27", // Re-mapped to red for backward compatibility
+  cream: "#FFFFFF",
   white: "#FFFFFF",
-  gray50: "#F8F9FA",
-  gray100: "#F0F2F5",
-  gray400: "#9CA3AF",
-  gray500: "#6B7280",
-  gray600: "#4B5563",
-  gray900: "#111827",
+  whiteMuted: "rgba(255, 255, 255, 0.7)",
+  gray50: "#18181B",
+  gray100: "#27272A",
+  gray400: "#A1A1AA",
+  gray500: "#71717A",
+  gray600: "#52525B",
+  gray900: "#09090B",
 };
 
 export const GRADIENT = {
-  brand: "linear-gradient(135deg, #FFD447 0%, #FF6F5E 100%)",
-  navyVert: "linear-gradient(180deg, #0F172A 0%, #1E293B 100%)",
-  textDark: "linear-gradient(135deg, #0F172A 0%, #1E293B 100%)",
+  brand: "linear-gradient(135deg, #FF0033 0%, #B30024 100%)",
+  navyVert: "linear-gradient(180deg, #000000 0%, #0A0A0A 100%)",
+  textDark: "linear-gradient(135deg, #FFFFFF 0%, #A1A1AA 100%)",
+  redGlow: "radial-gradient(circle, rgba(255, 0, 51, 0.25) 0%, transparent 70%)",
 };
